@@ -2,12 +2,27 @@ import { Component, Inject, PLATFORM_ID, computed, effect, signal } from '@angul
 import { isPlatformBrowser } from '@angular/common';
 import { toSignal } from '@angular/core/rxjs-interop';
 import { fromEvent, map, startWith } from 'rxjs';
+import { trigger, transition, style, animate } from '@angular/animations';
 
 @Component({
   selector: 'app-aside',
   standalone: true,
   templateUrl: './aside.html',
-  styleUrl: './aside.css'
+  styleUrl: './aside.css',
+  animations: [
+    trigger('expandCollapse', [
+      // quando appare
+      transition(':enter', [
+        style({ height: 0, opacity: 0, transform: 'translateY(-4px)' }),
+        animate('300ms ease-out', style({ height: '*', opacity: 1, transform: 'translateY(0)' })),
+      ]),
+      // quando scompare
+      transition(':leave', [
+        style({ height: '*', opacity: 1 }),
+        animate('300ms ease-in', style({ height: 0, opacity: 0 })),
+      ]),
+    ]),
+  ],
 })
 export class Aside {
   private readonly LARGE_MIN = 1250;
