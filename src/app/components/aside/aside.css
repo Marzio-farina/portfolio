@@ -3,7 +3,10 @@
   background-color: oklch(var(--b2) / 1);
   color: var(--text-base);
   border-radius: var(--radius-2xl);
-  padding: var(--space-0, 0); /* no default inner padding */
+  padding: var(--space-0, 0);
+  border: 1px solid hsl(0, 0%, 22%);
+  border-radius: 20px;
+  background-color: hsl(240, 2%, 12%);
 }
 
 .profile__header {
@@ -11,7 +14,7 @@
   display: flex;
   align-items: center;
   gap: var(--space-6);
-  padding: var(--space-4);
+  margin: var(--space-4);
   background-color: var(--bg-elev);
   color: var(--text-base);
   border-radius: var(--radius-2xl);
@@ -20,9 +23,9 @@
 }
 
 .profile__avatar {
-  padding: 20px;
-  border: 1px solid black;
+  border: 1px solid hsl(240, 1%, 25%);
   border-radius: 25%;
+  background-color: hsl(240, 1%, 25%);
 }
 
 .profile__avatar img {
@@ -113,10 +116,11 @@
 /* Divisore */
 .contacts__divider {
   height: 1px;
-  background-color: var(--divider);
+  /* background-color: var(--divider); */
   margin: var(--space-4) 0;
   border-radius: 999px;
   margin: 10px 0;
+  background-color: hsl(0, 0%, 22%);
 }
 
 /* Socials */
