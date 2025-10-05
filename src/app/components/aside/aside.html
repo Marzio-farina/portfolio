@@ -12,7 +12,7 @@
     @if (showButton()) {
 	<button
 	  (click)="toggleContacts()"
-	  class="btn btn-warning btn-sm profile__toggle"
+	  class="btn btn-sm profile__toggle"
 	  [attr.aria-expanded]="showContacts()"
 	  aria-controls="contacts-panel">
 	  @if (isSmall()) {
@@ -35,67 +35,67 @@
   </div>
 	
   @if (showContacts()) {
-	<div class="contacts__divider" role="separator" aria-hidden="true"></div>
     <div id="contacts-panel" class="contacts" @expandCollapse>
-	<ul class="contacts__list">
-	  <!-- EMAIL -->
-	  <li class="contact">
-	    <div class="contact__icon">
-		<svg class="icon-20 mute" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true">
-		  <rect x="3" y="5" width="18" height="14" rx="2"/>
-		  <path d="M3 7l9 6 9-6"/>
-		</svg>
-	    </div>
-	    <div class="contact__body">
-		<p class="contact__label">Email</p>
-		<a class="contact__link" href="mailto:marziofarina@icloud.com">marziofarina@icloud.com</a>
-	    </div>
-	  </li>
+		<div class="contacts__divider" role="separator" aria-hidden="true"></div>
+		<ul class="contacts__list">
+			<!-- EMAIL -->
+			<li class="contact">
+				<div class="contact__icon">
+				<svg class="icon-20 mute" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true">
+				<rect x="3" y="5" width="18" height="14" rx="2"/>
+				<path d="M3 7l9 6 9-6"/>
+				</svg>
+				</div>
+				<div class="contact__body">
+				<p class="contact__label">Email</p>
+				<a class="contact__link" href="mailto:marziofarina@icloud.com">marziofarina@icloud.com</a>
+				</div>
+			</li>
 
-	  <!-- PHONE -->
-	  <li class="contact">
-	    <div class="contact__icon">
-		<svg class="icon-20 mute" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true">
-		  <rect x="7" y="2" width="10" height="20" rx="2" ry="2"/>
-		  <line x1="12" y1="18" x2="12" y2="18"/>
-		</svg>
-	    </div>
-	    <div class="contact__body">
-		<p class="contact__label">Cellulare</p>
-		<a class="contact__link" href="tel:+393518202248">+39 3518202248</a>
-	    </div>
-	  </li>
+			<!-- PHONE -->
+			<li class="contact">
+				<div class="contact__icon">
+				<svg class="icon-20 mute" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true">
+				<rect x="7" y="2" width="10" height="20" rx="2" ry="2"/>
+				<line x1="12" y1="18" x2="12" y2="18"/>
+				</svg>
+				</div>
+				<div class="contact__body">
+				<p class="contact__label">Cellulare</p>
+				<a class="contact__link" href="tel:+393518202248">+39 3518202248</a>
+				</div>
+			</li>
 
-	  <!-- CALENDAR -->
-	  <li class="contact">
-	    <div class="contact__icon">
-		<svg class="icon-20 mute" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true">
-		  <rect x="3" y="4" width="18" height="18" rx="2"/>
-		  <line x1="16" y1="2" x2="16" y2="6"/>
-		  <line x1="8" y1="2" x2="8" y2="6"/>
-		  <line x1="3" y1="10" x2="21" y2="10"/>
-		</svg>
-	    </div>
-	    <div class="contact__body">
-		<p class="contact__label">Compleanno</p>
-		<time class="contact__text" datetime="1995-10-30">30 Ottobre, 1995</time>
-	    </div>
-	  </li>
+			<!-- CALENDAR -->
+			<li class="contact">
+				<div class="contact__icon">
+				<svg class="icon-20 mute" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true">
+				<rect x="3" y="4" width="18" height="18" rx="2"/>
+				<line x1="16" y1="2" x2="16" y2="6"/>
+				<line x1="8" y1="2" x2="8" y2="6"/>
+				<line x1="3" y1="10" x2="21" y2="10"/>
+				</svg>
+				</div>
+				<div class="contact__body">
+				<p class="contact__label">Compleanno</p>
+				<time class="contact__text" datetime="1995-10-30">30 Ottobre, 1995</time>
+				</div>
+			</li>
 
-	  <!-- LOCATION -->
-	  <li class="contact">
-	    <div class="contact__icon">
-		<svg class="icon-20 mute" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true">
-		  <path d="M12 21s-6-5.686-6-10a6 6 0 1 1 12 0c0 4.314-6 10-6 10z"/>
-		  <circle cx="12" cy="11" r="2.5"/>
-		</svg>
-	    </div>
-	    <div class="contact__body">
-		<p class="contact__label">Posizione</p>
-		<address class="contact__text">Salerno, Campania</address>
-	    </div>
-	  </li>
-	</ul>
+			<!-- LOCATION -->
+			<li class="contact">
+				<div class="contact__icon">
+				<svg class="icon-20 mute" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true">
+				<path d="M12 21s-6-5.686-6-10a6 6 0 1 1 12 0c0 4.314-6 10-6 10z"/>
+				<circle cx="12" cy="11" r="2.5"/>
+				</svg>
+				</div>
+				<div class="contact__body">
+				<p class="contact__label">Posizione</p>
+				<address class="contact__text">Salerno, Campania</address>
+				</div>
+			</li>
+		</ul>
 
 	<div class="contacts__divider" role="separator" aria-hidden="true"></div>
 

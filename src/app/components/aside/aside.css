@@ -36,13 +36,13 @@
 .profile__identity {
   display: flex;
   flex-direction: column;
-  justify-content: center;
+  gap: 5px 0;
   min-width: 0;
 }
 
 .profile__name {
-  font-size: 1.25rem;         /* ~text-xl */
-  font-weight: 600;            /* ~font-semibold */
+  font-size: 1.25rem;
+  font-weight: 600;
   line-height: 1.2;
   margin: 0;
 }
@@ -55,8 +55,35 @@
 /* Toggle (in alto a destra) */
 .profile__toggle {
   position: absolute;
-  top: 0.5rem;                 /* ~top-2 */
-  right: 0.5rem;               /* ~right-2 */
+  top: 0.5rem;
+  right: 0.5rem;
+  border-radius: 0 15px;
+  color: hsl(45, 100%, 71%);
+  box-shadow: 0 16px 30px hsla(0, 0%, 0%, 0.25);
+  transition: 0.25s ease;
+  z-index: 1;
+}
+
+.profile__toggle:hover {
+  background: linear-gradient( to bottom right, hsl(45, 100%, 71%) 0% , hsla(36,  100%, 69%) 50% )
+}
+
+.profile__toggle:hover::before, .profile__toggle:focus::before {
+  background: linear-gradient( 135deg, hsla(45, 100%, 71%, 0.251) 0%, hsla(35, 100%, 68%, 0) 59.86% ), hsl(240, 2%, 13%);;
+}
+
+.profile__toggle::before {
+  content: "";
+  position: absolute;
+  inset: 1px;
+  border-radius: inherit;
+  transition: 0.25s ease;
+  z-index: -1;
+}
+
+::selection {
+  background: hsl(45, 100%, 72%);
+  color: hsl(0, 0%, 7%);
 }
 
 /* ---------- Pannello contatti ---------- */
@@ -120,7 +147,7 @@
   /* background-color: var(--divider); */
   margin: var(--space-4) 0;
   border-radius: 999px;
-  margin: 10px 0;
+  margin: 10px 15px;
   background-color: hsl(0, 0%, 22%);
 }
 
