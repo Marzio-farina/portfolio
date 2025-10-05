@@ -1,9 +1,10 @@
 import { Component, signal } from '@angular/core';
 import { Aside } from "./components/aside/aside";
+import { Navbar } from "./components/navbar/navbar";
 
 @Component({
   selector: 'app-root',
-  imports: [Aside],
+  imports: [Aside, Navbar],
   templateUrl: './app.html',
   styleUrl: './app.css'
 })
