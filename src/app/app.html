@@ -7,13 +7,12 @@
 
   <!-- CONTENUTO -->
   <section class="dashboard">
-    <!-- riga sticky che tiene il nav a destra -->
-    <div class="dashboard__nav-row">
-      <!-- la navbar (host element del componente) -->
-      <app-navbar class="floating-nav"></app-navbar>
-    </div>
+    <div class="dashboard__card">
+      <div class="dashboard__nav">
+        <app-navbar class="floating-nav floating-nav--inline"></app-navbar>
+      </div>
 
-    <!-- contenuto vero e proprio -->
-    <app-dashboard class="dashboard__body"></app-dashboard>
+      <app-dashboard class="dashboard__content"></app-dashboard>
+    </div>
   </section>
 </main>
