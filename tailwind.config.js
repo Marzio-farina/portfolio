@@ -4,6 +4,7 @@ module.exports = {
   theme: { extend: {} },
   plugins: [require('daisyui')],
   daisyui: {
-    themes: ['light', 'dark'], // puoi aggiungere altri temi Daisy (e.g. "cupcake", "business", ecc.)
+    themes: ['light', 'business'],
+    darkTheme: 'business',
   },
 };

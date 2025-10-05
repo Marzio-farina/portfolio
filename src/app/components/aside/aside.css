@@ -1,0 +1,150 @@
+/* ---------- Tokens utili ---------- */
+:root {
+  --radius-2xl: 1rem;
+  --space-3: 0.75rem;
+  --space-4: 1rem;
+  --space-5: 1.25rem;
+  --space-6: 1.5rem;
+  --ring: oklch(var(--b3) / 0.35);
+  --bg-base: oklch(var(--b1) / 1);
+  --bg-elev: oklch(var(--b1) / 1);
+  --text-base: oklch(var(--bc) / 1);
+  --text-mute: color-mix(in oklab, var(--text-base) 70%, transparent);
+  --divider: oklch(var(--b3) / 0.6);
+  --shadow-sm: 0 1px 2px rgb(0 0 0 / 0.08);
+}
+
+/* ---------- Layout principale ---------- */
+.profile {
+  background-color: oklch(var(--b2) / 1);
+  color: var(--text-base);
+  border-radius: var(--radius-2xl);
+  padding: var(--space-0, 0); /* no default inner padding */
+}
+
+.profile__header {
+  position: relative;
+  display: flex;
+  align-items: center;
+  gap: var(--space-6);
+  padding: var(--space-4);
+  background-color: var(--bg-elev);
+  color: var(--text-base);
+  border-radius: var(--radius-2xl);
+  border: 1px solid var(--ring);
+  box-shadow: var(--shadow-sm);
+}
+
+.profile__avatar img {
+  display: block;
+  border-radius: var(--radius-2xl);
+}
+
+.profile__identity {
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  min-width: 0;
+}
+
+.profile__name {
+  font-size: 1.25rem;         /* ~text-xl */
+  font-weight: 600;            /* ~font-semibold */
+  line-height: 1.2;
+  margin: 0;
+}
+
+.profile__role {
+  margin: 0.125rem 0 0;
+  opacity: 0.7;
+}
+
+/* Toggle (in alto a destra) */
+.profile__toggle {
+  position: absolute;
+  top: 0.5rem;                 /* ~top-2 */
+  right: 0.5rem;               /* ~right-2 */
+}
+
+/* ---------- Pannello contatti ---------- */
+.contacts {
+  margin-top: var(--space-3);
+  background-color: var(--bg-base);
+  color: var(--text-base);
+  border-radius: var(--radius-2xl);
+  border: 1px solid var(--ring);
+  padding: var(--space-4);
+}
+
+.contacts__list {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+  display: grid;               /* migliore gestione degli spazi verticali */
+  row-gap: var(--space-3);
+}
+
+.contact {
+  display: grid;
+  grid-template-columns: auto 1fr;
+  align-items: start;
+  column-gap: var(--space-3);
+}
+
+.contact__icon {
+  line-height: 0;
+}
+
+.contact__body {
+  min-width: 0;
+}
+
+.contact__label {
+  margin: 0;
+  font-size: 0.75rem;          /* text-xs */
+  opacity: 0.6;
+}
+
+.contact__link,
+.contact__text {
+  font-size: 0.875rem;         /* text-sm */
+  color: var(--text-base);
+  text-decoration: none;
+}
+
+.contact__link:hover {
+  text-decoration: underline;
+}
+
+/* Divisore */
+.contacts__divider {
+  height: 1px;
+  background-color: var(--divider);
+  margin: var(--space-4) 0;
+  border-radius: 999px;
+}
+
+/* Socials */
+.socials {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+  display: flex;
+  justify-content: space-evenly;
+  align-items: center;
+  gap: var(--space-4);
+  opacity: 0.9;
+}
+
+.socials__link {
+  display: inline-block;
+  line-height: 0;
+}
+
+/* ---------- Icone & utility minime ---------- */
+.icon-16 { width: 1rem; height: 1rem; }
+.icon-20 { width: 1.25rem; height: 1.25rem; }
+.rotate-180 { transform: rotate(180deg); }
+
+.mute { color: color-mix(in oklab, var(--text-base) 70%, transparent); }
+.hover-unmute:hover { color: var(--text-base); }
