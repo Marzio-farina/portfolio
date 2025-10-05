@@ -1,107 +1,133 @@
 <aside>
-    <div>
+    <div class="relative flex items-center gap-x-6 p-4 rounded-lg shadow">
         <figure>
-            <img src="./assets/images/my-avatar.png" alt="Om Kharche" width="80">
+            <img src="./assets/images/my-avatar.png" alt="Marziano Farina" width="80" class="rounded-full">
         </figure>
-        <div>
-            <h1 title="Marziano Farina">Marziano Farina</h1>
-            <p>Full Stack Developer</p>
+        <div class="flex flex-col justify-center">
+            <h1 class="text-xl font-semibold text-gray-900" title="Marziano Farina">Marziano Farina</h1>
+            <p class="text-gray-600">Full Stack Developer</p>
         </div>
-        <button>
-            <span>Show Contacts</span>
-        </button>
+
+        @if (showButton()) {
+            <button (click)="toggleContacts()" 
+                    class="absolute top-2 right-2 text-sm bg-yellow-400 text-black px-3 py-1 rounded-md shadow hover:bg-yellow-300 transition"
+                    [attr.aria-expanded]="showContacts()"
+                    aria-controls="contacts-panel">
+                
+                <!-- Small: icona freccia; Medium: testo -->
+                @if (isSmall()) {
+                    @if (!showContacts()) {
+                        <!-- freccia giù -->
+                        <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <path d="M6 9l6 6 6-6"/>
+                        </svg>
+                    } @else {
+                        <!-- freccia su -->
+                        <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 rotate-180 transition-transform" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <path d="M6 9l6 6 6-6"/>
+                        </svg>
+                    }
+                } @else {
+                    <span>{{ showContacts() ? 'Hide Contacts' : 'Show Contacts' }}</span>
+                }
+            </button>
+        }
     </div>
-    <div>
-        <ul>
-            <!-- EMAIL -->
-            <li>
-                <div>
+
+    <!-- Pannello contatti: in large sempre visibile; in medium/small dipende da expanded -->
+    @if (showContacts()) {
+        <div id="contacts-panel" class="mt-3">
+            <ul class="space-y-3">
+                <!-- EMAIL -->
+                <li class="flex items-start gap-3">
+                    <div>
+                        <!-- <svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                            stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                            <path d="M4 4h16a2 2 0 0 1 2 2v12a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2z"/>
+                            <polyline points="22,6 12,13 2,6"/>
+                        </svg> -->
+                    </div>
+                    <div>
+                        <p class="text-xs text-gray-500">Email</p>
+                        <a class="text-sm text-blue-600 hover:underline" href="mailto:marziofarina@icloud.com">marziofarina@icloud.com</a>
+                    </div>
+                </li>
+
+                <!-- PHONE -->
+                <li class="flex items-start gap-3">
+                    <div>
+                        <!-- <svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                            stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                            <path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.8 19.8 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6A19.8 19.8 0 0 1 2.09 4.18 2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72c.12.86.33 1.69.63 2.47a2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.61-1.2a2 2 0 0 1 2.11-.45c.78.3 1.61.51 2.47.63A2 2 0 0 1 22 16.92Z"/>
+                        </svg> -->
+                    </div>
+                    <div>
+                        <p class="text-xs text-gray-500">Cellulare</p>
+                        <a class="text-sm text-blue-600 hover:underline" href="tel:+393518202248">+39 3518202248</a>
+                    </div>
+                </li>
+
+                <!-- CALENDAR -->
+                <li class="flex items-start gap-3">
+                    <div>
+                        <!-- <svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                            stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                            <rect x="3" y="4" width="18" height="18" rx="2"/>
+                            <line x1="16" y1="2" x2="16" y2="6"/>
+                            <line x1="8" y1="2" x2="8" y2="6"/>
+                            <line x1="3" y1="10" x2="21" y2="10"/>
+                        </svg> -->
+                    </div>
+                    <div>
+                        <p class="text-xs text-gray-500">Compleanno</p>
+                        <time class="text-sm" datetime="1995-10-30">30 Ottobre, 1995</time>
+                    </div>
+                </li>
+
+                <!-- LOCATION -->
+                <li class="flex items-start gap-3">
+                    <div>
+                        <!-- <svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                            stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                            <path d="M21 10c0 7-9 13-9 13S3 17 3 10a9 9 0 1 1 18 0Z"/>
+                            <circle cx="12" cy="10" r="3"/>
+                        </svg> -->
+                    </div>
+                    <div>
+                        <p class="text-xs text-gray-500">Posizione</p>
+                        <address class="not-italic text-sm">Salerno, Campania</address>
+                    </div>
+                </li>
+            </ul>
+
+            <div class="my-4 h-px bg-gray-200"></div>
+
+            <ul class="flex items-center gap-4">
+                <li>
+                    <a href="#" aria-label="Facebook" class="block h-5 w-5">
+                    <!-- <svg class="icon" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">
+                        <path d="M22 12a10 10 0 1 0-11.6 9.9v-7h-2.4V12h2.4V9.8c0-2.4 1.4-3.8 3.6-3.8 1 0 2 .2 2 .2v2.2h-1.1c-1.1 0-1.4.7-1.4 1.3V12h2.4l-.4 2.9h-2v7A10 10 0 0 0 22 12z"/>
+                    </svg> -->
+                    </a>
+                </li>
+                <li>
+                    <a href="#" aria-label="Twitter (X)" class="block h-5 w-5">
+                    <!-- <svg class="icon" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">
+                        <path d="M4 4l7.5 9L4.5 20H8l5-5.7L17.5 20H21l-7.3-9 6.6-7H16L11.3 8.3 7.5 4H4z"/>
+                    </svg> -->
+                    </a>
+                </li>
+                <li>
+                    <a href="#" aria-label="Instagram" class="block h-5 w-5">
                     <!-- <svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor"
                         stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
-                        <path d="M4 4h16a2 2 0 0 1 2 2v12a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2z"/>
-                        <polyline points="22,6 12,13 2,6"/>
+                        <rect x="3" y="3" width="18" height="18" rx="5"/>
+                        <circle cx="12" cy="12" r="3.5"/>
+                        <circle cx="17.5" cy="6.5" r="1"/>
                     </svg> -->
-                </div>
-                <div>
-                    <p>Email</p>
-                    <a href="mailto:marziofarina@icloud.com">marziofarina@icloud.com</a>
-                </div>
-            </li>
-
-            <!-- PHONE -->
-            <li>
-                <div>
-                    <!-- <svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor"
-                        stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
-                        <path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.8 19.8 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6A19.8 19.8 0 0 1 2.09 4.18 2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72c.12.86.33 1.69.63 2.47a2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.61-1.2a2 2 0 0 1 2.11-.45c.78.3 1.61.51 2.47.63A2 2 0 0 1 22 16.92Z"/>
-                    </svg> -->
-                </div>
-                <div>
-                    <p>Cellulare</p>
-                    <a href="tel:+393518202248">+39 3518202248</a>
-                </div>
-            </li>
-
-            <!-- CALENDAR -->
-            <li>
-                <div>
-                    <!-- <svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor"
-                        stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
-                        <rect x="3" y="4" width="18" height="18" rx="2"/>
-                        <line x1="16" y1="2" x2="16" y2="6"/>
-                        <line x1="8" y1="2" x2="8" y2="6"/>
-                        <line x1="3" y1="10" x2="21" y2="10"/>
-                    </svg> -->
-                </div>
-                <div>
-                    <p>Compleanno</p>
-                    <time datetime="1995-10-30">30 Ottobre, 1995</time>
-                </div>
-            </li>
-
-            <!-- LOCATION -->
-            <li>
-                <div>
-                    <!-- <svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor"
-                        stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
-                        <path d="M21 10c0 7-9 13-9 13S3 17 3 10a9 9 0 1 1 18 0Z"/>
-                        <circle cx="12" cy="10" r="3"/>
-                    </svg> -->
-                </div>
-                <div>
-                    <p>Posizione</p>
-                    <address>Salerno, Campania</address>
-                </div>
-            </li>
-        </ul>
-
-        <div></div>
-
-        <ul>
-            <li>
-                <a href="#" aria-label="Facebook">
-                <!-- <svg class="icon" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">
-                    <path d="M22 12a10 10 0 1 0-11.6 9.9v-7h-2.4V12h2.4V9.8c0-2.4 1.4-3.8 3.6-3.8 1 0 2 .2 2 .2v2.2h-1.1c-1.1 0-1.4.7-1.4 1.3V12h2.4l-.4 2.9h-2v7A10 10 0 0 0 22 12z"/>
-                </svg> -->
-                </a>
-            </li>
-            <li>
-                <a href="#" aria-label="Twitter (X)">
-                <!-- <svg class="icon" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">
-                    <path d="M4 4l7.5 9L4.5 20H8l5-5.7L17.5 20H21l-7.3-9 6.6-7H16L11.3 8.3 7.5 4H4z"/>
-                </svg> -->
-                </a>
-            </li>
-            <li>
-                <a href="#" aria-label="Instagram">
-                <!-- <svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor"
-                    stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
-                    <rect x="3" y="3" width="18" height="18" rx="5"/>
-                    <circle cx="12" cy="12" r="3.5"/>
-                    <circle cx="17.5" cy="6.5" r="1"/>
-                </svg> -->
-                </a>
-            </li>
-        </ul>
-    </div>
+                    </a>
+                </li>
+            </ul>
+        </div>
+    }
 </aside>
