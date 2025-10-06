@@ -5,7 +5,7 @@
   /* padding: var(--content-top) 0.75rem 1rem; */
   display: grid;
   gap: 1.5rem;
-  margin-top: 1.5rem;
+  margin-top: 4rem;
   padding-inline: var(--page-gutter);
   grid-template-columns: 1fr;
   justify-items: center;
