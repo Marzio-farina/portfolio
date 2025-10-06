@@ -209,12 +209,14 @@
 .mute { color: color-mix(in oklab, var(--text-base) 70%, transparent); }
 .hover-unmute:hover { color: var(--text-base); }
 
+/* ========== (>=768px) ========== */
 @media (min-width: 768px) {
   .contacts__list {
     grid-template-columns: auto auto;
   }
 }
 
+/* ========== DESKTOP (>=1250px) ========== */
 @media (min-width: 1250px) {
   .profile__header { flex-direction: column; }
   .contacts__list { grid-template-columns: auto; }
