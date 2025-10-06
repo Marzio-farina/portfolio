@@ -1,4 +1,7 @@
-import { Component } from '@angular/core';
+import { Component, inject } from '@angular/core';
+import { toSignal } from '@angular/core/rxjs-interop';
+import { ActivatedRoute } from '@angular/router';
+import { map } from 'rxjs';
 
 @Component({
   selector: 'app-about',
@@ -7,5 +10,6 @@ import { Component } from '@angular/core';
   styleUrl: './about.css'
 })
 export class About {
-
+  private route = inject(ActivatedRoute);
+  title = toSignal(this.route.data.pipe(map(d => d['title'] as string)), { initialValue: '' });
 }
