@@ -105,6 +105,19 @@ html {
 }
 
 .article-title {
-    color: var(--white-2);
-    font-size: 32px;
+  color: var(--white-2);
+  font-size: 32px;
+  position: relative;
+  padding-bottom: 15px;
+}
+
+.article-title::after {
+  content: "";
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  width: 30px;
+  height: 5px;
+  background: var(--text-gradient-yellow);
+  border-radius: 3px;
 }
