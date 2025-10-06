@@ -6,11 +6,14 @@
   gap: 1.5rem;
   margin-top: 1.5rem;
   padding-inline: var(--page-gutter);
+  grid-template-columns: 1fr 3fr;
+  column-gap: 1.5rem;
 }
 
 @media ( max-width: 1249.98px){
   .layout {
     /* centra i figli (aside + dashboard) */
+    grid-template-columns: auto;
     justify-items: center;
     column-gap: 0;
   }
@@ -26,14 +29,6 @@
     position: static;
     top: auto;
     margin-top: 0.75rem; /* opzionale: respiro sopra l'aside */
-  }
-}
-
-@media (min-width: 1250px) {
-  .layout {
-    /* padding: var(--content-top) 0.75rem 0;  */
-    grid-template-columns: 1fr 3fr;
-    column-gap: 1.5rem;
   }
 }
 

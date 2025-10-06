@@ -86,7 +86,7 @@
 
 /* ---------- Pannello contatti ---------- */
 .contacts {
-  margin-top: var(--space-3);
+  margin-top: 0;
   background-color: var(--bg-base);
   color: var(--text-base);
   border-radius: var(--radius-2xl);
@@ -99,8 +99,10 @@
   list-style: none;
   padding: 0;
   margin: 0;
-  display: grid;               /* migliore gestione degli spazi verticali */
+  display: grid;
   row-gap: var(--space-3);
+  display: grid;
+  grid-template-columns: auto;
 }
 
 .contact {
@@ -163,9 +165,8 @@
 .contacts__divider {
   height: 1px;
   /* background-color: var(--divider); */
-  margin: var(--space-4) 0;
   border-radius: 999px;
-  margin: 10px 15px;
+  margin: 15px;
   background-color: hsl(0, 0%, 22%);
 }
 
@@ -211,15 +212,18 @@
 .hover-unmute:hover { color: var(--text-base); }
 
 @media ( max-width: 1249.98px ) {
+
   .profile__header {
     flex-direction:row;
   }
+
+  .contacts__list {
+    grid-template-columns: auto auto;
+  }
 }
 
-/* @media ( min-width: 580px) {
-  .contact__icon {
-    width: 48px;
-    height: 48px;
-    border-radius: 12px;
+@media ( max-width: 767.98px ) {
+  .contacts__list {
+    grid-template-columns: auto;
   }
-} */
+}
