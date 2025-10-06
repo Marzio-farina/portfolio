@@ -21,6 +21,12 @@
   --shadow-sm: 0 1px 2px rgb(0 0 0 / 0.08);
 }
 
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme]) {
+    --color-base-100: hsl(0 0% 7%);
+  }
+}
+
 @layer utilities {
   .text-gradient-yellow {
     background: linear-gradient(to right, hsl(45,100%,72%), hsl(35,100%,68%));
