@@ -26,18 +26,20 @@
 
 /* superficie “pulita” */
 .surface {
-  border: 1px solid hsl(0, 0%, 22%);
+  /* border: 1px solid color-mix(in oklab, var(--b3) 30%, transparent); */
+  border: 1px solid var(--jet);
   border-radius: 20px;
-  background-color: hsl(240, 2%, 12%);
+  background: var(--eerie-black-2);
+  color: var(--smoky-black);
 }
 
 /* Card unica che contiene nav + contenuto */
 .dashboard__card {
   position: relative;
-  background: oklch(var(--b1)/1);
-  color: oklch(var(--bc)/1);
-  border: 1px solid oklch(var(--b3)/.3);
-  border-radius: 1rem;
+  background: var(--eerie-black-2);
+  color: var(--smoky-black);
+  border: 1px solid var(--jet);
+  border-radius: 20px;
   overflow: clip;                /* mantiene gli angoli anche sulla nav */
   min-width: 0;
 }
@@ -48,18 +50,19 @@
   bottom: 0;
   left: 0;
   width: 100%;
-  background: hsla(240, 1%, 17%, 0.75);
+  background: color-mix(in oklab, var(--eerie-black-2) 85%, transparent);
   backdrop-filter: blur(10px);
-  border: 1px solid var(--jet);
+  border: 1px solid color-mix(in oklab, var(--jet) 40%, transparent);
   border-radius: 12px 12px 0 0;
-  box-shadow: var(--shadow-2);
+  box-shadow: 0 8px 24px rgb(0 0 0 / .18);
+  color: var(--smoky-black);
   z-index: 5;
   padding: 12px 20px;
 }
 
 /* Contenuto della dashboard */
 .dashboard__content {
-  padding: 1rem;                 /* regola come vuoi */
+  padding: 1rem;
 }
 
 /* La nav non è più una capsula sopra: aspetto “piatto” coerente con la card */
@@ -89,7 +92,7 @@
 }
 .floating-nav a:hover { opacity: 1; }
 .floating-nav .is-active {
-  background: oklch(var(--b1)/.06);
+  background: color-mix(in oklab, var(--eerie-black-2) 6%, transparent);
   box-shadow: inset 0 -2px 0 oklch(80% 0.1 85 / 1); /* “underline” soffice */
   font-weight: 600;
 }

@@ -1,8 +1,9 @@
 /* ---------- (MOBILE FIRST) ---------- */
 .profile {
-  border: 1px solid hsl(0, 0%, 22%);
+  border: 1px solid color-mix(in oklab, var(--jet) 30%, transparent);
   border-radius: 20px;
-  background-color: hsl(240, 2%, 12%);
+  background: var(--eerie-black-2);
+  color: var(--smoky-black);
 }
 
 .profile__header {
@@ -10,25 +11,25 @@
   display: flex;
   align-items: center;
   flex-direction: row;
-  gap: var(--space-6);
+  /* gap: var(--space-6); */
   margin: 0;
-  background-color: var(--bg-elev);
-  color: var(--text-base);
-  border-radius: var(--radius-2xl);
-  border: 1px solid var(--ring);
-  box-shadow: var(--shadow-sm);
+  background-color: var(--eerie-black-2);
+  color: var(--smoky-black);
+  border-radius: 20px;
+  border: 1px solid color-mix(in oklab, var(--smoky-black) 35%, transparent);
+  box-shadow: var(--shadow-1);
 }
 
 .profile__avatar {
-  border: 1px solid hsl(240, 1%, 25%);
+  border: 1px solid color-mix(in oklab, var(--smoky-black) 40%, transparent);
   border-radius: 25%;
-  background-color: hsl(240, 1%, 25%);
-  margin: var(--space-4);
+  background: var(--eerie-black-2);
+  margin: 20px;
 }
 
 .profile__avatar img {
   display: block;
-  border-radius: var(--radius-2xl);
+  border-radius: 20px;
 }
 
 .profile__identity {
@@ -57,17 +58,27 @@
   right: 0;
   border-radius: 0 15px;
   color: hsl(45, 100%, 71%);
-  box-shadow: 0 16px 30px hsla(0, 0%, 0%, 0.25);
+  box-shadow: var(--shadow-1);
   transition: 0.25s ease;
   z-index: 1;
 }
 
 .profile__toggle:hover {
-  background: linear-gradient( to bottom right, hsl(45, 100%, 71%) 0% , hsla(36,  100%, 69%) 50% )
+  background: linear-gradient(
+    to bottom right,
+    hsl(45, 100%, 71%) 0%,
+    hsla(36, 100%, 69%, 1) 50%
+  );
 }
 
-.profile__toggle:hover::before, .profile__toggle:focus::before {
-  background: linear-gradient( 135deg, hsla(45, 100%, 71%, 0.251) 0%, hsla(35, 100%, 68%, 0) 59.86% ), hsl(240, 2%, 13%);;
+.profile__toggle:hover::before,
+.profile__toggle:focus::before {
+  background: linear-gradient(
+      135deg,
+      hsla(45, 100%, 71%, 0.251) 0%,
+      hsla(35, 100%, 68%, 0) 59.86%
+    ),
+    var(--eerie-black-2);
 }
 
 .profile__toggle::before {
@@ -87,10 +98,10 @@
 /* ---------- Pannello contatti ---------- */
 .contacts {
   margin-top: 0;
-  background-color: var(--bg-base);
-  color: var(--text-base);
+  background: var(--eerie-black-2);
+  color: var(--smoky-black);
   border-radius: var(--radius-2xl);
-  border: 1px solid var(--ring);
+  border: 1px solid color-mix(in oklab, var(--eerie-black-3) 35%, transparent);
   padding: var(--space-4);
   overflow: hidden;
 }
@@ -105,14 +116,11 @@
 }
 
 .contact {
-  display: grid;
-  grid-template-columns: auto 1fr;
-  align-items: start;
+  display: flex;
+  align-items: center;
   column-gap: var(--space-3);
   margin: 10px 0 0 10px;
   gap: 10px;
-  display: flex;
-  align-items: center;
 }
 
 .contact__icon {
@@ -134,7 +142,8 @@
   content: "";
   position: absolute;
   inset: 1px;
-  background: var(--eerie-black-1);
+  /* usa il base-100 del tema attivo */
+  background: var(--eerie-black-2);
   border-radius: inherit;
   z-index: -1;
 }
@@ -151,8 +160,8 @@
 
 .contact__link,
 .contact__text {
-  font-size: 0.875rem;         /* text-sm */
-  color: var(--text-base);
+  font-size: 0.875rem; /* text-sm */
+  color: var(--smoky-black);
   text-decoration: none;
 }
 
@@ -165,7 +174,7 @@
   height: 1px;
   border-radius: 999px;
   margin: 15px;
-  background-color: hsl(0, 0%, 22%);
+  background-color: var(--smoky-black);
 }
 
 /* Socials */
@@ -192,22 +201,21 @@
   transition: transform .25s ease;
 }
 .icon-16.caret {
-  /* per gli SVG ruota attorno al centro */
   transform-box: fill-box;
   transform-origin: 50% 50%;
-
-  /* usa la nuova proprietà rotate */
   rotate: 0turn;
   transition: rotate .25s cubic-bezier(.2,.8,.2,1);
 }
-
-.is-open .icon-16.caret {
-  rotate: .5turn; /* = 180deg */
-}
+.is-open .icon-16.caret { rotate: .5turn; } /* 180deg */
 .icon-20 { width: 1.25rem; height: 1.25rem; }
 
-.mute { color: color-mix(in oklab, var(--text-base) 70%, transparent); }
-.hover-unmute:hover { color: var(--text-base); }
+.mute {
+  color: var(--smoky-black);
+  color: color-mix(in oklab, var(--smoky-black) 70%, transparent);
+  /* se il bridge non fosse carico, fallback diretto sul token daisyUI */
+  color: color-mix(in oklab, oklch(var(--bc) / 1) 70%, transparent);
+}
+.hover-unmute:hover { color: var(--smoky-black); }
 
 /* ========== (>=768px) ========== */
 @media (min-width: 768px) {
