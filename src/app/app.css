@@ -1,14 +1,37 @@
 .layout {
   max-width: 1200px;
   margin-inline: auto;
-  padding: var(--content-top) 0.75rem 1rem;
+  /* padding: var(--content-top) 0.75rem 1rem; */
   display: grid;
   gap: 1.5rem;
   margin-top: 1.5rem;
+  padding-inline: var(--page-gutter);
 }
+
+@media ( max-width: 1249.98px){
+  .layout {
+    /* centra i figli (aside + dashboard) */
+    justify-items: center;
+    column-gap: 0;
+  }
+
+  /* limita e centra la larghezza dei blocchi */
+  .layout__aside,
+  .dashboard {
+    width: min(100%, var(--center-col));
+  }
+
+  /* niente sticky in mobile, allineamento naturale */
+  .layout__aside {
+    position: static;
+    top: auto;
+    margin-top: 0.75rem; /* opzionale: respiro sopra l'aside */
+  }
+}
+
 @media (min-width: 1250px) {
   .layout {
-    padding: var(--content-top) 0.75rem 0; 
+    /* padding: var(--content-top) 0.75rem 0;  */
     grid-template-columns: 1fr 3fr;
     column-gap: 1.5rem;
   }

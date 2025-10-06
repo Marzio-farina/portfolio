@@ -9,6 +9,7 @@
   position: relative;
   display: flex;
   align-items: center;
+  flex-direction: column;
   gap: var(--space-6);
   margin: 0;
   background-color: var(--bg-elev);
@@ -176,3 +177,9 @@
 
 .mute { color: color-mix(in oklab, var(--text-base) 70%, transparent); }
 .hover-unmute:hover { color: var(--text-base); }
+
+@media ( max-width: 1249.98px ) {
+  .profile__header {
+    flex-direction:row;
+  }
+}
