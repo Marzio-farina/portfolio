@@ -116,6 +116,26 @@
 
 .contact__icon {
   line-height: 0;
+  position: relative;
+  width: 48px;
+  height: 48px;
+  border-radius: 12px;
+  background: var(--border-gradient-onyx);
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  color: var(--orange-yellow-crayola);
+  box-shadow: var(--shadow-1);
+  z-index: 1;
+}
+
+.contact__icon::before {
+  content: "";
+  position: absolute;
+  inset: 1px;
+  background: var(--eerie-black-1);
+  border-radius: inherit;
+  z-index: -1;
 }
 
 .contact__body {
@@ -196,3 +216,10 @@
   }
 }
 
+/* @media ( min-width: 580px) {
+  .contact__icon {
+    width: 48px;
+    height: 48px;
+    border-radius: 12px;
+  }
+} */
