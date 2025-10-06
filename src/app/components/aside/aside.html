@@ -13,23 +13,24 @@
 	<button
 	  (click)="toggleContacts()"
 	  class="btn btn-sm profile__toggle"
+	  [class.is-open]="showContacts()"
 	  [attr.aria-expanded]="showContacts()"
 	  aria-controls="contacts-panel">
-	  @if (isSmall()) {
-	    @if (!showContacts()) {
-		<!-- freccia giù -->
-		<svg xmlns="http://www.w3.org/2000/svg" class="icon-16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true">
-		  <path d="M6 9l6 6 6-6"/>
+	  <!-- Un solo SVG, ruotato quando showContacts() è true -->
+		<svg xmlns="http://www.w3.org/2000/svg"
+			class="icon-16 caret"
+			[class.rotate-180]="showContacts()"
+			viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+			aria-hidden="true">
+		<path d="M6 9l6 6 6-6"/>
 		</svg>
-	    } @else {
-		<!-- freccia su -->
-		<svg xmlns="http://www.w3.org/2000/svg" class="icon-16 rotate-180" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true">
-		  <path d="M6 9l6 6 6-6"/>
-		</svg>
-	    }
-	  } @else {
-	    <span>{{ showContacts() ? 'Hide Contacts' : 'Show Contacts' }}</span>
-	  }
+
+		<!-- Mostra il testo solo quando NON è small -->
+		@if (!isSmall()) {
+		<span class="profile__toggle-label">
+			{{ showContacts() ? 'Hide Contacts' : 'Show Contacts' }}
+		</span>
+		}
 	</button>
     }
   </div>
