@@ -1,3 +1,11 @@
 nav button:hover {
     cursor: pointer;
 }
+
+nav button {
+    font-weight: 600;
+}
+
+.is-active {
+    color: hsl(45, 100%, 72%);
+}
