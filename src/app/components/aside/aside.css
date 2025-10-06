@@ -1,4 +1,4 @@
-/* ---------- Layout principale ---------- */
+/* ---------- (MOBILE FIRST) ---------- */
 .profile {
   border: 1px solid hsl(0, 0%, 22%);
   border-radius: 20px;
@@ -9,7 +9,7 @@
   position: relative;
   display: flex;
   align-items: center;
-  flex-direction: column;
+  flex-direction: row;
   gap: var(--space-6);
   margin: 0;
   background-color: var(--bg-elev);
@@ -101,7 +101,6 @@
   margin: 0;
   display: grid;
   row-gap: var(--space-3);
-  display: grid;
   grid-template-columns: auto;
 }
 
@@ -164,7 +163,6 @@
 /* Divisore */
 .contacts__divider {
   height: 1px;
-  /* background-color: var(--divider); */
   border-radius: 999px;
   margin: 15px;
   background-color: hsl(0, 0%, 22%);
@@ -211,19 +209,13 @@
 .mute { color: color-mix(in oklab, var(--text-base) 70%, transparent); }
 .hover-unmute:hover { color: var(--text-base); }
 
-@media ( max-width: 1249.98px ) {
-
-  .profile__header {
-    flex-direction:row;
-  }
-
+@media (min-width: 768px) {
   .contacts__list {
     grid-template-columns: auto auto;
   }
 }
 
-@media ( max-width: 767.98px ) {
-  .contacts__list {
-    grid-template-columns: auto;
-  }
+@media (min-width: 1250px) {
+  .profile__header { flex-direction: column; }
+  .contacts__list { grid-template-columns: auto; }
 }

@@ -1,3 +1,4 @@
+/* ---------- (MOBILE FIRST) ---------- */
 .layout {
   max-width: 1200px;
   margin-inline: auto;
@@ -6,37 +7,44 @@
   gap: 1.5rem;
   margin-top: 1.5rem;
   padding-inline: var(--page-gutter);
-  grid-template-columns: 1fr 3fr;
-  column-gap: 1.5rem;
+  grid-template-columns: 1fr;
+  justify-items: center;
+  column-gap: 0;
 }
 
-@media ( max-width: 1249.98px){
-  .layout {
-    /* centra i figli (aside + dashboard) */
-    grid-template-columns: auto;
-    justify-items: center;
-    column-gap: 0;
-  }
-
-  /* limita e centra la larghezza dei blocchi */
-  .layout__aside,
-  .dashboard {
-    width: min(100%, var(--center-col));
-  }
-
-  /* niente sticky in mobile, allineamento naturale */
-  .layout__aside {
-    position: static;
-    top: auto;
-    margin-top: 0.75rem; /* opzionale: respiro sopra l'aside */
-  }
+.layout__aside,
+.dashboard {
+  width: min(100%, var(--center-col));
 }
 
 .layout__aside {
-  position: sticky;
-  top: var(--content-top);
-  align-self: start;
+  position: static;
+  top: auto;
+  margin-top: 0.75rem; /* respiro sopra l'aside */
   border-radius: 1rem;
+}
+
+/* ========== DESKTOP (>=1250px) ========== */
+@media (min-width: 1250px) {
+  .layout {
+    grid-template-columns: 1fr 3fr;
+    column-gap: 1.5rem;
+    justify-items: stretch;
+  }
+
+  /* larghezza libera nelle due colonne */
+  .layout__aside,
+  .dashboard {
+    width: auto;
+  }
+
+  /* riattiva sticky su aside */
+  .layout__aside {
+    position: sticky;
+    top: var(--content-top);
+    margin-top: 0;
+    align-self: start;
+  }
 }
 
 /* superficie “pulita” */
