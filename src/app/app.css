@@ -27,17 +27,17 @@
 /* superficie “pulita” */
 .surface {
   /* border: 1px solid color-mix(in oklab, var(--b3) 30%, transparent); */
-  border: 1px solid var(--jet);
-  border-radius: 20px;
-  background: var(--eerie-black-2);
-  color: var(--smoky-black);
+  /* border: 1px solid var(--jet); */
+  /* border-radius: 20px; */
+  /* background: var(--eerie-black-2); */
+  /* color: var(--smoky-black); */
 }
 
 /* Card unica che contiene nav + contenuto */
 .dashboard__card {
   position: relative;
   background: var(--eerie-black-2);
-  color: var(--smoky-black);
+  color: var(--light-gray-70);
   border: 1px solid var(--jet);
   border-radius: 20px;
   overflow: clip;                /* mantiene gli angoli anche sulla nav */
@@ -50,12 +50,12 @@
   bottom: 0;
   left: 0;
   width: 100%;
-  background: color-mix(in oklab, var(--eerie-black-2) 85%, transparent);
+  background: color-mix(in oklab, var(--eerie-black-1) 85%, transparent);
   backdrop-filter: blur(10px);
   border: 1px solid color-mix(in oklab, var(--jet) 40%, transparent);
   border-radius: 12px 12px 0 0;
   box-shadow: 0 8px 24px rgb(0 0 0 / .18);
-  color: var(--smoky-black);
+  /* color: var(--light-gray-70); */
   z-index: 5;
   padding: 12px 20px;
 }
@@ -83,7 +83,7 @@
 }
 
 /* Link della nav (stile tab) */
-.floating-nav a {
+/* .floating-nav a {
   text-decoration: none;
   color: inherit;
   opacity: .9;
@@ -91,11 +91,12 @@
   border-radius: .75rem;
 }
 .floating-nav a:hover { opacity: 1; }
-.floating-nav .is-active {
+*/
+/* .floating-nav .is-active {
   background: color-mix(in oklab, var(--eerie-black-2) 6%, transparent);
-  box-shadow: inset 0 -2px 0 oklch(80% 0.1 85 / 1); /* “underline” soffice */
+  box-shadow: inset 0 -2px 0 oklch(80% 0.1 85 / 1);
   font-weight: 600;
-}
+}  */
 
 /* ========== (>=580px) ========== */
 @media (min-width: 580px) {

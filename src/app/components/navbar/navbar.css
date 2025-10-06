@@ -4,8 +4,13 @@ nav button:hover {
 
 nav button {
     font-weight: 600;
+    background: none;
+    border: none;
+    margin: 0 0 0 30px;
+    padding: 10px;
+    color: var(--light-gray-70);
 }
 
-.is-active {
-    color: hsl(45, 100%, 72%);
+nav .is-active {
+    color:  var(--light-gray);
 }

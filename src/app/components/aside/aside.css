@@ -1,9 +1,9 @@
 /* ---------- (MOBILE FIRST) ---------- */
 .profile {
-  border: 1px solid color-mix(in oklab, var(--jet) 30%, transparent);
+  /* border: 1px solid color-mix(in oklab, var(--jet) 30%, transparent); */
   border-radius: 20px;
   background: var(--eerie-black-2);
-  color: var(--smoky-black);
+  color: var(--white-2);
 }
 
 .profile__header {
@@ -13,23 +13,22 @@
   flex-direction: row;
   /* gap: var(--space-6); */
   margin: 0;
-  background-color: var(--eerie-black-2);
-  color: var(--smoky-black);
-  border-radius: 20px;
-  border: 1px solid color-mix(in oklab, var(--smoky-black) 35%, transparent);
-  box-shadow: var(--shadow-1);
+  /* background-color: var(--eerie-black-2); */
+  /* color: var(--smoky-black); */
+  /* border-radius: 20px; */
+  /* border: 1px solid color-mix(in oklab, var(--smoky-black) 35%, transparent); */
+  /* box-shadow: var(--shadow-1); */
 }
 
 .profile__avatar {
   border: 1px solid color-mix(in oklab, var(--smoky-black) 40%, transparent);
   border-radius: 25%;
-  background: var(--eerie-black-2);
+  background: var(--eerie-black-1);
   margin: 20px;
 }
 
 .profile__avatar img {
   display: block;
-  border-radius: 20px;
 }
 
 .profile__identity {
@@ -37,6 +36,7 @@
   flex-direction: column;
   gap: 5px 0;
   min-width: 0;
+  color: var(--light-gray);
 }
 
 .profile__name {
@@ -57,6 +57,7 @@
   top: 0;
   right: 0;
   border-radius: 0 15px;
+  background: var(--eerie-black-2);
   color: hsl(45, 100%, 71%);
   box-shadow: var(--shadow-1);
   transition: 0.25s ease;
@@ -69,6 +70,7 @@
     hsl(45, 100%, 71%) 0%,
     hsla(36, 100%, 69%, 1) 50%
   );
+  cursor: pointer;
 }
 
 .profile__toggle:hover::before,
@@ -90,21 +92,21 @@
   z-index: -1;
 }
 
-::selection {
-  background: hsl(45, 100%, 72%);
+/* ::selection {
+  background: hsl(20, 100%, 72%);
   color: hsl(0, 0%, 7%);
-}
+} */
 
 /* ---------- Pannello contatti ---------- */
-.contacts {
-  margin-top: 0;
-  background: var(--eerie-black-2);
-  color: var(--smoky-black);
-  border-radius: var(--radius-2xl);
-  border: 1px solid color-mix(in oklab, var(--eerie-black-3) 35%, transparent);
-  padding: var(--space-4);
-  overflow: hidden;
-}
+/* .contacts { */
+  /* margin-top: 0; */
+  /* background: var(--eerie-black-2); */
+  /* color: var(--smoky-black); */
+  /* border-radius: var(--radius-2xl); */
+  /* border: 1px solid color-mix(in oklab, var(--eerie-black-3) 35%, transparent); */
+  /* padding: var(--space-4); */
+  /* overflow: hidden; */
+/* } */
 
 .contacts__list {
   list-style: none;
@@ -134,7 +136,7 @@
   justify-content: center;
   align-items: center;
   color: var(--orange-yellow-crayola);
-  box-shadow: var(--shadow-1);
+  /* box-shadow: var(--shadow-1); */
   z-index: 1;
 }
 
@@ -142,7 +144,6 @@
   content: "";
   position: absolute;
   inset: 1px;
-  /* usa il base-100 del tema attivo */
   background: var(--eerie-black-2);
   border-radius: inherit;
   z-index: -1;
@@ -160,13 +161,16 @@
 
 .contact__link,
 .contact__text {
-  font-size: 0.875rem; /* text-sm */
-  color: var(--smoky-black);
+  font-size: 0.875rem;
+  color: var(--light-gray-70);
   text-decoration: none;
 }
 
-.contact__link:hover {
-  text-decoration: underline;
+.contact__link:hover,
+.contact__text:hover {
+  color: var(--light-gray);
+  text-decoration: none;
+  cursor: pointer;
 }
 
 /* Divisore */
@@ -174,7 +178,7 @@
   height: 1px;
   border-radius: 999px;
   margin: 15px;
-  background-color: var(--smoky-black);
+  background-color: var(--jet);
 }
 
 /* Socials */
@@ -213,7 +217,7 @@
   color: var(--smoky-black);
   color: color-mix(in oklab, var(--smoky-black) 70%, transparent);
   /* se il bridge non fosse carico, fallback diretto sul token daisyUI */
-  color: color-mix(in oklab, oklch(var(--bc) / 1) 70%, transparent);
+  color: color-mix(in oklab, oklch(var(--smoky-black) / 1) 70%, transparent);
 }
 .hover-unmute:hover { color: var(--smoky-black); }
 
