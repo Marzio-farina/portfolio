@@ -2,10 +2,11 @@ import { Component, inject } from '@angular/core';
 import { toSignal } from '@angular/core/rxjs-interop';
 import { ActivatedRoute } from '@angular/router';
 import { map } from 'rxjs';
+import { Card } from '../../components/card/card';
 
 @Component({
   selector: 'app-about',
-  imports: [],
+  imports: [Card],
   templateUrl: './about.html',
   styleUrl: './about.css'
 })

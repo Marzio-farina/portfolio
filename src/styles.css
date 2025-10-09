@@ -73,6 +73,7 @@
     --light-gray-70: hsla(0, 0%, 84%, 0.7);
     --bittersweet-shimmer: hsl(0, 43%, 51%);
     --ff-poppins: 'Poppins', sans-serif;
+    --fs-0: 32px;
     --fs-1: 24px;
     --fs-2: 18px;
     --fs-3: 17px;
@@ -106,7 +107,7 @@ html {
 
 .article-title {
   color: var(--white-2);
-  font-size: 32px;
+  font-size: var(--fs-0);
   position: relative;
   padding-bottom: 15px;
 }
@@ -120,4 +121,9 @@ html {
   height: 5px;
   background: var(--text-gradient-yellow);
   border-radius: 3px;
+}
+
+.sub_article-title {
+  color: var(--white-2);
+  font-size: var(--fs-1);
 }
