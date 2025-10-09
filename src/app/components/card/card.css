@@ -1,0 +1,44 @@
+.card {
+    display: flex;
+    justify-content: flex-start;
+    align-items: center;
+    gap: 18px;
+    padding: 30px;
+    position: relative;
+    background: var(--border-gradient-onyx);
+    border-radius: 14px;
+    box-shadow: var(--shadow-2);
+    z-index: 1;
+}
+
+.card::before {
+    content: "";
+    position: absolute;
+    inset: 1px;
+    background: var(--bg-gradient-jet);
+    border-radius: inherit;
+    z-index: -1;
+}
+
+.icon {
+    width: 40px;
+}
+/* 
+.description_card {
+    width: 200px;
+} */
+
+.description_card h4 {
+    font-size: var(--fs-2);
+    margin-bottom: 7px;
+    margin-top: 0;
+    color: var(--white-2);
+    text-transform: capitalize;
+}
+
+.description_card p {
+    color: var(--light-gray);
+    font-size: var(--fs-5);
+    line-height: 1.6;
+    margin: 0;
+}
