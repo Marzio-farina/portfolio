@@ -2,11 +2,37 @@
     {
         "id": "web-dev",
         "title": "Web Development",
-        "description": "Sviluppo di siti di alta qualità a livello professionale."
+        "description": "Sviluppo di siti web e applicazioni su misura con Laravel, Angular ed Electron, orientati a performance e scalabilità.",
+        "icon": "code"
     },
     {
-        "id": "seo",
-        "title": "SEO",
-        "description": "Ottimizzazione per i motori di ricerca."
-    }
+        "id": "win-dev",
+        "title": "Windows Development",
+        "description": "Sviluppo di applicativi desktop in .NET e VBA per ottimizzare processi produttivi e gestionali.",
+        "icon": "pencil"
+    },
+    {
+        "id": "web-scrap",
+        "title": "Web Scrapping & Automation",
+        "description": "Reperimento di dati dal web.",
+        "icon": "code"
+    },
+  {
+    "id": "uiux",
+    "title": "UI/UX Design",
+    "description": "Progettazione di interfacce intuitive e curate nei dettagli per offrire esperienze d’uso piacevoli e funzionali.",
+    "icon": "pencil"
+  },
+  {
+    "id": "innovation",
+    "title": "Ricerca e Innovazione",
+    "description": "Approccio costante al miglioramento e alla sperimentazione di nuove tecnologie per creare soluzioni sempre più efficaci.",
+    "icon": "code"
+  },
+  {
+    "id": "consulting",
+    "title": "Consulenza e Ottimizzazione",
+    "description": "Analisi dei processi aziendali e sviluppo di soluzioni software per incrementare produttività ed efficienza.",
+    "icon": "pencil"
+  }
 ]

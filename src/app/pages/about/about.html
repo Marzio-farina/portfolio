@@ -31,7 +31,11 @@
 
     <div class="sub_article-card">
         @for (c of cards(); track c.id) {
-        <app-card [title]="c.title" [description]="c.description"></app-card>
+            <app-card 
+                [title]="c.title"
+                [description]="c.description"
+                [icon]="c.icon ?? ''">
+            </app-card>
         }
     </div>
 </section>
