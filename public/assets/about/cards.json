@@ -1,0 +1,12 @@
+[
+    {
+        "id": "web-dev",
+        "title": "Web Development",
+        "description": "Sviluppo di siti di alta qualità a livello professionale."
+    },
+    {
+        "id": "seo",
+        "title": "SEO",
+        "description": "Ottimizzazione per i motori di ricerca."
+    }
+]
