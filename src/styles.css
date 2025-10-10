@@ -1,5 +1,3 @@
-
-
 /* ===== Tema di sistema: CHIARO (default) ===== */
 :root {
   --page-gutter: clamp(16px, 4vw, 24px);
@@ -47,6 +45,12 @@
   --shadow-5: 0 24px 80px hsla(0, 0%, 0%, 0.25);
   --transition-1: 0.25s ease;
   --transition-2: 0.5s ease-in-out;
+  --card-inner-padding: 30px; /* stesso valore del padding .card */
+  --pad: 30px;        /* padding card */
+  --gap: 18px;        /* distanza icona-testo */
+  --icon-w: 40px;     /* larghezza icona */
+  --lh: 1.6em;
+  --clamp: 3;
 }
 
 /* ===== Tema di sistema: SCURO (override automatico) ===== */
@@ -98,6 +102,12 @@
     --shadow-5: 0 24px 80px hsla(0, 0%, 0%, 0.25);
     --transition-1: 0.25s ease;
     --transition-2: 0.5s ease-in-out;
+    --card-inner-padding: -20px; /* stesso valore del padding .card */
+    --pad: 30px;        /* padding card */
+    --gap: 18px;        /* distanza icona-testo */
+    --icon-w: 40px;     /* larghezza icona */
+    --lh: 1.6em;
+    --clamp: 3;
   }
 }
 

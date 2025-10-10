@@ -1,36 +1,32 @@
-import { Component, computed, input, signal } from '@angular/core';
+import { Component, HostListener, computed, input, signal } from '@angular/core';
 
 @Component({
   selector: 'app-card',
-  imports: [],
+  standalone: true,
   templateUrl: './card.html',
-  styleUrl: './card.css'
+  styleUrls: ['./card.css']
 })
 export class Card {
   title = input<string>('');
   description = input<string>('');
   icon = input<string>('');
-  maxLength = input<number>(90);
+  clampChars = input<number>(65);               // limite caratteri preview
 
-  expanded = signal(false);
-  isTruncatable = computed(() => (this.description()?.length ?? 0) > this.maxLength());
+  // overlay on/off
+  overlayOpen = signal(false);
 
+  // serve mostrare "Leggi altro"?
+  isTruncatable = computed(() => (this.description()?.length ?? 0) > this.clampChars());
+
+  // testo mostrato nella card (sempre 65 char + … se serve). NON cambia quando l’overlay è aperto
   displayText = computed(() => {
-    const text = this.description() ?? '';
-    const limit = this.maxLength();
-    if (this.expanded() || text.length <= limit) return text;
-    return this.softTruncate(text, limit);
-  });
+    const full = this.description() ?? '';
+    const limit = this.clampChars();
+    if (full.length <= limit) return full;
 
-  toggleExpand() {
-    this.expanded.update(v => !v);
-  }
-
-  private softTruncate(text: string, max: number): string {
-    if (text.length <= max) return text;
-    const cut = text.slice(0, max);
+    const cut = full.slice(0, limit);
     const lastSpace = cut.lastIndexOf(' ');
     const base = lastSpace > 0 ? cut.slice(0, lastSpace) : cut;
     return base.trimEnd() + '…';
-  }
+  });
 }
