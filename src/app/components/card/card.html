@@ -1,9 +1,18 @@
 <div class="card">
     <svg class="icon" aria-hidden="true">
-        <use [attr.href]="'assets/icons.svg#' + icon"></use>
+        <use [attr.href]="'assets/icons.svg#' + icon()"></use>
     </svg>
     <div class="description_card">
-        <h4>{{ title }}</h4>
-        <p>{{ description }}</p>
+        <h4>{{ title() }}</h4>
+        <p>{{ displayText() }}</p>
+
+        @if (isTruncatable()) {
+            <button type="button"
+                    class="read-more"
+                    (click)="toggleExpand()"
+                    aria-expanded="{{ expanded() }}">
+                {{ expanded() ? 'Mostra meno' : 'Leggi altro' }}
+            </button>
+        }
     </div>
 </div>
