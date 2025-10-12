@@ -1,2 +1,17 @@
 <h2 class="article-title">{{ title() }}</h2>
-<p>curriculum works!</p>
+
+<app-resume-section
+  id="sec-edu"
+  icon="book"
+  title="Education"
+  [items]="education()"
+  [open]="true">
+</app-resume-section>
+
+<app-resume-section
+  id="sec-exp"
+  icon="briefcase"
+  title="Experience"
+  [items]="experience()"
+  [open]="true">
+</app-resume-section>

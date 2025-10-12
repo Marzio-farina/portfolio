@@ -1,0 +1,15 @@
+.tli__title {
+    margin: 0 0 4px;
+    font-weight: 700;
+    color: #fff;
+}
+.tli__years {
+    color: rgba(222, 233, 17, 0.75);
+    margin-bottom: 8px;
+    font-weight: 500;
+}
+.tli__desc  {
+    color: rgba(255,255,255,.85);
+    margin: 0;
+    line-height: 1.6;
+}
