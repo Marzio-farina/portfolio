@@ -1,1 +1,34 @@
-[]
+[
+  {
+    "id": "1",
+    "author": "Luca Bianchi",
+    "text": "Collaborare con Marzio è stato un piacere. Ha saputo comprendere a fondo le esigenze della nostra azienda e tradurle in un gestionale intuitivo e stabile.",
+    "role": "IT Manager",
+    "company": "TechSolutions S.r.l.",
+    "rating": 5
+  },
+  {
+    "id": "2",
+    "author": "Giulia Rossi",
+    "text": "Un professionista attento ai dettagli e sempre disponibile. Il suo supporto nello sviluppo della piattaforma web è stato fondamentale per rispettare le scadenze.",
+    "role": "Project Manager",
+    "company": "Digital Agency Roma",
+    "rating": 4
+  },
+  {
+    "id": "3",
+    "author": "Marco Verdi",
+    "text": "Ottima esperienza! L'app desktop creata da Marzio ha migliorato notevolmente la gestione interna dei dati e ha ridotto i tempi di lavoro del nostro team.",
+    "role": "Responsabile Operativo",
+    "company": "DataWork S.p.A.",
+    "rating": 5
+  },
+  {
+    "id": "4",
+    "author": "Elena Conti",
+    "text": "Marzio ha un approccio metodico ma creativo: è riuscito a rendere un progetto complesso facile da usare e bello da vedere. Consigliatissimo!",
+    "role": "Product Owner",
+    "company": "InnovaLab",
+    "rating": 5
+  }
+]
