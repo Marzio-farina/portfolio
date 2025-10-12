@@ -29,7 +29,7 @@ export class About {
   errorMsg = signal<string | null>(null);
 
   constructor() {
-    this.http.get<AboutCard[]>('assets/about/cards.json').subscribe({
+    this.http.get<AboutCard[]>('assets/json/cards.json').subscribe({
       next: data => {
         this.cards.set(data ?? []);
         this.loading.set(false);
