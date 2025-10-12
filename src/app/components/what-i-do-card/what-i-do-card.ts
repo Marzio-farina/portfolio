@@ -1,4 +1,4 @@
-import { Component, HostListener, computed, input, signal } from '@angular/core';
+import { Component, computed, input, signal } from '@angular/core';
 
 @Component({
   selector: 'app-what-i-do-card',
@@ -14,9 +14,6 @@ export class WhatIDoCard {
 
   // overlay on/off
   overlayOpen = signal(false);
-
-  // serve mostrare "Leggi altro"?
-  isTruncatable = computed(() => (this.description()?.length ?? 0) > this.clampChars());
 
   // testo mostrato nella card (sempre 65 char + … se serve). NON cambia quando l’overlay è aperto
   displayText = computed(() => {

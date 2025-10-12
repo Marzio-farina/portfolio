@@ -42,7 +42,27 @@
 
 <section class="testimonials">
     <h3 class="sub_article-title">Testimonianze</h3>
+    @if (testimonialsLoading()) {
+        <div class="state loading">Caricamento…</div>
+    }
+    @if (!testimonialsLoading() && testimonialsError()) {
+        <div class="state error">{{ testimonialsError() }}</div>
+    }
+    @if (!testimonialsLoading() && !testimonialsError() && testimonials().length === 0) {
+        <div class="state empty">Nessuna testimonianza disponibile.</div>
+    }
 
-  
-    <app-avatar [width]="76"></app-avatar>
+    @if (!testimonialsLoading() && !testimonialsError() && testimonials().length > 0) {
+        <div class="testimonial-list">
+            @for (t of testimonials(); track t.id) {
+                <app-testimonial-card
+                    [author]="t.author"
+                    [role]="t.role ?? ''"
+                    [company]="t.company ?? ''"
+                    [rating]="t.rating">
+                </app-testimonial-card>
+                <app-avatar [width]="76"></app-avatar>
+            }
+        </div>
+    }
 </section>
