@@ -116,6 +116,7 @@
 
 html {
   background-color: var(--smoky-black);
+  padding-bottom: 50px;
 }
 
 .article-title {

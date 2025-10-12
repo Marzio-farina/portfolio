@@ -20,7 +20,7 @@
     z-index:-1;
 }
 
-.description_card{
+.description_card {
     position: relative;
     display: flex;
     flex-direction: column;
@@ -30,11 +30,12 @@
 }
 
 .description_card h4 {
-    margin: 0 0 7px 0;
+    margin: 0 0 7px 0px;
     color: var(--white-2);
     font-size: var(--fs-2);
     font-weight: 700;
     text-transform: capitalize;
+    text-align: center;
 }
 
 .description_card p {

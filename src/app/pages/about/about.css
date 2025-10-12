@@ -90,27 +90,13 @@
 .avatar-badge {
   position: absolute;
   inset-block-start: -28px;   /* sopra la card */
-  inset-inline-start: 24px;   /* spostamento da sinistra */
+  inset-inline-start: 0px;   /* spostamento da sinistra */
   border-radius: 16px;
   background: none;
-  z-index: 1; 
+  z-index: 1;
 }
 
 /* Card della testimonianza */
 .testimonial-card {
   padding: 24px 0; /* spazio a sinistra per l’avatar */
-}
-
-/* Spaziature e testi interni (opzionale, dipende dallo stile del card) */
-.testimonial-card h4 {
-  margin: 0;
-  font-weight: 600;
-  color: #fff;
-}
-.testimonial-card p {
-  margin-top: 8px;
-  margin-bottom: 0;
-  font-size: 0.95rem;
-  line-height: 1.5;
-  color: rgba(255, 255, 255, 0.85);
 }

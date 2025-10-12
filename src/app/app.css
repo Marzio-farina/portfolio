@@ -127,6 +127,7 @@
     grid-template-columns: 1fr 3fr;
     column-gap: 1.5rem;
     justify-items: stretch;
+    overflow: visible;
   }
 
   /* larghezza libera nelle due colonne */
@@ -138,8 +139,10 @@
   /* riattiva sticky su aside */
   .layout__aside {
     position: sticky;
-    top: var(--content-top);
-    margin-top: 0;
+    top: var(--content-top, 24px);
     align-self: start;
+    margin-top: 0;
+    overflow: auto;
+    -webkit-overflow-scrolling: touch;
   }
 }
