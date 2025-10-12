@@ -3,6 +3,7 @@ import { isPlatformBrowser } from '@angular/common';
 import { toSignal } from '@angular/core/rxjs-interop';
 import { fromEvent, map, startWith } from 'rxjs';
 import { trigger, transition, style, animate } from '@angular/animations';
+import { Avatar } from "../avatar/avatar";
 
 @Component({
   selector: 'app-aside',
@@ -23,6 +24,7 @@ import { trigger, transition, style, animate } from '@angular/animations';
       ]),
     ]),
   ],
+  imports: [Avatar],
 })
 export class Aside {
   private readonly LARGE_MIN = 1250;

@@ -1,22 +1,22 @@
 [
-    {
-        "id": "web-dev",
-        "title": "Web Development",
-        "description": "Siti e app web performanti con Laravel, Angular ed Electron",
-        "icon": "code"
-    },
-    {
-        "id": "win-dev",
-        "title": "Windows Development",
-        "description": "App desktop .NET e VBA per ottimizzare i processi aziendali",
-        "icon": "pencil"
-    },
-    {
-        "id": "web-scrap",
-        "title": "Web Scrapping & Automation",
-        "description": "Automazione e raccolta dati dal web",
-        "icon": "code"
-    },
+  {
+      "id": "web-dev",
+      "title": "Web Development",
+      "description": "Siti e app web performanti con Laravel, Angular ed Electron",
+      "icon": "code"
+  },
+  {
+      "id": "win-dev",
+      "title": "Windows Development",
+      "description": "App desktop .NET e VBA per ottimizzare i processi aziendali",
+      "icon": "pencil"
+  },
+  {
+      "id": "web-scrap",
+      "title": "Web Scrapping & Automation",
+      "description": "Automazione e raccolta dati dal web",
+      "icon": "code"
+  },
   {
     "id": "uiux",
     "title": "UI/UX Design",

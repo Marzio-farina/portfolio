@@ -1,4 +1,11 @@
-import { Component } from '@angular/core';
+import { Component, OnInit } from '@angular/core';
+import { AvatarService } from '../../services/avatar.service';
+
+export interface Avatar {
+  id: number;
+  img: string;
+  alt: string;
+}
 
 @Component({
   selector: 'app-avatar',
@@ -6,6 +13,23 @@ import { Component } from '@angular/core';
   templateUrl: './avatar.html',
   styleUrl: './avatar.css'
 })
-export class Avatar {
+export class Avatar implements OnInit {
 
+  avatars: Avatar[] = [];
+  selectedAvatar?: Avatar;
+
+  selectedId = 1;
+
+  constructor(private avatarService: AvatarService) {}
+
+  ngOnInit(): void {
+    this.avatarService.getAvatars().subscribe(data => {
+      this.avatars = data;
+      this.selectAvatar(this.selectedId);
+    });
+  }
+
+  selectAvatar(id: number): void {
+    this.selectedAvatar = this.avatars.find(a => a.id === id);
+  }
 }

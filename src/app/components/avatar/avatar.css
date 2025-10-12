@@ -1,0 +1,10 @@
+.profile__avatar {
+  border: 1px solid color-mix(in oklab, var(--smoky-black) 40%, transparent);
+  border-radius: 25%;
+  background: var(--eerie-black-1);
+  margin: 20px;
+}
+
+.profile__avatar img {
+  display: block;
+}

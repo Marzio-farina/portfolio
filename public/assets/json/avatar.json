@@ -1,0 +1,17 @@
+[
+  {
+      "id": 1,
+      "img": "./assets/images/my-avatar.png",
+      "alt": "Marziano Farina"
+  },
+  {
+      "id": 2,
+      "img": "./assets/images/avatar-1.png",
+      "alt": "Marco Rossi"
+  },
+  {
+      "id": 3,
+      "img": "./assets/images/avatar-2.png",
+      "alt": "Pippo Baudo"
+  }
+]
