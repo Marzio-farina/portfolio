@@ -1,8 +1,11 @@
 import { Component, computed, input } from '@angular/core';
+import { Avatar } from '../avatar/avatar';
 
 @Component({
   selector: 'app-testimonial-card',
-  imports: [],
+  imports: [
+    Avatar
+  ],
   templateUrl: './testimonial-card.html',
   styleUrl: './testimonial-card.css'
 })
@@ -25,4 +28,9 @@ export class TestimonialCard {
     const base = lastSpace > 0 ? cut.slice(0, lastSpace) : cut;
     return base.trimEnd() + '…';
   });
+
+  openModal(dlg: HTMLDialogElement) {
+    // evita che il click propaghi e riapra
+    dlg?.showModal();
+  }
 }

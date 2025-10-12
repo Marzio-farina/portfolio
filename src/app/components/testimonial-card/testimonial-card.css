@@ -10,6 +10,8 @@
     background: var(--border-gradient-onyx);
     border: 1px solid var(--eerie-black-1);
     border-radius: 14px;
+    cursor: pointer;
+    transition: transform 0.2s ease, box-shadow 0.2s ease;
 }
 
 .card::before{
@@ -45,4 +47,16 @@
     line-height: 1.6;
     word-break: normal;
     hyphens: none;
+}
+
+/* Virgolette decorative */
+.quote-mark {
+  position: absolute;
+  left: 0;
+  top: -6px;
+  font-size: 2.25rem;
+  line-height: 1;
+  color: rgba(255, 200, 0, 0.9);
+  font-weight: 700;
+  transform: translateX(-6px);
 }

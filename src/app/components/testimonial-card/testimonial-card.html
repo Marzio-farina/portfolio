@@ -1,6 +1,58 @@
 <div class="card">
-  <div class="description_card">
+  <div class="description_card" (click)="openModal(dlg)">
     <h4>{{ author() }}</h4>
     <p>{{ displayText() }}</p>
+
+    <!-- MODALE DaisyUI -->
+    <dialog #dlg class="modal" (click)="dlg.close()">
+      <div class="modal-box max-w-3xl bg-neutral text-neutral-content relative" (click)="$event.stopPropagation()">
+        <!-- Pulsante chiusura -->
+        <form method="dialog" class="absolute right-2 top-2">
+          <button class="btn btn-sm btn-circle">✕</button>
+        </form>
+
+        <!-- Header -->
+        <div class="flex items-center gap-4 mb-4">
+          <div class="rounded-2xl bg-neutral-700/70 p-2 shadow">
+            <app-avatar [width]="64"></app-avatar>
+          </div>
+          <div>
+            <h3 class="text-2xl font-bold leading-tight">{{ author() }}</h3>
+
+            @if (role() || company()) {
+              <div class="opacity-80 text-sm">
+                @if (role()) { <span>{{ role() }}</span> }
+                @if (role() && company()) { <span> • </span> }
+                @if (company()) { <span>{{ company() }}</span> }
+              </div>
+            }
+          </div>
+        </div>
+
+        <!-- Corpo -->
+        <div class="relative pl-10">
+          <span class="quote-mark">“</span>
+          <p class="leading-relaxed">{{ text() }}</p>
+        </div>
+
+        <!-- Rating -->
+        @if (rating()) {
+          <div class="mt-4">
+            <div class="rating rating-sm">
+              <input type="radio" class="mask mask-star-2 bg-amber-400" [checked]="rating() >= 1" />
+              <input type="radio" class="mask mask-star-2 bg-amber-400" [checked]="rating() >= 2" />
+              <input type="radio" class="mask mask-star-2 bg-amber-400" [checked]="rating() >= 3" />
+              <input type="radio" class="mask mask-star-2 bg-amber-400" [checked]="rating() >= 4" />
+              <input type="radio" class="mask mask-star-2 bg-amber-400" [checked]="rating() >= 5" />
+            </div>
+          </div>
+        }
+      </div>
+
+      <!-- backdrop (click chiude) -->
+      <form method="dialog" class="modal-backdrop">
+        <button>close</button>
+      </form>
+    </dialog>
   </div>
 </div>
