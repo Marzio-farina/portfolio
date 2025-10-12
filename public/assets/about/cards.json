@@ -2,37 +2,37 @@
     {
         "id": "web-dev",
         "title": "Web Development",
-        "description": "Sviluppo di siti web e applicazioni su misura con Laravel, Angular ed Electron, orientati a performance e scalabilità.",
+        "description": "Siti e app web performanti con Laravel, Angular ed Electron",
         "icon": "code"
     },
     {
         "id": "win-dev",
         "title": "Windows Development",
-        "description": "Sviluppo di applicativi desktop in .NET e VBA per ottimizzare processi produttivi e gestionali.",
+        "description": "App desktop .NET e VBA per ottimizzare i processi aziendali",
         "icon": "pencil"
     },
     {
         "id": "web-scrap",
         "title": "Web Scrapping & Automation",
-        "description": "Reperimento di dati dal web.",
+        "description": "Automazione e raccolta dati dal web",
         "icon": "code"
     },
   {
     "id": "uiux",
     "title": "UI/UX Design",
-    "description": "Progettazione di interfacce intuitive e curate nei dettagli per offrire esperienze d’uso piacevoli e funzionali.",
+    "description": "Interfacce intuitive e curate per un'esperienza ottimale",
     "icon": "pencil"
   },
   {
     "id": "innovation",
     "title": "Ricerca e Innovazione",
-    "description": "Approccio costante al miglioramento e alla sperimentazione di nuove tecnologie per creare soluzioni sempre più efficaci.",
+    "description": "Sperimentazione continua di tecnologie e soluzioni nuove",
     "icon": "code"
   },
   {
     "id": "consulting",
     "title": "Consulenza e Ottimizzazione",
-    "description": "Analisi dei processi aziendali e sviluppo di soluzioni software per incrementare produttività ed efficienza.",
+    "description": "Analisi e software su misura per aumentare l’efficienza",
     "icon": "pencil"
   }
 ]

@@ -9,7 +9,6 @@
     background: var(--border-gradient-onyx);
     border: 1px solid var(--eerie-black-1);
     border-radius: 14px;
-    overflow: visible;             /* l’overlay può uscire */
 }
 
 .card::before{
@@ -34,32 +33,18 @@
     min-width: 0;
 }
 
-.description_card h4{
+.description_card h4 {
     margin: 0 0 7px 0;
     color: var(--white-2);
     font-size: var(--fs-2);
     text-transform: capitalize;
 }
 
-/* preview: è già tagliata a 65 caratteri via TS */
-.desc{
+.description_card p {
     margin: 0;
     color: var(--light-gray);
     font-size: var(--fs-5);
     line-height: 1.6;
     word-break: normal;
     hyphens: none;
-    padding-right: 6rem;           /* spazio per il bottone */
-}
-
-.read-more{
-    position: absolute;
-    right: var(--pad);
-    bottom: var(--pad);
-    background: transparent;
-    border: none;
-    color: inherit;
-    cursor: pointer;
-    text-decoration: underline;
-    z-index: 20;
 }
