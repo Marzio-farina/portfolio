@@ -1,5 +1,9 @@
 <figure class="profile__avatar">
     @if (selectedAvatar) {
-        <img [src]="selectedAvatar?.img" [alt]="selectedAvatar?.alt" width="120">
+        <img 
+            [src]="selectedAvatar?.img"
+            [alt]="selectedAvatar?.alt"
+            [width]="width()"
+        >
     }
 </figure>

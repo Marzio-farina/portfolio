@@ -1,4 +1,4 @@
-import { Component, OnInit } from '@angular/core';
+import { Component, input, OnInit } from '@angular/core';
 import { AvatarService } from '../../services/avatar.service';
 
 export interface Avatar {
@@ -15,9 +15,10 @@ export interface Avatar {
 })
 export class Avatar implements OnInit {
 
+  width = input<number>(120);
   avatars: Avatar[] = [];
   selectedAvatar?: Avatar;
-
+  
   selectedId = 1;
 
   constructor(private avatarService: AvatarService) {}

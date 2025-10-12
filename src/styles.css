@@ -1,3 +1,6 @@
+@import "tailwindcss";
+@plugin "daisyui";
+
 /* ===== Tema di sistema: CHIARO (default) ===== */
 :root {
   --page-gutter: clamp(16px, 4vw, 24px);

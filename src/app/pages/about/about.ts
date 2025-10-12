@@ -4,6 +4,7 @@ import { ActivatedRoute } from '@angular/router';
 import { map } from 'rxjs';
 import { Card } from '../../components/card/card';
 import { HttpClient } from '@angular/common/http';
+import { Avatar } from '../../components/avatar/avatar';
 
 type AboutCard = {
   id: string;
@@ -14,7 +15,10 @@ type AboutCard = {
 
 @Component({
   selector: 'app-about',
-  imports: [Card],
+  imports: [
+    Card,
+    Avatar
+  ],
   templateUrl: './about.html',
   styleUrl: './about.css'
 })
