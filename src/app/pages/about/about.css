@@ -5,6 +5,27 @@
     gap: 20px;
 }
 
+/* Firefox */
+.testimonials .flex.overflow-x-auto {
+  scrollbar-width: thin;
+  scrollbar-color: #6b7280 transparent; /* gray-500 su track trasparente */
+}
+
+/* WebKit */
+.testimonials .flex.overflow-x-auto::-webkit-scrollbar {
+  height: 8px;
+}
+.testimonials .flex.overflow-x-auto::-webkit-scrollbar-track {
+  background: transparent;
+}
+.testimonials .flex.overflow-x-auto::-webkit-scrollbar-thumb {
+  background: #6b7280;      /* gray-500 */
+  border-radius: 9999px;
+}
+.testimonials .flex.overflow-x-auto::-webkit-scrollbar-thumb:hover {
+  background: #9ca3af;      /* gray-400 */
+}
+
 @media (min-width: 1024px) {
     .sub_article-card {
         grid-template-columns: 1fr 1fr;

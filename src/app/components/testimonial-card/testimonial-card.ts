@@ -16,7 +16,7 @@ export class TestimonialCard {
 
   // testo mostrato nella card (sempre 65 char + … se serve). NON cambia quando l’overlay è aperto
   displayText = computed(() => {
-    const full = this.text() ?? '';
+    const full = this.text()?.trim() ?? '';
     const limit = this.clampChars();
     if (full.length <= limit) return full;
 

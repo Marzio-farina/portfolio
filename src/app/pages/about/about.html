@@ -40,29 +40,39 @@
     </div>
 </section>
 
-<section class="testimonials">
-    <h3 class="sub_article-title">Testimonianze</h3>
-    @if (testimonialsLoading()) {
-        <div class="state loading">Caricamento…</div>
-    }
-    @if (!testimonialsLoading() && testimonialsError()) {
-        <div class="state error">{{ testimonialsError() }}</div>
-    }
-    @if (!testimonialsLoading() && !testimonialsError() && testimonials().length === 0) {
-        <div class="state empty">Nessuna testimonianza disponibile.</div>
-    }
+<section class="testimonials overflow-x-clip"> <!-- impedisce al padre di allargarsi -->
+  <h3 class="sub_article-title">Testimonianze</h3>
 
-    @if (!testimonialsLoading() && !testimonialsError() && testimonials().length > 0) {
-        <div class="testimonial-list">
-            @for (t of testimonials(); track t.id) {
+  @if (!testimonialsLoading() && !testimonialsError() && testimonials().length > 0) {
+    <!-- se il parent (container) ha px-6, annullalo qui per evitare extra width -->
+    <div class="-mx-6 md:-mx-8 lg:-mx-10"> 
+      <div
+        #carousel
+        class="flex gap-6 overflow-x-auto snap-x snap-mandatory scroll-smooth
+               w-full max-w-full scroll-px-6 md:scroll-px-8 lg:scroll-px-10
+               overflow-y-hidden"
+        (wheel)="onWheelToHorizontal($event)"
+      >
+        @for (t of testimonials(); track t.id) {
+          <!-- slide “non shrinkabile” e dimensione massima legata alla viewport -->
+          <div class="shrink-0 snap-start basis-[min(36rem,90%)] max-w-[90vw]">
+            <div class="relative">
+              <div class="absolute -top-7 left-6 rounded-2xl bg-neutral-700/80 p-2 shadow-lg">
+                <app-avatar [width]="56"></app-avatar>
+              </div>
+              <div class="rounded-3xl bg-neutral-800/60 ring-1 ring-white/5 shadow-xl p-6 pl-24">
                 <app-testimonial-card
-                    [author]="t.author"
-                    [role]="t.role ?? ''"
-                    [company]="t.company ?? ''"
-                    [rating]="t.rating">
-                </app-testimonial-card>
-                <app-avatar [width]="76"></app-avatar>
-            }
-        </div>
-    }
+                  [author]="t.author"
+                  [text]="t.text"
+                  [role]="t.role ?? ''"
+                  [company]="t.company ?? ''"
+                  [rating]="t.rating"
+                ></app-testimonial-card>
+              </div>
+            </div>
+          </div>
+        }
+      </div>
+    </div>
+  }
 </section>

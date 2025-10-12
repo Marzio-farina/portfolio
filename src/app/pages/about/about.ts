@@ -1,4 +1,4 @@
-import { Component, inject, signal } from '@angular/core';
+import { Component, inject, signal, ElementRef, ViewChild } from '@angular/core';
 import { toSignal } from '@angular/core/rxjs-interop';
 import { ActivatedRoute } from '@angular/router';
 import { map } from 'rxjs';
@@ -37,6 +37,9 @@ export class About {
   private route = inject(ActivatedRoute);
   private http = inject(HttpClient);
 
+  // ref al carosello: nel template assegna #carousel al contenitore con overflow-x-auto
+  @ViewChild('carousel') private carouselRef?: ElementRef<HTMLElement>;
+
   title = toSignal(this.route.data.pipe(map(d => d['title'] as string)), { initialValue: '' });
 
   // WHAT-I-DO
@@ -71,4 +74,18 @@ export class About {
 
   trackById = (_: number, c: AboutCard) => c.id;
   trackByTestimonialId = (_: number, t: Testimonial) => t.id;
+
+  // Handler: dirotta lo scroll verticale in orizzontale sul carosello
+  onWheelToHorizontal(e: WheelEvent): void {
+    const el = this.carouselRef?.nativeElement;
+    if (!el) return;
+
+    // Se il gesto è principalmente verticale, spostiamo orizzontalmente
+    if (Math.abs(e.deltaY) > Math.abs(e.deltaX)) {
+      // Nota: se vuoi bloccare lo scroll verticale della pagina,
+      // nel template aggiungi anche 'overflow-y-hidden' al contenitore.
+      e.preventDefault?.(); // sarà ignorato se il listener è passivo
+      el.scrollBy({ left: e.deltaY });
+    }
+  }
 }
