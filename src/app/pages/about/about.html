@@ -31,36 +31,18 @@
 
     <div class="sub_article-card">
         @for (c of cards(); track c.id) {
-            <app-card 
+            <app-what-i-do-card
                 [title]="c.title"
                 [description]="c.description"
                 [icon]="c.icon ?? ''">
-            </app-card>
+            </app-what-i-do-card>
         }
     </div>
 </section>
 
-<!-- <section class="testimonials mt-10">
-  <h3 class="sub_article-title mb-4">Testimonianze</h3> -->
+<section class="testimonials">
+    <h3 class="sub_article-title">Testimonianze</h3>
 
-  <!-- wrapper che evita l'allargamento pagina -->
-  <!-- <div class="overflow-x-clip">
-    <div class="carousel carousel-center w-full gap-4 p-1">
-      @for (c of cards(); track c.id) {
-        <div class="carousel-item relative w-[min(520px,92vw)]">
-          <app-card
-            class="t-card card bg-base-200 shadow-xl rounded-2xl min-h-[150px] p-6"
-            [title]="c.title"
-            [description]="c.description"
-            [icon]="c.icon ?? ''">
-          </app-card> -->
-
-          <!-- avatar per singola card -->
-          <!-- <div class="avatar-badge"> -->
-            <!-- <app-avatar [width]="76"></app-avatar> -->
-          <!-- </div>
-        </div>
-      }
-    </div>
-  </div>
-</section> -->
+  
+    <app-avatar [width]="76"></app-avatar>
+</section>

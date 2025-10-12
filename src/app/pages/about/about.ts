@@ -2,7 +2,7 @@ import { Component, inject, signal } from '@angular/core';
 import { toSignal } from '@angular/core/rxjs-interop';
 import { ActivatedRoute } from '@angular/router';
 import { map } from 'rxjs';
-import { Card } from '../../components/card/card';
+import { WhatIDoCard } from '../../components/what-i-do-card/what-i-do-card';
 import { HttpClient } from '@angular/common/http';
 import { Avatar } from '../../components/avatar/avatar';
 
@@ -16,7 +16,7 @@ type AboutCard = {
 @Component({
   selector: 'app-about',
   imports: [
-    Card,
+    WhatIDoCard,
     Avatar
   ],
   templateUrl: './about.html',

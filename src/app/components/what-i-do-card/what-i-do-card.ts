@@ -1,12 +1,12 @@
 import { Component, HostListener, computed, input, signal } from '@angular/core';
 
 @Component({
-  selector: 'app-card',
+  selector: 'app-what-i-do-card',
   standalone: true,
-  templateUrl: './card.html',
-  styleUrls: ['./card.css']
+  templateUrl: './what-i-do-card.html',
+  styleUrls: ['./what-i-do-card.css']
 })
-export class Card {
+export class WhatIDoCard {
   title = input<string>('');
   description = input<string>('');
   icon = input<string>('');

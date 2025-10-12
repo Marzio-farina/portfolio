@@ -11,18 +11,3 @@
         gap: 20px 25px;
     }
 }
-
-/* badge avatar sopra la singola card (non allarga il layout) */
-.avatar-badge{
-  position: absolute;
-  top: 0; left: 0;
-  transform: translate(-28%, -28%);
-  width: 76px; height: 76px;
-  display: grid; place-items: center;
-  border-radius: 16px;
-  pointer-events: none;
-  z-index: 2;
-}
-
-/* opzionale: arrotonamenti/ombre nel tema scuro */
-.t-card{ border: 0; }
