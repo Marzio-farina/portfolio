@@ -1,7 +1,8 @@
 .card{
     position: relative;
     display: flex;
-    align-items: center;
+    flex-direction: row;
+    align-items:center;
     gap: var(--gap);
     padding: var(--pad);
     height: 145px;                 /* altezza fissa */
