@@ -1,7 +1,7 @@
 .profile__avatar {
-  border: 1px solid color-mix(in oklab, var(--smoky-black) 40%, transparent);
-  border-radius: 25%;
-  background: var(--eerie-black-1);
+  border: 1px solid color-mix(in oklab, var(--bg-gradient-onyx) 40%, transparent);
+  border-radius: 16px;
+  background: var(--bg-gradient-onyx);
   margin: 20px;
 }
 

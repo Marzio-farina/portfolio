@@ -40,27 +40,33 @@
     </div>
 </section>
 
-<section class="testimonials overflow-x-clip"> <!-- impedisce al padre di allargarsi -->
+<section class="testimonials">
   <h3 class="sub_article-title">Testimonianze</h3>
 
+  @if (testimonialsLoading()) {
+    <div class="state loading">Caricamento…</div>
+  }
+  @if (!testimonialsLoading() && testimonialsError()) {
+    <div class="state error">{{ testimonialsError() }}</div>
+  }
+  @if (!testimonialsLoading() && !testimonialsError() && testimonials().length === 0) {
+    <div class="state empty">Nessuna testimonianza disponibile.</div>
+  }
+
   @if (!testimonialsLoading() && !testimonialsError() && testimonials().length > 0) {
-    <!-- se il parent (container) ha px-6, annullalo qui per evitare extra width -->
-    <div class="-mx-6 md:-mx-8 lg:-mx-10"> 
+    <div class="testimonial-wrapper">
       <div
         #carousel
-        class="flex gap-6 overflow-x-auto snap-x snap-mandatory scroll-smooth
-               w-full max-w-full scroll-px-6 md:scroll-px-8 lg:scroll-px-10
-               overflow-y-hidden"
+        class="testimonial-track"
         (wheel)="onWheelToHorizontal($event)"
       >
         @for (t of testimonials(); track t.id) {
-          <!-- slide “non shrinkabile” e dimensione massima legata alla viewport -->
-          <div class="shrink-0 snap-start basis-[min(36rem,90%)] max-w-[90vw]">
-            <div class="relative">
-              <div class="absolute -top-7 left-6 rounded-2xl bg-neutral-700/80 p-2 shadow-lg">
+          <div class="testimonial-slide">
+            <div class="testimonial-card-wrap">
+              <div class="avatar-badge">
                 <app-avatar [width]="56"></app-avatar>
               </div>
-              <div class="rounded-3xl bg-neutral-800/60 ring-1 ring-white/5 shadow-xl p-6 pl-24">
+              <div class="testimonial-card">
                 <app-testimonial-card
                   [author]="t.author"
                   [text]="t.text"
@@ -76,3 +82,4 @@
     </div>
   }
 </section>
+<p>Lorem ipsum dolor sit amet consectetur adipisicing elit. Labore asperiores et quae, libero incidunt a quasi in at dolorum. Praesentium, odio? Obcaecati reprehenderit aspernatur enim ipsa alias laboriosam dolore laborum laudantium? Sint, minima! Magni cum dicta eveniet quidem eligendi voluptatibus culpa velit voluptatum temporibus quia adipisci amet consequatur nobis error commodi voluptatem eius architecto corporis repudiandae, incidunt tempore laudantium, nulla repellat ex? Ex nulla ea maiores! Assumenda amet neque quas iure expedita consequatur esse nam debitis ipsa aliquid, vitae minus vel rem et fugit, odit ratione laborum id ut optio? Obcaecati eum minus non, nostrum ratione, neque eligendi corrupti nisi recusandae hic unde ipsam dicta enim magnam, debitis deserunt quas porro libero est quibusdam architecto laudantium veritatis perferendis tenetur. Ab alias vitae minima accusantium magni. Nostrum consequatur soluta facilis inventore similique fuga veritatis eaque, hic, ducimus corrupti impedit ut quos nesciunt. Quia, suscipit minima natus molestiae assumenda earum fuga maiores illum totam cupiditate, necessitatibus rem consequatur vero commodi excepturi voluptas voluptatem! Exercitationem sit illum consequatur doloribus debitis libero itaque laboriosam eos, unde voluptatum perspiciatis, iusto at minus porro odio odit magnam quo blanditiis eum corporis sequi veritatis non dolores corrupti. Ab, odio. Accusantium omnis sint sequi perspiciatis ab, quidem autem dolore distinctio aliquam rerum aut provident commodi voluptate deserunt voluptates assumenda veritatis esse nihil quam quia unde culpa earum! Sit odio id quos, debitis voluptates dicta voluptate neque eaque harum fugiat sequi veritatis voluptatem assumenda! Voluptatibus accusamus aperiam error, possimus consequuntur non corrupti, necessitatibus autem quam animi doloribus expedita sequi deleniti saepe similique ut ad eligendi iste labore perspiciatis. Totam repellendus ratione vel dolore eos facilis et esse voluptates odit suscipit, nam placeat, numquam illo? Expedita aliquid nisi minus exercitationem a doloremque? Deserunt maiores ad, nostrum quam harum, recusandae et vel consectetur facere eum ipsa, saepe beatae laborum dignissimos porro doloribus deleniti esse perspiciatis optio blanditiis. Mollitia expedita quo maxime adipisci, nostrum minima molestiae repellendus quae ipsum modi nihil, fuga totam labore. Ad alias earum debitis voluptatibus harum obcaecati assumenda velit, voluptas tempore corrupti eius. Voluptatem totam commodi quos voluptates natus eos repellat iure pariatur, error molestiae laboriosam maiores tempore facilis quidem minima unde suscipit similique nisi magnam atque ipsa eius dolorem odit eveniet? Iste sapiente, numquam, qui nobis ab provident necessitatibus voluptatem consequatur velit rem laudantium fugit quibusdam consequuntur? Nesciunt vero, officia repellendus aperiam molestiae magnam sit, hic provident quis veniam voluptatum commodi optio nisi id! Sint necessitatibus et possimus maxime facere voluptatibus distinctio illo veritatis soluta! Hic delectus modi aliquam et nobis. Nemo repellat minus doloremque iste quis tempora quibusdam voluptas accusantium minima! Blanditiis corporis temporibus repudiandae distinctio nostrum, veniam commodi vero veritatis error enim totam cum voluptatum omnis, culpa sed odit dolorem quos optio repellat voluptates accusamus! Nulla et animi soluta provident. Harum voluptatem debitis cumque quisquam culpa obcaecati eveniet dolore amet hic magni. Veritatis neque cumque, quibusdam sunt minima vero hic cupiditate et. Laudantium architecto, ex, iste non laborum odit ipsum voluptas unde tempora corrupti quis et saepe amet fugit tempore sed aliquam. Harum, dolore voluptatem.</p>

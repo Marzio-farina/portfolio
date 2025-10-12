@@ -33,6 +33,7 @@
     margin: 0 0 7px 0;
     color: var(--white-2);
     font-size: var(--fs-2);
+    font-weight: 700;
     text-transform: capitalize;
 }
 
