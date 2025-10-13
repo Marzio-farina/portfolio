@@ -2,7 +2,7 @@ import { Component, inject, signal } from '@angular/core';
 import { toSignal } from '@angular/core/rxjs-interop';
 import { ActivatedRoute } from '@angular/router';
 import { map } from 'rxjs';
-import { ProgettiCard } from '../../components/progetti-card/progetti-card';
+import { ProgettiCard, Progetto } from '../../components/progetti-card/progetti-card';
 import { Filter } from '../../components/filter/filter';
 import { HttpClient } from '@angular/common/http';
 
@@ -20,10 +20,13 @@ export class Progetti {
   private http = inject(HttpClient);
 
   title = toSignal(this.route.data.pipe(map(d => d['title'] as string)), { initialValue: '' });
-  projects = signal<any[]>([]);
+  projects = signal<Progetto[]>([]);
 
   constructor() {
-    this.http.get<{ projects: any[] }>('assets/json/progetti.json')
-      .subscribe(data => this.projects.set(data.projects));
+    this.http.get<{ projects: Progetto[] }>('assets/json/progetti.json')
+      .subscribe({
+        next: d => this.projects.set(d.projects),
+        error: e => console.error('Errore caricamento progetti.json', e)
+      });
   }
 }

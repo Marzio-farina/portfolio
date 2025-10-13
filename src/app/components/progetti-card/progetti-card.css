@@ -1,9 +1,65 @@
-.card video {
-  width: 100%;
-  border-radius: 12px;
-  object-fit: cover;
-  transition: opacity .3s;
+.card {
+  border-radius: 16px;
+  background: rgba(255,255,255,0.04);
+  overflow: hidden;
+  transition: transform .25s ease, box-shadow .25s ease;
 }
-.card:hover video {
-  opacity: 1;
+
+.card:hover {
+    transform: translateY(-2px);
+}
+
+.media {
+  position: relative;
+  aspect-ratio: 16 / 9;
+  overflow: hidden;
+}
+
+.video {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  display: block;
+}
+
+.overlay {
+  position: absolute;
+  inset: 0;
+  display: grid;
+  place-items: center;
+  gap: 8px;
+  color: #fff;
+  font-size: 0.9rem;
+  background: linear-gradient(to top, rgba(0,0,0,0.35), rgba(0,0,0,0.05));
+  opacity: 0;
+  transition: opacity .25s ease;
+  pointer-events: none;
+}
+
+.card:hover .overlay {
+    opacity: 1;
+}
+
+.overlay .dot {
+  width: 10px;
+  height: 10px;
+  border-radius: 999px;
+  background: #f6c54f;
+  box-shadow: 0 0 0 3px rgba(246,197,79,.25);
+}
+
+.meta {
+    padding: 12px 14px 16px;
+}
+
+.title {
+    margin: 0 0 6px;
+    font-weight: 700;
+    color: #fff;
+}
+
+.category {
+    margin: 0;
+    color: rgba(255,255,255,.75);
+    font-size: .95rem;
 }

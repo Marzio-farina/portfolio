@@ -1,5 +1,19 @@
-<div class="card" (mouseenter)="video.play()" (mouseleave)="video.pause()">
-    <video #video [src]="progetto().video" muted loop preload="metadata" poster="assets/img/placeholder.jpg"></video>
-    <h3>{{ progetto().title }}</h3>
-    <p>{{ progetto().category }}</p>
+<div class="card" (mouseenter)="play()" (mouseleave)="pause()">
+    <div class="media">
+    <video
+      #videoEl
+      class="video"
+      [src]="progetto().video"
+      [poster]="progetto().poster"
+      muted
+      playsinline
+      preload="metadata"
+      loop>
+    </video>
+  </div>
+
+  <div class="meta">
+    <h3 class="title">{{ progetto().title }}</h3>
+    <p class="category">{{ progetto().category }}</p>
+  </div>
 </div>

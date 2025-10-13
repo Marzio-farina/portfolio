@@ -1,4 +1,4 @@
-import { Component, input } from '@angular/core';
+import { Component, ElementRef, input, ViewChild } from '@angular/core';
 
 export type Progetto = {
   id: number;
@@ -18,4 +18,18 @@ export type Progetto = {
 })
 export class ProgettiCard {
   progetto = input.required<Progetto>();
+  @ViewChild('videoEl', { static: false }) videoEl?: ElementRef<HTMLVideoElement>;
+
+  play() {
+    const v = this.videoEl?.nativeElement;
+    if (!v) return;
+    v.currentTime = 0;
+    v.play().catch(() => {/* ignoriamo errori autoplay */});
+  }
+  pause() {
+    const v = this.videoEl?.nativeElement;
+    if (!v) return;
+    v.pause();
+    v.currentTime = 0;
+  }
 }
