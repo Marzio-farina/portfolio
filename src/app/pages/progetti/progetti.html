@@ -1,7 +1,11 @@
 <h2 class="article-title">{{ title() }}</h2>
-<app-filter/>
+<app-filter 
+    [categories]="categories()"
+    [selected]="selectedCategory()"
+    (select)="onSelectCategory($event)"
+/>
 <div class="projects">
-    @for (p of projects(); track p.id) {
+    @for (p of filtered(); track p.id) {
         <app-progetti-card [progetto]="p" />
     }
 </div>

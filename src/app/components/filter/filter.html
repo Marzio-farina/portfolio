@@ -1,1 +1,12 @@
-<p>filter works!</p>
+<ul class="filter-list">
+    @for (c of categories(); track c) {
+        <li>
+            <button
+                type="button"
+                [class.active]="c === selected()"
+                (click)="onSelect(c)">
+                {{ c }}
+            </button>
+        </li>
+    }
+</ul>

@@ -1,0 +1,20 @@
+.filter-list {
+    display:flex;
+    gap:10px;
+    flex-wrap:wrap;
+    padding:0;
+    margin:0 0 16px;
+    list-style:none;
+}
+
+.filter-list button {
+    padding:6px 12px;
+    border-radius:999px;
+    border:0;
+    cursor:pointer;
+}
+
+.filter-list button.active {
+    background:#f6c54f;
+    color:#000;
+}

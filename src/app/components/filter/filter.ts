@@ -1,4 +1,4 @@
-import { Component } from '@angular/core';
+import { Component, input, output} from '@angular/core';
 
 @Component({
   selector: 'app-filter',
@@ -7,5 +7,14 @@ import { Component } from '@angular/core';
   styleUrl: './filter.css'
 })
 export class Filter {
+  // categorie uniche (incluso "Tutti")
+  categories = input.required<string[]>();
+  // categoria selezionata
+  selected = input<string>('Tutti');
+  // evento verso il genitore
+  select = output<string>();
 
+  onSelect(c: string) {
+    this.select.emit(c);
+  }
 }

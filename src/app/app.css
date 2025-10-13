@@ -58,6 +58,8 @@
   /* color: var(--light-gray-70); */
   z-index: 5;
   padding: 12px 20px;
+  display: flex;
+  justify-content: space-evenly;
 }
 
 /* Contenuto della dashboard */
