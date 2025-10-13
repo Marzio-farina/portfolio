@@ -1,19 +1,21 @@
 <div class="card" (mouseenter)="play()" (mouseleave)="pause()">
     <div class="media">
-    <video
-      #videoEl
-      class="video"
-      [src]="progetto().video"
-      [poster]="progetto().poster"
-      muted
-      playsinline
-      preload="metadata"
-      loop>
-    </video>
-  </div>
+        <!-- poster visibile di default -->
+        <img class="poster" [src]="progetto().poster" alt="{{ progetto().title }}" />
 
-  <div class="meta">
-    <h3 class="title">{{ progetto().title }}</h3>
-    <p class="category">{{ progetto().category }}</p>
-  </div>
+        <!-- video visibile solo in hover -->
+        <video
+            #videoEl
+            class="video"
+            [src]="progetto().video"
+            muted
+            playsinline
+            preload="metadata"
+            loop>
+        </video>
+    </div>
+</div>
+<div class="meta">
+  <h3 class="title">{{ progetto().title }}</h3>
+  <p class="category">{{ progetto().category }}</p>
 </div>

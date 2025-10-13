@@ -30,6 +30,5 @@ export class ProgettiCard {
     const v = this.videoEl?.nativeElement;
     if (!v) return;
     v.pause();
-    v.currentTime = 0;
   }
 }
