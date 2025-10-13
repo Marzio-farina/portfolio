@@ -4,12 +4,14 @@ import { About } from './pages/about/about';
 import { Contatti } from './pages/contatti/contatti';
 import { Curriculum } from './pages/curriculum/curriculum';
 import { Progetti } from './pages/progetti/progetti';
+import { Attestati } from './pages/attestati/attestati';
 
 export const routes: Routes = [
   { path: '', pathMatch: 'full', redirectTo: 'about' },
   { path: 'about',     component: About,     data: { title: 'Chi sono' } },
-  { path: 'contatti',  component: Contatti,  data: { title: 'Contatti' } },
   { path: 'curriculum',component: Curriculum,data: { title: 'Curriculum' } },
   { path: 'progetti',  component: Progetti,  data: { title: 'Progetti' } },
+  { path: 'attestati',  component: Attestati,  data: { title: 'Attestati' } },
+  { path: 'contatti',  component: Contatti,  data: { title: 'Contatti' } },
   { path: '**', redirectTo: 'about' },
 ];
