@@ -1,0 +1,125 @@
+/* contenitore */
+.contact {
+  background: transparent;
+}
+
+.title {
+  margin: 0 0 14px;
+  font-weight: 800;
+  color: #fff;
+}
+
+/* form card */
+.form {
+  background: transparent;
+}
+
+/* griglia responsive */
+.row {
+  display: grid;
+  gap: 16px;
+}
+
+@media (min-width: 720px) {
+  .row {
+    grid-template-columns: 1fr 1fr;
+}
+}
+
+/* campi */
+.field {
+  display: block;
+  background: var(--field);
+  border: 1px solid var(--field-border);
+  border-radius: var(--radius-xl);
+  padding: 12px 14px;
+  color: var(--text);
+  transition: border-color .2s ease, box-shadow .2s ease, background .2s ease;
+}
+
+.field input,
+.field textarea {
+  width: 100%;
+  background: transparent;
+  border: 0;
+  outline: 0;
+  /* color: var(--text); */
+  font: inherit;
+  /* caret-color: var(--accent); */
+}
+
+.field textarea {
+    height: 180px;
+    padding: 14px;
+    resize: vertical;
+    min-height: 160px;
+    border: none;
+    outline: none;
+    font: inherit;
+    line-height: 1.5;
+    box-sizing: border-box;
+}
+
+.field.textarea {
+  margin-top: 16px;
+  padding: 14px;
+}
+
+/* placeholder */
+.field input::placeholder,
+.field textarea::placeholder {
+  /* color: var(--muted); */
+}
+
+/* focus styling */
+.field:has(input:focus),
+.field:has(textarea:focus) {
+  /* border-color: var(--field-border-focus); */
+  box-shadow: 0 0 0 3px rgba(246,197,79,.15);
+}
+
+/* pulsante */
+.actions {
+  display: flex;
+  justify-content: flex-end;
+  margin-top: 18px;
+}
+
+.btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 10px;
+  padding: 14px 22px;
+  border: 0;
+  border-radius: 999px;
+  background: linear-gradient(180deg, rgba(246,197,79,.18), rgba(246,197,79,.12));
+  /* color: var(--accent); */
+  font-weight: 600;
+  cursor: pointer;
+  transition: transform .15s ease, box-shadow .2s ease, background .2s ease;
+}
+
+.btn .icon {
+  width: 18px;
+  height: 18px;
+  /* fill: var(--accent); */
+  transform: translateY(-1px);
+}
+
+.btn:hover {
+  transform: translateY(-1px);
+  box-shadow: 0 16px 34px rgba(0,0,0,.42);
+  background: linear-gradient(180deg, rgba(246,197,79,.24), rgba(246,197,79,.14));
+}
+
+.btn:active {
+    transform: translateY(0);
+}
+
+/* arrotondamenti della “card mappa” simili allo screenshot (se la sezione è in un box) */
+.contact,
+.form,
+.field,
+.btn {
+    backdrop-filter: saturate(110%);
+}
