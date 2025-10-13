@@ -62,9 +62,7 @@
   /* disattiva la grid forzata da Tailwind */
   display: block;                 /* <-- rimuove display:grid */
   /* consenti di restringersi e andare a capo */
-  flex-shrink: 1;                 /* <-- annulla flex-shrink:0 imposto da Tailwind */
   min-width: 0;
-
   /* azzera qualsiasi template grid rimasto */
   grid-template-rows: none;
   grid-template-columns: none;
@@ -72,13 +70,7 @@
 }
 
 .timeline::before {
-  content: '';
-  position: absolute;
-  left: 14px;
-  top: 4px;
-  bottom: 4px;
-  width: 1px;
-  background: rgba(255,255,255,.12);
+  content: none;
 }
 
 .timeline__item {
@@ -98,4 +90,20 @@
   border-radius: 50%;
   background: #f6c54f;
   box-shadow: 0 0 0 2px rgba(246,197,79,.25);
+}
+
+/* La "linea" parte appena sotto il pallino e scende fino al prossimo item */
+.timeline__item::after {
+  content: '';
+  position: absolute;
+  left: 0;                            /* allineata al centro del pallino (vedi nota) */
+  top: calc(.6rem + 10px);            /* subito sotto il pallino (10px = diametro) */
+  bottom: -22px;                      /* entra nel gap verso il prossimo li (22px) */
+  width: 1px;
+  background: rgba(255,255,255,.12);
+}
+
+/* Sull'ultimo elemento, nessuna linea in basso */
+.timeline__item:last-child::after {
+  content: none;
 }
