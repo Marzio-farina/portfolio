@@ -124,6 +124,8 @@ html {
   font-size: var(--fs-0);
   position: relative;
   padding-bottom: 15px;
+  font-weight: 800;
+  margin: 0 0 16px;
 }
 
 .article-title::after {
