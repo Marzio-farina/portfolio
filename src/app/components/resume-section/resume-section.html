@@ -17,13 +17,13 @@
       (click)="toggle()"
       [attr.aria-expanded]="isOpen()"
       [attr.aria-controls]="id + '-panel'">
-      {{ title }}
+      {{ title() }}
     </button>
   </header>
 
   <div class="section__panel" [id]="id + '-panel'" [class.is-open]="isOpen()">
     <ol class="timeline">
-      @for (it of items; track it.title + '-' + it.years) {
+      @for (it of items(); track it.title + '-' + it.years) {
         <li class="timeline__item">
           <app-timeline-item
             [title]="it.title"
