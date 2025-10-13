@@ -45,14 +45,30 @@
 }
 
 .section__panel.is-open {
-  max-height: 2000px;
+  max-height: none;
 }
 
 .timeline {
+  position: relative;
   list-style: none;
   margin: 0;
   padding: 20px 0 0 14px;
-  position: relative;
+  min-width: 0;
+  flex-direction: column;
+}
+
+/* override mirato della regola @layer utilities (.timeline > li) */
+.timeline > li.timeline__item {
+  /* disattiva la grid forzata da Tailwind */
+  display: block;                 /* <-- rimuove display:grid */
+  /* consenti di restringersi e andare a capo */
+  flex-shrink: 1;                 /* <-- annulla flex-shrink:0 imposto da Tailwind */
+  min-width: 0;
+
+  /* azzera qualsiasi template grid rimasto */
+  grid-template-rows: none;
+  grid-template-columns: none;
+  align-items: initial;
 }
 
 .timeline::before {
@@ -69,6 +85,7 @@
   position: relative;
   margin: 0 0 22px;
   padding-left: 40px;
+  min-width: 0;
 }
 
 .timeline__item::before {
