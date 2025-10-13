@@ -1,4 +1,4 @@
-import { Component } from '@angular/core';
+import { Component, input } from '@angular/core';
 
 @Component({
   selector: 'app-progetti-card',
@@ -7,5 +7,5 @@ import { Component } from '@angular/core';
   styleUrl: './progetti-card.css'
 })
 export class ProgettiCard {
-
+  progetto = input.required<{ title: string; category: string; video: string }>();
 }

@@ -1,4 +1,5 @@
-<div>
-    <h3>titolo</h3>
-    <p>categoria</p>
+<div class="card">
+    <video [src]="progetto().video" autoplay muted loop></video>
+    <h3>{{ progetto().title }}</h3>
+    <p>{{ progetto().category }}</p>
 </div>

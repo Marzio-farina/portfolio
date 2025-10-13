@@ -1,9 +1,7 @@
 <h2 class="article-title">{{ title() }}</h2>
 <app-filter/>
 <div class="projects">
-    <app-progetti-card/>
-    <app-progetti-card/>
-    <app-progetti-card/>
-    <app-progetti-card/>
-    <app-progetti-card/>
+    @for (p of projects(); track p.id) {
+        <app-progetti-card [progetto]="p" />
+    }
 </div>
