@@ -4,13 +4,15 @@ import { ActivatedRoute } from '@angular/router';
 import { map } from 'rxjs';
 import { ResumeSection } from '../../components/resume-section/resume-section';
 import { HttpClient } from '@angular/common/http';
+import { Skills } from '../../components/skills/skills';
 
 type TimelineItem = { title: string; years: string; description: string };
 
 @Component({
   selector: 'app-curriculum',
   imports: [
-    ResumeSection
+    ResumeSection,
+    Skills
   ],
   templateUrl: './curriculum.html',
   styleUrl: './curriculum.css'
