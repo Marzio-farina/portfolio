@@ -1,0 +1,44 @@
+{
+  "projects": [
+    {
+      "id": 1,
+      "title": "Portfolio Personale",
+      "category": "Siti web",
+      "description": "Sviluppo di un sito portfolio moderno con Angular e animazioni interattive. Include dark mode, sezione curriculum e progetti filtrabili.",
+      "video": "assets/videos/portfolio.mp4",
+      "technologies": ["Angular", "TypeScript", "SCSS", "Tailwind"]
+    },
+    {
+      "id": 2,
+      "title": "Gestionale Prenotazioni Campi Sportivi",
+      "category": "Siti web",
+      "description": "Applicazione web full stack per la gestione prenotazioni di campi da tennis e padel. Include calendario dinamico, autenticazione utenti e pannello admin.",
+      "video": "assets/videos/sports-booking.mp4",
+      "technologies": ["Spring Boot", "React", "MySQL", "REST API"]
+    },
+    {
+      "id": 3,
+      "title": "Dashboard Analisi Vendite",
+      "category": "Siti web",
+      "description": "Dashboard interattiva per analizzare vendite e statistiche aziendali in tempo reale. Grafici dinamici e filtri avanzati.",
+      "video": "assets/videos/sales-dashboard.mp4",
+      "technologies": ["Laravel", "Vue.js", "Chart.js", "Bootstrap"]
+    },
+    {
+      "id": 4,
+      "title": "Automazione Catalogo Prodotti",
+      "category": "Applicazioni Windows",
+      "description": "Software desktop sviluppato in .NET per automatizzare l’importazione e sincronizzazione dei prodotti con e-commerce online.",
+      "video": "assets/videos/catalog-sync.mp4",
+      "technologies": [".NET", "WPF", "Entity Framework", "SQLite"]
+    },
+    {
+      "id": 5,
+      "title": "Strumento di Scraping e Analisi Dati",
+      "category": "Applicazioni Windows",
+      "description": "Applicativo Electron per eseguire scraping di dati da marketplace e generare report JSON con statistiche dinamiche.",
+      "video": "assets/videos/data-scraper.mp4",
+      "technologies": ["Electron", "Node.js", "Playwright", "JS"]
+    }
+  ]
+}
