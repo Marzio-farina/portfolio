@@ -10,6 +10,10 @@ nav button {
     color: var(--light-gray-70);
 }
 
+nav button:first-child {
+  min-width: 84px;
+}
+
 nav .is-active {
     color:  var(--light-gray);
 }
