@@ -12,4 +12,5 @@
     color: rgba(255,255,255,.85);
     margin: 0;
     line-height: 1.6;
+    white-space: pre-line;
 }
