@@ -3,11 +3,13 @@ import { toSignal } from '@angular/core/rxjs-interop';
 import { ActivatedRoute } from '@angular/router';
 import { map } from 'rxjs';
 import { ProgettiCard } from '../../components/progetti-card/progetti-card';
+import { Filter } from '../../components/filter/filter';
 
 @Component({
   selector: 'app-progetti',
   imports: [
-    ProgettiCard
+    ProgettiCard,
+    Filter
   ],
   templateUrl: './progetti.html',
   styleUrl: './progetti.css'
