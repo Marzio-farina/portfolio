@@ -2,10 +2,13 @@ import { Component, inject } from '@angular/core';
 import { toSignal } from '@angular/core/rxjs-interop';
 import { ActivatedRoute } from '@angular/router';
 import { map } from 'rxjs';
+import { Maps } from '../../components/maps/maps';
 
 @Component({
   selector: 'app-contatti',
-  imports: [],
+  imports: [
+    Maps
+  ],
   templateUrl: './contatti.html',
   styleUrl: './contatti.css'
 })
