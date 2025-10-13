@@ -1,0 +1,9 @@
+.card video {
+  width: 100%;
+  border-radius: 12px;
+  object-fit: cover;
+  transition: opacity .3s;
+}
+.card:hover video {
+  opacity: 1;
+}

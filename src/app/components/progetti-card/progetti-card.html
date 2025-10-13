@@ -1,5 +1,5 @@
-<div class="card">
-    <video [src]="progetto().video" autoplay muted loop></video>
+<div class="card" (mouseenter)="video.play()" (mouseleave)="video.pause()">
+    <video #video [src]="progetto().video" muted loop preload="metadata" poster="assets/img/placeholder.jpg"></video>
     <h3>{{ progetto().title }}</h3>
     <p>{{ progetto().category }}</p>
 </div>
