@@ -5,6 +5,7 @@
       "title": "Portfolio Personale",
       "category": "Siti web",
       "description": "Sviluppo di un sito portfolio moderno con Angular e animazioni interattive. Include dark mode, sezione curriculum e progetti filtrabili.",
+      "poster": "data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='1280' height='720'><rect width='100%' height='100%' fill='%23222'/><text x='50%' y='50%' dominant-baseline='middle' text-anchor='middle' fill='%23ffffff' font-size='36' font-family='Arial'>Portfolio - Demo</text></svg>",
       "video": "assets/videos/portfolio.mp4",
       "technologies": ["Angular", "TypeScript", "SCSS", "Tailwind"]
     },
@@ -13,6 +14,7 @@
       "title": "Gestionale Prenotazioni Campi Sportivi",
       "category": "Siti web",
       "description": "Applicazione web full stack per la gestione prenotazioni di campi da tennis e padel. Include calendario dinamico, autenticazione utenti e pannello admin.",
+      "poster": "data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='1280' height='720'><rect width='100%' height='100%' fill='%232a3b5f'/><text x='50%' y='50%' dominant-baseline='middle' text-anchor='middle' fill='%23ffffff' font-size='36' font-family='Arial'>Booking - Demo</text></svg>",
       "video": "assets/videos/sports-booking.mp4",
       "technologies": ["Spring Boot", "React", "MySQL", "REST API"]
     },
@@ -21,6 +23,7 @@
       "title": "Dashboard Analisi Vendite",
       "category": "Siti web",
       "description": "Dashboard interattiva per analizzare vendite e statistiche aziendali in tempo reale. Grafici dinamici e filtri avanzati.",
+      "poster": "data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='1280' height='720'><rect width='100%' height='100%' fill='%23414d0b'/><text x='50%' y='50%' dominant-baseline='middle' text-anchor='middle' fill='%23ffffff' font-size='36' font-family='Arial'>Dashboard - Demo</text></svg>",
       "video": "assets/videos/sales-dashboard.mp4",
       "technologies": ["Laravel", "Vue.js", "Chart.js", "Bootstrap"]
     },
@@ -29,6 +32,7 @@
       "title": "Automazione Catalogo Prodotti",
       "category": "Applicazioni Windows",
       "description": "Software desktop sviluppato in .NET per automatizzare l’importazione e sincronizzazione dei prodotti con e-commerce online.",
+      "poster": "data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='1280' height='720'><rect width='100%' height='100%' fill='%23505050'/><text x='50%' y='50%' dominant-baseline='middle' text-anchor='middle' fill='%23ffffff' font-size='36' font-family='Arial'>Catalog Sync - Demo</text></svg>",
       "video": "assets/videos/catalog-sync.mp4",
       "technologies": [".NET", "WPF", "Entity Framework", "SQLite"]
     },
@@ -37,6 +41,7 @@
       "title": "Strumento di Scraping e Analisi Dati",
       "category": "Applicazioni Windows",
       "description": "Applicativo Electron per eseguire scraping di dati da marketplace e generare report JSON con statistiche dinamiche.",
+      "poster": "data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='1280' height='720'><rect width='100%' height='100%' fill='%237a1f1f'/><text x='50%' y='50%' dominant-baseline='middle' text-anchor='middle' fill='%23ffffff' font-size='36' font-family='Arial'>Scraper - Demo</text></svg>",
       "video": "assets/videos/data-scraper.mp4",
       "technologies": ["Electron", "Node.js", "Playwright", "JS"]
     }
