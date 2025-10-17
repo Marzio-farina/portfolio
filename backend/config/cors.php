@@ -5,6 +5,7 @@ return [
     'allowed_methods' => ['*'],
     'allowed_origins' => [
         'https://marziofarina.it',
+        'https://www.marziofarina.it',
     ],
     'allowed_origins_patterns' => [
         '/^https:\/\/.*\.vercel\.app$/'
