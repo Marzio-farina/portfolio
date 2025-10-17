@@ -1,6 +1,6 @@
 import { HttpClient } from '@angular/common/http';
 import { inject, Injectable } from '@angular/core';
-import { environment } from '../../../../public/environments/environment';
+import { environment } from '../../../../public/environments/environment.prod';
 import { Observable } from 'rxjs';
 
 export interface PingResponse {
