@@ -1,6 +1,6 @@
 import { HttpClient } from '@angular/common/http';
 import { inject, Injectable } from '@angular/core';
-import { environment } from '../../../../public/environments/environment.prod';
+import { environment } from '../../../environments/environment';
 import { Observable } from 'rxjs';
 
 export interface PingResponse {
@@ -13,7 +13,6 @@ export interface PingResponse {
 })
 export class Ping {
   private readonly http = inject(HttpClient);
-  private readonly base = environment.API_BASE_URL;
 
   /**
    * Chiama l'endpoint di test.
@@ -21,7 +20,7 @@ export class Ping {
    * Rewrite stessa origin: GET /api/ping
    */
   getPing(): Observable<PingResponse> {
-    const url = this.base ? `${this.base}/api/ping` : `/api/ping`;
+    const url = environment.API_BASE_URL ? `${environment.API_BASE_URL}/api/ping` : `/api/ping`;
     return this.http.get<PingResponse>(url);
   }
 }
