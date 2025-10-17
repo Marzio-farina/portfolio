@@ -19,5 +19,15 @@ return Application::configure(basePath: dirname(__DIR__))
         $middleware->trustProxies(at: '*');
     })
     ->withExceptions(function (Exceptions $exceptions): void {
+        // ✅ Forza sempre la risposta in JSON
         $exceptions->shouldRenderJsonWhen(fn () => true);
+
+        // ✅ Se qualcosa va storto prima di avere un handler, ritorna JSON grezzo
+        $exceptions->render(function (Throwable $e, $request) {
+            return response()->json([
+                'ok' => false,
+                'error' => $e->getMessage(),
+                'trace' => app()->hasDebugModeEnabled() ? $e->getTrace() : null,
+            ], 500);
+        });
     })->create();
