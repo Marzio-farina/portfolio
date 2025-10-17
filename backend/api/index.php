@@ -1,5 +1,4 @@
-<?php
+<?php 
 
-chdir(__DIR__ . '/..');
-// Entry per Vercel → inoltra tutto a Laravel
-require __DIR__ . '/../public/index.php';
+chdir(__DIR__.'/..');
+require __DIR__.'/../public/index.php';
