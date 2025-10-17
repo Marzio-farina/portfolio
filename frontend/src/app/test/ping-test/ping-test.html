@@ -1,0 +1,6 @@
+<div class="p-4 rounded-xl shadow">
+    <button (click)="ping()" class="px-3 py-2 rounded-lg shadow">Ping API</button>
+    <div class="mt-3" *ngIf="loading()">Caricamento...</div>
+    <pre class="mt-3" *ngIf="data() as d">{{ d | json }}</pre>
+    <div class="mt-3 text-red-600" *ngIf="error()">{{ error() }}</div>
+</div>

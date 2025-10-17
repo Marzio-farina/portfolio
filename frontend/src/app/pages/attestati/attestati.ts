@@ -2,10 +2,13 @@ import { Component, inject } from '@angular/core';
 import { toSignal } from '@angular/core/rxjs-interop';
 import { ActivatedRoute } from '@angular/router';
 import { map } from 'rxjs';
+import { PingTest } from '../../test/ping-test/ping-test';
 
 @Component({
   selector: 'app-attestati',
-  imports: [],
+  imports: [
+    PingTest
+  ],
   templateUrl: './attestati.html',
   styleUrl: './attestati.css'
 })
