@@ -19,15 +19,16 @@ return Application::configure(basePath: dirname(__DIR__))
         $middleware->trustProxies(at: '*');
     })
     ->withExceptions(function (Exceptions $exceptions): void {
-        // ✅ Forza sempre la risposta in JSON
+        // Restituisci sempre JSON (evita qualsiasi tentativo di usare view)
         $exceptions->shouldRenderJsonWhen(fn () => true);
 
-        // ✅ Se qualcosa va storto prima di avere un handler, ritorna JSON grezzo
+        // Render universale che non usa response()
         $exceptions->render(function (Throwable $e, $request) {
-            return response()->json([
-                'ok' => false,
+            return new \Illuminate\Http\JsonResponse([
+                'ok'    => false,
                 'error' => $e->getMessage(),
+                // mostra il trace solo se APP_DEBUG=true
                 'trace' => app()->hasDebugModeEnabled() ? $e->getTrace() : null,
-            ], 500);
+            ], 500, [], JSON_UNESCAPED_UNICODE);
         });
     })->create();
