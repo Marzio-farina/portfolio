@@ -1,10 +1,10 @@
 import { Component, inject, signal } from '@angular/core';
-import { AsyncPipe, JsonPipe, NgIf } from '@angular/common';
+import { JsonPipe, NgIf } from '@angular/common';
 import { Ping, PingResponse } from '../../core/api/ping';
 
 @Component({
   selector: 'app-ping-test',
-  imports: [NgIf, JsonPipe, AsyncPipe],
+  imports: [NgIf, JsonPipe],
   templateUrl: './ping-test.html',
   styleUrl: './ping-test.css'
 })
