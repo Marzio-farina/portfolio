@@ -20,6 +20,6 @@ export class Ping {
    * Con base che include già /api (dev/prod), qui aggiungiamo SOLO /ping.
    */
   getPing(): Observable<PingResponse> {
-    return this.http.get<PingResponse>(apiUrl('/ping'));
+    return this.http.get<PingResponse>(apiUrl('ping'));
   }
 }
