@@ -21,30 +21,18 @@ return Application::configure(basePath: dirname(__DIR__))
     ->withExceptions(function (Exceptions $exceptions): void {
         $exceptions->shouldRenderJsonWhen(fn () => true);
 
-        $exceptions->render(function (Throwable $e, $request) {
-            // Se è un'eccezione HTTP, mantieni status code e headers originali
+        $exceptions->render(function (Throwable $e) {
+            // mantieni lo status code corretto per le HttpException
             if ($e instanceof \Symfony\Component\HttpKernel\Exception\HttpExceptionInterface) {
                 return new \Illuminate\Http\JsonResponse([
                     'ok'    => false,
                     'error' => $e->getMessage() ?: \Symfony\Component\HttpFoundation\Response::$statusTexts[$e->getStatusCode()] ?? 'Error',
-                    'trace' => app()->hasDebugModeEnabled() ? $e->getTrace() : null,
                 ], $e->getStatusCode(), $e->getHeaders(), JSON_UNESCAPED_UNICODE);
             }
-
-            // Route non trovata (es. RouteNotFoundException) -> 404
+            // NotFound generiche
             if ($e instanceof \Symfony\Component\Routing\Exception\RouteNotFoundException) {
-                return new \Illuminate\Http\JsonResponse([
-                    'ok'    => false,
-                    'error' => $e->getMessage() ?: 'Not Found',
-                    'trace' => app()->hasDebugModeEnabled() ? $e->getTrace() : null,
-                ], 404, [], JSON_UNESCAPED_UNICODE);
+                return new \Illuminate\Http\JsonResponse(['ok' => false, 'error' => 'Not Found'], 404);
             }
-
-            // Default: 500
-            return new \Illuminate\Http\JsonResponse([
-                'ok'    => false,
-                'error' => $e->getMessage() ?: 'Server Error',
-                'trace' => app()->hasDebugModeEnabled() ? $e->getTrace() : null,
-            ], 500, [], JSON_UNESCAPED_UNICODE);
+            return new \Illuminate\Http\JsonResponse(['ok' => false, 'error' => 'Server Error'], 500);
         });
     })->create();
