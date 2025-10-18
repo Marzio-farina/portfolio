@@ -8,8 +8,5 @@
     { "src": "/storage/(.*)", "dest": "/public/storage/$1" },
     { "src": "/(.*)", "dest": "/api/index.php" }
   ],
-  "rewrites": [
-    { "source": "/api/(.*)", "destination": "/public/index.php" }
-  ],
   "outputDirectory": "public"
 }
