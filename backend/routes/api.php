@@ -1,5 +1,6 @@
 <?php
 
+use App\Models\Testimonial;
 use Illuminate\Support\Facades\Route;
 use Illuminate\Http\JsonResponse;
 
@@ -40,3 +41,5 @@ Route::get('_diag', function () {
 Route::fallback(function () {
     return new JsonResponse(['ok' => false, 'error' => 'Not Found'], 404, [], JSON_UNESCAPED_UNICODE);
 });
+
+Route::get('/testimonials', [Testimonial::class, 'index']);

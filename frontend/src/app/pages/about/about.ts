@@ -6,21 +6,14 @@ import { HttpClient } from '@angular/common/http';
 import { WhatIDoCard } from '../../components/what-i-do-card/what-i-do-card';
 import { TestimonialCard } from '../../components/testimonial-card/testimonial-card';
 import { Avatar } from '../../components/avatar/avatar';
+import { TestimonialService } from '../../services/testimonial.service';
+import { Testimonial } from '../../core/models/testimonial';
 
 type AboutCard = {
   id: string;
   title: string;
   description: string;
   icon?: string;
-};
-
-type Testimonial = {
-  id: string;
-  author: string;
-  text: string;
-  role?: string;
-  company?: string;
-  rating?: number;
 };
 
 @Component({
@@ -36,6 +29,7 @@ type Testimonial = {
 export class About {
   private route = inject(ActivatedRoute);
   private http = inject(HttpClient);
+  private testimonialApi = inject(TestimonialService);
 
   // ref al carosello: nel template assegna #carousel al contenitore con overflow-x-auto
   @ViewChild('carousel') private carouselRef?: ElementRef<HTMLElement>;
@@ -51,6 +45,9 @@ export class About {
   testimonials = signal<Testimonial[]>([]);
   testimonialsLoading = signal(true);
   testimonialsError = signal<string | null>(null);
+  page = signal(1);
+  perPage = signal(8);
+  lastPage = signal(1);
 
   constructor() {
     // Carica what-i-do
@@ -66,14 +63,13 @@ export class About {
     });
 
     // Carica testimonials
-    this.http.get<Testimonial[]>('assets/json/testimonials.json').subscribe({
-      next: data => { this.testimonials.set(data ?? []); this.testimonialsLoading.set(false); },
-      error: () => { this.testimonialsError.set('Impossibile caricare le testimonianze.'); this.testimonialsLoading.set(false); }
-    });
+    this.fetchTestimonials(this.page(), this.perPage());
   }
 
+  next() { if (this.page() < this.lastPage()) { this.page.set(this.page() + 1); this.fetchTestimonials(this.page(), this.perPage()); } }
+  prev() { if (this.page() > 1) { this.page.set(this.page() - 1); this.fetchTestimonials(this.page(), this.perPage()); } }
+  
   trackById = (_: number, c: AboutCard) => c.id;
-  trackByTestimonialId = (_: number, t: Testimonial) => t.id;
 
   // Handler: dirotta lo scroll verticale in orizzontale sul carosello
   onWheelToHorizontal(e: WheelEvent): void {
@@ -87,5 +83,20 @@ export class About {
       e.preventDefault?.(); // sarà ignorato se il listener è passivo
       el.scrollBy({ left: e.deltaY });
     }
+  }
+
+  private fetchTestimonials(page: number, perPage: number) {
+    this.testimonialsLoading.set(true);
+    this.testimonialApi.list$(page, perPage).subscribe({
+      next: res => {
+        this.testimonials.set(res.data ?? []);
+        this.lastPage.set(res.meta?.last_page ?? 1);
+        this.testimonialsLoading.set(false);
+      },
+      error: () => {
+        this.testimonialsError.set('Impossibile caricare le testimonianze.');
+        this.testimonialsLoading.set(false);
+      }
+    });
   }
 }
