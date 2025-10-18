@@ -20,7 +20,8 @@ export class Ping {
    * Con base che include già /api (dev/prod), qui aggiungiamo SOLO /ping.
    */
   getPing(): Observable<PingResponse> {
-    const url = this.base ? `${this.base}/ping` : `/api/ping`; // fallback se mai mancasse la base
+    const base = (environment.API_BASE_URL || '').replace(/\/+$/, '');
+    const url  = base ? `${base}/api/ping` : `/api/ping`;
     return this.http.get<PingResponse>(url);
   }
 }
