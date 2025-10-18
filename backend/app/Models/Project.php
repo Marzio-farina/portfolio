@@ -2,12 +2,13 @@
 
 namespace App\Models;
 
+use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\SoftDeletes;
 
 class Project extends Model
 {
-    use SoftDeletes;
+    use HasFactory, SoftDeletes;
 
     protected $fillable = [
         'title', 'category_id', 'description', 'poster', 'video'
@@ -20,7 +21,6 @@ class Project extends Model
 
     public function technologies()
     {
-        return $this->belongsToMany(Technology::class, 'project_technology')
-                    ->withPivot([]);
+        return $this->belongsToMany(Technology::class, 'project_technology');
     }
 }

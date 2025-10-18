@@ -18,27 +18,28 @@ class UserSeeder extends Seeder
     {
         $adminRole = Role::where('title', 'Admin')->first();
         $devRole   = Role::where('title', 'Developer')->first();
-        $icon      = Icon::inRandomOrder()->first();
+        $icon      = Icon::firstOrCreate(['img' => 'icons/default.png'], ['alt' => 'Default']);
 
-        User::insert([
+        User::updateOrCreate(
+            ['email' => 'admin@marziofarina.it'],
             [
                 'name' => 'Marzio',
                 'surname' => 'Farina',
-                'email' => 'admin@marziofarina.it',
                 'password' => Hash::make('password'),
                 'role_id' => $adminRole->id,
                 'icon_id' => $icon->id,
-                'created_at' => now(),
-            ],
+            ]
+        );
+
+        User::updateOrCreate(
+            ['email' => 'dev@example.com'],
             [
                 'name' => 'Laura',
                 'surname' => 'Dev',
-                'email' => 'dev@example.com',
                 'password' => Hash::make('password'),
                 'role_id' => $devRole->id,
                 'icon_id' => $icon->id,
-                'created_at' => now(),
-            ],
-        ]);
+            ]
+        );
     }
 }
