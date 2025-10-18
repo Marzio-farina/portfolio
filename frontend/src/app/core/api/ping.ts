@@ -20,7 +20,7 @@ export class Ping {
    * Rewrite stessa origin: GET /api/ping
    */
   getPing(): Observable<PingResponse> {
-    const url = environment.API_BASE_URL ? `${environment.API_BASE_URL}/api/ping` : `/api/ping`;
+    const url = environment.API_BASE_URL ? `${environment.API_BASE_URL}/ping` : `/ping`;
     return this.http.get<PingResponse>(url);
   }
 }
