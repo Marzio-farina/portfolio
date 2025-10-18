@@ -19,15 +19,31 @@ return Application::configure(basePath: dirname(__DIR__))
         $middleware->trustProxies(at: '*');
     })
     ->withExceptions(function (Exceptions $exceptions): void {
-        // Restituisci sempre JSON (evita qualsiasi tentativo di usare view)
         $exceptions->shouldRenderJsonWhen(fn () => true);
 
-        // Render universale che non usa response()
         $exceptions->render(function (Throwable $e, $request) {
+            // Se è un'eccezione HTTP, mantieni status code e headers originali
+            if ($e instanceof \Symfony\Component\HttpKernel\Exception\HttpExceptionInterface) {
+                return new \Illuminate\Http\JsonResponse([
+                    'ok'    => false,
+                    'error' => $e->getMessage() ?: \Symfony\Component\HttpFoundation\Response::$statusTexts[$e->getStatusCode()] ?? 'Error',
+                    'trace' => app()->hasDebugModeEnabled() ? $e->getTrace() : null,
+                ], $e->getStatusCode(), $e->getHeaders(), JSON_UNESCAPED_UNICODE);
+            }
+
+            // Route non trovata (es. RouteNotFoundException) -> 404
+            if ($e instanceof \Symfony\Component\Routing\Exception\RouteNotFoundException) {
+                return new \Illuminate\Http\JsonResponse([
+                    'ok'    => false,
+                    'error' => $e->getMessage() ?: 'Not Found',
+                    'trace' => app()->hasDebugModeEnabled() ? $e->getTrace() : null,
+                ], 404, [], JSON_UNESCAPED_UNICODE);
+            }
+
+            // Default: 500
             return new \Illuminate\Http\JsonResponse([
                 'ok'    => false,
-                'error' => $e->getMessage(),
-                // mostra il trace solo se APP_DEBUG=true
+                'error' => $e->getMessage() ?: 'Server Error',
                 'trace' => app()->hasDebugModeEnabled() ? $e->getTrace() : null,
             ], 500, [], JSON_UNESCAPED_UNICODE);
         });
