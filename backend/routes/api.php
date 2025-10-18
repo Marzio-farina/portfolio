@@ -3,7 +3,7 @@
 use Illuminate\Support\Facades\Route;
 use Illuminate\Http\JsonResponse;
 
-Route::get('/ping', function () {
+Route::get('ping', function () {
     return new JsonResponse([
         'ok'   => true,
         'time' => now()->toIso8601String(),
