@@ -13,14 +13,14 @@ export interface PingResponse {
 })
 export class Ping {
   private readonly http = inject(HttpClient);
+  private readonly base = (environment.API_BASE_URL || '').replace(/\/+$/, '');
 
   /**
    * Chiama l'endpoint di test.
-   * Backend (subdominio): GET {API_BASE_URL}/api/ping
-   * Rewrite stessa origin: GET /api/ping
+   * Con base che include già /api (dev/prod), qui aggiungiamo SOLO /ping.
    */
   getPing(): Observable<PingResponse> {
-    const url = environment.API_BASE_URL ? `${environment.API_BASE_URL}/ping` : `/ping`;
+    const url = this.base ? `${this.base}/ping` : `/api/ping`; // fallback se mai mancasse la base
     return this.http.get<PingResponse>(url);
   }
 }
