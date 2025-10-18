@@ -42,4 +42,4 @@ Route::fallback(function () {
     return new JsonResponse(['ok' => false, 'error' => 'Not Found'], 404, [], JSON_UNESCAPED_UNICODE);
 });
 
-Route::get('/testimonials', [TestimonialController::class, 'index']);
+Route::get('testimonials', [TestimonialController::class, 'index']);
