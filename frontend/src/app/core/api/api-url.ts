@@ -9,7 +9,7 @@ const BASE = (environment.API_BASE_URL || '').replace(/\/+$/, '');
  * Altrimenti, lo aggiunge.
  * Passa sempre path a partire da "/" (es. "/ping", "/testimonials").
  */
-export function apiUrl(path: string): string {
-  const p = path.startsWith('/') ? path : `/${path}`;
-  return BASE.endsWith('/api') ? `${BASE}${p}` : `${BASE}/api${p}`;
+export function apiUrl(pathAfterApi: string): string {
+  const p = pathAfterApi.replace(/^\/+/, ''); // toglie eventuale '/' iniziale
+  return `${BASE}/api/${p}`;
 }

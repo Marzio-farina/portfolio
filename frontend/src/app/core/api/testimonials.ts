@@ -22,7 +22,7 @@ export class TestimonialsApi {
   private readonly http = inject(HttpClient);
 
   list(page = 1, perPage = 12): Observable<Paginated<Testimonial>> {
-    const params = { page, per_page: perPage } as any;
+    const params = { page, per_page: perPage } as const;
     return this.http.get<Paginated<Testimonial>>(apiUrl('/testimonials'), { params });
   }
 }
