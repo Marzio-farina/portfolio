@@ -32,6 +32,7 @@ class DatabaseSeeder extends Seeder
             CurriculumSeeder::class,
             TestimonialSeeder::class,
             WhatIDoSeeder::class,
+            UserProfileAndSocialSeeder::class,
         ]);
     }
 }
