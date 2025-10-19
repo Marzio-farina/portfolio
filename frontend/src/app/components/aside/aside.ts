@@ -1,9 +1,10 @@
-import { Component, Inject, PLATFORM_ID, computed, effect, signal } from '@angular/core';
+import { Component, Inject, PLATFORM_ID, computed, effect, inject, signal } from '@angular/core';
 import { isPlatformBrowser } from '@angular/common';
 import { toSignal } from '@angular/core/rxjs-interop';
 import { fromEvent, map, startWith } from 'rxjs';
 import { trigger, transition, style, animate } from '@angular/animations';
 import { Avatar } from "../avatar/avatar";
+import { AboutProfileService, PublicProfileDto, SocialLink } from '../../services/about-profile.service'
 
 @Component({
   selector: 'app-aside',
@@ -30,6 +31,7 @@ export class Aside {
   private readonly LARGE_MIN = 1250;
   private readonly SMALL_MAX = 580;
 
+  // responsive
   readonly isBrowser: boolean;
   readonly width;
   readonly viewMode;
@@ -37,6 +39,43 @@ export class Aside {
   readonly showContacts;
   readonly showButton;
   readonly isSmall;
+
+   // === DATI PROFILO (API) ===
+  private readonly svc = inject(AboutProfileService);
+  profile = signal<PublicProfileDto | null>(null);
+  loading = signal(true);
+  errorMsg = signal<string | null>(null);
+
+  // Helpers per UI
+  fullName = computed(() => {
+    const p = this.profile();
+    if (!p) return '';
+    return [p.name, p.surname].filter(Boolean).join(' ');
+  });
+
+  emailHref = computed(() => {
+    const email = this.profile()?.email?.trim();
+    return email ? `mailto:${email}` : null;
+  });
+
+  phoneHref = computed(() => {
+    const raw = this.profile()?.phone?.replace(/\s+/g, '');
+    return raw ? `tel:${raw}` : null;
+  });
+
+  whatsappHref = computed(() => {
+    const raw = this.profile()?.phone?.replace(/\D+/g, '');
+    return raw ? `https://wa.me/${raw}` : null;
+  });
+
+  birthdayHuman = computed(() => this.profile()?.date_of_birth_it ?? null);
+  birthdayISO   = computed(() => this.profile()?.date_of_birth ?? null);
+  locationTxt   = computed(() => this.profile()?.location ?? null);
+
+  // Social dinamici
+  socials = computed<SocialLink[]>(() =>
+    (this.profile()?.socials ?? []).filter((s: SocialLink) => !!s.url)
+  );
 
   constructor(@Inject(PLATFORM_ID) platformId: Object) {
     this.isBrowser = isPlatformBrowser(platformId);
@@ -65,9 +104,31 @@ export class Aside {
     this.showContacts = computed(() => this.viewMode() === 'large' || this.expanded());
     this.showButton   = computed(() => this.viewMode() !== 'large');
     this.isSmall      = computed(() => this.viewMode() === 'small');
+
+    // === CARICAMENTO DATI PROFILO ===
+    this.svc.get$().subscribe({
+      next: (p: PublicProfileDto) => {
+        this.profile.set(p);
+        this.loading.set(false);
+      },
+      error: () => {
+        this.errorMsg.set('Impossibile caricare i contatti.');
+        this.loading.set(false);
+      }
+    });
   }
 
   toggleContacts() {
     if (this.viewMode() !== 'large') this.expanded.update(v => !v);
+  }
+
+  // per scegliere l'icona in base al provider
+  iconKind(provider: string): 'facebook'|'instagram'|'github'|'linkedin'|'x'|'youtube'|'globe' {
+    const p = provider.toLowerCase();
+    if (['facebook','instagram','github','linkedin','x','twitter','youtube'].includes(p)) {
+      if (p === 'twitter') return 'x';
+      return p as any;
+    }
+    return 'globe';
   }
 }
