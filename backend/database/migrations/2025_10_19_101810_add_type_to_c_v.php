@@ -26,8 +26,8 @@ return new class extends Migration
     {
         Schema::table('curricula', function (Blueprint $table) {
             $table->dropIndex(['type']);
-            $table->dropIndex(['curricula_type_time_start_index']);
-            $table->dropIndex(['curricula_type_time_end_index']);
+            $table->dropIndex(['type', 'time_start']);
+            $table->dropIndex(['type', 'time_end']);
             $table->dropColumn('type');
         });
     }

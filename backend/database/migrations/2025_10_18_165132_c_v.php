@@ -13,7 +13,7 @@ return new class extends Migration
     {
         Schema::create('curricula', function (Blueprint $table) {
             $table->bigIncrements('id');
-            $table->string('title', 50);
+            $table->string('title', 255);
             $table->date('time_start');
             $table->date('time_end')->nullable();
             $table->text('description');
