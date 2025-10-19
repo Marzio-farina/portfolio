@@ -17,7 +17,6 @@ export class TestimonialService {
   // usa SEMPRE apiUrl('testimonials'), niente stringhe hard-coded tipo '/testimonials'
   list$(page = 1, perPage = 8): Observable<Paginated<Testimonial>> {
     const url = apiUrl('testimonials');
-    console.log('[Testimonials GET]', url);
     return this.http.get<Paginated<Testimonial>>(url, { params: { page, per_page: perPage }});
   }
 }

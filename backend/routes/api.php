@@ -1,5 +1,6 @@
 <?php
 
+use App\Http\Controllers\Api\ProjectController;
 use App\Http\Controllers\Api\TestimonialController;
 use Illuminate\Support\Facades\Route;
 use Illuminate\Http\JsonResponse;
@@ -43,3 +44,4 @@ Route::fallback(function () {
 });
 
 Route::get('testimonials', [TestimonialController::class, 'index']);
+Route::get('projects', [ProjectController::class, 'index']);
