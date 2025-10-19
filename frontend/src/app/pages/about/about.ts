@@ -2,12 +2,12 @@ import { Component, inject, signal, ElementRef, ViewChild } from '@angular/core'
 import { toSignal } from '@angular/core/rxjs-interop';
 import { ActivatedRoute } from '@angular/router';
 import { map } from 'rxjs';
-import { HttpClient } from '@angular/common/http';
 import { WhatIDoCard } from '../../components/what-i-do-card/what-i-do-card';
 import { TestimonialCard } from '../../components/testimonial-card/testimonial-card';
 import { Avatar } from '../../components/avatar/avatar';
 import { TestimonialService } from '../../services/testimonial.service';
 import { Testimonial } from '../../core/models/testimonial';
+import { WhatIDoService } from '../../services/what-i-do.service';
 
 type AboutCard = {
   id: string;
@@ -28,8 +28,8 @@ type AboutCard = {
 })
 export class About {
   private route = inject(ActivatedRoute);
-  private http = inject(HttpClient);
   private testimonialApi = inject(TestimonialService);
+  private whatIDoApi = inject(WhatIDoService);
 
   // ref al carosello: nel template assegna #carousel al contenitore con overflow-x-auto
   @ViewChild('carousel') private carouselRef?: ElementRef<HTMLElement>;
@@ -51,9 +51,15 @@ export class About {
 
   constructor() {
     // Carica what-i-do
-    this.http.get<AboutCard[]>('assets/json/what-i-do.json').subscribe({
-      next: data => {
-        this.cards.set(data ?? []);
+    this.whatIDoApi.get$().subscribe({
+      next: items => {
+        // mappo id numerico -> stringa per AboutCard
+        this.cards.set(items.map(it => ({
+          id: String(it.id),
+          title: it.title,
+          description: it.description,
+          icon: it.icon
+        })));
         this.loading.set(false);
       },
       error: () => {
