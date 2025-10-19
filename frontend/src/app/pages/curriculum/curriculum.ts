@@ -3,8 +3,8 @@ import { toSignal } from '@angular/core/rxjs-interop';
 import { ActivatedRoute } from '@angular/router';
 import { map } from 'rxjs';
 import { ResumeSection } from '../../components/resume-section/resume-section';
-import { HttpClient } from '@angular/common/http';
 import { Skills } from '../../components/skills/skills';
+import { CvService } from '../../services/cv.service';
 
 type TimelineItem = { title: string; years: string; description: string };
 
@@ -19,22 +19,26 @@ type TimelineItem = { title: string; years: string; description: string };
 })
 export class Curriculum {
   private route = inject(ActivatedRoute);
-  private http = inject(HttpClient);
+  private cv = inject(CvService);
 
   title = toSignal(this.route.data.pipe(map(d => d['title'] as string)), { initialValue: '' });
 
   education = signal<TimelineItem[]>([]);
   experience = signal<TimelineItem[]>([]);
+  loading = signal(true);
+  errorMsg = signal<string | null>(null);
 
   constructor() {
-    this.loadData();
-  }
-
-  private loadData() {
-    this.http.get<{ education: TimelineItem[]; experience: TimelineItem[] }>('assets/json/curriculum.json')
-      .subscribe(data => {
+    this.cv.get$().subscribe({
+      next: data => {
         this.education.set(data.education);
         this.experience.set(data.experience);
-      });
+        this.loading.set(false);
+      },
+      error: () => {
+        this.errorMsg.set('Impossibile caricare il curriculum.');
+        this.loading.set(false);
+      }
+    });
   }
 }

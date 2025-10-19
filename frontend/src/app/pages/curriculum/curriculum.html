@@ -1,19 +1,29 @@
 <h2 class="article-title">{{ title() }}</h2>
 
-<app-resume-section
-  id="sec-edu"
-  icon="book"
-  title="Studi"
-  [items]="education()"
-  [open]="true">
-</app-resume-section>
+@if (loading()) {
+  <div>Caricamento…</div>
+}
 
-<app-resume-section
-  id="sec-exp"
-  icon="briefcase"
-  title="Esperienze"
-  [items]="experience()"
-  [open]="true">
-</app-resume-section>
+@if (!loading() && errorMsg()) {
+  <div class="state error">
+    {{ errorMsg() }}
+  </div>
+}
+@if (!loading() && !errorMsg()) {
+  <app-resume-section
+    id="sec-edu"
+    icon="book"
+    title="Studi"
+    [items]="education()"
+    [open]="true">
+  </app-resume-section>
 
+  <app-resume-section
+    id="sec-exp"
+    icon="briefcase"
+    title="Esperienze"
+    [items]="experience()"
+    [open]="true">
+  </app-resume-section>
+}
 <app-skills/>
