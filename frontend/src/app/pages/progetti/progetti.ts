@@ -4,7 +4,7 @@ import { ActivatedRoute } from '@angular/router';
 import { map } from 'rxjs';
 import { ProgettiCard, Progetto } from '../../components/progetti-card/progetti-card';
 import { Filter } from '../../components/filter/filter';
-import { HttpClient } from '@angular/common/http';
+import { ProjectService } from '../../services/project.service';
 
 @Component({
   selector: 'app-progetti',
@@ -17,18 +17,22 @@ import { HttpClient } from '@angular/common/http';
 })
 export class Progetti {
   private route = inject(ActivatedRoute);
-  private http = inject(HttpClient);
+  private api   = inject(ProjectService);
 
   title = toSignal(this.route.data.pipe(map(d => d['title'] as string)), { initialValue: '' });
-  // tutti i progetti dal JSON
+
   projects = signal<Progetto[]>([]);
   // categoria selezionata
   selectedCategory = signal<string>('Tutti');
 
+  // stati UI
+  loading = signal(true);
+  errorMsg = signal<string | null>(null);
+  
   // categorie uniche calcolate dai progetti
   categories = computed<string[]>(() => {
-    const set = new Set(this.projects().map(p => p.category));
-    return ['Tutti', ...Array.from(set)];
+    const set = new Set(this.projects().map(p => p.category).filter(Boolean));
+    return ['Tutti', ...Array.from(set).sort()];
   });
 
   // lista filtrata in base alla categoria scelta
@@ -39,11 +43,11 @@ export class Progetti {
   });
 
   constructor() {
-    this.http.get<{ projects: Progetto[] }>('assets/json/progetti.json')
-      .subscribe({
-        next: d => this.projects.set(d.projects ?? []),
-        error: e => console.error('Errore caricamento progetti.json', e)
-      });
+    // Carichiamo (qui: tutti fino a 1000; se vuoi, usa paginazione list$ page/perPage)
+    this.api.listAll$(1000).subscribe({
+      next: data => { this.projects.set(data); this.loading.set(false); },
+      error: err => { this.errorMsg.set('Impossibile caricare i progetti.'); this.loading.set(false); }
+    });
   }
   
   onSelectCategory(c: string) {

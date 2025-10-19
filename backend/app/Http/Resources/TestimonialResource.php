@@ -10,7 +10,7 @@ class TestimonialResource extends JsonResource
     {
         return [
             'id'      => (string) $this->id,
-            'author'  => trim(($this->user->name ?? '').' '.($this->user->surname ?? '')) ?: 'Anonimo',
+            'author'  => $this->author ?? ($this->user->name ?? null),
             'text'    => $this->text,
             'role'    => $this->role_company,   // mappa sul nome che usi nel FE
             'company' => $this->company,

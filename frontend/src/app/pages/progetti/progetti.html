@@ -4,8 +4,21 @@
     [selected]="selectedCategory()"
     (select)="onSelectCategory($event)"
 />
+
+@if (loading()) {
+    <div>Caricamento...</div>
+}
+
+@if (!loading() && errorMsg()) {
+    <div class="state error">
+        {{ errorMsg() }}
+    </div>
+}
+
 <div class="projects">
-    @for (p of filtered(); track p.id) {
-        <app-progetti-card [progetto]="p" />
-    }
+    @if (!loading() && !errorMsg()) {
+        @for (p of filtered(); track p.id) {
+            <app-progetti-card [progetto]="p" />
+        }
+    }    
 </div>
