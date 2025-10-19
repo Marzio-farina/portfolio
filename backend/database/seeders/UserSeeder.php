@@ -21,11 +21,12 @@ class UserSeeder extends Seeder
         $icon      = Icon::firstOrCreate(['img' => 'icons/default.png'], ['alt' => 'Default']);
 
         User::updateOrCreate(
-            ['email' => 'admin@marziofarina.it'],
+            ['email' => 'marziofarina@icloud.com'],
             [
-                'name' => 'Marzio',
+                'name' => 'Marziano',
                 'surname' => 'Farina',
                 'password' => Hash::make('password'),
+                'date_of_birth' => '1995-10-30',
                 'role_id' => $adminRole->id,
                 'icon_id' => $icon->id,
             ]

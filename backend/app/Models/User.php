@@ -68,11 +68,11 @@ class User extends Authenticatable
 
     public function profile()
     {
-        return $this->hasOne(\App\Models\UserProfile::class);
+        return $this->hasOne(UserProfile::class);
     }
 
     public function socialAccounts()
     {
-        return $this->hasMany(\App\Models\SocialAccount::class);
+        return $this->hasMany(SocialAccount::class);
     }
 }
