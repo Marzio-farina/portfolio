@@ -14,9 +14,36 @@ class WhatIDoSeeder extends Seeder
     public function run(): void
     {
         WhatIDo::insert([
-            ['title' => 'Web Developer', 'description' => 'Creo app moderne in Laravel e Angular.', 'icon' => 'code-slash'],
-            ['title' => 'Game Developer', 'description' => 'Sviluppo esperienze in Unity 3D e C#.', 'icon' => 'gamepad'],
-            ['title' => 'Automation Engineer', 'description' => 'Automazioni software con Node e Python.', 'icon' => 'cpu'],
+            [
+                'title' => 'Web Development',
+                'description' => 'Siti e app web performanti con Laravel, Angular ed Electron',
+                'icon' => 'code'
+            ],
+            [
+                'title' => 'Windows Development',
+                'description' => 'App desktop .NET e VBA per ottimizzare i processi aziendali',
+                'icon' => 'pencil'
+            ],
+            [
+                'title' => 'Web Scrapping & Automation',
+                'description' => 'Automazione e raccolta dati dal web',
+                'icon' => 'code'
+            ],
+            [
+                'title' => 'UI/UX Design',
+                'description' => 'Interfacce intuitive e curate per un\'esperienza ottimale',
+                'icon' => 'pencil'
+            ],
+            [
+                'title' => 'Ricerca e Innovazione',
+                'description' => 'Sperimentazione continua di tecnologie e soluzioni nuove',
+                'icon' => 'code'
+            ],
+            [
+                'title' => 'Consulenza e Ottimizzazione',
+                'description' => 'Analisi e software su misura per aumentare l’efficienza',
+                'icon' => 'pencil'
+            ],
         ]);
     }
 }

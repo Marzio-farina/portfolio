@@ -3,6 +3,7 @@
 use App\Http\Controllers\Api\CvController;
 use App\Http\Controllers\Api\ProjectController;
 use App\Http\Controllers\Api\TestimonialController;
+use App\Http\Controllers\Api\WhatIDoController;
 use Illuminate\Support\Facades\Route;
 use Illuminate\Http\JsonResponse;
 
@@ -47,3 +48,4 @@ Route::fallback(function () {
 Route::get('testimonials', [TestimonialController::class, 'index']);
 Route::get('projects', [ProjectController::class, 'index']);
 Route::get('cv',[CvController::class, 'index']);
+Route::get('what-i-do',[WhatIDoController::class, 'index']);
