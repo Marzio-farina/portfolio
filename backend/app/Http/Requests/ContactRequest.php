@@ -26,6 +26,8 @@ class ContactRequest extends FormRequest
             'surname' => ['required', 'string', 'min:2', 'max:100'],
             'email'   => ['required', 'email', 'max:150'],
             'message' => ['required', 'string', 'min:10', 'max:5000'],
+            'consent' => ['required', 'boolean', 'accepted'],
+            'website' => ['nullable', 'string', 'max:100'], // honeypot
         ];
     }
 
@@ -38,6 +40,7 @@ class ContactRequest extends FormRequest
             'email.email'       => 'Inserisci un indirizzo email valido.',
             'message.required'  => 'Il messaggio non può essere vuoto.',
             'message.min'       => 'Il messaggio deve contenere almeno :min caratteri.',
+            'consent.accepted'  => 'Devi acconsentire al trattamento dei dati per inviare il messaggio.',
         ];
     }
 }

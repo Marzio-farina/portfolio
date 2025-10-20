@@ -20,7 +20,7 @@ class ContactController extends Controller
         }
 
         Mail::to(config('mail.contact_to', env('CONTACT_TO')))
-            ->queue(new ContactFormSubmitted($data)); // usa la coda
+            ->send(new ContactFormSubmitted($data));
 
         return response()->json(['ok' => true], 201);
     }

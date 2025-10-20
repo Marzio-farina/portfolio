@@ -18,6 +18,7 @@ export class ContactForm {
 
   form = this.fb.group({
     name: ['', [Validators.required, Validators.minLength(2)]],
+    surname: ['', [Validators.required, Validators.minLength(2)]],
     email: ['', [Validators.required, Validators.email]],
     subject: [''],
     message: ['', [Validators.required, Validators.minLength(10)]],
@@ -31,11 +32,20 @@ export class ContactForm {
       this.form.markAllAsTouched();
       return;
     }
-    if (this.form.value.website) return;
+    // honeypot: se è stato riempito, non inviare
+    if (this.form.value.website) {
+      this.sent = true;
+      this.form.reset({ consent: false, website: '' });
+      return;
+    }
 
     this.sending = true;
     this.api.send(this.form.value as any).subscribe({
-      next: () => { this.sent = true; this.sending = false; this.form.reset(); },
+      next: () => {
+        this.sent = true;
+        this.sending = false;
+        this.form.reset({ consent: false, website: '' });
+      },
       error: (err) => {
         this.error = err?.error?.message ?? 'Invio non riuscito. Riprova.';
         this.sending = false;

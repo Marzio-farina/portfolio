@@ -18,6 +18,22 @@
       <textarea rows="6" formControlName="message" placeholder="Il tuo messaggio..." required></textarea>
     </label>
 
+    <!-- Consenso privacy -->
+    <label class="field consent">
+      <input type="checkbox" formControlName="consent" />
+      <span>Acconsento al trattamento dei dati per essere ricontattato.</span>
+    </label>
+
+    <!-- Honeypot (nascosto) -->
+    <input 
+      type="text"
+      formControlName="website"
+      tabindex="-1"
+      autocomplete="off"
+      aria-hidden="true"
+      style="position:absolute; left:-9999px; opacity:0; height:0; width:0;"
+    >
+
     <div class="actions">
       <button type="submit" class="btn" [disabled]="sending">
         <svg viewBox="0 0 24 24" aria-hidden="true" class="icon">

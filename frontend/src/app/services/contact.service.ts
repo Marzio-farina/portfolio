@@ -5,6 +5,7 @@ import { Observable } from 'rxjs';
 
 export interface ContactPayload {
   name: string;
+  surname: string;
   email: string;
   subject?: string;
   message: string;
