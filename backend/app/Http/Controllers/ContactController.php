@@ -29,7 +29,7 @@ class ContactController extends Controller
         // 4) Invio email
         try {
             // Se vuoi forzare l’invio RAW per debug, metti MAIL_USE_RAW=true nel .env
-            if (filter_var(env('MAIL_USE_RAW', false), FILTER_VALIDATE_BOOL)) {
+            if (filter_var(config('mail.use_raw', env('MAIL_USE_RAW', false)), FILTER_VALIDATE_BOOL)) {
                 Mail::mailer('smtp')->raw(
                     "Messaggio dal form:\n\n".
                     "Nome: {$data['name']}\n".
@@ -38,17 +38,14 @@ class ContactController extends Controller
                     (!empty($data['subject']) ? "Oggetto: {$data['subject']}\n" : "").
                     "\nTesto:\n{$data['message']}\n",
                     function ($m) use ($to) {
-                        $m->to($to)
-                          ->subject('[CONTACT] Test invio via controller (RAW)');
+                        $m->to($to)->subject('[CONTACT] Test invio via controller (RAW)');
+                        $m->from(config('mail.from.address'), config('mail.from.name'));
                     }
                 );
                 Log::info('[CONTACT] mail sent (raw via smtp)');
             } else {
-                // Invio standard con Mailable
-                Mail::to($to)->send(
-                    (new ContactFormSubmitted($data))
-                        ->from(config('mail.from.address'), config('mail.from.name'))
-                );
+                // 5) Invio standard tramite Mailable
+                Mail::to($to)->send(new ContactFormSubmitted($data));
                 Log::info('[CONTACT] mail sent (mailable via smtp)');
             }
 
@@ -56,6 +53,7 @@ class ContactController extends Controller
         } catch (Throwable $e) {
             Log::error('[CONTACT] mail error', [
                 'message' => $e->getMessage(),
+                'code' => $e->getCode(),
             ]);
 
             return response()->json([

@@ -7,6 +7,7 @@ use Illuminate\Mail\Mailable;
 use Illuminate\Mail\Mailables\Content;
 use Illuminate\Mail\Mailables\Envelope;
 use Illuminate\Queue\SerializesModels;
+use Illuminate\Mail\Mailables\Address;
 
 class ContactFormSubmitted extends Mailable
 {
@@ -25,8 +26,21 @@ class ContactFormSubmitted extends Mailable
      */
     public function envelope(): Envelope
     {
+        $fullName = trim(($this->data['name'] ?? '') . ' ' . ($this->data['surname'] ?? ''));
+
         return new Envelope(
-            subject: 'Contact Form Submitted',
+            from: new Address(
+                config('mail.from.address'),
+                config('mail.from.name')
+            ),
+            replyTo: [
+                new Address(
+                    $this->data['email'] ?? '',
+                    $fullName ?: null
+                ),
+            ],
+            subject: 'Nuovo messaggio dal sito: ' .
+                (trim((string)($this->data['subject'] ?? '')) ?: 'Contatti'),
         );
     }
 
@@ -37,6 +51,9 @@ class ContactFormSubmitted extends Mailable
     {
         return new Content(
             markdown: 'mail.contact.submitted',
+            with: [
+                'data' => $this->data,
+            ],
         );
     }
 
@@ -51,9 +68,5 @@ class ContactFormSubmitted extends Mailable
     }
 
     public function build()
-    {
-        return $this->subject('Nuovo messaggio dal sito: ' . (trim((string)($this->data['subject'] ?? '')) ?: 'Contatti'))
-                    ->markdown('mail.contact.submitted')
-                    ->with(['data' => $this->data]);
-    }
+    {}
 }

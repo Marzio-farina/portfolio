@@ -2,6 +2,13 @@
 
 return [
     
+    // mittente standard usato da Laravel
+    'from' => [
+        'address' => env('MAIL_FROM_ADDRESS', 'no-reply@example.com'),
+        'name'    => env('MAIL_FROM_NAME', 'Website'),
+    ],
+
+    // destinatario del form contatti (solo chiave di config che legge .env)
     'contact_to' => env('CONTACT_TO', 'test@mailtrap.io'),
 
     /*
