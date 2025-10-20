@@ -5,6 +5,7 @@ use App\Http\Controllers\Api\ProjectController;
 use App\Http\Controllers\Api\TestimonialController;
 use App\Http\Controllers\Api\UserPublicController;
 use App\Http\Controllers\Api\WhatIDoController;
+use App\Http\Controllers\ContactController;
 use Illuminate\Support\Facades\Route;
 use Illuminate\Http\JsonResponse;
 
@@ -52,3 +53,4 @@ Route::get('cv',[CvController::class, 'index']);
 Route::get('what-i-do',[WhatIDoController::class, 'index']);
 Route::get('users/{user}/public-profile', [UserPublicController::class, 'show']);
 Route::get('public-profile',              [UserPublicController::class, 'me']);
+Route::middleware('throttle:contact')->post('/contact', [ContactController::class, 'send']);
