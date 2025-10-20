@@ -1,5 +1,6 @@
 <?php
 
+use App\Http\Controllers\Api\AttestatiController;
 use App\Http\Controllers\Api\CvController;
 use App\Http\Controllers\Api\ProjectController;
 use App\Http\Controllers\Api\TestimonialController;
@@ -68,3 +69,5 @@ Route::middleware(['auth:sanctum', 'fresh'])->group(function () {
     Route::post('/logout',[AuthController::class, 'logout']);
     // altre rotte protette qui...
 });
+
+Route::get('/attestati', [AttestatiController::class, 'index']);

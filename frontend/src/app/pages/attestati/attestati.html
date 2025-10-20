@@ -1,2 +1,19 @@
 <h2 class="article-title">{{ title() }}</h2>
-<app-ping-test/>
+
+@if (loading()) {
+  <div>Caricamento...</div>
+}
+
+@if (!loading() && errorMsg()) {
+  <div class="state error">
+    {{ errorMsg() }}
+  </div>
+}
+
+<div class="certificates">
+  @if (!loading() && !errorMsg()) {
+    @for (a of attestati(); track a.id) {
+      <app-attestati-card [attestato]="a" />
+    }
+  }
+</div>

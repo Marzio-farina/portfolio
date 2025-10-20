@@ -1,0 +1,15 @@
+.certificates {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
+  gap: 18px;
+  align-items: stretch;
+}
+
+/* stato errore/coerenza */
+.state.error {
+  color: #b00020;
+  background: #fdecec;
+  border: 1px solid #f5c2c7;
+  padding: 12px;
+  border-radius: 6px;
+}
