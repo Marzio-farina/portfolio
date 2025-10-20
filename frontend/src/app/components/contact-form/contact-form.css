@@ -22,18 +22,18 @@
 
 @media (min-width: 720px) {
   .row {
-    grid-template-columns: 1fr 1fr;
+    grid-template-columns: repeat(3, 1fr);
 }
 }
 
 /* campi */
 .field {
   display: block;
-  background: var(--field);
-  border: 1px solid var(--field-border);
-  border-radius: var(--radius-xl);
+  background: var(--field, rgba(255,255,255,0.05));
+  border: 1px solid var(--field-border, rgba(255,255,255,0.15));
+  border-radius: var(--radius-xl, 14px);
   padding: 12px 14px;
-  color: var(--text);
+  color: var(--text, #fff);
   transition: border-color .2s ease, box-shadow .2s ease, background .2s ease;
 }
 
@@ -43,19 +43,16 @@
   background: transparent;
   border: 0;
   outline: 0;
-  /* color: var(--text); */
+  color: inherit;
   font: inherit;
-  /* caret-color: var(--accent); */
+  caret-color: var(--accent, #f6c54f);
 }
 
 .field textarea {
     height: 180px;
-    padding: 14px;
+    padding: 8px 0;
     resize: vertical;
     min-height: 160px;
-    border: none;
-    outline: none;
-    font: inherit;
     line-height: 1.5;
     box-sizing: border-box;
 }
@@ -63,12 +60,6 @@
 .field.textarea {
   margin-top: 16px;
   padding: 14px;
-}
-
-/* placeholder */
-.field input::placeholder,
-.field textarea::placeholder {
-  /* color: var(--muted); */
 }
 
 /* focus styling */
@@ -93,7 +84,7 @@
   border: 0;
   border-radius: 999px;
   background: linear-gradient(180deg, rgba(246,197,79,.18), rgba(246,197,79,.12));
-  /* color: var(--accent); */
+  color: var(--accent, #f6c54f);
   font-weight: 600;
   cursor: pointer;
   transition: transform .15s ease, box-shadow .2s ease, background .2s ease;
@@ -102,7 +93,7 @@
 .btn .icon {
   width: 18px;
   height: 18px;
-  /* fill: var(--accent); */
+  fill: currentColor;
   transform: translateY(-1px);
 }
 
@@ -114,6 +105,20 @@
 
 .btn:active {
     transform: translateY(0);
+}
+
+/* messaggi di stato */
+.feedback {
+  margin-top: 12px;
+  font-size: 0.95rem;
+}
+
+.feedback.success {
+  color: #9fe69f;
+}
+
+.feedback.error {
+  color: #f99;
 }
 
 /* arrotondamenti della “card mappa” simili allo screenshot (se la sezione è in un box) */

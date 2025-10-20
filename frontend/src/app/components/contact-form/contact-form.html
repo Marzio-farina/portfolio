@@ -1,28 +1,40 @@
 <section class="contact">
   <h2 class="title">Contact Form</h2>
 
-  <form class="form" novalidate>
+  <form class="form" (ngSubmit)="submit()" [formGroup]="form" novalidate>
     <div class="row">
       <label class="field">
-        <input type="text" placeholder="Full name" />
+        <input type="text" formControlName="name" placeholder="nome" required/>
       </label>
-
       <label class="field">
-        <input type="email" placeholder="Email address" />
+        <input type="text" formControlName="surname" placeholder="cognome" required/>
+      </label>
+      <label class="field">
+        <input type="email" formControlName="email" placeholder="Email" required/>
       </label>
     </div>
 
     <label class="field field--textarea">
-      <textarea rows="6" placeholder="Your Message"></textarea>
+      <textarea rows="6" formControlName="message" placeholder="Il tuo messaggio..." required></textarea>
     </label>
 
     <div class="actions">
-      <button type="button" class="btn">
+      <button type="submit" class="btn" [disabled]="sending">
         <svg viewBox="0 0 24 24" aria-hidden="true" class="icon">
           <path d="M2.01 21L23 12 2.01 3 2 10l15 2-15 2z"></path>
         </svg>
-        <span>Send Message</span>
+        @if (!sending) {
+          <span>Invia</span>
+        } @else if (sending) {
+          <span>Invio...</span>
+        }
       </button>
     </div>
+    @if (sent) {
+      <p class="feedback success">Messaggio inviato con successo</p>
+    }
+    @if (error) {
+      <p class="feedback error">{{ error }}</p>
+    }
   </form>
 </section>
