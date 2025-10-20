@@ -123,16 +123,16 @@
             <label for="reg-terms">
                 Accetto i <a href="#" (click)="$event.preventDefault()">termini</a> e l'informativa privacy
             </label>
-            <small class="err" *ngIf="showError(registerForm,'terms','requiredTrue')">
+            @if (showError(registerForm, 'terms', 'requiredTrue')) {
+              <small class="err">
                 Devi accettare i termini.
-            </small>
+              </small>
+            }
 
             @if (showError(registerForm,'terms','requiredTrue')) {
                 <small class="err">Devi accettare i termini.</small>
             }
         </div>
-
-        
 
         <button class="primary" type="submit" [disabled]="registerForm.invalid || loading()">
           {{ loading() ? 'Registrazione…' : 'Crea account' }}
