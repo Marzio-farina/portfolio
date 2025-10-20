@@ -6,24 +6,37 @@
       <label class="field">
         <input type="text" formControlName="name" placeholder="nome" required/>
       </label>
+      @if (form.controls.name.touched && form.controls.name.invalid) {
+        <p class="feedback error">Inserisci un nome valido (min 2).</p>
+      }
       <label class="field">
         <input type="text" formControlName="surname" placeholder="cognome" required/>
       </label>
+      @if (form.controls.surname.touched && form.controls.surname.invalid) {
+        <p class="feedback error">Inserisci un cognome valido (min 2).</p>
+      }
       <label class="field">
         <input type="email" formControlName="email" placeholder="Email" required/>
       </label>
+      @if (form.controls.email.touched && form.controls.email.invalid) {
+        <p class="feedback error">Inserisci una email valida.</p>
+      }
     </div>
 
     <label class="field field--textarea">
       <textarea rows="6" formControlName="message" placeholder="Il tuo messaggio..." required></textarea>
     </label>
-
+    @if (form.controls.message.touched && form.controls.message.invalid) {
+      <p class="feedback error">Minimo 10 caratteri.</p>
+    }
     <!-- Consenso privacy -->
     <label class="field consent">
       <input type="checkbox" formControlName="consent" />
       <span>Acconsento al trattamento dei dati per essere ricontattato.</span>
     </label>
-
+    @if (form.controls.consent.touched && form.controls.consent.invalid) {
+      <p class="feedback error">Devi acconsentire per inviare.</p>
+    }
     <!-- Honeypot (nascosto) -->
     <input 
       type="text"

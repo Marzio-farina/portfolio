@@ -20,7 +20,7 @@ export class ContactService {
 
   send(payload: ContactPayload): Observable<{ ok: boolean; id?: string }> {
     return this.http.post<{ ok: boolean; id?: string }>(
-      `${this.baseUrl}/contact`,
+      `${this.baseUrl}/api/contact`,
       payload
     );
   }

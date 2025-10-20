@@ -3,13 +3,12 @@
 namespace App\Mail;
 
 use Illuminate\Bus\Queueable;
-use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Mail\Mailable;
 use Illuminate\Mail\Mailables\Content;
 use Illuminate\Mail\Mailables\Envelope;
 use Illuminate\Queue\SerializesModels;
 
-class ContactFormSubmitted extends Mailable implements ShouldQueue
+class ContactFormSubmitted extends Mailable
 {
     use Queueable, SerializesModels;
 
@@ -53,7 +52,8 @@ class ContactFormSubmitted extends Mailable implements ShouldQueue
 
     public function build()
     {
-        return $this->subject('Nuovo messaggio dal sito: ' . ($this->data['subject'] ?? ''))
-                    ->markdown('mail.contact.submitted');
+        return $this->subject('Nuovo messaggio dal sito: ' . (trim((string)($this->data['subject'] ?? '')) ?: 'Contatti'))
+                    ->markdown('mail.contact.submitted')
+                    ->with(['data' => $this->data]);
     }
 }

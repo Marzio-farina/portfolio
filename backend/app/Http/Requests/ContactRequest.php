@@ -26,7 +26,7 @@ class ContactRequest extends FormRequest
             'surname' => ['required', 'string', 'min:2', 'max:100'],
             'email'   => ['required', 'email', 'max:150'],
             'message' => ['required', 'string', 'min:10', 'max:5000'],
-            'consent' => ['required', 'boolean', 'accepted'],
+            'consent' => ['accepted'],
             'website' => ['nullable', 'string', 'max:100'], // honeypot
         ];
     }

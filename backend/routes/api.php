@@ -9,6 +9,10 @@ use App\Http\Controllers\ContactController;
 use Illuminate\Support\Facades\Route;
 use Illuminate\Http\JsonResponse;
 
+Route::options('/{any}', function () {
+    return response()->noContent(); // 204
+})->where('any', '.*');
+
 Route::get('ping', function () {
     return new JsonResponse([
         'ok'   => true,
