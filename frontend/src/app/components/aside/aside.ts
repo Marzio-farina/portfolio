@@ -1,10 +1,11 @@
-import { Component, Inject, PLATFORM_ID, computed, effect, inject, signal } from '@angular/core';
+import { Component, DestroyRef, Inject, PLATFORM_ID, computed, effect, inject, signal } from '@angular/core';
 import { isPlatformBrowser } from '@angular/common';
 import { toSignal } from '@angular/core/rxjs-interop';
 import { fromEvent, map, startWith } from 'rxjs';
 import { trigger, transition, style, animate } from '@angular/animations';
 import { Avatar } from "../avatar/avatar";
 import { AboutProfileService, PublicProfileDto, SocialLink } from '../../services/about-profile.service'
+import { makeLoadable } from '../../core/utils/loadable-signal';
 
 @Component({
   selector: 'app-aside',
@@ -42,9 +43,15 @@ export class Aside {
 
    // === DATI PROFILO (API) ===
   private readonly svc = inject(AboutProfileService);
-  profile = signal<PublicProfileDto | null>(null);
-  loading = signal(true);
-  errorMsg = signal<string | null>(null);
+  private readonly dr  = inject(DestroyRef);
+
+  // loadable (data/loading/error + reload)
+  private readonly load = makeLoadable<PublicProfileDto>(() => this.svc.get$(), this.dr);
+
+  profile  = this.load.data;      // Signal<PublicProfileDto | null>
+  loading  = this.load.loading;   // Signal<boolean>
+  errorMsg = this.load.error;     // Signal<string | null>
+  reload() { this.load.reload(); }
 
   // Helpers per UI
   fullName = computed(() => {
@@ -104,18 +111,6 @@ export class Aside {
     this.showContacts = computed(() => this.viewMode() === 'large' || this.expanded());
     this.showButton   = computed(() => this.viewMode() !== 'large');
     this.isSmall      = computed(() => this.viewMode() === 'small');
-
-    // === CARICAMENTO DATI PROFILO ===
-    this.svc.get$().subscribe({
-      next: (p: PublicProfileDto) => {
-        this.profile.set(p);
-        this.loading.set(false);
-      },
-      error: () => {
-        this.errorMsg.set('Impossibile caricare i contatti.');
-        this.loading.set(false);
-      }
-    });
   }
 
   toggleContacts() {
