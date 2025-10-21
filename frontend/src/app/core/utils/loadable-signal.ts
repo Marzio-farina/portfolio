@@ -1,4 +1,4 @@
-import { Signal, WritableSignal, signal } from '@angular/core';
+import { DestroyRef, Signal, WritableSignal, inject, signal } from '@angular/core';
 import { Observable, Subscription } from 'rxjs';
 
 export type Loadable<T> = {
@@ -9,8 +9,10 @@ export type Loadable<T> = {
   _setSource: (obsFactory: () => Observable<T>) => void; // interno
 };
 
-/** Converte un Observable<T> in tripletta {data,loading,error} con reload() */
-export function makeLoadable<T>(sourceFactory: () => Observable<T>): Loadable<T> {
+/** Converte un Observable<T> in tripletta {data,loading,error} con reload()
+*  Passa eventualmente un DestroyRef per auto-cleanup */
+export function makeLoadable<T>(sourceFactory: () => Observable<T>, destroyRef?: DestroyRef): Loadable<T> {
+  const dr = destroyRef ?? tryInjectDestroyRef();
   const data: WritableSignal<T | null> = signal<T | null>(null);
   const loading = signal<boolean>(true);
   const error = signal<string | null>(null);
@@ -36,6 +38,9 @@ export function makeLoadable<T>(sourceFactory: () => Observable<T>): Loadable<T>
     });
   };
 
+  // auto cleanup su destroy
+  dr?.onDestroy(() => sub?.unsubscribe());
+
   start();
 
   return {
@@ -45,4 +50,12 @@ export function makeLoadable<T>(sourceFactory: () => Observable<T>): Loadable<T>
     reload: start,
     _setSource: (f) => { sourceFactory = f; start(); }
   };
+}
+
+function tryInjectDestroyRef(): DestroyRef | undefined {
+  try {
+    return inject(DestroyRef);
+  } catch {
+    return undefined;
+  }
 }

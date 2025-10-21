@@ -26,11 +26,16 @@ export abstract class BaseApiService {
     return obs;
   }
 
+  private keyOf(url: string, params?: Record<string, any>) {
+    return params ? url + '?' + new HttpParams({ fromObject: params }).toString() : url;
+  }
+
   /** Invalida la cache per un url (o tutto se non passi nulla) */
-  protected invalidate(url?: string) {
+  protected invalidate(url?: string, params?: Record<string, any>) {
     if (!url) this.cache.clear();
     else {
-      [...this.cache.keys()].forEach(k => { if (k.startsWith(url)) this.cache.delete(k); });
+      const prefix = this.keyOf(url, params);
+      [...this.cache.keys()].forEach(k => { if (k.startsWith(prefix)) this.cache.delete(k); });
     }
   }
 }

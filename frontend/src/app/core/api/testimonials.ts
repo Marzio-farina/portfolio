@@ -1,7 +1,7 @@
-import { HttpClient } from '@angular/common/http';
-import { inject, Injectable } from '@angular/core';
+import { Injectable } from '@angular/core';
 import { Observable } from 'rxjs';
 import { apiUrl } from './api-url';
+import { BaseApiService } from './base-api.service';
 
 export interface Testimonial {
   id: number;
@@ -18,11 +18,9 @@ export interface Paginated<T> {
 }
 
 @Injectable({ providedIn: 'root' })
-export class TestimonialsApi {
-  private readonly http = inject(HttpClient);
-
+export class TestimonialsApi extends BaseApiService {
   list(page = 1, perPage = 12): Observable<Paginated<Testimonial>> {
-    const params = { page, per_page: perPage } as const;
-    return this.http.get<Paginated<Testimonial>>(apiUrl('testimonials'), { params: { page, per_page: perPage } });
+    const params = { page: String(page), per_page: String(perPage) } as const;
+    return this.cachedGet<Paginated<Testimonial>>(apiUrl('testimonials'), params as any);
   }
 }
