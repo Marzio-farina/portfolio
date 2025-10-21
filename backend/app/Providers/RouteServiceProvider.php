@@ -30,9 +30,20 @@ class RouteServiceProvider extends ServiceProvider
             ];
         });
 
-        // ✅ Registra le rotte API SENZA prefisso /api
-        Route::domain('api.marziofarina.it')
-            ->middleware('api')
-            ->group(base_path('routes/api.php'));
+        $apiGroup = Route::middleware('api');
+        $apiDomain = env('API_DOMAIN');
+
+        if (!empty($apiDomain)) {
+            // Produzione: API solo sul sottodominio, nessun prefisso
+            $apiGroup = $apiGroup->domain($apiDomain);
+        } else {
+            // Locale: nessun dominio -> aggiungo prefisso /api per continuare a usare /api/...
+            $apiGroup = $apiGroup->prefix('api');
+        }
+
+        $apiGroup->group(base_path('routes/api.php'));
+
+        // ✅ Registra le rotte API
+        Route::middleware('web')->group(base_path('routes/web.php'));
     }
 }
