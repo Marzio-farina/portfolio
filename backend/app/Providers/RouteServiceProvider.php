@@ -34,9 +34,5 @@ class RouteServiceProvider extends ServiceProvider
         Route::domain('api.marziofarina.it')
             ->middleware('api')
             ->group(base_path('routes/api.php'));
-
-        // ✅ Registra le rotte web normali
-        Route::middleware('web')
-            ->group(base_path('routes/web.php'));
     }
 }
