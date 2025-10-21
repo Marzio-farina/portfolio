@@ -8,8 +8,13 @@ use App\Http\Controllers\Api\UserPublicController;
 use App\Http\Controllers\Api\WhatIDoController;
 use App\Http\Controllers\AuthController;
 use App\Http\Controllers\ContactController;
+use Illuminate\Cookie\Middleware\AddQueuedCookiesToResponse;
+use Illuminate\Cookie\Middleware\EncryptCookies;
+use Illuminate\Foundation\Http\Middleware\VerifyCsrfToken;
 use Illuminate\Support\Facades\Route;
 use Illuminate\Http\JsonResponse;
+use Illuminate\Session\Middleware\StartSession;
+use Illuminate\View\Middleware\ShareErrorsFromSession;
 
 Route::options('/{any}', function () {
     return response()->noContent(); // 204
@@ -48,26 +53,41 @@ Route::get('_diag', function () {
     ]);
 });
 
-// Fallback per tutte le /api/* non trovate
-Route::fallback(function () {
-    return new JsonResponse(['ok' => false, 'error' => 'Not Found'], 404, [], JSON_UNESCAPED_UNICODE);
+// Gruppo API "stateless": rimuoviamo qualsiasi middleware di sessione/cookie/csrf
+Route::middleware(['api','throttle:60,1'])
+    ->withoutMiddleware([
+        StartSession::class,
+        AddQueuedCookiesToResponse::class,
+        EncryptCookies::class,
+        VerifyCsrfToken::class,
+        ShareErrorsFromSession::class,
+    ])
+    ->group(function () {
+
+        // READ-ONLY con cache HTTP (vedi middleware sotto)
+        Route::middleware('http.cache:300')->group(function () {
+            Route::get('testimonials', [TestimonialController::class, 'index']);
+            Route::get('projects',     [ProjectController::class, 'index']);
+            Route::get('cv',           [CvController::class, 'index']);
+            Route::get('what-i-do',    [WhatIDoController::class, 'index']);
+            Route::get('attestati',    [AttestatiController::class, 'index']);
+            Route::get('users/{user}/public-profile', [UserPublicController::class, 'show']);
+            Route::get('public-profile',              [UserPublicController::class, 'me']); // pubblico (profilo ridotto)
+        });
+
+        // Form contatti (rate limit personalizzato)
+        Route::middleware('throttle:contact')->post('/contact', [ContactController::class, 'send']);
+
+        // Auth senza sessione (Sanctum con token o Bearer)
+        Route::post('/register', [AuthController::class, 'register']);
+        Route::post('/login',    [AuthController::class, 'login']);
+
+        // Rotte protette
+        Route::middleware(['auth:sanctum','fresh'])->group(function () {
+            Route::get('/me',      [AuthController::class, 'me']);     // profilo completo autenticato
+            Route::post('/logout', [AuthController::class, 'logout']);
+    });
+
+    // Fallback 404 JSON
+    Route::fallback(fn() => new JsonResponse(['ok'=>false,'error'=>'Not Found'], 404, [], JSON_UNESCAPED_UNICODE));
 });
-
-Route::get('testimonials', [TestimonialController::class, 'index']);
-Route::get('projects', [ProjectController::class, 'index']);
-Route::get('cv',[CvController::class, 'index']);
-Route::get('what-i-do',[WhatIDoController::class, 'index']);
-Route::get('users/{user}/public-profile', [UserPublicController::class, 'show']);
-Route::get('public-profile',              [UserPublicController::class, 'me']);
-Route::middleware('throttle:contact')->post('/contact', [ContactController::class, 'send']);
-
-Route::post('/register', [AuthController::class, 'register']);
-Route::post('/login',    [AuthController::class, 'login']);
-
-Route::middleware(['auth:sanctum', 'fresh'])->group(function () {
-    Route::get('/me',     [AuthController::class, 'me']);
-    Route::post('/logout',[AuthController::class, 'logout']);
-    // altre rotte protette qui...
-});
-
-Route::get('/attestati', [AttestatiController::class, 'index']);

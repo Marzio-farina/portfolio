@@ -2,9 +2,10 @@ import { ApplicationConfig, provideBrowserGlobalErrorListeners, provideZoneChang
 import { provideRouter } from '@angular/router';
 import { routes } from './app.routes';
 import { provideAnimationsAsync } from '@angular/platform-browser/animations/async';
-import { HTTP_INTERCEPTORS, provideHttpClient } from '@angular/common/http';
+import { HTTP_INTERCEPTORS, provideHttpClient, withInterceptorsFromDi } from '@angular/common/http';
 import { ApiInterceptor } from './core/api/http.interceptor';
-import { authInterceptor } from './core/auth.interceptor';
+import { ApiCacheInterceptor } from './core/api-cache.interceptor';
+import { AuthInterceptor } from './core/auth.interceptor';
 
 export const appConfig: ApplicationConfig = {
   providers: [
@@ -12,8 +13,11 @@ export const appConfig: ApplicationConfig = {
     provideZoneChangeDetection({ eventCoalescing: true }),
     provideRouter(routes),
     provideAnimationsAsync(),
-    provideHttpClient(),
-    { provide: HTTP_INTERCEPTORS, useClass: ApiInterceptor, multi: true }, // retry/silenzio abort/headers
-    { provide: HTTP_INTERCEPTORS, useValue: authInterceptor, multi: true }, // Authorization
+    provideHttpClient(withInterceptorsFromDi()),
+    // ORDINE (per REQUEST): Cache → Api(retry/headers) → Auth
+    // (per RESPONSE sarà l’inverso: Auth → Api → Cache)
+    { provide: HTTP_INTERCEPTORS, useClass: ApiCacheInterceptor, multi: true },
+    { provide: HTTP_INTERCEPTORS, useClass: ApiInterceptor,     multi: true },
+    { provide: HTTP_INTERCEPTORS, useClass: AuthInterceptor,    multi: true },
   ]
 };
