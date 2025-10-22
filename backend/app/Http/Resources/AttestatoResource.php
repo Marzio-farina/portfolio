@@ -20,7 +20,7 @@ class AttestatoResource extends JsonResource
 
             'img' => [
                 'alt'        => $this->poster_alt ?: $this->title,
-                'src'        => route('img.show', ['path' => $path]), // 👈 originale via proxy
+                'src'        => route('img.show', ['path' => $path], false), // 👈 originale via proxy
                 'sizes'      => '100vw',
                 'placeholder'=> $this->poster_lqip, // dataURL LQIP già calcolato dall’observer (se presente)
                 'width'  => $this->poster_w,
