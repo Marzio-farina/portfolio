@@ -15,12 +15,6 @@ class ImageProxyController extends Controller
         abort_if(str_contains($path, '..'), 400, 'Invalid path');
         $path = urldecode($path);
 
-        // (opzionale) rifiuta parametri non usati
-        if ($request->query()) {
-            // se vuoi semplicemente ignorarli, commenta la riga sotto
-            // abort(400, 'No query params allowed');
-        }
-
         // Leggi l’originale dal disk 'src' (Supabase S3-compat)
         abort_unless(Storage::disk('src')->exists($path), 404, 'Image not found');
         $stream = Storage::disk('src')->readStream($path);
