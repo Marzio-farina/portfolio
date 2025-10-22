@@ -12,15 +12,19 @@ class Attestato extends Model
     protected $table = 'attestati';
 
     protected $fillable = [
-        'user_id','title','description','poster',
+        'user_id',
+        'title','description',
+        'poster','poster_alt','poster_w','poster_h','poster_lqip',
         'issuer','issued_at','expires_at',
         'credential_id','credential_url',
-        'status','is_featured','sort_order'
+        'status','is_featured','sort_order',
     ];
 
     protected $casts = [
+        'issued_at' => 'date',
+        'expires_at'=> 'date',
         'is_featured' => 'boolean',
-        'issued_at'   => 'date',
-        'expires_at'  => 'date',
     ];
+
+    public function scopePublished($q) { return $q->where('status','published'); }
 }

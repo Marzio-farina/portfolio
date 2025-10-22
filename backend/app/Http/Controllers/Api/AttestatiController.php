@@ -11,37 +11,58 @@ class AttestatiController extends Controller
 {
     /**
      * GET /api/attestati
-     * Query param support:
+     * Query:
      * - page (default 1)
      * - per_page (default 12, max 100)
-     * - status=published|draft (default published)
-     * - featured=true/false
-     * - user_id=… (se non usi auth; se usi auth, prendi $request->user()->id)
-     * - search (match title/issuer)
+     * - status=published|draft|all  (default published)
+     * - featured=true|false         (se assente: nessun filtro)
+     * - user_id=...
+     * - search (match title/issuer, case-insensitive, portable)
      * - sort: issued_at_desc (default) | issued_at_asc | sort_order_desc | sort_order_asc
      */
     public function index(Request $request)
     {
-        $perPage = min(max((int) $request->query('per_page', 12), 1), 100);
-        $status  = $request->query('status', 'published');
-        $featured = $request->boolean('featured', null);
-        $search   = $request->query('search');
+        // Paginazione
+        $perPage = (int) $request->query('per_page', 12);
+        $perPage = max(1, min(100, $perPage));
 
-        // Se hai auth API: $userId = $request->user()->id;
-        $userId = $request->query('user_id'); // oppure fissalo se è un portfolio single-tenant
+        // Filtri base
+        $status   = $request->query('status', 'published'); // published|draft|all
+        $userId   = $request->query('user_id');
 
-        $q = Attestato::query()
-            ->when($userId, fn($qq) => $qq->where('user_id', $userId))
-            ->when($status, fn($qq) => $qq->where('status', $status))
-            ->when(!is_null($featured), fn($qq) => $qq->where('is_featured', $featured))
-            ->when($search, function ($qq) use ($search) {
-                $qq->where(function ($w) use ($search) {
-                    $w->where('title', 'ILIKE', "%{$search}%")
-                      ->orWhere('issuer', 'ILIKE', "%{$search}%");
-                });
+        // featured: NON usare Request::boolean() per avere "null" quando manca
+        $featuredParam = $request->query('featured', null);
+        $featured = null;
+        if (!is_null($featuredParam)) {
+            $val = strtolower((string)$featuredParam);
+            $featured = in_array($val, ['1','true','yes','on'], true) ? true
+                      : (in_array($val, ['0','false','no','off'], true) ? false : null);
+        }
+
+        $q = Attestato::query();
+
+        if ($userId) {
+            $q->where('user_id', $userId);
+        }
+
+        if ($status !== 'all') {
+            $q->where('status', $status);
+        }
+
+        if (!is_null($featured)) {
+            $q->where('is_featured', $featured);
+        }
+
+        // Ricerca case-insensitive e "portable" (MySQL/Postgres)
+        if ($search = $request->query('search')) {
+            $s = mb_strtolower($search);
+            $q->where(function ($w) use ($s) {
+                $w->whereRaw('LOWER(title)  LIKE ?', ["%{$s}%"])
+                  ->orWhereRaw('LOWER(issuer) LIKE ?', ["%{$s}%"]);
             });
+        }
 
-        // ordinamento
+        // Ordinamento
         $sort = $request->query('sort', 'issued_at_desc');
         match ($sort) {
             'issued_at_asc'   => $q->orderBy('issued_at', 'asc')->orderBy('id','desc'),
@@ -51,7 +72,6 @@ class AttestatiController extends Controller
         };
 
         $paginator = $q->paginate($perPage)->appends($request->query());
-
         return AttestatoResource::collection($paginator);
     }
 }

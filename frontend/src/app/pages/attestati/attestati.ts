@@ -2,14 +2,15 @@ import { Component, inject, signal } from '@angular/core';
 import { toSignal } from '@angular/core/rxjs-interop';
 import { ActivatedRoute } from '@angular/router';
 import { map } from 'rxjs';
-import { AttestatiCard, Attestato } from '../../components/attestati-card/attestati-card';
+import { AttestatiCard } from '../../components/attestati-card/attestati-card';
 import { AttestatiService } from '../../services/attestati.service';
+import { Attestato } from '../../models/attestato.model';
 
 @Component({
   selector: 'app-attestati',
   imports: [AttestatiCard],
   templateUrl: './attestati.html',
-  styleUrl: './attestati.css'
+  styleUrls: ['./attestati.css'],
 })
 export class Attestati {
   private route = inject(ActivatedRoute);

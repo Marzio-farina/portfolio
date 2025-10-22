@@ -1,31 +1,23 @@
-<article class="card">
-  <a class="media" [href]="attestato().pdf ?? '#'" [attr.target]="attestato().pdf ? '_blank' : null" rel="noopener">
-    <img class="cover" [src]="attestato().cover" alt="{{ attestato().title }}" />
-  </a>
-
-  <div class="meta">
-    <h3 class="title">{{ attestato().title }}</h3>
-    <p class="issuer">{{ attestato().ente }}</p>
-
-    @if (attestato().data) {
-      <p class="date">{{ attestato().data | date: 'dd/MM/yyyy' }}</p>
-    }
-
-    @if (attestato().skills?.length) {
-      <ul class="skills">
-        @for (s of attestato().skills; track s) {
-          <li>{{ s }}</li>
-        }
-      </ul>
-    }
-
-    <div class="actions">
-      @if (attestato().pdf) {
-        <a class="btn" [href]="attestato().pdf" target="_blank" rel="noopener">Apri PDF</a>
-      }
-      @if (attestato().badgeUrl) {
-        <a class="btn ghost" [href]="attestato().badgeUrl" target="_blank" rel="noopener">Vedi badge</a>
-      }
+<article class="attestato-card">
+  @if (attestato().img; as img) {
+    <div class="cover" [style.aspect-ratio]="aspectRatio() || defaultAR">
+      <img
+        [ngSrc]="img.src"
+        fill
+        [alt]="img.alt || attestato().title"
+        [sizes]="'100vw'"
+        [priority]="priority()"
+        [attr.loading]="priority() ? null : 'lazy'"
+        decoding="async"
+        (load)="onImgLoad($event)"
+        (error)="onImgError($event)"
+      />
     </div>
-  </div>
+  }
+
+  <header class="meta">
+    <h3 class="title">{{ attestato().title }}</h3>
+    @if (attestato().issuer) { <div class="ente">{{ attestato().issuer }}</div> }
+    @if (attestato().date)   { <div class="data">{{ attestato().date }}</div> }
+  </header>
 </article>

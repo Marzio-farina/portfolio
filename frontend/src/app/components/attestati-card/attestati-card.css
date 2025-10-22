@@ -1,25 +1,5 @@
-.card {
-  display: grid;
-  grid-template-rows: auto 1fr;
-  border: 1px solid rgba(0,0,0,.08);
-  border-radius: 10px;
-  overflow: hidden;
-  background: #fff;
-  transition: transform .15s ease, box-shadow .15s ease;
-}
-.card:hover { transform: translateY(-2px); box-shadow: 0 8px 24px rgba(0,0,0,.08); }
-
-.media { display: block; aspect-ratio: 16/9; background: #f6f7f9; }
-.cover { width: 100%; height: 100%; object-fit: cover; display: block; }
-
-.meta { padding: 12px; }
-.title { font-size: 1rem; margin: 0 0 4px; }
-.issuer { color: #6b7280; margin: 0; }
-.date { color: #9ca3af; margin: 6px 0 10px; font-size: .9rem; }
-
-.skills { display: flex; flex-wrap: wrap; gap: 6px; padding: 0; margin: 0 0 10px; list-style: none; }
-.skills li { font-size: .8rem; padding: 4px 8px; border-radius: 999px; background: #f3f4f6; }
-
-.actions { display: flex; gap: 8px; }
-.btn { display:inline-block; padding: 8px 10px; border-radius: 8px; border: 1px solid #e5e7eb; text-decoration: none; }
-.btn.ghost { background: transparent; }
+.attestato-card { display:block; border:1px solid #eee; border-radius:8px; padding:12px; }
+.cover { position: relative; width: 100%; overflow: hidden; border-radius: 6px; }
+.cover img { object-fit: cover; }
+.meta .title { margin:8px 0 4px; font-size:1.05rem; }
+.meta .ente, .meta .data { color:#666; font-size:.9rem; }
