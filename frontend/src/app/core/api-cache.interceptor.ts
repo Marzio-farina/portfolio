@@ -13,6 +13,7 @@ const TTL_MS = 5 * 60 * 1000; // 5 minuti
 
 export const CACHE_BYPASS = new HttpContextToken<boolean>(() => false);  // se true, salta cache
 export const CACHE_TTL     = new HttpContextToken<number>(() => TTL_MS); // TTL personalizzabile
+export const CACHE_CRITICAL = new HttpContextToken<boolean>(() => false); // se true, non cancella richieste in volo
 
 @Injectable()
 export class ApiCacheInterceptor implements HttpInterceptor {
@@ -37,12 +38,19 @@ export class ApiCacheInterceptor implements HttpInterceptor {
       request = req.clone({ setHeaders: { 'If-None-Match': cached.etag } });
     }
 
-    // Se esiste già una request identica in volo:
+    // Se esiste già una request identica in volo
     const inflightExisting = this.inflight.get(key);
+    const isCritical = req.context.get(CACHE_CRITICAL);
+    
     if (inflightExisting) {
-      // 👉 Cancella la precedente in volo (richieste identiche non si accodano)
-      inflightExisting.sub?.unsubscribe();   // annulla la XHR/fetch precedente
-      this.inflight.delete(key);
+      if (isCritical) {
+        // Per richieste critiche, riutilizza la richiesta esistente
+        return inflightExisting.subject.asObservable();
+      } else {
+        // Per richieste normali, cancella la precedente e crea una nuova
+        inflightExisting.sub?.unsubscribe();
+        this.inflight.delete(key);
+      }
     }
 
     // Crea nuovo “canale” per i subscriber
@@ -50,7 +58,7 @@ export class ApiCacheInterceptor implements HttpInterceptor {
     const record = { subject, sub: null as Subscription | null };
     this.inflight.set(key, record);
 
-    // Avvia la rete
+    // Avvia la rete (timeout gestito da ErrorHandlerInterceptor)
     const network$ = next.handle(request).pipe(
       tap(evt => {
         if (evt instanceof HttpResponse) {
@@ -71,10 +79,13 @@ export class ApiCacheInterceptor implements HttpInterceptor {
       shareReplay({ bufferSize: 1, refCount: true })
     );
 
-    // Sottoscrivi “internamente” così possiamo annullare se parte un’altra identica
+    // Sottoscrivi "internamente" così possiamo annullare se parte un'altra identica
     record.sub = network$.subscribe({
       next: ev => subject.next(ev),
-      error: err => subject.error(err),
+      error: err => {
+        console.warn('API Cache Interceptor - Network error:', err);
+        subject.error(err);
+      },
       complete: () => subject.complete(),
     });
 

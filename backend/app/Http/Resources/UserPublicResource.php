@@ -16,8 +16,11 @@ class UserPublicResource extends JsonResource
             'name'        => $this->name,
             'surname'     => $this->surname ?? null,
             'email'       => $this->email,
+            'title'       => $this->profile->title ?? null,
+            'bio'         => $this->profile->bio ?? null,
             'phone'       => $this->profile->phone ?? null,
             'location'    => $this->profile->location ?? null,
+            'avatar_url'  => $this->profile->avatar_url ?? null,
             'date_of_birth'      => $dob,                  // ISO per logica
             'date_of_birth_it'   => $dob_it,               // formattata per UI
             'age'         => $dob ? $this->date_of_birth->age : null,

@@ -9,6 +9,8 @@ import { WhatIDoCard } from '../../components/what-i-do-card/what-i-do-card';
 import { Testimonial } from '../../core/models/testimonial';
 import { TestimonialService } from '../../services/testimonial.service';
 import { WhatIDoService } from '../../services/what-i-do.service';
+import { ProfileService, ProfileData } from '../../services/profile.service';
+import { Nl2brPipe } from '../../pipes/nl2br.pipe';
 
 // ========================================================================
 // Interfaces
@@ -32,7 +34,8 @@ interface AboutCard {
   imports: [
     WhatIDoCard,
     Avatar,
-    TestimonialCard
+    TestimonialCard,
+    Nl2brPipe
   ],
   templateUrl: './about.html',
   styleUrl: './about.css'
@@ -45,6 +48,7 @@ export class About {
   private readonly route = inject(ActivatedRoute);
   private readonly testimonialApi = inject(TestimonialService);
   private readonly whatIDoApi = inject(WhatIDoService);
+  private readonly profileApi = inject(ProfileService);
 
   // ========================================================================
   // View References
@@ -62,6 +66,11 @@ export class About {
     this.route.data.pipe(map(data => data['title'] as string)), 
     { initialValue: '' }
   );
+
+  // Profile section
+  profile = signal<ProfileData | null>(null);
+  profileLoading = signal(true);
+  profileError = signal<string | null>(null);
 
   // What I Do section
   cards = signal<AboutCard[]>([]);
@@ -81,6 +90,7 @@ export class About {
   // ========================================================================
 
   constructor() {
+    this.loadProfileData();
     this.loadWhatIDoData();
     this.loadTestimonials();
   }
@@ -138,6 +148,29 @@ export class About {
   // ========================================================================
   // Private Methods
   // ========================================================================
+
+  /**
+   * Load profile data from API
+   */
+  private loadProfileData(): void {
+    this.profileApi.getProfile$().subscribe({
+      next: (data) => {
+        console.log('Profile data loaded:', data);
+        if (data && data.bio) {
+          this.profile.set(data);
+        } else {
+          console.warn('Profile data incomplete:', data);
+          this.profileError.set('Dati del profilo incompleti');
+        }
+        this.profileLoading.set(false);
+      },
+      error: (error) => {
+        console.error('Profile loading error:', error);
+        this.profileError.set(`Errore nel caricamento del profilo: ${error.message || 'Errore sconosciuto'}`);
+        this.profileLoading.set(false);
+      }
+    });
+  }
 
   /**
    * Load "What I Do" data from API
