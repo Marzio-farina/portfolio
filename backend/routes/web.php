@@ -39,5 +39,5 @@ Route::get('/i/{path}', [ImageProxyController::class, 'show'])
         VerifyCsrfToken::class,
     ])
     // rate limit “leggero” per evitare abusi
-    ->middleware('throttle:images,120,1') // opzionale (se non hai definito "images", usa throttle:60,1)
+    ->middleware('throttle:60,1') // opzionale (se non hai definito "images", usa throttle:60,1)
     ->name('img.show');
