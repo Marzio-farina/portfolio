@@ -27,14 +27,13 @@ class ProjectController extends Controller
      */
     public function index(Request $request)
     {
-        // Validate and sanitize pagination parameters
-        $perPage = $this->validatePerPage($request->query('per_page', 12));
+        $perPage = (int) $request->query('per_page', 12);
+        $perPage = max(1, min($perPage, 100));
 
-        // Build query with eager loading for performance
         $query = Project::query()
             ->with([
-                'category:id,title',
-                'technologies:id,title,description'
+                'category:id,title',            // adatta i campi esistenti
+                'technologies:id,title,description'    // adatta i campi esistenti
             ])
             ->orderByDesc('id');
 

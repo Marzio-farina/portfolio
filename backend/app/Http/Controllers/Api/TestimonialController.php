@@ -27,25 +27,22 @@ class TestimonialController extends Controller
      */
     public function index(Request $request)
     {
-        // Validate and sanitize pagination parameters
-        $perPage = $this->validatePerPage($request->query('per_page', 12));
+        $perPage = (int) $request->query('per_page', 12);
 
-        // Build query with eager loading for performance
         $query = Testimonial::query()
             ->with(['user:id,name,surname'])
             ->orderByDesc('id');
 
-        // Execute paginated query
+        // se vuoi la paginazione
         $paginator = $query->paginate($perPage);
 
-        // Return paginated resource collection
         return TestimonialResource::collection($paginator)
             ->additional([
                 'meta' => [
                     'current_page' => $paginator->currentPage(),
-                    'per_page' => $paginator->perPage(),
-                    'total' => $paginator->total(),
-                    'last_page' => $paginator->lastPage(),
+                    'per_page'     => $paginator->perPage(),
+                    'total'        => $paginator->total(),
+                    'last_page'    => $paginator->lastPage(),
                 ],
             ]);
     }
