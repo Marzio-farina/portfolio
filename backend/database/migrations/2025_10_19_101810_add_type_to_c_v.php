@@ -13,9 +13,9 @@ return new class extends Migration
     {
         Schema::table('curricula', function (Blueprint $table) {
             $table->string('type', 20)->default('experience')->after('id'); // 'education' | 'experience'
-            $table->index('type');
-            $table->index(['type', 'time_start']);
-            $table->index(['type', 'time_end']);
+            $table->index('type', 'curricula_type_index');
+            $table->index(['type', 'time_start'], 'curricula_type_time_start_index');
+            $table->index(['type', 'time_end'], 'curricula_type_time_end_index');
         });
     }
 
@@ -25,9 +25,9 @@ return new class extends Migration
     public function down(): void
     {
         Schema::table('curricula', function (Blueprint $table) {
-            $table->dropIndex(['type']);
-            $table->dropIndex(['type', 'time_start']);
-            $table->dropIndex(['type', 'time_end']);
+            $table->dropIndex('curricula_type_index');
+            $table->dropIndex('curricula_type_time_start_index');
+            $table->dropIndex('curricula_type_time_end_index');
             $table->dropColumn('type');
         });
     }
