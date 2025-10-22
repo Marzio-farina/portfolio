@@ -14,10 +14,11 @@ class CurriculumSeeder extends Seeder
      */
     public function run(): void
     {
-        // 🔐 Pulisce la tabella e azzera gli ID (PostgreSQL)
-        DB::statement('TRUNCATE TABLE curricula RESTART IDENTITY CASCADE');
+        Cv::query()->delete();
 
-          $education = [
+        DB::statement('ALTER SEQUENCE curricula_id_seq RESTART WITH 1');
+
+        $education = [
             [
                 "title"=> "Specializzazioni Web Developer con Aulab",
                 "years"=> "28/07/2025 - 29/08/2025",
