@@ -90,4 +90,5 @@ Route::middleware(['api','throttle:60,1'])
 
     // Fallback 404 JSON
     Route::fallback(fn() => new JsonResponse(['ok'=>false,'error'=>'Not Found'], 404, [], JSON_UNESCAPED_UNICODE));
+    Route::get('attestati', [AttestatiController::class, 'index']);
 });

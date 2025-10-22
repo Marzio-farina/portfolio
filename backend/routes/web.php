@@ -1,5 +1,6 @@
 <?php
 
+use App\Http\Controllers\ImageProxyController;
 use Illuminate\Support\Facades\Route;
 use Illuminate\Http\JsonResponse;
 
@@ -21,3 +22,7 @@ Route::get('/routes-dump', function () {
         'hasPing' => Route::has('ping'),
     ]);
 });
+
+Route::get('/i/{path}', [ImageProxyController::class, 'show'])
+    ->where('path', '.*')
+    ->name('img.show');
