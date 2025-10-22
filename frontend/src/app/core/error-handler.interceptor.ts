@@ -44,7 +44,7 @@ export class ErrorHandlerInterceptor implements HttpInterceptor {
           errorMessage = 'Errore del server (500). Controlla i log del backend.';
         } else if (error.status === 503) {
           errorMessage = 'Servizio temporaneamente non disponibile';
-        } else if (error.name === 'TimeoutError' || error.message?.includes('Timeout')) {
+        } else if (error.message?.includes('Timeout') || error.message?.includes('timeout')) {
           errorMessage = 'Timeout della richiesta (10s). Riprova.';
         } else if (error.status >= 400 && error.status < 500) {
           errorMessage = `Errore client (${error.status}). Verifica la richiesta.`;
