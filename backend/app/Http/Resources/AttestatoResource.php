@@ -8,7 +8,18 @@ class AttestatoResource extends JsonResource
 {
     public function toArray($request)
     {
-        $path = $this->poster; // es.: "attestati/1 - Boolean/poster.webp"
+        // Esempio: "attestati/1 - Boolean/poster.webp"
+        $path = (string) $this->poster;
+
+        // Encode sicuro segmento-per-segmento (spazi -> %20, ecc.)
+        $encoded = implode('/', array_map('rawurlencode', explode('/', ltrim($path, '/'))));
+
+        // Base dall’host della richiesta (funziona in dev e prod)
+        // se hai configurato i proxy è https in prod, http in locale
+        $scheme = $request->header('x-forwarded-proto', $request->getScheme());
+        $base   = $scheme.'://'.$request->getHttpHost();
+
+        $imgUrl = rtrim($base, '/').'/i/'.$encoded;
 
         return [
             'id'       => $this->id,
@@ -20,7 +31,7 @@ class AttestatoResource extends JsonResource
 
             'img' => [
                 'alt'        => $this->poster_alt ?: $this->title,
-                'src'        => route('img.show', ['path' => $path], false), // 👈 originale via proxy
+                'src'        => $imgUrl,
                 'sizes'      => '100vw',
                 'placeholder'=> $this->poster_lqip, // dataURL LQIP già calcolato dall’observer (se presente)
                 'width'  => $this->poster_w,
