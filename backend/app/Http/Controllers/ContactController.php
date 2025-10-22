@@ -5,61 +5,133 @@ namespace App\Http\Controllers;
 use App\Http\Requests\ContactRequest;
 use App\Mail\ContactFormSubmitted;
 use Illuminate\Http\JsonResponse;
-use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Mail;
 use Throwable;
 
+/**
+ * Contact Controller
+ * 
+ * Handles contact form submissions with spam protection
+ * and email delivery functionality.
+ */
 class ContactController extends Controller
 {
+    /**
+     * Send contact form email
+     * 
+     * Processes contact form data, validates against spam,
+     * and sends email notification to configured recipient.
+     * 
+     * @param ContactRequest $request Validated contact form data
+     * @return JsonResponse Success or error response
+     */
     public function send(ContactRequest $request): JsonResponse
     {
-        // 1) Dati validati (inclusi consent + website se presenti nelle rules)
+        // Get validated form data
         $data = $request->validated();
 
-        // 2) Honeypot: se valorizzato, non inviamo ma rispondiamo OK
+        // Honeypot spam protection: if website field is filled, treat as spam
         if (!empty($data['website'] ?? null)) {
-            Log::info('[CONTACT] honeypot triggered');
+            Log::info('[CONTACT] Honeypot triggered - potential spam detected');
             return response()->json(['ok' => true], 200);
         }
 
-        // 3) Destinatario: da config (fallback sicuro)
-        $to = config('mail.contact_to') ?: 'test@mailtrap.io';
+        // Get recipient email from configuration
+        $recipient = config('mail.contact_to') ?: 'test@mailtrap.io';
 
-        // 4) Invio email
         try {
-            // Se vuoi forzare l’invio RAW per debug, metti MAIL_USE_RAW=true nel .env
-            if (filter_var(config('mail.use_raw', env('MAIL_USE_RAW', false)), FILTER_VALIDATE_BOOL)) {
-                Mail::mailer('smtp')->raw(
-                    "Messaggio dal form:\n\n".
-                    "Nome: {$data['name']}\n".
-                    "Cognome: {$data['surname']}\n".
-                    "Email: {$data['email']}\n".
-                    (!empty($data['subject']) ? "Oggetto: {$data['subject']}\n" : "").
-                    "\nTesto:\n{$data['message']}\n",
-                    function ($m) use ($to) {
-                        $m->to($to)->subject('[CONTACT] Test invio via controller (RAW)');
-                        $m->from(config('mail.from.address'), config('mail.from.name'));
-                    }
-                );
-                Log::info('[CONTACT] mail sent (raw via smtp)');
+            // Send email based on configuration
+            if ($this->shouldUseRawEmail()) {
+                $this->sendRawEmail($data, $recipient);
             } else {
-                // 5) Invio standard tramite Mailable
-                Mail::to($to)->send(new ContactFormSubmitted($data));
-                Log::info('[CONTACT] mail sent (mailable via smtp)');
+                $this->sendMailableEmail($data, $recipient);
             }
 
             return response()->json(['ok' => true], 201);
+
         } catch (Throwable $e) {
-            Log::error('[CONTACT] mail error', [
+            Log::error('[CONTACT] Email sending failed', [
                 'message' => $e->getMessage(),
                 'code' => $e->getCode(),
+                'trace' => $e->getTraceAsString()
             ]);
 
             return response()->json([
                 'ok' => false,
-                'message' => 'Mail error',
+                'message' => 'Failed to send email. Please try again later.'
             ], 500);
         }
+    }
+
+    /**
+     * Check if raw email sending is enabled
+     * 
+     * @return bool True if raw email should be used
+     */
+    private function shouldUseRawEmail(): bool
+    {
+        return filter_var(
+            config('mail.use_raw', env('MAIL_USE_RAW', false)), 
+            FILTER_VALIDATE_BOOL
+        );
+    }
+
+    /**
+     * Send email using raw format (for debugging)
+     * 
+     * @param array $data Contact form data
+     * @param string $recipient Recipient email address
+     * @return void
+     */
+    private function sendRawEmail(array $data, string $recipient): void
+    {
+        $message = $this->buildRawMessage($data);
+
+        Mail::mailer('smtp')->raw($message, function ($mail) use ($recipient) {
+            $mail->to($recipient)
+                 ->subject('[CONTACT] New message from portfolio')
+                 ->from(
+                     config('mail.from.address'), 
+                     config('mail.from.name')
+                 );
+        });
+
+        Log::info('[CONTACT] Raw email sent successfully');
+    }
+
+    /**
+     * Send email using Mailable class
+     * 
+     * @param array $data Contact form data
+     * @param string $recipient Recipient email address
+     * @return void
+     */
+    private function sendMailableEmail(array $data, string $recipient): void
+    {
+        Mail::to($recipient)->send(new ContactFormSubmitted($data));
+        Log::info('[CONTACT] Mailable email sent successfully');
+    }
+
+    /**
+     * Build raw email message content
+     * 
+     * @param array $data Contact form data
+     * @return string Formatted email message
+     */
+    private function buildRawMessage(array $data): string
+    {
+        $message = "New contact form submission:\n\n";
+        $message .= "Name: {$data['name']}\n";
+        $message .= "Surname: {$data['surname']}\n";
+        $message .= "Email: {$data['email']}\n";
+        
+        if (!empty($data['subject'])) {
+            $message .= "Subject: {$data['subject']}\n";
+        }
+        
+        $message .= "\nMessage:\n{$data['message']}\n";
+
+        return $message;
     }
 }

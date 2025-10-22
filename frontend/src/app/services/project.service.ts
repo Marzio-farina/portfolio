@@ -1,50 +1,109 @@
 import { Injectable, inject } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
-import { map, Observable } from 'rxjs';
+import { Observable } from 'rxjs';
+import { map } from 'rxjs/operators';
+
 import { apiUrl } from '../core/api/api-url';
 import { Paginated, ProjectDto } from '../core/models/project';
 import { Progetto } from '../components/progetti-card/progetti-card';
 
+/**
+ * Project Service
+ * 
+ * Manages project data operations including fetching paginated
+ * project lists and converting API DTOs to UI models.
+ */
 @Injectable({ providedIn: 'root' })
 export class ProjectService {
+  // ========================================================================
+  // Dependencies
+  // ========================================================================
+
   private readonly http = inject(HttpClient);
 
-  /** Chiamata paginata */
+  // ========================================================================
+  // Public Methods
+  // ========================================================================
+
+  /**
+   * Get paginated list of projects
+   * 
+   * @param page Page number (default: 1)
+   * @param perPage Items per page (default: 12)
+   * @returns Observable of paginated project data
+   */
   list$(page = 1, perPage = 12): Observable<Paginated<Progetto>> {
     const url = apiUrl('projects');
-    return this.http.get<Paginated<ProjectDto>>(url, { params: { page, per_page: perPage } })
-      .pipe(
-        map(res => ({
-          ...res,
-          data: (res.data ?? []).map(dtoToProgetto)
-        }))
-      );
+    
+    return this.http.get<Paginated<ProjectDto>>(url, { 
+      params: { page, per_page: perPage } 
+    }).pipe(
+      map(response => ({
+        ...response,
+        data: (response.data ?? []).map(this.dtoToProgetto)
+      }))
+    );
   }
 
-  /** Se vuoi caricare “tutti” in una volta sola (occhio ai volumi) */
+  /**
+   * Get all projects (up to specified maximum)
+   * 
+   * @param max Maximum number of projects to fetch (default: 1000)
+   * @returns Observable of project array
+   */
   listAll$(max = 1000): Observable<Progetto[]> {
-    return this.list$(1, max).pipe(map(r => r.data ?? []));
+    return this.list$(1, max).pipe(
+      map(response => response.data ?? [])
+    );
   }
-}
 
-/** Mapper DTO → UI */
-function dtoToProgetto(p: ProjectDto): Progetto {
-  const catName = (p.category?.name
-    ?? (p as any).category?.title   // fallback se lato API usi "title"
-    ?? 'Senza categoria').toString();
+  // ========================================================================
+  // Private Methods
+  // ========================================================================
 
-  const techs = (p.technologies ?? [])
-    .map(t => (t.name ?? '').toString())
-    .filter(Boolean)
-    .join(', ');
+  /**
+   * Convert API DTO to UI model
+   * 
+   * @param dto Project DTO from API
+   * @returns UI model for project display
+   */
+  private dtoToProgetto(dto: ProjectDto): Progetto {
+    const categoryName = this.extractCategoryName(dto);
+    const technologiesString = this.extractTechnologiesString(dto);
 
-  return {
-    id: p.id,
-    title: p.title,
-    description: p.description ?? '',
-    poster: p.poster ?? '',
-    video: p.video ?? '',
-    category: catName,
-    technologies: techs
-  };
+    return {
+      id: dto.id,
+      title: dto.title,
+      description: dto.description ?? '',
+      poster: dto.poster ?? '',
+      video: dto.video ?? '',
+      category: categoryName,
+      technologies: technologiesString
+    };
+  }
+
+  /**
+   * Extract category name from project DTO
+   * 
+   * @param dto Project DTO
+   * @returns Category name or default value
+   */
+  private extractCategoryName(dto: ProjectDto): string {
+    return dto.category?.name 
+      ?? (dto as any).category?.title 
+      ?? 'Senza categoria';
+  }
+
+  /**
+   * Extract technologies as comma-separated string
+   * 
+   * @param dto Project DTO
+   * @returns Technologies string
+   */
+  private extractTechnologiesString(dto: ProjectDto): string {
+    return (dto.technologies ?? [])
+      .map(tech => tech.name ?? '')
+      .filter(Boolean)
+      .join(', ');
+  }
 }

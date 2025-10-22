@@ -84,7 +84,7 @@ export class Auth {
       finalize(() => this.loading.set(false))
     ).subscribe({
       next: (res) => {
-        this.success.set(`Accesso effettuato come ${res.user.email}`);
+        this.success.set(`Accesso effettuato come ${res.user?.email || 'utente'}`);
       },
       error: (err) => this.error.set(this.humanizeError(err)),
     });
@@ -100,9 +100,9 @@ export class Auth {
       finalize(() => this.loading.set(false))
     ).subscribe({
       next: (res) => {
-        this.success.set(`Account creato per ${res.user.name} (${res.user.email}). Ora puoi accedere.`);
+        this.success.set(`Account creato per ${res.user?.name || 'utente'} (${res.user?.email || 'email'}). Ora puoi accedere.`);
         this.mode.set('login');
-        this.loginForm.patchValue({ email: res.user.email, password: '' });
+        this.loginForm.patchValue({ email: res.user?.email || '', password: '' });
       },
       error: (err) => this.error.set(this.humanizeError(err)),
     });

@@ -1,99 +1,188 @@
 import { Injectable, inject, signal } from '@angular/core';
 import { HttpClient, HttpContext } from '@angular/common/http';
-import { shareReplay, switchMap, tap } from 'rxjs/operators';
+import { Observable } from 'rxjs';
 import { ReplaySubject } from 'rxjs';
+import { shareReplay, switchMap } from 'rxjs/operators';
+
 import { apiUrl } from '../core/api/api-url';
 import { CACHE_TTL } from '../core/api-cache.interceptor';
 
-export interface LoginDto { email: string; password: string; }
-export interface RegisterDto { name: string; email: string; password: string; }
-export interface AuthResponse { token: string; user: { id: number; name: string; email: string; }; }
+// ========================================================================
+// Interfaces
+// ========================================================================
+
+export interface LoginDto {
+  email: string;
+  password: string;
+}
+
+export interface RegisterDto {
+  name: string;
+  email: string;
+  password: string;
+}
+
+export interface AuthResponse {
+  token: string;
+  user: {
+    id: number;
+    name: string;
+    email: string;
+  };
+}
 
 export interface PublicProfile {
   user: {
     id: number;
     name: string;
+    email: string;
     title?: string | null;
     avatar_url?: string | null;
-    // ... aggiungi campi esposti dalla tua Resource se vuoi
   } | null;
 }
 
+/**
+ * Authentication Service
+ * 
+ * Manages user authentication state, token storage, and profile data.
+ * Provides methods for login, registration, logout, and profile management.
+ */
 @Injectable({ providedIn: 'root' })
 export class AuthService {
-  private http = inject(HttpClient);
+  // ========================================================================
+  // Dependencies
+  // ========================================================================
 
-  // stato token + isAuthenticated
+  private readonly http = inject(HttpClient);
+
+  // ========================================================================
+  // State Management
+  // ========================================================================
+
+  /** Authentication token signal */
   token = signal<string | null>(localStorage.getItem('auth_token'));
-  isAuthenticated() { return !!this.token(); }
 
-  private setToken(t: string | null) {
-    this.token.set(t);
-    if (t) localStorage.setItem('auth_token', t);
-    else   localStorage.removeItem('auth_token');
-  }
+  /** Profile refresh subject for reactive updates */
+  private readonly meRefresh$ = new ReplaySubject<void>(1);
 
-  // ---- STREAM me$ cacheato (shareReplay 1)
-  private meRefresh$ = new ReplaySubject<void>(1);
+  // ========================================================================
+  // Public Properties
+  // ========================================================================
 
-  /** 
-   * Stream del profilo utente:
-   * - se autenticato → /api/me (richiede Authorization)
-   * - altrimenti → /api/public-profile (pubblico)
-   * Passa dal tuo ApiCacheInterceptor: TTL custom 60s (modifica a piacere).
+  /**
+   * User profile stream with caching
+   * Returns authenticated user profile or public profile based on auth state
    */
   readonly me$ = this.meRefresh$.pipe(
     switchMap(() => {
-      const url = this.isAuthenticated() ? apiUrl('/me') : apiUrl('/public-profile');
-      return this.http.get<PublicProfile | any>(url, {
-        context: new HttpContext()
-          .set(CACHE_TTL, 60_000) // TTL 60s per questo endpoint; cambia o rimuovi se preferisci
-          // .set(CACHE_BYPASS, true) // usa questo per forzare fetch ignorando cache quando serve
+      const url = this.isAuthenticated() 
+        ? apiUrl('/me') 
+        : apiUrl('/public-profile');
+      
+      return this.http.get<PublicProfile>(url, {
+        context: new HttpContext().set(CACHE_TTL, 60_000)
       });
     }),
     shareReplay({ bufferSize: 1, refCount: false })
   );
 
+  // ========================================================================
+  // Constructor
+  // ========================================================================
+
   constructor() {
-    // primo load
     this.refreshMe();
   }
 
-  /** Forza un refresh dello stream me$ (ri-lancia GET al prossimo subscribe già attivo) */
-  refreshMe() { this.meRefresh$.next(); }
+  // ========================================================================
+  // Public Methods
+  // ========================================================================
 
-  // ---- Auth API ----
+  /**
+   * Check if user is authenticated
+   * 
+   * @returns True if user has valid token
+   */
+  isAuthenticated(): boolean {
+    return !!this.token();
+  }
 
-  login(dto: LoginDto) {
+  /**
+   * Refresh user profile data
+   * Triggers a new profile fetch
+   */
+  refreshMe(): void {
+    this.meRefresh$.next();
+  }
+
+  /**
+   * Login user with credentials
+   * 
+   * @param dto Login credentials
+   * @returns Observable of user profile after successful login
+   */
+  login(dto: LoginDto): Observable<PublicProfile> {
     return this.http.post<AuthResponse>(apiUrl('/login'), dto).pipe(
-      switchMap(res => {
-        this.setToken(res.token);
-        // dopo login → aggiorna subito me$
+      switchMap(response => {
+        this.setToken(response.token);
         this.refreshMe();
-        // ritorna anche il payload se serve
         return this.me$;
       })
     );
   }
 
-  register(dto: RegisterDto) {
+  /**
+   * Register new user
+   * 
+   * @param dto Registration data
+   * @returns Observable of user profile after successful registration
+   */
+  register(dto: RegisterDto): Observable<PublicProfile> {
     return this.http.post<AuthResponse>(apiUrl('/register'), dto).pipe(
-      switchMap(res => {
-        this.setToken(res.token);
+      switchMap(response => {
+        this.setToken(response.token);
         this.refreshMe();
         return this.me$;
       })
     );
   }
 
-  forgotPassword(email: string) {
+  /**
+   * Request password reset
+   * 
+   * @param email User email address
+   * @returns Observable of reset request response
+   */
+  forgotPassword(email: string): Observable<any> {
     return this.http.post(apiUrl('/auth/forgot-password'), { email });
   }
 
-  logout() {
+  /**
+   * Logout current user
+   * Clears token and refreshes profile to public state
+   */
+  logout(): void {
     this.setToken(null);
-    // opzionale: colpisci anche /logout sul backend se vuoi invalidare
-    // this.http.post(apiUrl('/logout'), {}).subscribe({error:()=>{},complete:()=>{}});
-    this.refreshMe(); // passa a profilo pubblico
+    this.refreshMe();
+  }
+
+  // ========================================================================
+  // Private Methods
+  // ========================================================================
+
+  /**
+   * Set authentication token
+   * Updates token signal and localStorage
+   * 
+   * @param token Authentication token or null to clear
+   */
+  private setToken(token: string | null): void {
+    this.token.set(token);
+    
+    if (token) {
+      localStorage.setItem('auth_token', token);
+    } else {
+      localStorage.removeItem('auth_token');
+    }
   }
 }
