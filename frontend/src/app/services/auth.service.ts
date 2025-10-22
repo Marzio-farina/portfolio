@@ -1,11 +1,10 @@
 import { Injectable, inject, signal } from '@angular/core';
-import { HttpClient, HttpContext } from '@angular/common/http';
+import { HttpClient } from '@angular/common/http';
 import { Observable } from 'rxjs';
 import { ReplaySubject } from 'rxjs';
 import { shareReplay, switchMap } from 'rxjs/operators';
 
 import { apiUrl } from '../core/api/api-url';
-import { CACHE_TTL } from '../core/api-cache.interceptor';
 
 // ========================================================================
 // Interfaces
@@ -79,9 +78,7 @@ export class AuthService {
         ? apiUrl('/me') 
         : apiUrl('/public-profile');
       
-      return this.http.get<PublicProfile>(url, {
-        context: new HttpContext().set(CACHE_TTL, 60_000)
-      });
+      return this.http.get<PublicProfile>(url);
     }),
     shareReplay({ bufferSize: 1, refCount: false })
   );

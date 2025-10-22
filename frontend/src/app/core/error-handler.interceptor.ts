@@ -14,9 +14,8 @@ export class ErrorHandlerInterceptor implements HttpInterceptor {
   
   intercept(req: HttpRequest<any>, next: HttpHandler): Observable<HttpEvent<any>> {
     return next.handle(req).pipe(
-      timeout(5000), // 5 secondi timeout globale
       retry({
-        count: 0, // DISABILITATO retry per performance
+        count: 1, // 1 retry per robustezza
         delay: (error, retryCount) => {
           console.warn(`Retry ${retryCount} for ${req.url}`, error);
           return new Promise(resolve => setTimeout(resolve, 1000));
@@ -45,8 +44,8 @@ export class ErrorHandlerInterceptor implements HttpInterceptor {
           errorMessage = 'Errore del server (500). Controlla i log del backend.';
         } else if (error.status === 503) {
           errorMessage = 'Servizio temporaneamente non disponibile';
-        } else if (error.name === 'TimeoutError') {
-          errorMessage = 'Timeout della richiesta (8s). Riprova.';
+        } else if (error.name === 'TimeoutError' || error.message?.includes('Timeout')) {
+          errorMessage = 'Timeout della richiesta (10s). Riprova.';
         } else if (error.status >= 400 && error.status < 500) {
           errorMessage = `Errore client (${error.status}). Verifica la richiesta.`;
         } else if (error.status >= 500) {
