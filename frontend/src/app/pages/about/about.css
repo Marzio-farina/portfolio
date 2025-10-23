@@ -301,7 +301,13 @@
   line-height: 1.6;
   font-size: 0.9rem;
   height: 100%;
-  overflow: hidden; /* Nasconde lo scroll */
+  overflow: hidden; /* Nasconde lo scroll quando contratto */
+}
+
+/* Contenuto espanso - mostra tutto il testo */
+.bio-card-mobile.expanded .bio-content {
+  height: auto; /* Altezza automatica quando espanso */
+  overflow: visible; /* Mostra tutto il contenuto */
 }
 
 /* Punti sospensivi quando contratto */
