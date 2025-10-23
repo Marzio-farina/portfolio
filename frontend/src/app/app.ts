@@ -44,6 +44,7 @@ export class App {
   // ========================================================================
 
   constructor() {
+    this.initializeTheme();
     this.initializeIdleTimeout();
     this.setupAuthenticationEffect();
     this.setupIdleTimeoutHandler();
@@ -52,6 +53,22 @@ export class App {
   // ========================================================================
   // Private Methods
   // ========================================================================
+
+  /**
+   * Initialize theme based on browser preferences
+   * Sets the theme to 'auto' by default to follow browser/system theme
+   */
+  private initializeTheme(): void {
+    // Il ThemeService ora gestisce automaticamente la logica di inizializzazione
+    // Non forziamo più il tema qui, lasciamo che il servizio decida
+    console.log('Theme initialization delegated to ThemeService');
+    
+    // Debug: verifica il tema del sistema
+    if (typeof window !== 'undefined' && window.matchMedia) {
+      const prefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
+      console.log('System prefers dark theme:', prefersDark);
+    }
+  }
 
   /**
    * Initialize idle timeout configuration

@@ -7,6 +7,7 @@ export type Theme = 'light' | 'dark' | 'auto';
 })
 export class ThemeService {
   private readonly THEME_KEY = 'portfolio-theme';
+  private readonly USER_CHOICE_KEY = 'portfolio-theme-user-choice';
   
   // Signal per il tema corrente
   private _currentTheme = signal<Theme>('auto');
@@ -26,14 +27,22 @@ export class ThemeService {
       this.updateEffectiveTheme(theme);
       this.applyTheme(theme);
     });
+
+    // Listener per cambiamenti del tema del sistema
+    this.setupSystemThemeListener();
   }
 
   /**
    * Imposta il tema
    */
-  setTheme(theme: Theme): void {
+  setTheme(theme: Theme, isUserChoice: boolean = true): void {
     this._currentTheme.set(theme);
     this.saveTheme(theme);
+    
+    // Traccia se è una scelta dell'utente
+    if (isUserChoice) {
+      localStorage.setItem(this.USER_CHOICE_KEY, 'true');
+    }
   }
 
   /**
@@ -56,9 +65,17 @@ export class ThemeService {
    */
   private loadTheme(): void {
     const saved = localStorage.getItem(this.THEME_KEY) as Theme;
-    if (saved && ['light', 'dark', 'auto'].includes(saved)) {
+    const hasUserChoice = localStorage.getItem(this.USER_CHOICE_KEY) === 'true';
+    
+    console.log('loadTheme - saved theme:', saved, 'hasUserChoice:', hasUserChoice);
+    
+    if (saved && ['light', 'dark', 'auto'].includes(saved) && hasUserChoice) {
+      // L'utente ha fatto una scelta esplicita, usa quella
+      console.log('Using user choice:', saved);
       this._currentTheme.set(saved);
     } else {
+      // Nessuna scelta dell'utente, usa auto per seguire il browser
+      console.log('No user choice found, setting to auto');
       this._currentTheme.set('auto');
     }
   }
@@ -74,11 +91,16 @@ export class ThemeService {
    * Aggiorna il tema effettivo basato sul tema corrente
    */
   private updateEffectiveTheme(theme: Theme): void {
+    console.log('updateEffectiveTheme called with theme:', theme);
+    
     if (theme === 'auto') {
       // Rileva il tema del sistema
       const prefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
-      this._effectiveTheme.set(prefersDark ? 'dark' : 'light');
+      const effectiveTheme = prefersDark ? 'dark' : 'light';
+      console.log('Auto theme - system prefers dark:', prefersDark, '-> effective theme:', effectiveTheme);
+      this._effectiveTheme.set(effectiveTheme);
     } else {
+      console.log('Fixed theme:', theme);
       this._effectiveTheme.set(theme);
     }
   }
@@ -89,12 +111,16 @@ export class ThemeService {
   private applyTheme(theme: Theme): void {
     const root = document.documentElement;
     
+    console.log('applyTheme called with theme:', theme);
+    
     if (theme === 'auto') {
       // Rimuovi data-theme per usare il CSS automatico
       root.removeAttribute('data-theme');
+      console.log('Removed data-theme attribute for auto theme');
     } else {
       // Imposta data-theme esplicito
       root.setAttribute('data-theme', theme);
+      console.log('Set data-theme attribute to:', theme);
     }
   }
 
@@ -117,5 +143,46 @@ export class ThemeService {
    */
   isAuto(): boolean {
     return this._currentTheme() === 'auto';
+  }
+
+  /**
+   * Resetta le preferenze dell'utente e torna al tema automatico
+   */
+  resetToAuto(): void {
+    localStorage.removeItem(this.USER_CHOICE_KEY);
+    this.setTheme('auto', false);
+    console.log('Reset to auto theme - will follow system preference');
+  }
+
+  /**
+   * Setup listener per cambiamenti del tema del sistema
+   * Aggiorna automaticamente il tema quando l'utente cambia le preferenze del sistema
+   */
+  private setupSystemThemeListener(): void {
+    if (typeof window !== 'undefined' && window.matchMedia) {
+      const mediaQuery = window.matchMedia('(prefers-color-scheme: dark)');
+      
+      const handleChange = (e: MediaQueryListEvent) => {
+        console.log('System theme changed:', e.matches ? 'dark' : 'light');
+        console.log('Current theme setting:', this._currentTheme());
+        
+        // Aggiorna solo se il tema è impostato su 'auto'
+        if (this._currentTheme() === 'auto') {
+          console.log('Updating theme to match system preference');
+          this.updateEffectiveTheme('auto');
+          this.applyTheme('auto');
+        }
+      };
+
+      // Aggiungi il listener
+      mediaQuery.addEventListener('change', handleChange);
+      
+      // Debug: verifica lo stato iniziale
+      console.log('Initial system theme:', mediaQuery.matches ? 'dark' : 'light');
+      console.log('Current theme setting:', this._currentTheme());
+      
+      // Cleanup quando il servizio viene distrutto
+      // (Angular gestisce automaticamente la pulizia dei servizi)
+    }
   }
 }

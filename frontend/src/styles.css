@@ -132,6 +132,14 @@
   --shadow-5: 0 24px 80px hsla(0, 0%, 0%, 0.4);
 }
 
+/* ===== Fallback automatico a tema chiaro se l'utente lo preferisce ===== */
+@media (prefers-color-scheme: light) {
+  :root:not([data-theme]) {
+    /* Usa i colori del tema light di default */
+    /* Le variabili sono già definite sopra per il tema light */
+  }
+}
+
 /* ===== Fallback automatico a tema scuro se l'utente lo preferisce ===== */
 @media (prefers-color-scheme: dark) {
   :root:not([data-theme]) {
