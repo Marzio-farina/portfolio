@@ -357,8 +357,12 @@
   z-index: 5;
   display: none;
   width: 40%; /* 40% della larghezza del contenitore */
+  max-width: 40%; /* Massimo 40% della larghezza */
   text-align: center; /* Centrato orizzontalmente */
   letter-spacing: 5px; /* Forza la spaziatura */
+  white-space: nowrap; /* Impedisce il wrapping su due righe */
+  overflow: hidden; /* Nasconde il testo che esce */
+  text-overflow: ellipsis; /* Aggiunge ... se il testo è troppo lungo */
   -webkit-text-stroke: 1px rgba(128, 128, 128, 0.7); /* Bordo grigio con opacità 0.7 */
   text-stroke: 1px rgba(128, 128, 128, 0.7); /* Bordo grigio con opacità 0.7 */
 }
@@ -430,7 +434,18 @@
   .bio-read-more {
     font-size: 2.5rem !important; /* Ridotto da 4rem a 2.5rem per iPhone SE */
     width: 50%; /* Aumentato da 40% a 50% per migliore proporzione */
+    max-width: 50%; /* Massimo 50% per iPhone SE */
     letter-spacing: 2px; /* Ridotto da 5px a 3px */
+  }
+}
+
+/* ===== OTTIMIZZAZIONE DISPOSITIVI MOLTO PICCOLI (320px) ===== */
+@media (max-width: 320px) {
+  .bio-read-more {
+    font-size: 2rem !important; /* Ancora più piccolo per schermi molto piccoli */
+    width: 60%; /* Aumentato per compensare il font più piccolo */
+    max-width: 60%; /* Massimo 60% per schermi molto piccoli */
+    letter-spacing: 1px; /* Ridotto ulteriormente */
   }
 }
 
