@@ -55,7 +55,7 @@
   --accent-hover: hsl(20, 90%, 48%); /* #ea580c - Accent hover */
   
   /* Typography */
-  --ff-poppins: 'Poppins', sans-serif;
+  --ff-poppins: 'Inter', 'Segoe UI', 'Roboto', 'Helvetica Neue', Arial, sans-serif;
   --fs-0: 2.5rem;
   --fs-1: 24px;
   --fs-2: 18px;
@@ -173,12 +173,15 @@ html {
   padding-bottom: 50px;
   color: var(--text-primary);
   font-family: var(--ff-poppins);
+  font-feature-settings: 'cv02', 'cv03', 'cv04', 'cv11';
   transition: background-color var(--transition-1), color var(--transition-1);
 }
 
 body {
   background-color: var(--bg-primary);
   color: var(--text-primary);
+  font-family: var(--ff-poppins);
+  font-feature-settings: 'cv02', 'cv03', 'cv04', 'cv11';
   transition: background-color var(--transition-1), color var(--transition-1);
 }
 

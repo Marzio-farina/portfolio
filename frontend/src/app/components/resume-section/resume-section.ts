@@ -27,11 +27,13 @@ export class ResumeSection {
   get iconPath(): string {
     switch (this.icon()) {
       case 'briefcase':
-        return 'M4 7h16v11H4z M8 7V5h8v2';
+        // Icona portfolio/cubo per esperienze lavorative
+        return 'M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z M3.27 6.96L12 12.01l8.73-5.05 M12 22.08V12';
       case 'star':
         return 'M12 3l3 6h6l-5 4 2 6-6-3.5L6 19l2-6-5-4h6z';
       default:
-        return 'M5 4h14v16H5z M8 7h8 M8 10h8 M8 13h8'; // book
+        // Icona diploma/graduation cap per studi
+        return 'M22 10v6M2 10l10-5 10 5-10 5z M6 12v5c3 3 9 3 12 0v-5';
     }
   }
 }

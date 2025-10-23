@@ -12,15 +12,28 @@
 .section__icon {
   width: 44px;
   height: 44px;
-  border: 0;
-  border-radius: 14px;
+  border: 2px solid var(--accent-primary); /* Bordo arancione come nell'aside */
+  border-radius: 50%; /* Circolare come nell'aside */
   cursor: pointer;
-  background: var(--accent-primary-alpha);
+  background: var(--bg-card); /* Background bianco nel tema giorno */
   color: var(--accent-primary);
   display: grid;
   place-items: center;
   box-shadow: var(--shadow-1);
   transition: all var(--transition-1);
+}
+
+/* Stile per tema scuro - mantiene il design originale */
+[data-theme="dark"] .section__icon {
+  border: 0;
+  border-radius: 14px;
+  background: var(--accent-primary-alpha);
+}
+
+.section__icon:hover {
+  background: var(--accent-primary);
+  color: var(--bg-card);
+  transform: scale(1.05);
 }
 
 .section__icon svg {
@@ -93,20 +106,27 @@
   background: var(--accent-primary);
   box-shadow: 0 0 0 2px var(--accent-primary-alpha);
   transition: all var(--transition-1);
+  z-index: 2; /* Sopra la linea */
 }
 
-/* La "linea" parte appena sotto il pallino e scende fino al prossimo item */
+/* La linea deve essere centrata esattamente sui pallini */
 .timeline__item::after {
   content: '';
   position: absolute;
-  left: 0;                            /* allineata al centro del pallino (vedi nota) */
-  top: calc(.6rem + 10px);            /* subito sotto il pallino (10px = diametro) */
-  bottom: -22px;                      /* entra nel gap verso il prossimo li (22px) */
+  left: -0.5px;                       /* Centrata sul pallino */
+  top: calc(.6rem + 5px);             /* Inizia dal centro del pallino */
+  bottom: -22px;                      /* Entra nel gap verso il prossimo li (22px) */
   width: 1px;
   background: var(--border-primary);
+  z-index: 1; /* Sotto il pallino */
 }
 
-/* Sull'ultimo elemento, nessuna linea in basso */
+/* Sull'ultimo elemento, la linea termina al centro del pallino */
 .timeline__item:last-child::after {
-  content: none;
+  bottom: calc(100% - .6rem - 5px);   /* Termina al centro dell'ultimo pallino */
+}
+
+/* Assicuriamo che la linea sia visibile e ben allineata */
+.timeline__item:not(:last-child)::after {
+  bottom: -30px;                      /* Continua fino al prossimo elemento */
 }
