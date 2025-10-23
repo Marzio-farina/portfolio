@@ -204,6 +204,99 @@
   }
 }
 
+/* ===== BIO CARD MOBILE ===== */
+.bio-card-mobile {
+  display: none; /* Nascosto di default */
+  position: relative;
+  background: var(--bg-card);
+  border: 1px solid var(--border-primary);
+  border-radius: 14px;
+  padding: 20px;
+  margin: 20px 0;
+  height: 200px; /* Altezza fissa */
+  transition: all var(--transition-1);
+  overflow: hidden;
+  transform-style: preserve-3d;
+  perspective: 1000px;
+}
+
+.bio-arrow {
+  position: absolute;
+  color: #FFF8E1; /* Giallino crema come background avatar */
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  z-index: 10; /* Sopra al testo */
+}
+
+.bio-arrow--top-left {
+  top: 12px;
+  left: 12px;
+}
+
+.bio-arrow--bottom-right {
+  bottom: 12px;
+  right: 12px;
+  transform: rotate(180deg);
+}
+
+.bio-content {
+  position: relative;
+  z-index: 1; /* Sotto alle frecce */
+  color: var(--text-primary);
+  line-height: 1.6;
+  font-size: 0.9rem;
+  height: 100%;
+  overflow-y: auto; /* Scroll se il testo è troppo lungo */
+}
+
+/* Effetto hover come what-i-do-card */
+.bio-card-mobile:hover {
+  box-shadow: var(--shadow-4);
+  border-color: var(--accent-primary);
+}
+
+.bio-card-mobile:hover .bio-arrow {
+  transform: scale(1.2);
+  color: var(--accent-primary);
+}
+
+.bio-card-mobile:hover .bio-arrow--bottom-right {
+  transform: rotate(180deg) scale(1.2);
+}
+
+/* Glow interno per tema giorno */
+:not([data-theme]) .bio-card-mobile:hover,
+[data-theme="light"] .bio-card-mobile:hover {
+  background: 
+    radial-gradient(ellipse at 80% 20%, rgba(249, 115, 22, 0.25) 0%, transparent 70%),
+    radial-gradient(ellipse at 20% 80%, rgba(234, 88, 12, 0.2) 0%, transparent 60%),
+    var(--bg-card);
+}
+
+/* Glow interno per tema notte */
+[data-theme="dark"] .bio-card-mobile:hover {
+  background: 
+    radial-gradient(ellipse at 80% 20%, rgba(45, 100, 72, 0.3) 0%, transparent 70%),
+    radial-gradient(ellipse at 20% 80%, rgba(240, 2, 13, 0.25) 0%, transparent 60%),
+    var(--bg-card);
+}
+
+/* Bio desktop - nascosta su mobile */
+.bio-desktop {
+  display: block;
+}
+
+/* ===== RESPONSIVE ===== */
+/* Mostra bio card mobile solo su dispositivi piccoli */
+@media (max-width: 768px) {
+  .bio-card-mobile {
+    display: block;
+  }
+  
+  .bio-desktop {
+    display: none;
+  }
+}
+
 /* Card della testimonianza */
 .testimonial-card {
   padding: 24px 0; /* spazio a sinistra per l'avatar */
