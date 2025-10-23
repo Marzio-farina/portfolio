@@ -1,7 +1,16 @@
 <figure class="map-embed">
   <div #mapContainer class="map-container"></div>
-  <div class="map-loading" *ngIf="isLoading">
+  <div class="map-loading" *ngIf="isLoading()">
     <div class="loading-spinner"></div>
     <span>Caricamento mappa...</span>
+  </div>
+  <div class="map-error" *ngIf="!isLoading() && !map">
+    <div class="error-icon">🗺️</div>
+    <h3>Mappa non disponibile</h3>
+    <p>Stai usando una chiave temporanea (SerpAPI)</p>
+    <p>Per visualizzare la mappa, hai bisogno di una <strong>Google Maps API Key</strong></p>
+    <a href="https://console.cloud.google.com/" target="_blank" class="error-link">
+      Ottieni la chiave corretta →
+    </a>
   </div>
 </figure>

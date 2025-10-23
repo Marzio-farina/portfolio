@@ -213,6 +213,11 @@ export class Maps implements AfterViewInit, OnDestroy {
         return;
       }
 
+      // Messaggio informativo per chiave temporanea
+      console.warn('⚠️ ATTENZIONE: Stai usando una chiave temporanea (SerpAPI)');
+      console.warn('🔧 Per funzionare correttamente, hai bisogno di una Google Maps API Key');
+      console.warn('📋 Vai su https://console.cloud.google.com/ per ottenere la chiave corretta');
+
       const script = document.createElement('script');
       script.src = `https://maps.googleapis.com/maps/api/js?key=${environment.googleMapsApiKey}&libraries=places&loading=async`;
       script.async = true;
