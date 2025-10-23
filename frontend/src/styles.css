@@ -3,6 +3,9 @@
 
 /* ===== Sistema di Temi Completo ===== */
 
+/* ===== GOOGLE FONTS ===== */
+@import url('https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700;800&display=swap');
+
 /* ===== TEMA LIGHT (Default) ===== */
 :root {
   /* Layout */
@@ -55,7 +58,7 @@
   --accent-hover: hsl(20, 90%, 48%); /* #ea580c - Accent hover */
   
   /* Typography */
-  --ff-poppins: 'Inter', 'Segoe UI', 'Roboto', 'Helvetica Neue', Arial, sans-serif;
+  --ff-poppins: 'Poppins', 'Inter', 'Segoe UI', 'Roboto', 'Helvetica Neue', Arial, sans-serif;
   --fs-0: 2.5rem;
   --fs-1: 24px;
   --fs-2: 18px;
