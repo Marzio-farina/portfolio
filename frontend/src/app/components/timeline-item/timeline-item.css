@@ -3,17 +3,46 @@
     font-weight: 700;
     color: var(--text-primary);
     transition: color var(--transition-1);
+    position: relative;
 }
+
 .tli__years {
     color: var(--accent-primary);
     margin-bottom: 8px;
     font-weight: 500;
     transition: color var(--transition-1);
+    position: relative;
 }
+
 .tli__desc  {
     color: var(--text-secondary);
     margin: 0;
     line-height: 1.6;
     white-space: pre-line;
     transition: color var(--transition-1);
+    position: relative;
+}
+
+/* Cursore lampeggiante per effetto typewriter */
+.tli__title::after,
+.tli__years::after,
+.tli__desc::after {
+  content: '|';
+  color: var(--accent-primary);
+  animation: blink 1s infinite;
+  font-weight: bold;
+  margin-left: 2px;
+}
+
+/* Nascondi cursore quando non si sta scrivendo */
+.tli__title:not(.typing)::after,
+.tli__years:not(.typing)::after,
+.tli__desc:not(.typing)::after {
+  display: none;
+}
+
+/* Animazione lampeggiante */
+@keyframes blink {
+  0%, 50% { opacity: 1; }
+  51%, 100% { opacity: 0; }
 }
