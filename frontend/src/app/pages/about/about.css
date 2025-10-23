@@ -350,7 +350,7 @@
   left: 50%;
   transform: translate(-50%, -50%);
   color: var(--text-muted);
-  font-size: 4rem !important; /* Forza il font-size */
+  font-size: clamp(2rem, 8vw, 4rem); /* Font-size responsivo: min 2rem, max 4rem, preferito 8vw */
   font-weight: 700; /* Forza il font-weight */
   opacity: 0.4;
   pointer-events: none;
@@ -359,10 +359,11 @@
   width: 40%; /* 40% della larghezza del contenitore */
   max-width: 40%; /* Massimo 40% della larghezza */
   text-align: center; /* Centrato orizzontalmente */
-  letter-spacing: 5px; /* Forza la spaziatura */
+  letter-spacing: clamp(1px, 1.5vw, 5px); /* Letter-spacing responsivo */
   white-space: nowrap; /* Impedisce il wrapping su due righe */
   overflow: hidden; /* Nasconde il testo che esce */
   text-overflow: ellipsis; /* Aggiunge ... se il testo è troppo lungo */
+  transition: font-size 0.3s ease, letter-spacing 0.3s ease; /* Transizione fluida */
   -webkit-text-stroke: 1px rgba(128, 128, 128, 0.7); /* Bordo grigio con opacità 0.7 */
   text-stroke: 1px rgba(128, 128, 128, 0.7); /* Bordo grigio con opacità 0.7 */
 }
@@ -429,23 +430,43 @@
   }
 }
 
+/* ===== OTTIMIZZAZIONE TABLET (768px) ===== */
+@media (max-width: 768px) {
+  .bio-read-more {
+    font-size: clamp(2.5rem, 6vw, 3.5rem); /* Più piccolo su tablet */
+    width: 45%; /* Leggermente più largo */
+    max-width: 45%;
+    letter-spacing: clamp(2px, 1.2vw, 4px);
+  }
+}
+
+/* ===== OTTIMIZZAZIONE MOBILE LARGE (480px) ===== */
+@media (max-width: 480px) {
+  .bio-read-more {
+    font-size: clamp(2.2rem, 5.5vw, 3rem); /* Ancora più piccolo */
+    width: 50%; /* Più largo per compensare */
+    max-width: 50%;
+    letter-spacing: clamp(1.5px, 1vw, 3px);
+  }
+}
+
 /* ===== OTTIMIZZAZIONE IPHONE SE (375px) ===== */
 @media (max-width: 376px) {
   .bio-read-more {
-    font-size: 2.5rem !important; /* Ridotto da 4rem a 2.5rem per iPhone SE */
-    width: 50%; /* Aumentato da 40% a 50% per migliore proporzione */
-    max-width: 50%; /* Massimo 50% per iPhone SE */
-    letter-spacing: 2px; /* Ridotto da 5px a 3px */
+    font-size: clamp(1.8rem, 5vw, 2.5rem); /* Molto più piccolo per iPhone SE */
+    width: 55%; /* Ancora più largo */
+    max-width: 55%;
+    letter-spacing: clamp(1px, 0.8vw, 2px);
   }
 }
 
 /* ===== OTTIMIZZAZIONE DISPOSITIVI MOLTO PICCOLI (320px) ===== */
 @media (max-width: 320px) {
   .bio-read-more {
-    font-size: 2rem !important; /* Ancora più piccolo per schermi molto piccoli */
-    width: 60%; /* Aumentato per compensare il font più piccolo */
-    max-width: 60%; /* Massimo 60% per schermi molto piccoli */
-    letter-spacing: 1px; /* Ridotto ulteriormente */
+    font-size: clamp(1.5rem, 4.5vw, 2rem); /* Minimo per schermi molto piccoli */
+    width: 65%; /* Massimo larghezza per compensare */
+    max-width: 65%;
+    letter-spacing: clamp(0.5px, 0.6vw, 1.5px);
   }
 }
 
