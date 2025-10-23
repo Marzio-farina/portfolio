@@ -25,29 +25,66 @@
 /* ===== Ottimizzazione iPhone SE ===== */
 @media (max-width: 479px) {
     .card {
-        padding: 16px; /* Ridotto per iPhone SE */
-        gap: 12px; /* Ridotto gap */
-        height: 120px; /* Ridotto altezza */
+        padding: 20px; /* Aumentato per più spazio */
+        gap: 16px; /* Aumentato gap */
+        height: 140px; /* Aumentato altezza per più spazio */
         border-radius: 12px; /* Ridotto border-radius */
+        min-width: 0; /* Permette alla card di restringersi */
+        flex: 1; /* Occupa tutto lo spazio disponibile */
     }
     
     .description_card h4 {
-        font-size: 1rem; /* Ridotto per iPhone SE */
+        font-size: 0.9rem; /* Ridotto ulteriormente per iPhone SE */
         word-wrap: break-word;
         word-break: break-word;
         overflow-wrap: break-word;
+        line-height: 1.2; /* Ridotto line-height */
+        margin-bottom: 6px; /* Ridotto margin */
     }
     
     .description_card p {
-        font-size: 0.85rem; /* Ridotto per iPhone SE */
+        font-size: 0.75rem; /* Ridotto ulteriormente per iPhone SE */
         word-wrap: break-word;
         word-break: break-word;
         overflow-wrap: break-word;
+        line-height: 1.3; /* Ridotto line-height */
+        margin: 0; /* Rimosso margin */
     }
     
     .icon {
-        width: 32px; /* Ridotto per iPhone SE */
-        height: 32px;
+        width: 28px; /* Ridotto ulteriormente per iPhone SE */
+        height: 28px;
+        flex-shrink: 0; /* Previene la riduzione dell'icona */
+    }
+    
+    .description_card {
+        min-width: 0; /* Permette al testo di restringersi */
+        flex: 1; /* Occupa tutto lo spazio disponibile */
+    }
+}
+
+/* ===== Ottimizzazione per dispositivi medi (480px-580px) ===== */
+@media (min-width: 480px) and (max-width: 580px) {
+    .card {
+        padding: 24px; /* Intermedio tra mobile e desktop */
+        gap: 18px; /* Intermedio */
+        height: 160px; /* Intermedio */
+    }
+    
+    .description_card h4 {
+        font-size: 1.1rem; /* Leggermente più grande */
+        line-height: 1.3;
+        margin-bottom: 8px;
+    }
+    
+    .description_card p {
+        font-size: 0.85rem; /* Leggermente più grande */
+        line-height: 1.4;
+    }
+    
+    .icon {
+        width: 36px; /* Leggermente più grande */
+        height: 36px;
     }
 }
 
