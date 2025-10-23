@@ -339,6 +339,14 @@
   display: block;
 }
 
+/* Effetto hover per la scritta "Leggi" */
+.bio-card-mobile:hover .bio-read-more {
+  color: var(--accent-primary); /* Colore primario del tema */
+  -webkit-text-stroke: 1px var(--accent-primary); /* Bordo con colore primario */
+  text-stroke: 1px var(--accent-primary); /* Bordo con colore primario */
+  opacity: 0.8; /* Maggiore opacità al hover */
+}
+
 /* Effetto hover come what-i-do-card */
 .bio-card-mobile:hover {
   box-shadow: var(--shadow-4);
