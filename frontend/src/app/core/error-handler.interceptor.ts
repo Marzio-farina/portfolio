@@ -1,7 +1,8 @@
 import { HttpErrorResponse, HttpEvent, HttpHandler, HttpInterceptor, HttpRequest } from '@angular/common/http';
 import { Injectable } from '@angular/core';
 import { Observable, throwError } from 'rxjs';
-import { catchError, retry, timeout } from 'rxjs/operators';
+import { catchError, retry } from 'rxjs/operators';
+import { environment } from '../../environments/environment';
 
 /**
  * Error Handler Interceptor
@@ -15,48 +16,44 @@ export class ErrorHandlerInterceptor implements HttpInterceptor {
   intercept(req: HttpRequest<any>, next: HttpHandler): Observable<HttpEvent<any>> {
     return next.handle(req).pipe(
       retry({
-        count: 1, // 1 retry per robustezza
+        count: 1,
         delay: (error, retryCount) => {
-          console.warn(`Retry ${retryCount} for ${req.url}`, error);
-          return new Promise(resolve => setTimeout(resolve, 1000));
+          if (!environment.production) {
+            console.warn(`Retry ${retryCount} for ${req.url}`, error);
+          }
+          return new Promise(resolve => setTimeout(resolve, 500));
         }
       }),
       catchError((error: HttpErrorResponse) => {
-        console.error('HTTP Error Details:', {
-          url: req.url,
-          method: req.method,
-          status: error.status,
-          statusText: error.statusText,
-          message: error.message,
-          error: error.error,
-          headers: error.headers,
-          timestamp: new Date().toISOString()
-        });
-        
-        // Personalizza il messaggio di errore
+        if (!environment.production) {
+          console.error('HTTP Error Details:', {
+            url: req.url,
+            method: req.method,
+            status: error.status,
+            statusText: error.statusText,
+            message: error.message,
+            error: error.error,
+            headers: error.headers,
+            timestamp: new Date().toISOString()
+          });
+        }
         let errorMessage = 'Errore di rete';
-        
         if (error.status === 0) {
           errorMessage = 'Connessione fallita. Verifica la connessione internet.';
         } else if (error.status === 404) {
           errorMessage = 'Risorsa non trovata';
         } else if (error.status === 500) {
-          errorMessage = 'Errore del server (500). Controlla i log del backend.';
-        } else if (error.status === 503) {
-          errorMessage = 'Servizio temporaneamente non disponibile';
-        } else if (error.message?.includes('Timeout') || error.message?.includes('timeout')) {
-          errorMessage = 'Timeout della richiesta (10s). Riprova.';
+          errorMessage = 'Errore del server (500). Riprova più tardi.';
+        } else if (typeof error.message === 'string' && error.message.toLowerCase().includes('timeout')) {
+          errorMessage = 'Timeout della richiesta. Riprova.';
         } else if (error.status >= 400 && error.status < 500) {
-          errorMessage = `Errore client (${error.status}). Verifica la richiesta.`;
+          errorMessage = `Errore client (${error.status}).`;
         } else if (error.status >= 500) {
-          errorMessage = `Errore server (${error.status}). Riprova più tardi.`;
+          errorMessage = `Errore server (${error.status}).`;
         }
-        
-        // Crea un errore personalizzato
-        const customError = new Error(errorMessage);
-        (customError as any).originalError = error;
-        (customError as any).status = error.status;
-        
+        const customError = new Error(errorMessage) as any;
+        customError.originalError = error;
+        customError.status = error.status;
         return throwError(() => customError);
       })
     );

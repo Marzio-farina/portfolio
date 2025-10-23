@@ -22,10 +22,8 @@ class UserPublicController extends Controller
      */
     public function me(Request $request): JsonResponse
     {
+        $cacheKey = 'public_profile_v1'; // bump la versione se cambi struttura payload
         try {
-            $cacheKey = 'public_profile_v1'; // bump la versione se cambi struttura payload
-
-
             $data = Cache::remember($cacheKey, now()->addSeconds(60), function () use ($request) {
                 // Individua l’utente pubblico da ENV o fallback all’email che stavi usando
                 $publicEmail  = env('PUBLIC_USER_EMAIL', 'marziofarina@icloud.com');
@@ -63,8 +61,12 @@ class UserPublicController extends Controller
             return response()->json($data, 200, [], JSON_UNESCAPED_UNICODE);
 
         } catch (\Throwable $e) {
-            // Se il client ha chiuso la connessione evitiamo 500 rumorosi
             $msg = $e->getMessage();
+            // Serve stale se presente
+            $stale = Cache::get($cacheKey);
+            if ($stale) {
+                return response()->json($stale, 200, ['X-Data-Status' => 'stale'], JSON_UNESCAPED_UNICODE);
+            }
             if (stripos($msg, 'aborted') !== false || stripos($msg, 'client') !== false) {
                 return response()->json(null, 204);
             }
@@ -80,9 +82,8 @@ class UserPublicController extends Controller
      */
     public function show(User $user, Request $request): JsonResponse
     {
+        $cacheKey = 'public_profile_user_'.$user->id.'_v1';
         try {
-            $cacheKey = 'public_profile_user_'.$user->id.'_v1';
-
             $data = Cache::remember($cacheKey, now()->addSeconds(60), function () use ($user, $request) {
                 $user->load([
                     'profile:id,user_id,title,headline,bio,phone,location,avatar_url',
@@ -96,6 +97,10 @@ class UserPublicController extends Controller
 
         } catch (\Throwable $e) {
             $msg = $e->getMessage();
+            $stale = Cache::get($cacheKey);
+            if ($stale) {
+                return response()->json($stale, 200, ['X-Data-Status' => 'stale'], JSON_UNESCAPED_UNICODE);
+            }
             if (stripos($msg, 'aborted') !== false || stripos($msg, 'client') !== false) {
                 return response()->json(null, 204);
             }

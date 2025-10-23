@@ -138,7 +138,6 @@ export class About {
     const element = this.carouselRef?.nativeElement;
     if (!element) return;
 
-    // Convert vertical scroll to horizontal if gesture is primarily vertical
     if (Math.abs(event.deltaY) > Math.abs(event.deltaX)) {
       event.preventDefault?.();
       element.scrollBy({ left: event.deltaY });
@@ -155,18 +154,11 @@ export class About {
   private loadProfileData(): void {
     this.profileApi.getProfile$().subscribe({
       next: (data) => {
-        console.log('Profile data loaded:', data);
-        if (data && data.bio) {
-          this.profile.set(data);
-        } else {
-          console.warn('Profile data incomplete:', data);
-          this.profileError.set('Dati del profilo incompleti');
-        }
+        this.profile.set(data ?? null);
         this.profileLoading.set(false);
       },
-      error: (error) => {
-        console.error('Profile loading error:', error);
-        this.profileError.set(`Errore nel caricamento del profilo: ${error.message || 'Errore sconosciuto'}`);
+      error: () => {
+        this.profileError.set('Impossibile caricare il profilo.');
         this.profileLoading.set(false);
       }
     });

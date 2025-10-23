@@ -1,15 +1,13 @@
-import { Injectable, inject } from '@angular/core';
+import { Injectable } from '@angular/core';
 import {
-  HttpEvent, HttpHandler, HttpInterceptor, HttpRequest, HttpErrorResponse
+  HttpEvent, HttpHandler, HttpInterceptor, HttpRequest
 } from '@angular/common/http';
-import { Observable, catchError, retry, throwError, timer } from 'rxjs';
+import { Observable, catchError, retry, throwError, timer, timeout } from 'rxjs';
+import { environment } from '../../../environments/environment';
 
-// Se hai già apiUrl(), puoi anche non prependere qui.
-// In alternativa leggi da environment.API_BASE_URL.
-const API_BASE = ''; // lascialo vuoto se usi apiUrl() nei service
+const API_BASE = '';
 
 function isAbort(err: unknown): boolean {
-  // diversi browser librerie segnalano abort in modo diverso
   return !!err && (
     (err as any).name === 'CanceledError' ||
     (err as any).status === 0 ||
@@ -20,32 +18,32 @@ function isAbort(err: unknown): boolean {
 @Injectable()
 export class ApiInterceptor implements HttpInterceptor {
   intercept(req: HttpRequest<any>, next: HttpHandler): Observable<HttpEvent<any>> {
-    // opzionale: prepend base API se la URL è relativa
     const url = API_BASE && !/^https?:\/\//.test(req.url) ? API_BASE + req.url : req.url;
     const clone = req.clone({
       url,
-      // no credentials sulle GET pubbliche
       withCredentials: false,
       setHeaders: {
         'X-Requested-With': 'XMLHttpRequest'
       }
     });
 
-    const isIdempotentGet = clone.method === 'GET';
+    const isGet = clone.method === 'GET';
 
     return next.handle(clone).pipe(
-      // piccolo retry SOLO per GET e SOLO su errori transitori != abort/CORS
+      timeout(9000),
       retry({
-        count: 1,
+        count: isGet ? 1 : 0,
         delay: (_, i) => timer(200 * (i + 1)),
         resetOnSuccess: true
       }),
       catchError((err: unknown) => {
         if (isAbort(err)) {
-          // Silenzia gli abort (navigazione, reload, etc.)
+          // Silenzia aborts; in prod non loggare
+          if (!environment.production) {
+            console.warn('Request aborted', clone.url);
+          }
           return throwError(() => err);
         }
-        // Altri errori li propaghiamo
         return throwError(() => err);
       })
     );
