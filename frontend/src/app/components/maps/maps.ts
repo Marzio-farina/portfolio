@@ -1,7 +1,6 @@
 import { Component, ElementRef, ViewChild, AfterViewInit, OnDestroy, signal, inject, effect } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { ThemeService } from '../../services/theme.service';
-import { Loader } from '@googlemaps/js-api-loader';
 import { environment } from '../../../environments/environment';
 
 @Component({
@@ -18,7 +17,6 @@ export class Maps implements AfterViewInit, OnDestroy {
   isDarkMode = signal(false);
   isLoading = signal(true);
   private themeService = inject(ThemeService);
-  private loader: Loader | null = null;
 
   constructor() {
     // Effect per ascoltare i cambiamenti del tema effettivo
@@ -43,15 +41,10 @@ export class Maps implements AfterViewInit, OnDestroy {
 
   private async initializeGoogleMaps(): Promise<void> {
     try {
-      // Inizializza il loader di Google Maps
-      this.loader = new Loader({
-        apiKey: environment.googleMapsApiKey,
-        version: 'weekly',
-        libraries: ['places']
-      });
-
-      // Carica l'API di Google Maps
-      await this.loader.importLibrary('maps');
+      // Carica l'API di Google Maps direttamente
+      if (!window.google) {
+        await this.loadGoogleMapsScript();
+      }
 
       // Coordinate di San Valentino Torio
       const lat = 40.7894;
@@ -194,6 +187,25 @@ export class Maps implements AfterViewInit, OnDestroy {
     // Applica gli stili del tema
     this.map.setOptions({
       styles: this.getMapStyles()
+    });
+  }
+
+  private loadGoogleMapsScript(): Promise<void> {
+    return new Promise((resolve, reject) => {
+      if (window.google) {
+        resolve();
+        return;
+      }
+
+      const script = document.createElement('script');
+      script.src = `https://maps.googleapis.com/maps/api/js?key=${environment.googleMapsApiKey}&libraries=places`;
+      script.async = true;
+      script.defer = true;
+      
+      script.onload = () => resolve();
+      script.onerror = () => reject(new Error('Errore nel caricamento di Google Maps'));
+      
+      document.head.appendChild(script);
     });
   }
 
