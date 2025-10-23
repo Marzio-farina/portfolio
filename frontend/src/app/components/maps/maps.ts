@@ -29,8 +29,32 @@ export class Maps implements AfterViewInit, OnDestroy {
   }
 
   ngAfterViewInit(): void {
+    this.configureLeafletIcons();
     this.initializeMap();
     this.checkTheme();
+  }
+
+  private configureLeafletIcons(): void {
+    // Configura il percorso delle icone di Leaflet
+    const iconRetinaUrl = 'https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/images/marker-icon-2x.png';
+    const iconUrl = 'https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/images/marker-icon.png';
+    const shadowUrl = 'https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/images/marker-shadow.png';
+
+    // Crea l'icona personalizzata
+    const DefaultIcon = L.Icon.extend({
+      options: {
+        iconRetinaUrl: iconRetinaUrl,
+        iconUrl: iconUrl,
+        shadowUrl: shadowUrl,
+        iconSize: [25, 41],
+        iconAnchor: [12, 41],
+        popupAnchor: [1, -34],
+        shadowSize: [41, 41]
+      }
+    });
+
+    // Imposta l'icona di default
+    L.Marker.prototype.options.icon = new DefaultIcon();
   }
 
   ngOnDestroy(): void {
