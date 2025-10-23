@@ -1,16 +1,12 @@
 <figure class="map-embed">
-  <div #mapContainer class="map-container"></div>
-  <div class="map-loading" *ngIf="isLoading()">
-    <div class="loading-spinner"></div>
-    <span>Caricamento mappa...</span>
-  </div>
-  <div class="map-error" *ngIf="!isLoading() && !map">
-    <div class="error-icon">🗺️</div>
-    <h3>Mappa non disponibile</h3>
-    <p>Stai usando una chiave temporanea (SerpAPI)</p>
-    <p>Per visualizzare la mappa, hai bisogno di una <strong>Google Maps API Key</strong></p>
-    <a href="https://console.cloud.google.com/" target="_blank" class="error-link">
-      Ottieni la chiave corretta →
-    </a>
-  </div>
+  <iframe 
+    src="https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d3018.123456789!2d14.6019!3d40.7894!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x0%3A0x0!2zNDDCsDQ3JzIxLjgiTiAxNMKwMzYnMDYuOCJF!5e0!3m2!1sit!2sit!4v1234567890123!5m2!1sit!2sit"
+    width="100%" 
+    height="100%" 
+    style="border:0;" 
+    allowfullscreen="" 
+    loading="lazy" 
+    referrerpolicy="no-referrer-when-downgrade"
+    title="Mappa di San Valentino Torio">
+  </iframe>
 </figure>
