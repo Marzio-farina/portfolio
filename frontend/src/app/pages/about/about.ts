@@ -91,6 +91,7 @@ export class About implements OnDestroy {
   // Typewriter effect state
   displayedText = signal('');
   isTyping = signal(false);
+  initialText = signal(''); // Testo iniziale visibile nel riquadro contratto
   
   // Click outside listener
   private clickOutsideListener?: (event: MouseEvent) => void;
@@ -167,6 +168,13 @@ export class About implements OnDestroy {
       next: (data) => {
         this.profile.set(data ?? null);
         this.profileLoading.set(false);
+        
+        // Inizializza il testo parziale per il riquadro contratto
+        if (data?.bio) {
+          const maxVisibleChars = this.calculateVisibleChars(data.bio);
+          this.initialText.set(data.bio.substring(0, maxVisibleChars));
+          this.displayedText.set(data.bio.substring(0, maxVisibleChars));
+        }
       },
       error: () => {
         this.profileError.set('Impossibile caricare il profilo.');
@@ -281,13 +289,19 @@ export class About implements OnDestroy {
     const bioText = this.profile()?.bio || '';
     if (!bioText) return;
     
-    // Calcola quanti caratteri sono visibili nel riquadro contratto (circa 200px di altezza)
+    // Calcola quanti caratteri sono visibili nel riquadro contratto
     const maxVisibleChars = this.calculateVisibleChars(bioText);
     const startIndex = Math.min(maxVisibleChars, bioText.length);
     
-    // Inizia dal testo già visibile
+    // Inizia dal testo già visibile (non sovrascrivere)
     this.displayedText.set(bioText.substring(0, startIndex));
     this.isTyping.set(true);
+    
+    // Se il testo è già completo, non avviare il typewriter
+    if (startIndex >= bioText.length) {
+      this.isTyping.set(false);
+      return;
+    }
     
     let currentIndex = startIndex;
     const typingSpeed = 15; // Velocità aumentata: 15ms tra ogni carattere
