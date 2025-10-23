@@ -4,6 +4,7 @@
   background: var(--bg-card);
   color: var(--text-primary);
   transition: background-color var(--transition-1), color var(--transition-1);
+  overflow: hidden; /* Rimuove barre di scorrimento indesiderate */
 }
 
 .profile__header {
@@ -140,18 +141,26 @@
   position: relative;
   width: 36px; /* Ridotto da 48px */
   height: 36px; /* Ridotto da 48px */
-  border-radius: 8px; /* Ridotto da 12px */
-  background: transparent; /* Rimosso background */
+  border-radius: 50%; /* Circolare come nell'immagine */
+  background: var(--bg-card); /* Background bianco */
+  border: 2px solid var(--accent-primary); /* Bordo arancione */
   display: flex;
   justify-content: center;
   align-items: center;
-  color: var(--text-secondary); /* Cambiato da accent-primary */
-  box-shadow: none; /* Rimosso shadow */
+  color: var(--accent-primary); /* Colore arancione */
+  box-shadow: var(--shadow-1); /* Ombra leggera */
   z-index: 1;
-  transition: color var(--transition-1), transform var(--transition-1);
+  transition: all var(--transition-1);
 }
 
-.contact__icon::before {
+/* Rimuovo il ::before per il tema light */
+[data-theme="light"] .contact__icon::before,
+:not([data-theme]) .contact__icon::before {
+  display: none;
+}
+
+/* Mantieni lo stile originale per il tema dark */
+[data-theme="dark"] .contact__icon::before {
   content: "";
   position: absolute;
   inset: 1px;
@@ -188,8 +197,17 @@
 
 /* Hover per bottoni social */
 .contact__icon:hover {
-  color: var(--accent-primary);
+  color: var(--accent-hover);
   transform: scale(1.1);
+  border-color: var(--accent-hover);
+}
+
+/* Hover specifico per tema light */
+[data-theme="light"] .contact__icon:hover,
+:not([data-theme]) .contact__icon:hover {
+  background: var(--accent-primary);
+  color: var(--bg-card);
+  border-color: var(--accent-primary);
 }
 
 /* Divisore */
@@ -207,6 +225,7 @@
   padding: 0;
   margin: 0;
   padding-left: 1rem; /* Spazio a sinistra per coerenza */
+  padding-bottom: 1rem; /* Spazio sotto le icone */
   display: flex;
   justify-content: center; /* Centrati invece di space-evenly */
   align-items: center;
@@ -218,12 +237,24 @@
   display: inline-block;
   line-height: 0;
   color: var(--text-secondary);
-  transition: color var(--transition-1), transform var(--transition-1);
+  transition: all var(--transition-1);
+  width: 32px;
+  height: 32px;
+  border-radius: 6px;
+  background: var(--bg-card);
+  border: 1px solid var(--border-primary);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  overflow: hidden; /* Rimuove la barra di scorrimento */
 }
 
 .socials__link:hover {
   color: var(--accent-primary);
   transform: scale(1.1);
+  border-color: var(--accent-primary);
+  background: var(--accent-primary);
+  color: var(--bg-card);
 }
 
 /* ---------- Icone & utility minime ---------- */
