@@ -197,7 +197,15 @@
   z-index: 1;
 }
 
+/* Posizionamento avatar per schermi grandi (>1250px) */
+@media (min-width: 1250px) {
+  .avatar-badge {
+    inset-block-start: -28px;   /* 50% fuoriuscente dalla card */
+  }
+}
+
 /* Card della testimonianza */
 .testimonial-card {
   padding: 24px 0; /* spazio a sinistra per l'avatar */
+  transition: all var(--transition-1);
 }
