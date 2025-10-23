@@ -25,6 +25,7 @@
 }
 
 /* Filtri per tema scuro */
+:host-context([data-theme="dark"]) .map-embed iframe,
 [data-theme="dark"] .map-embed iframe {
-  filter: grayscale(1) brightness(0.5) contrast(1.2);
+  filter: grayscale(1) brightness(0.5) contrast(1.2) !important;
 }
