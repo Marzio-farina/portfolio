@@ -189,6 +189,7 @@
 
 .contact__body {
   min-width: 0;
+  margin-left: 12px; /* Spazio tra icona e testo */
 }
 
 .contact__label {
