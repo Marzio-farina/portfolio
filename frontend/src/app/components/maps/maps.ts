@@ -51,7 +51,7 @@ export class Maps implements AfterViewInit, OnDestroy {
       });
 
       // Carica l'API di Google Maps
-      await this.loader.load();
+      await this.loader.importLibrary('maps');
 
       // Coordinate di San Valentino Torio
       const lat = 40.7894;
