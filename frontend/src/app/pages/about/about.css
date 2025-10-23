@@ -304,6 +304,36 @@
   overflow: hidden; /* Nasconde lo scroll */
 }
 
+/* Punti sospensivi quando contratto */
+.bio-card-mobile:not(.expanded) .bio-content::after {
+  content: '...';
+  position: absolute;
+  bottom: 0;
+  right: 0;
+  background: var(--bg-card);
+  padding-left: 20px;
+  color: var(--text-primary);
+}
+
+/* Scritta "Leggi" al centro quando contratto */
+.bio-read-more {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  color: var(--text-muted);
+  font-size: 0.8rem;
+  font-weight: 500;
+  opacity: 0.7;
+  pointer-events: none;
+  z-index: 5;
+  display: none;
+}
+
+.bio-card-mobile:not(.expanded) .bio-read-more {
+  display: block;
+}
+
 /* Effetto hover come what-i-do-card */
 .bio-card-mobile:hover {
   box-shadow: var(--shadow-4);
