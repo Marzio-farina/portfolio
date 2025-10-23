@@ -403,6 +403,15 @@
   }
 }
 
+/* ===== OTTIMIZZAZIONE IPHONE SE (375px) ===== */
+@media (max-width: 376px) {
+  .bio-read-more {
+    font-size: 2.5rem !important; /* Ridotto da 4rem a 2.5rem per iPhone SE */
+    width: 50%; /* Aumentato da 40% a 50% per migliore proporzione */
+    letter-spacing: 2px; /* Ridotto da 5px a 3px */
+  }
+}
+
 /* Card della testimonianza */
 .testimonial-card {
   padding: 24px 0; /* spazio a sinistra per l'avatar */
