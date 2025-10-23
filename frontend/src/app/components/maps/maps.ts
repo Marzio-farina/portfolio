@@ -1,8 +1,7 @@
-import { Component, ElementRef, ViewChild, AfterViewInit, OnDestroy, signal, inject } from '@angular/core';
+import { Component, ElementRef, ViewChild, AfterViewInit, OnDestroy, signal, inject, effect } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { ThemeService } from '../../services/theme.service';
-
-declare var L: any;
+import * as L from 'leaflet';
 
 @Component({
   selector: 'app-maps',
@@ -18,14 +17,20 @@ export class Maps implements AfterViewInit, OnDestroy {
   isDarkMode = signal(false);
   private themeService = inject(ThemeService);
 
+  constructor() {
+    // Effect per ascoltare i cambiamenti del tema effettivo
+    effect(() => {
+      const effectiveTheme = this.themeService.effectiveTheme();
+      this.isDarkMode.set(effectiveTheme === 'dark');
+      if (this.map) {
+        this.applyTheme();
+      }
+    });
+  }
+
   ngAfterViewInit(): void {
     this.initializeMap();
     this.checkTheme();
-    
-    // Ascolta i cambiamenti del tema
-    this.themeService.theme$.subscribe(() => {
-      this.updateTheme();
-    });
   }
 
   ngOnDestroy(): void {
@@ -92,8 +97,4 @@ export class Maps implements AfterViewInit, OnDestroy {
     }
   }
 
-  // Metodo per cambiare tema (chiamato dal servizio tema)
-  updateTheme(): void {
-    this.checkTheme();
-  }
 }
