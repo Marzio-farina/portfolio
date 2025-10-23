@@ -214,10 +214,18 @@
   padding: 20px;
   margin: 20px 0;
   height: 200px; /* Altezza fissa */
-  transition: all var(--transition-1);
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
   overflow: hidden;
   transform-style: preserve-3d;
   perspective: 1000px;
+  cursor: pointer; /* Manina al hover */
+}
+
+/* Riquadro espanso */
+.bio-card-mobile.expanded {
+  height: auto;
+  max-height: 80vh;
+  overflow-y: auto;
 }
 
 .bio-arrow {
@@ -225,8 +233,13 @@
   color: #FFF8E1; /* Giallino crema come background avatar */
   transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
   z-index: 10; /* Sopra al testo */
-  width: 24px; /* Frecce più grandi */
-  height: 24px;
+  width: 28px; /* Frecce più cicciottelle */
+  height: 28px;
+}
+
+/* Nasconde le frecce quando espanso */
+.bio-card-mobile.expanded .bio-arrow {
+  display: none;
 }
 
 .bio-arrow svg {
@@ -250,6 +263,35 @@
 :not([data-theme]) .bio-arrow,
 [data-theme="light"] .bio-arrow {
   color: #9CA3AF; /* Grigio chiaro per tema giorno */
+}
+
+/* X di chiusura */
+.bio-close {
+  position: absolute;
+  top: 12px;
+  right: 12px;
+  width: 24px;
+  height: 24px;
+  color: var(--text-secondary);
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  z-index: 10;
+  display: none;
+  cursor: pointer;
+}
+
+.bio-close svg {
+  width: 100%;
+  height: 100%;
+}
+
+/* Mostra la X quando espanso */
+.bio-card-mobile.expanded .bio-close {
+  display: block;
+}
+
+.bio-close:hover {
+  color: var(--accent-primary);
+  transform: scale(1.1);
 }
 
 .bio-content {

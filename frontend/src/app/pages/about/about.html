@@ -13,15 +13,20 @@
 <!-- Profile content -->
 @if (!profileLoading() && !profileError() && profile()) {
   <!-- Bio riquadro per mobile -->
-  <div class="bio-card-mobile">
+  <div class="bio-card-mobile" [class.expanded]="bioExpanded()" (click)="toggleBioExpansion()">
     <div class="bio-arrow bio-arrow--top-left">
-      <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3">
+      <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="4">
         <path d="M3 3v18M3 3h18"/>
       </svg>
     </div>
     <div class="bio-arrow bio-arrow--bottom-right">
-      <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3">
+      <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="4">
         <path d="M21 21H3M21 21V3"/>
+      </svg>
+    </div>
+    <div class="bio-close" (click)="closeBioExpansion($event)">
+      <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+        <path d="M18 6L6 18M6 6l12 12"/>
       </svg>
     </div>
     <div class="bio-content" [innerHTML]="profile()?.bio | nl2br"></div>
@@ -34,15 +39,20 @@
 <!-- Fallback content if no profile data -->
 @if (!profileLoading() && !profileError() && !profile()) {
   <!-- Bio riquadro per mobile -->
-  <div class="bio-card-mobile">
+  <div class="bio-card-mobile" [class.expanded]="bioExpanded()" (click)="toggleBioExpansion()">
     <div class="bio-arrow bio-arrow--top-left">
-      <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3">
+      <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="4">
         <path d="M3 3v18M3 3h18"/>
       </svg>
     </div>
     <div class="bio-arrow bio-arrow--bottom-right">
-      <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3">
+      <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="4">
         <path d="M21 21H3M21 21V3"/>
+      </svg>
+    </div>
+    <div class="bio-close" (click)="closeBioExpansion($event)">
+      <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+        <path d="M18 6L6 18M6 6l12 12"/>
       </svg>
     </div>
     <div class="bio-content">Sono Full Stack Developer e sviluppatore di applicazioni desktop con una forte attitudine analitica e una costante voglia di migliorarmi.

@@ -85,6 +85,9 @@ export class About {
   perPage = signal(8);
   lastPage = signal(1);
 
+  // Bio expansion state
+  bioExpanded = signal(false);
+
   // ========================================================================
   // Constructor
   // ========================================================================
@@ -201,5 +204,20 @@ export class About {
         this.testimonialsLoading.set(false);
       }
     });
+  }
+
+  /**
+   * Toggle bio expansion on mobile
+   */
+  toggleBioExpansion(): void {
+    this.bioExpanded.set(!this.bioExpanded());
+  }
+
+  /**
+   * Close bio expansion
+   */
+  closeBioExpansion(event: Event): void {
+    event.stopPropagation(); // Previene il toggle quando si clicca sulla X
+    this.bioExpanded.set(false);
   }
 }
