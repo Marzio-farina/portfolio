@@ -1,7 +1,7 @@
 @import "tailwindcss";
 @plugin "daisyui";
 
-/* ===== Tema di sistema: CHIARO (default) ===== */
+/* ===== Fallback di sistema: tema light di base ===== */
 :root {
   --page-gutter: clamp(16px, 4vw, 24px);
   --center-col: 860px;
@@ -48,69 +48,40 @@
   --shadow-5: 0 24px 80px hsla(0, 0%, 0%, 0.25);
   --transition-1: 0.25s ease;
   --transition-2: 0.5s ease-in-out;
-  --card-inner-padding: 30px; /* stesso valore del padding .card */
-  --pad: 30px;        /* padding card */
-  --gap: 18px;        /* distanza icona-testo */
-  --icon-w: 40px;     /* larghezza icona */
+  --card-inner-padding: 30px;
+  --pad: 30px;
+  --gap: 18px;
+  --icon-w: 40px;
   --lh: 1.6em;
   --clamp: 3;
 }
 
-/* ===== Tema di sistema: SCURO (override automatico) ===== */
+/* ===== Tema esplicito LIGHT ===== */
+:root[data-theme="light"] {
+  /* si possono sovrascrivere variabili rispetto al fallback se serve */
+}
+
+/* ===== Tema esplicito DARK ===== */
+:root[data-theme="dark"] {
+  --smoky-black: hsl(0, 0%, 7%);
+  --white-1: hsl(0, 0%, 100%);
+  --white-2: hsl(0, 0%, 98%);
+  --light-gray: hsl(45, 100%, 72%);
+  --eerie-black-1: hsl(240, 2%, 14%);
+  --bg-gradient-jet: linear-gradient( to bottom right, hsla(240, 1%, 18%, 0.251) 0%, hsla(240, 2%, 11%, 0) 100% ), hsl(240, 2%, 13%);
+  --bg-gradient-onyx: linear-gradient( to bottom right, hsl(240, 1%, 25%) 3%, hsl(0, 0%, 19%) 97% );
+}
+
+/* ===== Fallback automatico a tema scuro se l'utente lo preferisce ===== */
 @media (prefers-color-scheme: dark) {
-  :root {
-    --page-gutter: clamp(16px, 4vw, 24px);
-    --center-col: 860px;
-    --bg-gradient-onyx: linear-gradient( to bottom right, hsl(240, 1%, 25%) 3%, hsl(0, 0%, 19%) 97% );
-    --bg-gradient-jet: linear-gradient( to bottom right, hsla(240, 1%, 18%, 0.251) 0%, hsla(240, 2%, 11%, 0) 100% ), hsl(240, 2%, 13%);
-    --bg-gradient-yellow-1: linear-gradient( to bottom right, hsl(45, 100%, 71%) 0%, hsla(36, 100%, 69%, 0) 50% );
-    --bg-gradient-yellow-2: linear-gradient( 135deg, hsla(45, 100%, 71%, 0.251) 0%, hsla(35, 100%, 68%, 0) 59.86% ), hsl(240, 2%, 13%);
-    --border-gradient-onyx: linear-gradient( to bottom right, hsl(0, 0%, 25%) 0%, hsla(0, 0%, 25%, 0) 50% );
-    --text-gradient-yellow: linear-gradient( to right, hsl(45, 100%, 72%), hsl(35, 100%, 68%) );
-    --jet: hsl(0, 0%, 22%);
-    --onyx: hsl(240, 1%, 17%);
-    --eerie-black-1: hsl(240, 2%, 14%);
-    --eerie-black-2: hsl(240, 2%, 12%);
+  :root:not([data-theme]) {
     --smoky-black: hsl(0, 0%, 7%);
     --white-1: hsl(0, 0%, 100%);
     --white-2: hsl(0, 0%, 98%);
-    --orange-yellow-crayola: hsl(45, 100%, 72%);
-    --vegas-gold: hsl(45, 54%, 58%);
     --light-gray: hsl(45, 100%, 72%);
-    --light-gray-70: hsla(0, 0%, 84%, 0.7);
-    --bittersweet-shimmer: hsl(0, 43%, 51%);
-    --ff-poppins: 'Poppins', sans-serif;
-    --fs-0: 32px;
-    --fs-1: 24px;
-    --fs-2: 18px;
-    --fs-3: 17px;
-    --fs-4: 16px;
-    --fs-5: 15px;
-    --fs-6: 14px;
-    --fs-7: 13px;
-    --fs-8: 11px;
-    --fw-300: 300;
-    --fw-400: 400;
-    --fw-500: 500;
-    --fw-600: 600;
-    --radius-2xl: 1rem;
-    --space-3: 0.75rem;
-    --space-4: 1rem;
-    --space-5: 1.25rem;
-    --space-6: 1.5rem;
-    --shadow-1: -4px 8px 24px hsla(0, 0%, 0%, 0.25);
-    --shadow-2: 0 16px 30px hsla(0, 0%, 0%, 0.25);
-    --shadow-3: 0 16px 40px hsla(0, 0%, 0%, 0.25);
-    --shadow-4: 0 25px 50px hsla(0, 0%, 0%, 0.15);
-    --shadow-5: 0 24px 80px hsla(0, 0%, 0%, 0.25);
-    --transition-1: 0.25s ease;
-    --transition-2: 0.5s ease-in-out;
-    --card-inner-padding: -20px; /* stesso valore del padding .card */
-    --pad: 30px;        /* padding card */
-    --gap: 18px;        /* distanza icona-testo */
-    --icon-w: 40px;     /* larghezza icona */
-    --lh: 1.6em;
-    --clamp: 3;
+    --eerie-black-1: hsl(240, 2%, 14%);
+    --bg-gradient-jet: linear-gradient( to bottom right, hsla(240, 1%, 18%, 0.251) 0%, hsla(240, 2%, 11%, 0) 100% ), hsl(240, 2%, 13%);
+    --bg-gradient-onyx: linear-gradient( to bottom right, hsl(240, 1%, 25%) 3%, hsl(0, 0%, 19%) 97% );
   }
 }
 

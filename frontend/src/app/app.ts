@@ -7,6 +7,7 @@ import { Dashboard } from './components/dashboard/dashboard';
 import { Navbar } from './components/navbar/navbar';
 import { AuthService } from './services/auth.service';
 import { IdleService } from './services/idle.service';
+import { ThemeService } from './services/theme.service';
 
 /**
  * Main Application Component
@@ -34,6 +35,7 @@ export class App {
 
   private readonly auth = inject(AuthService);
   private readonly idle = inject(IdleService);
+  private readonly theme = inject(ThemeService);
   private readonly router = inject(Router);
   private readonly destroyRef = inject(DestroyRef);
 
@@ -42,6 +44,7 @@ export class App {
   // ========================================================================
 
   constructor() {
+    this.theme.init();
     this.initializeIdleTimeout();
     this.setupAuthenticationEffect();
     this.setupIdleTimeoutHandler();
@@ -93,6 +96,5 @@ export class App {
   private handleIdleTimeout(): void {
     this.auth.logout();
     this.router.navigateByUrl('/accedi');
-    console.warn('Session expired due to inactivity.');
   }
 }
