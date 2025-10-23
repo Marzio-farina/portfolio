@@ -197,8 +197,14 @@ export class Maps implements AfterViewInit, OnDestroy {
         return;
       }
 
+      // Verifica che l'API key sia valida
+      if (!environment.googleMapsApiKey || environment.googleMapsApiKey === 'YOUR_GOOGLE_MAPS_API_KEY') {
+        reject(new Error('API key di Google Maps non configurata'));
+        return;
+      }
+
       const script = document.createElement('script');
-      script.src = `https://maps.googleapis.com/maps/api/js?key=${environment.googleMapsApiKey}&libraries=places`;
+      script.src = `https://maps.googleapis.com/maps/api/js?key=${environment.googleMapsApiKey}&libraries=places&loading=async`;
       script.async = true;
       script.defer = true;
       
