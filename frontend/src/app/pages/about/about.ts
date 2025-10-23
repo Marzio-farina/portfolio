@@ -1,4 +1,4 @@
-import { Component, ElementRef, inject, signal, ViewChild } from '@angular/core';
+import { Component, ElementRef, inject, signal, ViewChild, OnDestroy } from '@angular/core';
 import { toSignal } from '@angular/core/rxjs-interop';
 import { ActivatedRoute } from '@angular/router';
 import { map } from 'rxjs';
@@ -40,7 +40,7 @@ interface AboutCard {
   templateUrl: './about.html',
   styleUrl: './about.css'
 })
-export class About {
+export class About implements OnDestroy {
   // ========================================================================
   // Dependencies
   // ========================================================================
@@ -87,6 +87,9 @@ export class About {
 
   // Bio expansion state
   bioExpanded = signal(false);
+  
+  // Scroll state for sticky X
+  private scrollListener?: () => void;
 
   // ========================================================================
   // Constructor
@@ -210,7 +213,16 @@ export class About {
    * Toggle bio expansion on mobile
    */
   toggleBioExpansion(): void {
-    this.bioExpanded.set(!this.bioExpanded());
+    const newExpanded = !this.bioExpanded();
+    this.bioExpanded.set(newExpanded);
+    
+    if (newExpanded) {
+      // Aggiungi listener per scroll quando si espande
+      this.addScrollListener();
+    } else {
+      // Rimuovi listener quando si chiude
+      this.removeScrollListener();
+    }
   }
 
   /**
@@ -219,5 +231,52 @@ export class About {
   closeBioExpansion(event: Event): void {
     event.stopPropagation(); // Previene il toggle quando si clicca sulla X
     this.bioExpanded.set(false);
+    this.removeScrollListener(); // Rimuovi listener quando si chiude
+  }
+
+  /**
+   * Add scroll listener to make X sticky
+   */
+  private addScrollListener(): void {
+    this.scrollListener = () => {
+      const bioCard = document.querySelector('.bio-card-mobile.expanded');
+      const closeButton = document.querySelector('.bio-close');
+      
+      if (bioCard && closeButton) {
+        const rect = bioCard.getBoundingClientRect();
+        const isScrolled = rect.top < 0;
+        
+        if (isScrolled) {
+          closeButton.classList.add('sticky');
+        } else {
+          closeButton.classList.remove('sticky');
+        }
+      }
+    };
+    
+    window.addEventListener('scroll', this.scrollListener);
+  }
+
+  /**
+   * Remove scroll listener
+   */
+  private removeScrollListener(): void {
+    if (this.scrollListener) {
+      window.removeEventListener('scroll', this.scrollListener);
+      this.scrollListener = undefined;
+      
+      // Rimuovi classe sticky se presente
+      const closeButton = document.querySelector('.bio-close');
+      if (closeButton) {
+        closeButton.classList.remove('sticky');
+      }
+    }
+  }
+
+  /**
+   * Cleanup when component is destroyed
+   */
+  ngOnDestroy(): void {
+    this.removeScrollListener();
   }
 }

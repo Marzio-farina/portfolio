@@ -274,9 +274,17 @@
   height: 24px;
   color: var(--text-secondary);
   transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-  z-index: 10;
+  z-index: 1001;
   display: none;
   cursor: pointer;
+}
+
+/* X sticky quando si scrolla */
+.bio-close.sticky {
+  position: fixed;
+  top: 12px;
+  right: 12px;
+  z-index: 1001;
 }
 
 .bio-close svg {
