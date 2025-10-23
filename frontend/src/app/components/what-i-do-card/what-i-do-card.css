@@ -10,7 +10,10 @@
     background: var(--bg-card);
     border: 1px solid var(--border-primary);
     border-radius: 20px;          /* angoli più arrotondati */
-    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    transition: box-shadow 0.3s cubic-bezier(0.4, 0, 0.2, 1), 
+                border-color 0.3s cubic-bezier(0.4, 0, 0.2, 1),
+                background 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    /* Transform gestito da JavaScript per animazioni smooth */
     box-shadow: var(--shadow-1);
     overflow: hidden;             /* Per contenere i pattern di sfondo */
     transform-style: preserve-3d; /* Abilita trasformazioni 3D */
@@ -18,11 +21,32 @@
 }
 
 /* ===== EFFETTO TAVOLA DA SURF ===== */
-/* Hover generale con effetto 3D */
+/* Hover generale con effetto 3D e glow intensificato */
 .card:hover {
-    transform: translateY(-6px) rotateX(5deg) rotateY(2deg);
+    /* L'effetto tilt dinamico viene gestito da JavaScript */
     box-shadow: var(--shadow-4);
     border-color: var(--accent-primary);
+}
+
+/* Glow intensificato durante hover per tema giorno */
+:not([data-theme]) .card:hover,
+[data-theme="light"] .card:hover {
+    background: 
+        /* Glow più intenso dall'angolo superiore destro */
+        radial-gradient(ellipse at 80% 20%, rgba(249, 115, 22, 0.25) 0%, transparent 70%),
+        radial-gradient(ellipse at 20% 80%, rgba(234, 88, 12, 0.2) 0%, transparent 60%),
+        /* Background base */
+        var(--bg-card);
+}
+
+/* Glow intensificato durante hover per tema notte */
+[data-theme="dark"] .card:hover {
+    background: 
+        /* Glow più intenso dall'angolo superiore destro */
+        radial-gradient(ellipse at 80% 20%, rgba(45, 100, 72, 0.3) 0%, transparent 70%),
+        radial-gradient(ellipse at 20% 80%, rgba(240, 2, 13, 0.25) 0%, transparent 60%),
+        /* Background base */
+        var(--bg-card);
 }
 
 /* Effetto pressione sui bordi usando pseudo-elementi */
@@ -82,9 +106,32 @@
     transform: translateX(-50%) scale(1.2);
 }
 
-/* Background base per le card */
+/* Background base per le card con glow interno */
 .card {
     background: var(--bg-card);
+    position: relative;
+    overflow: hidden;
+}
+
+/* Glow interno per tema giorno */
+:not([data-theme]) .card,
+[data-theme="light"] .card {
+    background: 
+        /* Glow dall'angolo superiore destro */
+        radial-gradient(ellipse at 80% 20%, rgba(249, 115, 22, 0.15) 0%, transparent 60%),
+        radial-gradient(ellipse at 20% 80%, rgba(234, 88, 12, 0.1) 0%, transparent 50%),
+        /* Background base */
+        var(--bg-card);
+}
+
+/* Glow interno per tema notte */
+[data-theme="dark"] .card {
+    background: 
+        /* Glow dall'angolo superiore destro */
+        radial-gradient(ellipse at 80% 20%, rgba(45, 100, 72, 0.2) 0%, transparent 60%),
+        radial-gradient(ellipse at 20% 80%, rgba(240, 2, 13, 0.15) 0%, transparent 50%),
+        /* Background base */
+        var(--bg-card);
 }
 
 .icon {
