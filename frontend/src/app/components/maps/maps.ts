@@ -95,9 +95,6 @@ export class Maps implements AfterViewInit, OnDestroy {
       dragging: true, // Abilita trascinamento
       scrollWheelZoom: true, // Abilita zoom scroll
       bounceAtZoomLimits: false, // Disabilita bounce ai limiti zoom
-      closePopupOnClick: true, // Chiudi popup al click
-      autoClose: true, // Auto-close popup
-      keepInView: false, // Non mantenere in vista
       className: 'custom-map' // Classe CSS personalizzata
     }).setView([lat, lng], 13);
     
