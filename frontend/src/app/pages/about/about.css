@@ -235,15 +235,21 @@
 }
 
 .bio-arrow--top-left {
-  top: 12px;
-  left: 12px;
+  top: 20px; /* Più padding dal bordo */
+  left: 20px; /* Più padding dal bordo */
   /* Nessuna rotazione - angolo L già orientato correttamente */
 }
 
 .bio-arrow--bottom-right {
-  bottom: 12px;
-  right: 12px;
+  bottom: 20px; /* Più padding dal bordo */
+  right: 20px; /* Più padding dal bordo */
   /* Nessuna rotazione - angolo L già orientato correttamente */
+}
+
+/* Colore frecce per tema chiaro */
+:not([data-theme]) .bio-arrow,
+[data-theme="light"] .bio-arrow {
+  color: #9CA3AF; /* Grigio chiaro per tema giorno */
 }
 
 .bio-content {
