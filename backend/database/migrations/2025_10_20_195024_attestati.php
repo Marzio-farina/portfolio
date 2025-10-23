@@ -44,11 +44,13 @@ return new class extends Migration
             $table->unique(['user_id', 'title', 'issuer', 'issued_at'], 'attestati_unique_per_user');
         });
 
-        // CHECK per Postgres (coerente con il tuo stile)
-        // 1) status ammesso
-        DB::statement("ALTER TABLE attestati ADD CONSTRAINT attestati_status_check CHECK (status IN ('draft','published'))");
-        // 2) relazione date coerente: expires_at >= issued_at (se entrambe valorizzate)
-        DB::statement("ALTER TABLE attestati ADD CONSTRAINT attestati_dates_check CHECK (expires_at IS NULL OR issued_at IS NULL OR expires_at >= issued_at)");
+        // CHECK constraints solo per PostgreSQL
+        if (DB::getDriverName() === 'pgsql') {
+            // 1) status ammesso
+            DB::statement("ALTER TABLE attestati ADD CONSTRAINT attestati_status_check CHECK (status IN ('draft','published'))");
+            // 2) relazione date coerente: expires_at >= issued_at (se entrambe valorizzate)
+            DB::statement("ALTER TABLE attestati ADD CONSTRAINT attestati_dates_check CHECK (expires_at IS NULL OR issued_at IS NULL OR expires_at >= issued_at)");
+        }
     }
 
     /**

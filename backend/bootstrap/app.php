@@ -2,6 +2,7 @@
 
 use App\Http\Middleware\EnsureTokenIsFresh;
 use App\Http\Middleware\HttpCache;
+use App\Http\Middleware\DatabaseConnectionMiddleware;
 use Illuminate\Foundation\Application;
 use Illuminate\Foundation\Configuration\Exceptions;
 use Illuminate\Foundation\Configuration\Middleware;
@@ -22,6 +23,7 @@ return Application::configure(basePath: dirname(__DIR__))
         $middleware->alias([
             'fresh' => EnsureTokenIsFresh::class,
             'http.cache' => HttpCache::class,
+            'db.connection' => DatabaseConnectionMiddleware::class,
         ]);
     })
     ->withExceptions(function (Exceptions $exceptions): void {

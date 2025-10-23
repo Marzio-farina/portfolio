@@ -25,8 +25,10 @@ return new class extends Migration
             $table->timestamps();
         });
 
-        // CHECK constraint per Postgres
-        DB::statement('ALTER TABLE testimonials ADD CONSTRAINT testimonials_rating_check CHECK (rating BETWEEN 1 AND 5)');
+        // CHECK constraint solo per PostgreSQL
+        if (DB::getDriverName() === 'pgsql') {
+            DB::statement('ALTER TABLE testimonials ADD CONSTRAINT testimonials_rating_check CHECK (rating BETWEEN 1 AND 5)');
+        }
     }
 
     /**

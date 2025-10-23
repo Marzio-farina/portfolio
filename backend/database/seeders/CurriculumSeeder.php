@@ -16,7 +16,10 @@ class CurriculumSeeder extends Seeder
     {
         Cv::query()->delete();
 
-        DB::statement('ALTER SEQUENCE curricula_id_seq RESTART WITH 1');
+        // Reset sequence solo per PostgreSQL
+        if (DB::getDriverName() === 'pgsql') {
+            DB::statement('ALTER SEQUENCE curricula_id_seq RESTART WITH 1');
+        }
 
         $education = [
             [

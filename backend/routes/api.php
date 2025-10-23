@@ -75,7 +75,7 @@ Route::get('_diag', function () {
  * Main API routes group with stateless configuration
  * Removes session/cookie/CSRF middleware for API-only usage
  */
-Route::middleware(['api', 'throttle:60,1'])
+Route::middleware(['api', 'throttle:300,1', 'db.connection'])
     ->withoutMiddleware([
         StartSession::class,
         AddQueuedCookiesToResponse::class,
@@ -101,7 +101,7 @@ Route::middleware(['api', 'throttle:60,1'])
         // ====================================================================
         // Contact Form (with custom rate limiting)
         // ====================================================================
-        Route::middleware('throttle:contact')
+        Route::middleware('throttle:10,1')
             ->post('/contact', [ContactController::class, 'send']);
 
         // ====================================================================

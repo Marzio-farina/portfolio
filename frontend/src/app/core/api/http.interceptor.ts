@@ -30,7 +30,7 @@ export class ApiInterceptor implements HttpInterceptor {
     const isGet = clone.method === 'GET';
 
     return next.handle(clone).pipe(
-      timeout(9000),
+      timeout(5000),
       retry({
         count: isGet ? 1 : 0,
         delay: (_, i) => timer(200 * (i + 1)),
