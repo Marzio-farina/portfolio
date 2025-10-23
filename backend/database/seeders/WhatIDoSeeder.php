@@ -17,32 +17,32 @@ class WhatIDoSeeder extends Seeder
             [
                 'title' => 'Web Development',
                 'description' => 'Siti e app web performanti con Laravel, Angular ed Electron',
-                'icon' => 'code'
+                'icon' => 'web-development'
             ],
             [
                 'title' => 'Windows Development',
                 'description' => 'App desktop .NET e VBA per ottimizzare i processi aziendali',
-                'icon' => 'pencil'
+                'icon' => 'mobile-development'
             ],
             [
                 'title' => 'Web Scrapping & Automation',
                 'description' => 'Automazione e raccolta dati dal web',
-                'icon' => 'code'
+                'icon' => 'api'
             ],
             [
                 'title' => 'UI/UX Design',
                 'description' => 'Interfacce intuitive e curate per un\'esperienza ottimale',
-                'icon' => 'pencil'
+                'icon' => 'design'
             ],
             [
                 'title' => 'Ricerca e Innovazione',
                 'description' => 'Sperimentazione continua di tecnologie e soluzioni nuove',
-                'icon' => 'code'
+                'icon' => 'analytics'
             ],
             [
                 'title' => 'Consulenza e Ottimizzazione',
                 'description' => 'Analisi e software su misura per aumentare l’efficienza',
-                'icon' => 'pencil'
+                'icon' => 'support'
             ],
         ]);
     }
