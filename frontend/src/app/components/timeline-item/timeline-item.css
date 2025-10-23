@@ -1,16 +1,19 @@
 .tli__title {
     margin: 0 0 4px;
     font-weight: 700;
-    color: #fff;
+    color: var(--text-primary);
+    transition: color var(--transition-1);
 }
 .tli__years {
-    color: rgba(222, 233, 17, 0.75);
+    color: var(--accent-primary);
     margin-bottom: 8px;
     font-weight: 500;
+    transition: color var(--transition-1);
 }
 .tli__desc  {
-    color: rgba(255,255,255,.85);
+    color: var(--text-secondary);
     margin: 0;
     line-height: 1.6;
     white-space: pre-line;
+    transition: color var(--transition-1);
 }

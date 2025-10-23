@@ -6,7 +6,8 @@
 .title {
   margin: 0 0 14px;
   font-weight: 800;
-  color: #fff;
+  color: var(--text-primary);
+  transition: color var(--transition-1);
 }
 
 /* form card */
@@ -29,12 +30,12 @@
 /* campi */
 .field {
   display: block;
-  background: var(--field, rgba(255,255,255,0.05));
-  border: 1px solid var(--field-border, rgba(255,255,255,0.15));
+  background: var(--bg-card);
+  border: 1px solid var(--border-primary);
   border-radius: var(--radius-xl, 14px);
   padding: 12px 14px;
-  color: var(--text, #fff);
-  transition: border-color .2s ease, box-shadow .2s ease, background .2s ease;
+  color: var(--text-primary);
+  transition: border-color var(--transition-1), box-shadow var(--transition-1), background var(--transition-1);
 }
 
 .field input,
@@ -45,7 +46,7 @@
   outline: 0;
   color: inherit;
   font: inherit;
-  caret-color: var(--accent, #f6c54f);
+  caret-color: var(--accent-primary);
 }
 
 .field textarea {
@@ -65,8 +66,8 @@
 /* focus styling */
 .field:has(input:focus),
 .field:has(textarea:focus) {
-  /* border-color: var(--field-border-focus); */
-  box-shadow: 0 0 0 3px rgba(246,197,79,.15);
+  border-color: var(--accent-primary);
+  box-shadow: 0 0 0 3px var(--accent-primary-alpha);
 }
 
 /* pulsante */
@@ -83,11 +84,11 @@
   padding: 14px 22px;
   border: 0;
   border-radius: 999px;
-  background: linear-gradient(180deg, rgba(246,197,79,.18), rgba(246,197,79,.12));
-  color: var(--accent, #f6c54f);
+  background: var(--accent-primary);
+  color: var(--text-inverse);
   font-weight: 600;
   cursor: pointer;
-  transition: transform .15s ease, box-shadow .2s ease, background .2s ease;
+  transition: transform var(--transition-1), box-shadow var(--transition-1), background var(--transition-1);
 }
 
 .btn .icon {
@@ -99,8 +100,8 @@
 
 .btn:hover {
   transform: translateY(-1px);
-  box-shadow: 0 16px 34px rgba(0,0,0,.42);
-  background: linear-gradient(180deg, rgba(246,197,79,.24), rgba(246,197,79,.14));
+  box-shadow: var(--shadow-2);
+  background: var(--accent-primary-hover);
 }
 
 .btn:active {
@@ -114,11 +115,11 @@
 }
 
 .feedback.success {
-  color: #9fe69f;
+  color: var(--success-color);
 }
 
 .feedback.error {
-  color: #f99;
+  color: var(--error-color);
 }
 
 /* arrotondamenti della “card mappa” simili allo screenshot (se la sezione è in un box) */

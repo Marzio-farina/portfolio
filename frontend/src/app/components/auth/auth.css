@@ -2,16 +2,19 @@
     min-height:100dvh;
     display:grid;
     place-items:center;
-    background-color: transparent;
+    background-color: var(--bg-primary);
+    transition: background-color var(--transition-1);
 }
 
 .card{
     width:min(480px, 92vw);
-    background: #1f2024;
+    background: var(--bg-card);
+    border: 1px solid var(--border-primary);
     border-radius:1.25rem;
-    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.6);
+    box-shadow: var(--shadow-2);
     padding:1.25rem 1.25rem 1.5rem;
-    color: #f3f4f6;
+    color: var(--text-primary);
+    transition: background var(--transition-1), border-color var(--transition-1), color var(--transition-1);
 }
 
 .tab {
@@ -22,20 +25,21 @@
     border-radius: 999px;
     cursor: pointer;
     font-weight: 600;
-    color: #d1d5db;
-    transition: background 0.2s, color 0.2s;
+    color: var(--text-secondary);
+    transition: background var(--transition-1), color var(--transition-1);
 }
 
 .tab.active {
-    background: #3b3c42;
-    color: #fff;
-    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.5);
+    background: var(--accent-primary);
+    color: var(--text-inverse);
+    box-shadow: var(--shadow-1);
 }
 
 h2 {
     margin: .25rem 0 1rem;
     font-size: 1.35rem;
-    color: #f9fafb;
+    color: var(--text-primary);
+    transition: color var(--transition-1);
 }
 
 form {
@@ -69,14 +73,16 @@ form {
   display: block;
   flex: 1 1 auto;
   line-height: 1.35;
-  color: #d1d5db;
+  color: var(--text-secondary);
   word-break: break-word;  /* evita overflow */
+  transition: color var(--transition-1);
 }
 
 .field.checkbox label{
     flex:1 1 0;
     line-height:1.3;
-    color:#d1d5db;
+    color: var(--text-secondary);
+    transition: color var(--transition-1);
 }
 
 .primary{
@@ -87,23 +93,25 @@ form {
 
 label {
     font-weight: 600;
-    color: #d1d5db;
+    color: var(--text-secondary);
+    transition: color var(--transition-1);
 }
 
 input[type="text"],
 input[type="email"],
 input[type="password"] {
     padding: .7rem .9rem;
-    border: 1px solid #3f3f46;
+    border: 1px solid var(--border-primary);
     border-radius: .8rem;
-    background: #2b2c30;
-    color: #f3f4f6;
+    background: var(--bg-card);
+    color: var(--text-primary);
     outline: none;
+    transition: border-color var(--transition-1), background var(--transition-1), color var(--transition-1);
 }
 
 input:focus {
-    border-color: #6366f1;
-    box-shadow: 0 0 0 3px rgba(99, 102, 241, .25);
+    border-color: var(--accent-primary);
+    box-shadow: 0 0 0 3px var(--accent-primary-alpha);
 }
 
 .password {
@@ -116,9 +124,10 @@ input:focus {
     top: 2.05rem;
     border: none;
     background: transparent;
-    color: #9ca3af;
+    color: var(--text-muted);
     cursor: pointer;
     padding: .4rem;
+    transition: color var(--transition-1);
 }
 
 .primary {
@@ -126,15 +135,15 @@ input:focus {
     padding: .8rem 1rem;
     border: none;
     border-radius: .9rem;
-    background: #4f46e5;
-    color: white;
+    background: var(--accent-primary);
+    color: var(--text-inverse);
     font-weight: 700;
     cursor: pointer;
-    transition: background 0.2s;
+    transition: background var(--transition-1);
 }
 
 .primary:hover:not([disabled]) {
-    background: #6366f1;
+    background: var(--accent-primary-hover);
 }
 
 .primary[disabled] {
@@ -143,29 +152,30 @@ input:focus {
 }
 
 .err {
-    color: #f87171;
+    color: var(--error-color);
     font-size: .82rem;
 }
 
 .hint {
     font-size: .9rem;
-    color: #9ca3af;
+    color: var(--text-muted);
+    transition: color var(--transition-1);
 }
 
 .error-banner {
     margin-top: 1rem;
-    background: #451a1a;
-    border: 1px solid #7f1d1d;
-    color: #fca5a5;
+    background: var(--error-bg);
+    border: 1px solid var(--error-color);
+    color: var(--error-color);
     padding: .6rem .8rem;
     border-radius: .75rem;
 }
 
 .success-banner {
     margin-top: 1rem;
-    background: #1a3c2b;
-    border: 1px solid #15803d;
-    color: #bbf7d0;
+    background: var(--success-bg);
+    border: 1px solid var(--success-color);
+    color: var(--success-color);
     padding: .6rem .8rem;
     border-radius: .75rem;
 }

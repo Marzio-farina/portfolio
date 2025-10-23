@@ -1,5 +1,6 @@
 nav button:hover {
     cursor: pointer;
+    color: var(--accent-primary);
 }
 
 nav button {
@@ -7,7 +8,8 @@ nav button {
     background: none;
     border: none;
     padding: 10px;
-    color: var(--light-gray-70);
+    color: var(--text-secondary);
+    transition: color var(--transition-1);
 }
 
 nav button:first-child {
@@ -15,7 +17,7 @@ nav button:first-child {
 }
 
 nav .is-active {
-    color:  var(--light-gray);
+    color: var(--accent-primary);
 }
 
 @media ( min-width: 425px ) {

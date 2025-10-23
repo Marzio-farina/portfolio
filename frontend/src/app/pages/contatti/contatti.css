@@ -1,0 +1,5 @@
+.contacts {
+  background: var(--bg-primary);
+  color: var(--text-primary);
+  transition: background-color var(--transition-1), color var(--transition-1);
+}

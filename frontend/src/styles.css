@@ -1,21 +1,28 @@
 @import "tailwindcss";
 @plugin "daisyui";
 
-/* ===== Fallback di sistema: tema light di base ===== */
+/* ===== Sistema di Temi Completo ===== */
+
+/* ===== TEMA LIGHT (Default) ===== */
 :root {
+  /* Layout */
   --page-gutter: clamp(16px, 4vw, 24px);
   --center-col: 860px;
-  --bg-gradient-onyx: linear-gradient( to bottom right, hsl(240, 1%, 25%) 3%, hsl(0, 0%, 19%) 97% );
-  --bg-gradient-jet: linear-gradient( to bottom right, hsla(240, 1%, 18%, 0.251) 0%, hsla(240, 2%, 11%, 0) 100% ), hsl(240, 2%, 13%);
-  --bg-gradient-yellow-1: linear-gradient( to bottom right, hsl(45, 100%, 71%) 0%, hsla(36, 100%, 69%, 0) 50% );
-  --bg-gradient-yellow-2: linear-gradient( 135deg, hsla(45, 100%, 71%, 0.251) 0%, hsla(35, 100%, 68%, 0) 59.86% ), hsl(240, 2%, 13%);
-  --border-gradient-onyx: linear-gradient( to bottom right, hsl(0, 0%, 25%) 0%, hsla(0, 0%, 25%, 0) 50% );
-  --text-gradient-yellow: linear-gradient( to right, hsl(45, 100%, 72%), hsl(35, 100%, 68%) );
+  
+  /* Gradients */
+  --bg-gradient-onyx: linear-gradient(to bottom right, hsl(240, 1%, 25%) 3%, hsl(0, 0%, 19%) 97%);
+  --bg-gradient-jet: linear-gradient(to bottom right, hsla(240, 1%, 18%, 0.251) 0%, hsla(240, 2%, 11%, 0) 100%), hsl(240, 2%, 13%);
+  --bg-gradient-yellow-1: linear-gradient(to bottom right, hsl(45, 100%, 71%) 0%, hsla(36, 100%, 69%, 0) 50%);
+  --bg-gradient-yellow-2: linear-gradient(135deg, hsla(45, 100%, 71%, 0.251) 0%, hsla(35, 100%, 68%, 0) 59.86%), hsl(240, 2%, 13%);
+  --border-gradient-onyx: linear-gradient(to bottom right, hsl(0, 0%, 25%) 0%, hsla(0, 0%, 25%, 0) 50%);
+  --text-gradient-yellow: linear-gradient(to right, hsl(45, 100%, 72%), hsl(35, 100%, 68%));
+  
+  /* Colori Base */
   --jet: hsl(0, 0%, 22%);
   --onyx: hsl(240, 1%, 17%);
   --eerie-black-1: hsl(240, 2%, 13%);
   --eerie-black-2: hsl(240, 2%, 12%);
-  --smoky-black: hsl(0, 0%, 96%);
+  --smoky-black: hsl(0, 0%, 96%); /* Background principale LIGHT */
   --white-1: hsl(0, 0%, 100%);
   --white-2: hsl(0, 0%, 98%);
   --orange-yellow-crayola: hsl(45, 100%, 72%);
@@ -23,7 +30,33 @@
   --light-gray: hsl(0, 0%, 84%);
   --light-gray-70: hsla(0, 0%, 84%, 0.7);
   --bittersweet-shimmer: hsl(0, 43%, 51%);
+  
+  /* Colori Testo LIGHT */
+  --text-primary: hsl(0, 0%, 12%); /* Testo principale più contrastato */
+  --text-secondary: hsl(0, 0%, 28%); /* Testo secondario */
+  --text-muted: hsl(0, 0%, 50%); /* Testo attenuato */
+  --text-inverse: hsl(0, 0%, 100%); /* Testo su sfondo scuro */
+  
+  /* Colori Background LIGHT */
+  --bg-primary: hsl(0, 0%, 98%); /* Background principale più equilibrato */
+  --bg-secondary: hsl(0, 0%, 100%); /* Background secondario */
+  --bg-tertiary: hsl(0, 0%, 96%); /* Background terziario */
+  --bg-card: hsl(0, 0%, 100%); /* Background card */
+  --bg-card-hover: hsl(0, 0%, 98%); /* Background card hover */
+  
+  /* Colori Border LIGHT */
+  --border-primary: hsl(0, 0%, 88%); /* Border principale più visibile */
+  --border-secondary: hsl(0, 0%, 92%); /* Border secondario */
+  --border-accent: hsl(45, 100%, 72%); /* Border accent */
+  
+  /* Colori Accent LIGHT */
+  --accent-primary: hsl(45, 100%, 72%); /* Accent principale */
+  --accent-secondary: hsl(45, 54%, 58%); /* Accent secondario */
+  --accent-hover: hsl(45, 100%, 65%); /* Accent hover */
+  
+  /* Typography */
   --ff-poppins: 'Poppins', sans-serif;
+  --fs-0: 2.5rem;
   --fs-1: 24px;
   --fs-2: 18px;
   --fs-3: 17px;
@@ -36,18 +69,28 @@
   --fw-400: 400;
   --fw-500: 500;
   --fw-600: 600;
+  --fw-700: 700;
+  --fw-800: 800;
+  
+  /* Spacing */
   --radius-2xl: 1rem;
   --space-3: 0.75rem;
   --space-4: 1rem;
   --space-5: 1.25rem;
   --space-6: 1.5rem;
-  --shadow-1: -4px 8px 24px hsla(0, 0%, 0%, 0.25);
-  --shadow-2: 0 16px 30px hsla(0, 0%, 0%, 0.25);
-  --shadow-3: 0 16px 40px hsla(0, 0%, 0%, 0.25);
-  --shadow-4: 0 25px 50px hsla(0, 0%, 0%, 0.15);
-  --shadow-5: 0 24px 80px hsla(0, 0%, 0%, 0.25);
+  
+  /* Shadows */
+  --shadow-1: -4px 8px 24px hsla(0, 0%, 0%, 0.08);
+  --shadow-2: 0 16px 30px hsla(0, 0%, 0%, 0.12);
+  --shadow-3: 0 16px 40px hsla(0, 0%, 0%, 0.15);
+  --shadow-4: 0 25px 50px hsla(0, 0%, 0%, 0.08);
+  --shadow-5: 0 24px 80px hsla(0, 0%, 0%, 0.12);
+  
+  /* Transitions */
   --transition-1: 0.25s ease;
   --transition-2: 0.5s ease-in-out;
+  
+  /* Layout specifici */
   --card-inner-padding: 30px;
   --pad: 30px;
   --gap: 18px;
@@ -56,47 +99,98 @@
   --clamp: 3;
 }
 
-/* ===== Tema esplicito LIGHT ===== */
-:root[data-theme="light"] {
-  /* si possono sovrascrivere variabili rispetto al fallback se serve */
-}
-
-/* ===== Tema esplicito DARK ===== */
+/* ===== TEMA DARK ===== */
 :root[data-theme="dark"] {
-  --smoky-black: hsl(0, 0%, 7%);
-  --white-1: hsl(0, 0%, 100%);
-  --white-2: hsl(0, 0%, 98%);
-  --light-gray: hsl(45, 100%, 72%);
-  --eerie-black-1: hsl(240, 2%, 14%);
-  --bg-gradient-jet: linear-gradient( to bottom right, hsla(240, 1%, 18%, 0.251) 0%, hsla(240, 2%, 11%, 0) 100% ), hsl(240, 2%, 13%);
-  --bg-gradient-onyx: linear-gradient( to bottom right, hsl(240, 1%, 25%) 3%, hsl(0, 0%, 19%) 97% );
+  /* Colori Testo DARK */
+  --text-primary: hsl(0, 0%, 100%); /* Testo principale chiaro */
+  --text-secondary: hsl(0, 0%, 84%); /* Testo secondario */
+  --text-muted: hsl(0, 0%, 60%); /* Testo attenuato */
+  --text-inverse: hsl(0, 0%, 7%); /* Testo su sfondo chiaro */
+  
+  /* Colori Background DARK */
+  --bg-primary: hsl(0, 0%, 7%); /* Background principale scuro */
+  --bg-secondary: hsl(240, 2%, 13%); /* Background secondario */
+  --bg-tertiary: hsl(240, 2%, 12%); /* Background terziario */
+  --bg-card: hsl(240, 2%, 12%); /* Background card */
+  --bg-card-hover: hsl(240, 2%, 14%); /* Background card hover */
+  
+  /* Colori Border DARK */
+  --border-primary: hsl(0, 0%, 22%); /* Border principale */
+  --border-secondary: hsl(0, 0%, 17%); /* Border secondario */
+  --border-accent: hsl(45, 100%, 72%); /* Border accent */
+  
+  /* Colori Accent DARK (stessi del light) */
+  --accent-primary: hsl(45, 100%, 72%); /* Accent principale */
+  --accent-secondary: hsl(45, 54%, 58%); /* Accent secondario */
+  --accent-hover: hsl(45, 100%, 75%); /* Accent hover */
+  
+  /* Shadows DARK (più intense) */
+  --shadow-1: -4px 8px 24px hsla(0, 0%, 0%, 0.4);
+  --shadow-2: 0 16px 30px hsla(0, 0%, 0%, 0.4);
+  --shadow-3: 0 16px 40px hsla(0, 0%, 0%, 0.4);
+  --shadow-4: 0 25px 50px hsla(0, 0%, 0%, 0.3);
+  --shadow-5: 0 24px 80px hsla(0, 0%, 0%, 0.4);
 }
 
 /* ===== Fallback automatico a tema scuro se l'utente lo preferisce ===== */
 @media (prefers-color-scheme: dark) {
   :root:not([data-theme]) {
-    --smoky-black: hsl(0, 0%, 7%);
-    --white-1: hsl(0, 0%, 100%);
-    --white-2: hsl(0, 0%, 98%);
-    --light-gray: hsl(45, 100%, 72%);
-    --eerie-black-1: hsl(240, 2%, 14%);
-    --bg-gradient-jet: linear-gradient( to bottom right, hsla(240, 1%, 18%, 0.251) 0%, hsla(240, 2%, 11%, 0) 100% ), hsl(240, 2%, 13%);
-    --bg-gradient-onyx: linear-gradient( to bottom right, hsl(240, 1%, 25%) 3%, hsl(0, 0%, 19%) 97% );
+    /* Colori Testo DARK */
+    --text-primary: hsl(0, 0%, 100%);
+    --text-secondary: hsl(0, 0%, 84%);
+    --text-muted: hsl(0, 0%, 60%);
+    --text-inverse: hsl(0, 0%, 7%);
+    
+    /* Colori Background DARK */
+    --bg-primary: hsl(0, 0%, 7%);
+    --bg-secondary: hsl(240, 2%, 13%);
+    --bg-tertiary: hsl(240, 2%, 12%);
+    --bg-card: hsl(240, 2%, 12%);
+    --bg-card-hover: hsl(240, 2%, 14%);
+    
+    /* Colori Border DARK */
+    --border-primary: hsl(0, 0%, 22%);
+    --border-secondary: hsl(0, 0%, 17%);
+    --border-accent: hsl(45, 100%, 72%);
+    
+    /* Colori Accent DARK */
+    --accent-primary: hsl(45, 100%, 72%);
+    --accent-secondary: hsl(45, 54%, 58%);
+    --accent-hover: hsl(45, 100%, 75%);
+    
+    /* Shadows DARK */
+    --shadow-1: -4px 8px 24px hsla(0, 0%, 0%, 0.4);
+    --shadow-2: 0 16px 30px hsla(0, 0%, 0%, 0.4);
+    --shadow-3: 0 16px 40px hsla(0, 0%, 0%, 0.4);
+    --shadow-4: 0 25px 50px hsla(0, 0%, 0%, 0.3);
+    --shadow-5: 0 24px 80px hsla(0, 0%, 0%, 0.4);
   }
 }
 
+/* ===== STILI BASE ===== */
 html {
-  background-color: var(--smoky-black);
+  background-color: var(--bg-primary);
   padding-bottom: 50px;
+  color: var(--text-primary);
+  font-family: var(--ff-poppins);
+  transition: background-color var(--transition-1), color var(--transition-1);
 }
 
+body {
+  background-color: var(--bg-primary);
+  color: var(--text-primary);
+  transition: background-color var(--transition-1), color var(--transition-1);
+}
+
+/* ===== TITOLI ===== */
 .article-title {
-  color: var(--white-2);
+  color: var(--text-primary);
   font-size: var(--fs-0);
   position: relative;
   padding-bottom: 15px;
-  font-weight: 800;
+  font-weight: var(--fw-800);
   margin: 0 0 16px;
+  transition: color var(--transition-1);
 }
 
 .article-title::after {
@@ -111,6 +205,33 @@ html {
 }
 
 .sub_article-title {
-  color: var(--white-2);
+  color: var(--text-primary);
   font-size: var(--fs-1);
+  font-weight: var(--fw-600);
+  transition: color var(--transition-1);
+}
+
+/* ===== UTILITY CLASSES ===== */
+.text-primary { color: var(--text-primary) !important; }
+.text-secondary { color: var(--text-secondary) !important; }
+.text-muted { color: var(--text-muted) !important; }
+.text-inverse { color: var(--text-inverse) !important; }
+.text-accent { color: var(--accent-primary) !important; }
+
+.bg-primary { background-color: var(--bg-primary) !important; }
+.bg-secondary { background-color: var(--bg-secondary) !important; }
+.bg-tertiary { background-color: var(--bg-tertiary) !important; }
+.bg-card { background-color: var(--bg-card) !important; }
+.bg-card-hover { background-color: var(--bg-card-hover) !important; }
+
+.border-primary { border-color: var(--border-primary) !important; }
+.border-secondary { border-color: var(--border-secondary) !important; }
+.border-accent { border-color: var(--border-accent) !important; }
+
+/* ===== TRANSIZIONI GLOBALI ===== */
+* {
+  transition: background-color var(--transition-1), 
+              color var(--transition-1), 
+              border-color var(--transition-1),
+              box-shadow var(--transition-1);
 }

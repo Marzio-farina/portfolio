@@ -3,6 +3,9 @@
     display: grid;
     grid-template-columns: 1fr;
     gap: 20px;
+    background: var(--bg-primary);
+    color: var(--text-primary);
+    transition: background-color var(--transition-1), color var(--transition-1);
 }
 
 @media (min-width: 1024px) {
@@ -40,7 +43,7 @@
 
   /* scrollbar sottile (Firefox) */
   scrollbar-width: thin;
-  scrollbar-color: #6b7280 transparent;
+  scrollbar-color: var(--text-muted) transparent;
 }
 
 /* scrollbar sottile (WebKit) */
@@ -51,11 +54,12 @@
   background: transparent;
 }
 .testimonial-track::-webkit-scrollbar-thumb {
-  background: #6b7280;      /* grigio medio */
+  background: var(--text-muted);
   border-radius: 9999px;
+  transition: background var(--transition-1);
 }
 .testimonial-track::-webkit-scrollbar-thumb:hover {
-  background: #9ca3af;      /* grigio chiaro */
+  background: var(--text-secondary);
 }
 
 /* Ogni slide occupa una frazione della viewport e non può “shrinkare” */

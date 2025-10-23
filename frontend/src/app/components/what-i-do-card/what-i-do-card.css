@@ -7,15 +7,16 @@
     padding: var(--pad);
     height: 145px;                 /* altezza fissa */
     box-sizing: border-box;
-    background: var(--border-gradient-onyx);
-    border: 1px solid var(--eerie-black-1);
+    background: var(--bg-card);
+    border: 1px solid var(--border-primary);
     border-radius: 14px;
+    transition: background var(--transition-1), border-color var(--transition-1);
 }
 
 .card::before{
     content:"";
     position:absolute; inset:1px;
-    background: var(--bg-gradient-jet);
+    background: var(--bg-card);
     border-radius: inherit;
     z-index:-1;
 }
@@ -36,16 +37,18 @@
 
 .description_card h4 {
     margin: 0 0 7px 0;
-    color: var(--white-2);
+    color: var(--text-primary);
     font-size: var(--fs-2);
     text-transform: capitalize;
+    transition: color var(--transition-1);
 }
 
 .description_card p {
     margin: 0;
-    color: var(--light-gray);
+    color: var(--text-secondary);
     font-size: var(--fs-5);
     line-height: 1.6;
     word-break: normal;
     hyphens: none;
+    transition: color var(--transition-1);
 }

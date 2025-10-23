@@ -1,8 +1,9 @@
 .card {
   border-radius: 16px;
-  background: rgba(255,255,255,0.04);
+  background: var(--bg-card);
+  border: 1px solid var(--border-primary);
   overflow: hidden;
-  transition: transform .25s ease;
+  transition: transform var(--transition-1), background var(--transition-1), border-color var(--transition-1);
   cursor: pointer;
 }
 
@@ -23,15 +24,17 @@
 .title {
   margin: 0 0 6px;
   font-weight: 600;
-  color: var(--white-2);
+  color: var(--text-primary);
   font-size: var(--fs-5);
+  transition: color var(--transition-1);
 }
 
 .category {
   margin: 0;
-  color: var(--light-gray-70);
+  color: var(--text-secondary);
   font-size: var(--fs-6);
   font-weight: var(--fw-300);
+  transition: color var(--transition-1);
 }
 
 .poster,

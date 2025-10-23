@@ -1,8 +1,9 @@
 .profile__avatar {
-  border: 1px solid color-mix(in oklab, var(--bg-gradient-onyx) 40%, transparent);
+  border: 1px solid var(--border-primary);
   border-radius: 16px;
-  background: var(--bg-gradient-onyx);
+  background: var(--bg-card);
   margin: 20px;
+  transition: border-color var(--transition-1), background var(--transition-1);
 }
 
 .profile__avatar img {

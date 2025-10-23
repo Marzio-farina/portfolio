@@ -10,11 +10,20 @@
 .filter-list button {
     padding:6px 12px;
     border-radius:999px;
-    border:0;
+    border:1px solid var(--border-primary);
+    background: var(--bg-card);
+    color: var(--text-secondary);
     cursor:pointer;
+    transition: all var(--transition-1);
+}
+
+.filter-list button:hover {
+    background: var(--accent-primary-alpha);
+    color: var(--accent-primary);
 }
 
 .filter-list button.active {
-    background:#f6c54f;
-    color:#000;
+    background: var(--accent-primary);
+    color: var(--text-inverse);
+    border-color: var(--accent-primary);
 }

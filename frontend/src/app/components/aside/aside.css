@@ -1,9 +1,9 @@
 /* ---------- (MOBILE FIRST) ---------- */
 .profile {
-  /* border: 1px solid color-mix(in oklab, var(--jet) 30%, transparent); */
   border-radius: 20px;
-  background: var(--eerie-black-2);
-  color: var(--white-2);
+  background: var(--bg-card);
+  color: var(--text-primary);
+  transition: background-color var(--transition-1), color var(--transition-1);
 }
 
 .profile__header {
@@ -25,7 +25,8 @@
   flex-direction: column;
   gap: 5px 0;
   min-width: 0;
-  color: var(--light-gray);
+  color: var(--text-secondary);
+  transition: color var(--transition-1);
 }
 
 .profile__name {
@@ -46,11 +47,28 @@
   top: 0;
   right: 0;
   border-radius: 0 15px;
-  background: var(--eerie-black-2);
-  color: hsl(45, 100%, 71%);
+  background: var(--bg-card);
+  color: var(--accent-primary);
+  transition: background-color var(--transition-1), color var(--transition-1);
   box-shadow: var(--shadow-1);
-  transition: 0.25s ease;
   z-index: 1;
+}
+
+/* Toggle del tema (in alto a sinistra) */
+.profile__theme-toggle {
+  right: auto;
+  left: 0;
+  border-radius: 15px 0;
+  background: var(--bg-card);
+  color: var(--accent-primary);
+  border: 1px solid var(--border-primary);
+  transition: all var(--transition-1);
+}
+
+.profile__theme-toggle:hover {
+  background: var(--accent-primary);
+  color: var(--text-inverse);
+  transform: scale(1.05);
 }
 
 .profile__toggle:hover {
@@ -124,9 +142,10 @@
   display: flex;
   justify-content: center;
   align-items: center;
-  color: var(--orange-yellow-crayola);
-  /* box-shadow: var(--shadow-1); */
+  color: var(--accent-primary);
+  box-shadow: var(--shadow-1);
   z-index: 1;
+  transition: background-color var(--transition-1), color var(--transition-1);
 }
 
 .contact__icon::before {
@@ -145,19 +164,21 @@
 .contact__label {
   margin: 0;
   font-size: 0.75rem;
-  opacity: 0.6;
+  color: var(--text-muted);
+  transition: color var(--transition-1);
 }
 
 .contact__link,
 .contact__text {
   font-size: 0.875rem;
-  color: var(--light-gray-70);
+  color: var(--text-secondary);
   text-decoration: none;
+  transition: color var(--transition-1);
 }
 
 .contact__link:hover,
 .contact__text:hover {
-  color: var(--light-gray);
+  color: var(--accent-primary);
   text-decoration: none;
   cursor: pointer;
 }
@@ -167,7 +188,8 @@
   height: 1px;
   border-radius: 999px;
   margin: 15px;
-  background-color: var(--jet);
+  background-color: var(--border-primary);
+  transition: background-color var(--transition-1);
 }
 
 /* Socials */
@@ -185,6 +207,13 @@
 .socials__link {
   display: inline-block;
   line-height: 0;
+  color: var(--text-secondary);
+  transition: color var(--transition-1), transform var(--transition-1);
+}
+
+.socials__link:hover {
+  color: var(--accent-primary);
+  transform: scale(1.1);
 }
 
 /* ---------- Icone & utility minime ---------- */

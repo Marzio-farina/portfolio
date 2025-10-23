@@ -2,6 +2,9 @@
     display: grid;
     grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
     gap: 20px;
+    background: var(--bg-primary);
+    color: var(--text-primary);
+    transition: background-color var(--transition-1), color var(--transition-1);
 }
 
 @media (min-width: 768px) {

@@ -1,5 +1,22 @@
-.attestato-card { display:block; border:1px solid #eee; border-radius:8px; padding:12px; }
+.attestato-card { 
+  display:block; 
+  border:1px solid var(--border-primary); 
+  border-radius:8px; 
+  padding:12px; 
+  background: var(--bg-card);
+  color: var(--text-primary);
+  transition: all var(--transition-1);
+}
 .cover { position: relative; width: 100%; overflow: hidden; border-radius: 6px; }
 .cover img { object-fit: cover; }
-.meta .title { margin:8px 0 4px; font-size:1.05rem; }
-.meta .ente, .meta .data { color:#666; font-size:.9rem; }
+.meta .title { 
+  margin:8px 0 4px; 
+  font-size:1.05rem; 
+  color: var(--text-primary);
+  transition: color var(--transition-1);
+}
+.meta .ente, .meta .data { 
+  color: var(--text-secondary); 
+  font-size:.9rem; 
+  transition: color var(--transition-1);
+}

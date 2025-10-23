@@ -44,7 +44,6 @@ export class App {
   // ========================================================================
 
   constructor() {
-    this.theme.init();
     this.initializeIdleTimeout();
     this.setupAuthenticationEffect();
     this.setupIdleTimeoutHandler();

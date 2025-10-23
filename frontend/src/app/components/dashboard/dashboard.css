@@ -1,3 +1,5 @@
 .dashboard__container {
     padding: 0 40px;
+    background: transparent;
+    color: inherit;
 }

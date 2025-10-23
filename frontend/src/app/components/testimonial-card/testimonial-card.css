@@ -7,17 +7,17 @@
     padding: var(--pad);
     height: 145px;                 /* altezza fissa */
     box-sizing: border-box;
-    background: var(--border-gradient-onyx);
-    border: 1px solid var(--eerie-black-1);
+    background: var(--bg-card);
+    border: 1px solid var(--border-primary);
     border-radius: 14px;
     cursor: pointer;
-    transition: transform 0.2s ease, box-shadow 0.2s ease;
+    transition: transform var(--transition-1), box-shadow var(--transition-1), background var(--transition-1), border-color var(--transition-1);
 }
 
 .card::before{
     content:"";
     position:absolute; inset:1px;
-    background: var(--bg-gradient-jet);
+    background: var(--bg-card);
     border-radius: inherit;
     z-index:-1;
 }
@@ -33,20 +33,22 @@
 
 .description_card h4 {
     margin: 0 0 7px 0px;
-    color: var(--white-2);
+    color: var(--text-primary);
     font-size: var(--fs-2);
     font-weight: 700;
     text-transform: capitalize;
     text-align: center;
+    transition: color var(--transition-1);
 }
 
 .description_card p {
     margin: 0;
-    color: var(--light-gray);
+    color: var(--text-secondary);
     font-size: var(--fs-5);
     line-height: 1.6;
     word-break: normal;
     hyphens: none;
+    transition: color var(--transition-1);
 }
 
 /* Virgolette decorative */
@@ -56,7 +58,8 @@
   top: -6px;
   font-size: 2.25rem;
   line-height: 1;
-  color: rgba(255, 200, 0, 0.9);
+  color: var(--accent-primary);
   font-weight: 700;
   transform: translateX(-6px);
+  transition: color var(--transition-1);
 }

@@ -6,6 +6,7 @@ import { trigger, transition, style, animate } from '@angular/animations';
 import { Avatar } from "../avatar/avatar";
 import { AboutProfileService, PublicProfileDto, SocialLink } from '../../services/about-profile.service'
 import { makeLoadable } from '../../core/utils/loadable-signal';
+import { ThemeService } from '../../services/theme.service';
 
 @Component({
   selector: 'app-aside',
@@ -44,6 +45,7 @@ export class Aside {
    // === DATI PROFILO (API) ===
   private readonly svc = inject(AboutProfileService);
   private readonly dr  = inject(DestroyRef);
+  readonly theme = inject(ThemeService);
 
   // loadable (data/loading/error + reload)
   private readonly load = makeLoadable<PublicProfileDto>(() => this.svc.get$(), this.dr);
@@ -125,5 +127,14 @@ export class Aside {
       return p as any;
     }
     return 'globe';
+  }
+
+  // === TEMA ===
+  toggleTheme() {
+    this.theme.toggleTheme();
+  }
+
+  getThemeIcon() {
+    return this.theme.isDark() ? 'moon' : 'sun';
   }
 }

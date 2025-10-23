@@ -3,13 +3,16 @@
   grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
   gap: 18px;
   align-items: stretch;
+  background: var(--bg-primary);
+  color: var(--text-primary);
+  transition: background-color var(--transition-1), color var(--transition-1);
 }
 
 /* stato errore/coerenza */
 .state.error {
-  color: #b00020;
-  background: #fdecec;
-  border: 1px solid #f5c2c7;
+  color: var(--error-color);
+  background: var(--error-bg);
+  border: 1px solid var(--error-color);
   padding: 12px;
   border-radius: 6px;
 }
