@@ -2,16 +2,40 @@
   position: relative;
   width: 100%;
   aspect-ratio: 16 / 9;
-  border-radius: 10px;
+  border-radius: var(--radius-2xl);
   overflow: hidden;
   border: 1px solid var(--border-primary);
   transition: border-color var(--transition-1);
+  box-shadow: var(--shadow-1);
 }
-.map-embed iframe {
-  position: absolute;
-  inset: 0;
+
+.map-container {
   width: 100%;
   height: 100%;
-  border: 0;
-  filter: grayscale(1) brightness(0.5) contrast(1.2);
+  border-radius: var(--radius-2xl);
+  overflow: hidden;
+}
+
+/* Stili per Leaflet */
+:host ::ng-deep .leaflet-container {
+  width: 100%;
+  height: 100%;
+  border-radius: var(--radius-2xl);
+  font-family: var(--ff-poppins);
+}
+
+:host ::ng-deep .leaflet-popup-content-wrapper {
+  background: var(--bg-card);
+  color: var(--text-primary);
+  border-radius: var(--radius-2xl);
+  box-shadow: var(--shadow-2);
+}
+
+:host ::ng-deep .leaflet-popup-content {
+  font-family: var(--ff-poppins);
+  font-size: 0.9rem;
+}
+
+:host ::ng-deep .leaflet-popup-tip {
+  background: var(--bg-card);
 }
