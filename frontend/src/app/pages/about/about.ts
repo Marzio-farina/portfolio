@@ -1,4 +1,4 @@
-import { Component, ElementRef, inject, signal, ViewChild } from '@angular/core';
+import { Component, ElementRef, inject, signal, ViewChild, OnDestroy } from '@angular/core';
 import { toSignal } from '@angular/core/rxjs-interop';
 import { ActivatedRoute } from '@angular/router';
 import { map } from 'rxjs';
@@ -40,7 +40,7 @@ interface AboutCard {
   templateUrl: './about.html',
   styleUrl: './about.css'
 })
-export class About {
+export class About implements OnDestroy {
   // ========================================================================
   // Dependencies
   // ========================================================================
@@ -87,6 +87,9 @@ export class About {
 
   // Bio expansion state
   bioExpanded = signal(false);
+  
+  // Click outside listener
+  private clickOutsideListener?: (event: MouseEvent) => void;
 
   // ========================================================================
   // Constructor
@@ -210,7 +213,16 @@ export class About {
    * Toggle bio expansion on mobile
    */
   toggleBioExpansion(): void {
-    this.bioExpanded.set(!this.bioExpanded());
+    const newExpanded = !this.bioExpanded();
+    this.bioExpanded.set(newExpanded);
+    
+    if (newExpanded) {
+      // Aggiungi listener per click fuori dal riquadro
+      this.addClickOutsideListener();
+    } else {
+      // Rimuovi listener quando si chiude
+      this.removeClickOutsideListener();
+    }
   }
 
   /**
@@ -219,5 +231,43 @@ export class About {
   closeBioExpansion(event: Event): void {
     event.stopPropagation(); // Previene il toggle quando si clicca sulla X
     this.bioExpanded.set(false);
+    this.removeClickOutsideListener(); // Rimuovi listener quando si chiude
+  }
+
+  /**
+   * Add click outside listener to close bio when clicking outside
+   */
+  private addClickOutsideListener(): void {
+    // Usa setTimeout per evitare che il click che apre il riquadro lo chiuda immediatamente
+    setTimeout(() => {
+      this.clickOutsideListener = (event: MouseEvent) => {
+        const bioCard = document.querySelector('.bio-card-mobile.expanded');
+        const target = event.target as HTMLElement;
+        
+        if (bioCard && !bioCard.contains(target)) {
+          this.bioExpanded.set(false);
+          this.removeClickOutsideListener();
+        }
+      };
+      
+      document.addEventListener('click', this.clickOutsideListener);
+    }, 100);
+  }
+
+  /**
+   * Remove click outside listener
+   */
+  private removeClickOutsideListener(): void {
+    if (this.clickOutsideListener) {
+      document.removeEventListener('click', this.clickOutsideListener);
+      this.clickOutsideListener = undefined;
+    }
+  }
+
+  /**
+   * Cleanup when component is destroyed
+   */
+  ngOnDestroy(): void {
+    this.removeClickOutsideListener();
   }
 }
