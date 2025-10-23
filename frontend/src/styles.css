@@ -197,6 +197,17 @@ html {
   font-family: var(--ff-poppins);
   font-feature-settings: 'cv02', 'cv03', 'cv04', 'cv11';
   transition: background-color var(--transition-1), color var(--transition-1);
+  overflow-x: hidden; /* Previene scroll orizzontale */
+}
+
+/* ===== PREVENZIONE OVERFLOW GLOBALE ===== */
+* {
+  box-sizing: border-box; /* Include padding e border nella larghezza */
+}
+
+body {
+  overflow-x: hidden; /* Previene scroll orizzontale */
+  max-width: 100vw; /* Non supera la larghezza del viewport */
 }
 
 /* ===== SELEZIONE TESTO PERSONALIZZATA ===== */
@@ -264,6 +275,156 @@ body {
   font-size: var(--fs-1);
   font-weight: var(--fw-600);
   transition: color var(--transition-1);
+}
+
+/* ===== NOME PROFILO - TESTO PIÙ PROMINENTE ===== */
+.profile__name {
+  font-size: 1.8rem !important; /* Più grande di qualsiasi altro testo */
+  font-weight: 800 !important; /* Peso massimo */
+  line-height: 1.1 !important;
+  color: var(--text-primary) !important;
+  text-shadow: 0 2px 4px rgba(0, 0, 0, 0.1) !important;
+  letter-spacing: -0.02em !important;
+  background: linear-gradient(135deg, var(--text-primary) 0%, var(--accent-primary) 100%) !important;
+  -webkit-background-clip: text !important;
+  -webkit-text-fill-color: transparent !important;
+  background-clip: text !important;
+  transition: all var(--transition-1) !important;
+}
+
+/* ===== CENTRAMENTO MOBILE PER PROFILO ===== */
+@media (max-width: 1249px) {
+  .profile__header {
+    flex-direction: column !important;
+    align-items: center !important;
+    text-align: center !important;
+    width: 100% !important;
+    max-width: 100% !important;
+    box-sizing: border-box !important;
+  }
+  
+  .profile__avatar {
+    margin: 0 auto !important;
+    display: block !important;
+  }
+  
+  .profile__identity {
+    align-items: center !important;
+    text-align: center !important;
+    width: 100% !important;
+    max-width: 100% !important;
+  }
+  
+  .profile__name {
+    text-align: center !important;
+    font-size: 1.5rem !important; /* Leggermente ridotto su mobile */
+    width: 100% !important;
+    max-width: 100% !important;
+  }
+  
+  .profile__role {
+    text-align: center !important;
+    width: 100% !important;
+    max-width: 100% !important;
+  }
+}
+
+/* ===== FORZATURA LARGHEZZA PER IPHONE SE ===== */
+@media (max-width: 479px) {
+  .layout,
+  .layout__aside,
+  .dashboard,
+  .dashboard__card,
+  .dashboard__content,
+  .profile,
+  .profile__header,
+  .profile__identity,
+  .profile__name,
+  .profile__role,
+  .contacts__list,
+  .socials {
+    width: 100% !important;
+    max-width: 100% !important;
+    box-sizing: border-box !important;
+  }
+  
+  .layout {
+    padding-inline: 0.125rem !important; /* Ridotto al minimo */
+  }
+  
+  .layout__aside,
+  .profile {
+    padding: 0 !important; /* Nessun padding per i toggle sui bordi */
+    margin: 0 !important;
+  }
+  
+  .dashboard__card {
+    padding: 0 !important; /* Rimuove padding che causa overflow */
+    margin: 0 !important;
+  }
+  
+  .dashboard__content {
+    padding: 0.25rem !important; /* Ridotto al minimo */
+    margin: 0 !important;
+  }
+  
+  .profile__header {
+    padding: 0.5rem !important; /* Ridotto */
+    margin: 0 !important;
+  }
+  
+  .profile__name,
+  .profile__role,
+  .profile__identity {
+    margin: 0 !important;
+    padding: 0 !important;
+  }
+  
+  .contacts__list,
+  .socials {
+    padding-left: 0.5rem !important; /* Ridotto */
+    margin: 0 !important;
+  }
+  
+  /* ===== PREVENZIONE ALLARGAMENTO CONTENUTO ===== */
+  /* Forza tutti gli elementi a rispettare la larghezza del contenitore */
+  * {
+    max-width: 100% !important;
+    box-sizing: border-box !important;
+  }
+  
+  /* Prevenzione overflow per testo lungo */
+  h1, h2, h3, h4, h5, h6, p, span, div, a {
+    word-wrap: break-word !important;
+    word-break: break-word !important;
+    overflow-wrap: break-word !important;
+    hyphens: auto !important;
+  }
+  
+  /* Prevenzione overflow per immagini */
+  img, svg {
+    max-width: 100% !important;
+    height: auto !important;
+    object-fit: contain !important;
+  }
+  
+  /* Prevenzione overflow per liste */
+  ul, ol, li {
+    max-width: 100% !important;
+    word-wrap: break-word !important;
+  }
+  
+  /* Prevenzione overflow per tabelle */
+  table {
+    max-width: 100% !important;
+    table-layout: fixed !important;
+  }
+  
+  /* Prevenzione overflow per form elements */
+  input, textarea, select, button {
+    max-width: 100% !important;
+    box-sizing: border-box !important;
+  }
 }
 
 /* ===== UTILITY CLASSES ===== */

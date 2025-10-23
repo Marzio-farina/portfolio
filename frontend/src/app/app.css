@@ -5,8 +5,8 @@
   /* padding: var(--content-top) 0.75rem 1rem; */
   display: grid;
   gap: 1.5rem;
-  margin-top: 4rem;
-  padding-inline: 1rem; /* Ridotto padding per più spazio */
+  margin-top: 0.625rem; /* Ridotto da 4rem (64px) a 0.625rem (10px) */
+  padding-inline: 0.75rem; /* Ridotto padding per evitare overflow */
   grid-template-columns: 1fr;
   justify-items: center;
   column-gap: 0;
@@ -124,6 +124,49 @@
   box-shadow: inset 0 -2px 0 oklch(80% 0.1 85 / 1);
   font-weight: 600;
 }  */
+
+/* ========== iPhone SE e dispositivi piccoli (375px-479px) ========== */
+@media (max-width: 479px) {
+  .layout {
+    margin-top: 0.625rem; /* 10px */
+    padding-inline: 0.125rem; /* Ridotto al minimo per evitare overflow */
+    gap: 0.5rem; /* Ridotto gap per più spazio */
+    max-width: 100vw; /* Non supera mai la larghezza del viewport */
+  }
+  
+  .layout__aside {
+    width: 100% !important; /* Forza larghezza completa */
+    max-width: 100% !important; /* Non supera mai il contenitore */
+    margin: 0 !important; /* Rimuove margini */
+    padding: 0 !important; /* Nessun padding per i toggle sui bordi */
+  }
+  
+  .dashboard {
+    width: 100%; /* Larghezza completa per evitare overflow */
+    max-width: 100%; /* Non supera mai il contenitore */
+    margin: 0; /* Rimuove margini */
+  }
+  
+  .dashboard__card {
+    margin: 0; /* Rimuove margini che potrebbero causare overflow */
+    border-radius: 15px; /* Ridotto per dispositivi piccoli */
+    width: 100%; /* Larghezza completa */
+    max-width: 100%; /* Non supera mai il contenitore */
+    padding: 0; /* Rimuove padding che potrebbe causare overflow */
+  }
+  
+  .dashboard__content {
+    padding: 0.25rem; /* Ridotto al minimo */
+    width: 100%; /* Larghezza completa */
+    max-width: 100%; /* Non supera mai il contenitore */
+    margin: 0; /* Rimuove margini */
+  }
+  
+  .dashboard__nav {
+    padding: 8px 12px; /* Ridotto ulteriormente */
+    margin: 0; /* Rimuove margini */
+  }
+}
 
 /* ========== (>=580px) ========== */
 @media (min-width: 580px) {

@@ -18,6 +18,37 @@
     overflow: hidden;             /* Per contenere i pattern di sfondo */
     transform-style: preserve-3d; /* Abilita trasformazioni 3D */
     perspective: 1000px;          /* Profondità per effetto 3D */
+    width: 100%;                  /* Larghezza completa */
+    max-width: 100%;              /* Non supera mai il contenitore */
+}
+
+/* ===== Ottimizzazione iPhone SE ===== */
+@media (max-width: 479px) {
+    .card {
+        padding: 16px; /* Ridotto per iPhone SE */
+        gap: 12px; /* Ridotto gap */
+        height: 120px; /* Ridotto altezza */
+        border-radius: 12px; /* Ridotto border-radius */
+    }
+    
+    .description_card h4 {
+        font-size: 1rem; /* Ridotto per iPhone SE */
+        word-wrap: break-word;
+        word-break: break-word;
+        overflow-wrap: break-word;
+    }
+    
+    .description_card p {
+        font-size: 0.85rem; /* Ridotto per iPhone SE */
+        word-wrap: break-word;
+        word-break: break-word;
+        overflow-wrap: break-word;
+    }
+    
+    .icon {
+        width: 32px; /* Ridotto per iPhone SE */
+        height: 32px;
+    }
 }
 
 /* ===== EFFETTO TAVOLA DA SURF ===== */

@@ -31,11 +31,29 @@
 }
 
 .profile__name {
-  font-size: 1.1rem; /* Ridotto per evitare il wrap */
-  font-weight: 600;
-  line-height: 1.2;
+  font-size: 1.8rem; /* Aumentato significativamente */
+  font-weight: 800; /* Peso massimo per risaltare */
+  line-height: 1.1;
   margin: 0;
   white-space: nowrap; /* Evita il wrap del testo */
+  color: var(--text-primary);
+  text-shadow: 0 2px 4px rgba(0, 0, 0, 0.1); /* Ombra sottile per profondità */
+  letter-spacing: -0.02em; /* Spaziatura leggermente ridotta per eleganza */
+  background: linear-gradient(135deg, var(--text-primary) 0%, var(--accent-primary) 100%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+  transition: all var(--transition-1);
+}
+
+/* Effetto hover per massima prominenza */
+.profile__name:hover {
+  transform: scale(1.05);
+  text-shadow: 0 4px 8px rgba(0, 0, 0, 0.15);
+  background: linear-gradient(135deg, var(--accent-primary) 0%, var(--accent-hover) 100%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
 }
 
 .profile__role {
@@ -284,13 +302,91 @@
 /* ========== MOBILE LAYOUT (quando aside è sopra) ========== */
 @media (max-width: 1249px) {
   .profile__header {
-    justify-content: flex-start; /* Sposta il contenuto a destra */
-    padding-left: 1rem; /* Spazio extra a destra */
+    flex-direction: column;
+    align-items: center;
+    text-align: center;
+    gap: 15px;
+    padding: 1rem;
+    width: 100%; /* Larghezza completa */
+    max-width: 100%; /* Non supera mai il contenitore */
+    box-sizing: border-box; /* Include padding nella larghezza */
+  }
+  
+  .profile__avatar {
+    margin: 0 auto 10px auto; /* Centra l'avatar */
+    display: block;
+  }
+  
+  .profile__identity {
+    align-items: center;
+    text-align: center;
+    width: 100%; /* Larghezza completa */
+    max-width: 100%; /* Non supera mai il contenitore */
   }
   
   .profile__name {
-    font-size: 1rem; /* Ulteriormente ridotto su mobile */
+    font-size: 1.5rem; /* Mantiene dimensione prominente */
     white-space: nowrap; /* Forza il nome su una riga */
+    text-align: center;
+    width: 100%; /* Larghezza completa */
+    max-width: 100%; /* Non supera mai il contenitore */
+  }
+  
+  .profile__role {
+    text-align: center;
+    width: 100%; /* Larghezza completa */
+    max-width: 100%; /* Non supera mai il contenitore */
+  }
+}
+
+/* ========== iPhone SE SPECIFICO (≤479px) ========== */
+@media (max-width: 479px) {
+  .profile {
+    padding: 0 !important; /* Nessun padding sull'aside per i toggle sui bordi */
+    margin: 0 !important; /* Rimuove margini */
+    width: 100% !important; /* Larghezza completa */
+    max-width: 100% !important; /* Non supera mai il contenitore */
+  }
+  
+  .profile__header {
+    padding: 0.5rem; /* Ridotto ulteriormente */
+    gap: 10px; /* Ridotto gap */
+    margin: 0; /* Rimuove margini */
+    width: 100%; /* Larghezza completa */
+    max-width: 100%; /* Non supera mai il contenitore */
+    box-sizing: border-box; /* Include padding nella larghezza */
+  }
+  
+  .profile__name {
+    font-size: 1.3rem; /* Ridotto per iPhone SE */
+    white-space: normal; /* Permette wrap se necessario */
+    word-break: break-word; /* Rompe parole lunghe */
+    margin: 0; /* Rimuove margini */
+    padding: 0; /* Rimuove padding */
+  }
+  
+  .profile__role {
+    font-size: 0.85rem; /* Ridotto per iPhone SE */
+    margin: 0.1rem 0 0 0; /* Ridotto margine */
+    padding: 0; /* Rimuove padding */
+  }
+  
+  .profile__identity {
+    margin: 0; /* Rimuove margini */
+    padding: 0; /* Rimuove padding */
+    width: 100%; /* Larghezza completa */
+    max-width: 100%; /* Non supera mai il contenitore */
+  }
+  
+  .contacts__list {
+    padding-left: 0.5rem; /* Ridotto da 1rem */
+    margin: 0; /* Rimuove margini */
+  }
+  
+  .socials {
+    padding-left: 0.5rem; /* Ridotto da 1rem */
+    padding-bottom: 0.5rem; /* Ridotto da 1rem */
+    margin: 0; /* Rimuove margini */
   }
 }
 

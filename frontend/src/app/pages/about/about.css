@@ -7,6 +7,44 @@
     position: relative;
 }
 
+/* ===== Ottimizzazione iPhone SE (375px) ===== */
+@media (max-width: 479px) {
+    .article-title {
+        font-size: 2rem; /* Ridotto per iPhone SE */
+        margin-bottom: 1rem;
+        line-height: 1.2;
+        word-wrap: break-word;
+        word-break: break-word;
+        overflow-wrap: break-word;
+    }
+    
+    .sub_article-title {
+        font-size: 1.5rem; /* Ridotto per iPhone SE */
+        margin-bottom: 1rem;
+        margin-top: 1.5rem;
+        word-wrap: break-word;
+        word-break: break-word;
+        overflow-wrap: break-word;
+    }
+    
+    .sub_article-card {
+        padding: 0.75rem; /* Ridotto ulteriormente */
+        gap: 12px; /* Ridotto gap */
+        width: 100%;
+        max-width: 100%;
+        box-sizing: border-box;
+    }
+    
+    /* Prevenzione overflow per contenuto dinamico */
+    .sub_article-card h4,
+    .sub_article-card p {
+        word-wrap: break-word;
+        word-break: break-word;
+        overflow-wrap: break-word;
+        max-width: 100%;
+    }
+}
+
 .article-title::after {
     content: '';
     position: absolute;
@@ -34,6 +72,9 @@
     background: transparent;
     color: var(--text-primary);
     transition: background-color var(--transition-1), color var(--transition-1);
+    width: 100%; /* Assicura che non fuoriesca dal contenitore */
+    max-width: 100%; /* Previene overflow */
+    box-sizing: border-box; /* Include padding e border nella larghezza */
 }
 
 @media (min-width: 1024px) {
