@@ -96,6 +96,7 @@ export class About implements OnDestroy {
   // Click outside listener
   private clickOutsideListener?: (event: MouseEvent) => void;
   private typewriterInterval?: number;
+  private resizeListener?: () => void;
 
   // ========================================================================
   // Constructor
@@ -105,6 +106,7 @@ export class About implements OnDestroy {
     this.loadProfileData();
     this.loadWhatIDoData();
     this.loadTestimonials();
+    this.addResizeListener();
   }
 
   // ========================================================================
@@ -318,21 +320,59 @@ export class About implements OnDestroy {
   }
 
   /**
-   * Calculate approximately how many characters are visible in contracted bio card
+   * Calculate how many characters are visible in contracted bio card based on actual dimensions
    */
   private calculateVisibleChars(text: string): number {
-    // Stima approssimativa: circa 50 caratteri per riga, 4 righe visibili = 200 caratteri
-    const charsPerLine = 50;
-    const visibleLines = 4;
-    const estimatedVisibleChars = charsPerLine * visibleLines;
+    // Crea un elemento temporaneo per misurare il testo
+    const tempElement = document.createElement('div');
+    tempElement.style.cssText = `
+      position: absolute;
+      visibility: hidden;
+      width: 100%;
+      font-size: 0.9rem;
+      line-height: 1.6;
+      padding: 1rem;
+      font-family: var(--ff-poppins);
+      word-wrap: break-word;
+      white-space: normal;
+    `;
+    
+    // Aggiungi al DOM temporaneamente
+    document.body.appendChild(tempElement);
+    
+    // Calcola l'altezza del riquadro contratto (200px) meno padding
+    const bioCardHeight = 200;
+    const padding = 32; // 1rem top + 1rem bottom
+    const availableHeight = bioCardHeight - padding;
+    
+    // Prova con lunghezze diverse fino a trovare quella che rientra nell'altezza
+    let maxChars = text.length;
+    let low = 0;
+    let high = text.length;
+    
+    while (low <= high) {
+      const mid = Math.floor((low + high) / 2);
+      const testText = text.substring(0, mid);
+      tempElement.textContent = testText;
+      
+      if (tempElement.offsetHeight <= availableHeight) {
+        maxChars = mid;
+        low = mid + 1;
+      } else {
+        high = mid - 1;
+      }
+    }
+    
+    // Rimuovi l'elemento temporaneo
+    document.body.removeChild(tempElement);
     
     // Trova l'ultimo spazio prima del limite per non tagliare le parole
-    if (estimatedVisibleChars >= text.length) {
+    if (maxChars >= text.length) {
       return text.length;
     }
     
-    const lastSpaceIndex = text.lastIndexOf(' ', estimatedVisibleChars);
-    return lastSpaceIndex > 0 ? lastSpaceIndex : estimatedVisibleChars;
+    const lastSpaceIndex = text.lastIndexOf(' ', maxChars);
+    return lastSpaceIndex > 0 ? lastSpaceIndex : maxChars;
   }
 
   /**
@@ -347,10 +387,42 @@ export class About implements OnDestroy {
   }
 
   /**
+   * Add resize listener to recalculate text when window size changes
+   */
+  private addResizeListener(): void {
+    this.resizeListener = () => {
+      // Ricalcola il testo iniziale quando cambia la dimensione della finestra
+      const bioText = this.profile()?.bio;
+      if (bioText) {
+        const maxVisibleChars = this.calculateVisibleChars(bioText);
+        this.initialText.set(bioText.substring(0, maxVisibleChars));
+        
+        // Se il riquadro non è espanso, aggiorna anche displayedText
+        if (!this.bioExpanded()) {
+          this.displayedText.set(bioText.substring(0, maxVisibleChars));
+        }
+      }
+    };
+    
+    window.addEventListener('resize', this.resizeListener);
+  }
+
+  /**
+   * Remove resize listener
+   */
+  private removeResizeListener(): void {
+    if (this.resizeListener) {
+      window.removeEventListener('resize', this.resizeListener);
+      this.resizeListener = undefined;
+    }
+  }
+
+  /**
    * Cleanup when component is destroyed
    */
   ngOnDestroy(): void {
     this.removeClickOutsideListener();
     this.stopTypewriterEffect();
+    this.removeResizeListener();
   }
 }
