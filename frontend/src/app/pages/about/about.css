@@ -43,6 +43,25 @@
         overflow-wrap: break-word;
         max-width: 100%;
     }
+    
+    /* Spazio extra per testimonial su dispositivi piccoli */
+    .testimonial-track {
+        padding-top: 30px; /* Più spazio per iPhone SE */
+    }
+}
+
+/* ===== Ottimizzazione per dispositivi medi ===== */
+@media (min-width: 480px) and (max-width: 768px) {
+    .testimonial-track {
+        padding-top: 25px; /* Spazio intermedio per tablet */
+    }
+}
+
+/* ===== Ottimizzazione per dispositivi grandi ===== */
+@media (min-width: 769px) {
+    .testimonial-track {
+        padding-top: 20px; /* Spazio standard per desktop */
+    }
 }
 
 .article-title::after {
@@ -102,6 +121,7 @@
   overflow-x: auto;
   overflow-y: hidden;
   scroll-snap-type: x mandatory;
+  padding-top: 20px;         /* Spazio sopra per evitare taglio immagine utente */
   scroll-behavior: smooth;
   width: 100%;
   max-width: 100%;
@@ -131,7 +151,7 @@
   background: var(--text-secondary);
 }
 
-/* Ogni slide occupa una frazione della viewport e non può “shrinkare” */
+/* Ogni slide occupa una frazione della viewport e non può "shrinkare" */
 .testimonial-slide {
   flex: 0 0 auto;            /* non permettere shrink */
   scroll-snap-align: start;
@@ -142,19 +162,27 @@
 
 /* Responsività della larghezza slide */
 @media (min-width: 640px) {
-  .testimonial-slide { inline-size: 70%; }
+  .testimonial-slide { 
+    inline-size: 70%; 
+  }
 }
 @media (min-width: 768px) {
-  .testimonial-slide { inline-size: 55%; }
+  .testimonial-slide { 
+    inline-size: 55%;
+  }
 }
 @media (min-width: 1024px) {
-  .testimonial-slide { inline-size: 45%; }
+  .testimonial-slide { 
+    inline-size: 45%;
+  }
 }
 @media (min-width: 1280px) {
-  .testimonial-slide { inline-size: 38%; }
+  .testimonial-slide { 
+    inline-size: 38%;
+  }
 }
 
-/* Strato contenitore per posizionare avatar “a cavallo” della card */
+/* Strato contenitore per posizionare avatar "a cavallo" della card */
 .testimonial-card-wrap {
   position: relative;
 }
@@ -162,8 +190,8 @@
 /* Badge avatar sovrapposto */
 .avatar-badge {
   position: absolute;
-  inset-block-start: -28px;   /* sopra la card */
-  inset-inline-start: 0px;   /* spostamento da sinistra */
+  inset-block-start: 0;   /* sopra la card */
+  inset-inline-start: 30px;   /* spostamento da sinistra */
   border-radius: 16px;
   background: none;
   z-index: 1;
@@ -171,5 +199,5 @@
 
 /* Card della testimonianza */
 .testimonial-card {
-  padding: 24px 0; /* spazio a sinistra per l’avatar */
+  padding: 24px 0; /* spazio a sinistra per l'avatar */
 }
