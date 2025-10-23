@@ -13,7 +13,7 @@ export class Maps implements AfterViewInit, OnDestroy {
   @ViewChild('mapContainer', { static: true }) mapContainer!: ElementRef;
   
   private map: google.maps.Map | null = null;
-  private marker: google.maps.Marker | null = null;
+  private marker: google.maps.marker.AdvancedMarkerElement | null = null;
   isDarkMode = signal(false);
   isLoading = signal(true);
   private themeService = inject(ThemeService);
@@ -69,12 +69,11 @@ export class Maps implements AfterViewInit, OnDestroy {
         styles: this.getMapStyles()
       });
 
-      // Aggiungi marker
-      this.marker = new google.maps.Marker({
+      // Aggiungi marker usando AdvancedMarkerElement (nuova API)
+      this.marker = new google.maps.marker.AdvancedMarkerElement({
         position: { lat, lng },
         map: this.map,
-        title: 'San Valentino Torio',
-        animation: google.maps.Animation.DROP
+        title: 'San Valentino Torio'
       });
 
       // Aggiungi info window
@@ -91,6 +90,14 @@ export class Maps implements AfterViewInit, OnDestroy {
 
     } catch (error) {
       console.error('Errore nel caricamento di Google Maps:', error);
+      
+      // Mostra messaggio di errore specifico per API key
+      if (error instanceof Error && error.message.includes('InvalidKey')) {
+        console.error('❌ API Key di Google Maps non valida o non abilitata per questo dominio');
+        console.error('🔧 Verifica che l\'API key sia corretta e abilitata per Maps JavaScript API');
+        console.error('🌐 Assicurati che il dominio localhost sia autorizzato nella console di Google Cloud');
+      }
+      
       this.isLoading.set(false);
     }
   }
