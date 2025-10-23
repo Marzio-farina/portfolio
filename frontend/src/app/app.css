@@ -12,9 +12,12 @@
   column-gap: 0;
 }
 
-.layout__aside,
+.layout__aside {
+  width: 100%; /* Larghezza completa per schermi piccoli */
+}
+
 .dashboard {
-  width: min(100%, 1000px); /* Mantenuto per la section */
+  width: min(100%, 1000px); /* Larghezza massima 1000px per section */
 }
 
 .layout__aside {
@@ -129,6 +132,11 @@
   .dashboard__content {
     padding-top: 3rem; /* Ridotto proporzionalmente */
   }
+  
+  /* Aside senza limiti di larghezza per schermi medi */
+  .layout__aside {
+    width: 100%; /* Larghezza completa */
+  }
 }
 
 /* ========== (>=1024px) ========== */
@@ -149,26 +157,42 @@
   .dashboard__content {
     padding-top: 1rem; /* Su desktop la navbar è in alto, meno padding */
   }
+  
+  /* Aside senza limiti di larghezza fino a 1049px */
+  .layout__aside {
+    width: 100%; /* Larghezza completa */
+  }
+}
+
+/* ========== (>=1050px) ========== */
+@media (min-width: 1050px) {
+  /* Aside con stessa larghezza della section (1000px) */
+  .layout__aside {
+    width: min(100%, 1000px); /* Stessa larghezza della section */
+  }
 }
 
 /* ========== DESKTOP (>=1250px) ========== */
 @media (min-width: 1250px) {
   .layout {
-    max-width: 1600px; /* Aumentato per schermi grandi */
+    max-width: 1400px; /* Larghezza massima per centrare il contenuto */
     grid-template-columns: 320px 1fr; /* Larghezza fissa per aside */
-    column-gap: 1rem; /* Ridotto gap per avvicinare le colonne */
+    column-gap: 1rem; /* Gap tra le colonne */
     justify-items: stretch;
     overflow: visible;
     padding-inline: 2rem; /* Più padding su desktop */
+    margin-inline: auto; /* Centra il layout */
   }
 
-  /* Larghezza fissa per aside, libera per dashboard */
+  /* Larghezza fissa per aside */
   .layout__aside {
     width: 320px; /* Larghezza fissa */
   }
   
+  /* Dashboard limitata a 1000px e centrata */
   .dashboard {
-    width: auto; /* Larghezza libera */
+    width: min(100%, 1000px); /* Larghezza massima 1000px */
+    margin: 0 auto; /* Centra la section */
   }
 
   /* riattiva sticky su aside */
@@ -185,7 +209,14 @@
 /* ========== EXTRA LARGE (>=1600px) ========== */
 @media (min-width: 1600px) {
   .layout {
-    max-width: 1800px; /* Ancora più largo per schermi extra-large */
-    padding-inline: 3rem; /* Ancora più padding */
+    max-width: 1400px; /* Mantiene la larghezza per centrare il contenuto */
+    padding-inline: 3rem; /* Più padding per schermi grandi */
+    margin-inline: auto; /* Centra il layout */
+  }
+  
+  /* Dashboard sempre centrata e limitata a 1000px */
+  .dashboard {
+    width: min(100%, 1000px);
+    margin: 0 auto;
   }
 }
