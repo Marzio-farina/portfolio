@@ -246,15 +246,26 @@ export class About implements OnDestroy {
         const rect = bioCard.getBoundingClientRect();
         const isScrolled = rect.top < 0;
         
+        console.log('Scroll detected:', { 
+          bioCardTop: rect.top, 
+          isScrolled, 
+          closeButton: closeButton 
+        });
+        
         if (isScrolled) {
           closeButton.classList.add('sticky');
+          console.log('Added sticky class');
         } else {
           closeButton.classList.remove('sticky');
+          console.log('Removed sticky class');
         }
+      } else {
+        console.log('Elements not found:', { bioCard, closeButton });
       }
     };
     
     window.addEventListener('scroll', this.scrollListener);
+    console.log('Scroll listener added');
   }
 
   /**
