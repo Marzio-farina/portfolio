@@ -297,7 +297,7 @@ export class About implements OnDestroy {
     this.initialText.set(bioText.substring(0, maxVisibleChars));
     
     let currentIndex = 0;
-    const typingSpeed = 5; // Velocità molto alta: 5ms tra ogni carattere
+    const typingSpeed = 1.25; // Velocità 4x più veloce: 1.25ms tra ogni carattere
     
     this.typewriterInterval = window.setInterval(() => {
       if (currentIndex < bioText.length) {
