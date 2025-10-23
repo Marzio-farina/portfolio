@@ -225,17 +225,25 @@
   color: #FFF8E1; /* Giallino crema come background avatar */
   transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
   z-index: 10; /* Sopra al testo */
+  width: 24px; /* Frecce più grandi */
+  height: 24px;
+}
+
+.bio-arrow svg {
+  width: 100%;
+  height: 100%;
 }
 
 .bio-arrow--top-left {
   top: 12px;
   left: 12px;
+  /* Nessuna rotazione - angolo L già orientato correttamente */
 }
 
 .bio-arrow--bottom-right {
   bottom: 12px;
   right: 12px;
-  transform: rotate(180deg);
+  /* Nessuna rotazione - angolo L già orientato correttamente */
 }
 
 .bio-content {
@@ -254,13 +262,14 @@
   border-color: var(--accent-primary);
 }
 
-.bio-card-mobile:hover .bio-arrow {
+.bio-card-mobile:hover .bio-arrow--top-left {
   transform: scale(1.2);
   color: var(--accent-primary);
 }
 
 .bio-card-mobile:hover .bio-arrow--bottom-right {
-  transform: rotate(180deg) scale(1.2);
+  transform: scale(1.2);
+  color: var(--accent-primary);
 }
 
 /* Glow interno per tema giorno */
