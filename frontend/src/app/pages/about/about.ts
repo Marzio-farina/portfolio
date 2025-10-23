@@ -88,8 +88,13 @@ export class About implements OnDestroy {
   // Bio expansion state
   bioExpanded = signal(false);
   
+  // Typewriter effect state
+  displayedText = signal('');
+  isTyping = signal(false);
+  
   // Click outside listener
   private clickOutsideListener?: (event: MouseEvent) => void;
+  private typewriterInterval?: number;
 
   // ========================================================================
   // Constructor
@@ -219,9 +224,13 @@ export class About implements OnDestroy {
     if (newExpanded) {
       // Aggiungi listener per click fuori dal riquadro
       this.addClickOutsideListener();
+      // Avvia effetto typewriter
+      this.startTypewriterEffect();
     } else {
       // Rimuovi listener quando si chiude
       this.removeClickOutsideListener();
+      // Ferma effetto typewriter
+      this.stopTypewriterEffect();
     }
   }
 
@@ -232,6 +241,7 @@ export class About implements OnDestroy {
     event.stopPropagation(); // Previene il toggle quando si clicca sulla X
     this.bioExpanded.set(false);
     this.removeClickOutsideListener(); // Rimuovi listener quando si chiude
+    this.stopTypewriterEffect(); // Ferma effetto typewriter
   }
 
   /**
@@ -265,9 +275,45 @@ export class About implements OnDestroy {
   }
 
   /**
+   * Start typewriter effect for bio text
+   */
+  private startTypewriterEffect(): void {
+    const bioText = this.profile()?.bio || '';
+    if (!bioText) return;
+    
+    this.isTyping.set(true);
+    this.displayedText.set('');
+    
+    let currentIndex = 0;
+    const typingSpeed = 30; // millisecondi tra ogni carattere
+    
+    this.typewriterInterval = window.setInterval(() => {
+      if (currentIndex < bioText.length) {
+        this.displayedText.set(bioText.substring(0, currentIndex + 1));
+        currentIndex++;
+      } else {
+        this.isTyping.set(false);
+        this.stopTypewriterEffect();
+      }
+    }, typingSpeed);
+  }
+
+  /**
+   * Stop typewriter effect
+   */
+  private stopTypewriterEffect(): void {
+    if (this.typewriterInterval) {
+      clearInterval(this.typewriterInterval);
+      this.typewriterInterval = undefined;
+    }
+    this.isTyping.set(false);
+  }
+
+  /**
    * Cleanup when component is destroyed
    */
   ngOnDestroy(): void {
     this.removeClickOutsideListener();
+    this.stopTypewriterEffect();
   }
 }

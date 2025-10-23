@@ -30,7 +30,7 @@
       </svg>
     </div>
     <div class="bio-read-more">Leggi</div>
-    <div class="bio-content" [innerHTML]="profile()?.bio | nl2br"></div>
+    <div class="bio-content" [class.typing]="isTyping()" [innerHTML]="displayedText() | nl2br"></div>
   </div>
   
   <!-- Bio normale per desktop -->
