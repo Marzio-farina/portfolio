@@ -6,6 +6,29 @@
   transition: border-color var(--transition-1), background var(--transition-1);
 }
 
+/* Background giallino crema per l'avatar SOLO nel tema giorno */
+:not([data-theme]) .profile__avatar {
+  background: #FFF8E1 !important; /* Giallino crema come nell'immagine */
+}
+
+[data-theme="light"] .profile__avatar {
+  background: #FFF8E1 !important; /* Giallino crema come nell'immagine */
+}
+
+/* Regola più specifica per assicurarsi che venga applicata SOLO in light mode */
+aside.profile :not([data-theme]) .profile__avatar {
+  background-color: #FFF8E1 !important;
+}
+
+aside.profile [data-theme="light"] .profile__avatar {
+  background-color: #FFF8E1 !important;
+}
+
+/* Assicurati che in dark mode usi il background normale */
+[data-theme="dark"] .profile__avatar {
+  background: var(--bg-card) !important;
+}
+
 /* Rimuovi margin sinistro in layout mobile */
 @media (max-width: 1249px) {
   .profile__avatar {

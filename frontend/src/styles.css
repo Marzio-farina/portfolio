@@ -22,7 +22,7 @@
   --onyx: hsl(240, 1%, 17%);
   --eerie-black-1: hsl(240, 2%, 13%);
   --eerie-black-2: hsl(240, 2%, 12%);
-  --smoky-black: hsl(0, 0%, 98%); /* Background principale LIGHT - bianco sporco */
+  --smoky-black: #FFF8E1; /* Background principale LIGHT - giallino crema */
   --white-1: hsl(0, 0%, 100%);
   --white-2: hsl(0, 0%, 98%);
   --orange-primary: hsl(25, 95%, 53%); /* #f97316 - Arancione principale */
@@ -38,8 +38,8 @@
   --text-inverse: hsl(0, 0%, 100%); /* Testo su sfondo scuro */
   
   /* Colori Background LIGHT */
-  --bg-primary: hsl(0, 0%, 98%); /* #fafafa - Background principale bianco sporco */
-  --bg-secondary: hsl(0, 0%, 98%); /* #fafafa - Background secondario */
+  --bg-primary: #FFF8E1; /* Giallino crema come nell'immagine */
+  --bg-secondary: #FFF8E1; /* Giallino crema come nell'immagine */
   --bg-tertiary: hsl(33, 100%, 97%); /* #fef3e7 - Background terziario arancione chiaro */
   --bg-card: hsl(33, 100%, 98%); /* #fff7ed - Background card arancione molto chiaro */
   --bg-card-hover: hsl(48, 96%, 89%); /* #fef3c7 - Background card hover giallo chiaro */
@@ -135,9 +135,23 @@
 /* ===== Fallback automatico a tema chiaro se l'utente lo preferisce ===== */
 @media (prefers-color-scheme: light) {
   :root:not([data-theme]) {
-    /* Usa i colori del tema light di default */
+    /* Usa i colori del tema light di default con background giallino crema */
     /* Le variabili sono già definite sopra per il tema light */
   }
+}
+
+/* ===== Background giallino crema per avatar SOLO nel tema giorno ===== */
+:not([data-theme]) .profile__avatar {
+  background: #FFF8E1 !important;
+}
+
+[data-theme="light"] .profile__avatar {
+  background: #FFF8E1 !important;
+}
+
+/* Assicurati che in dark mode usi il background normale */
+[data-theme="dark"] .profile__avatar {
+  background: var(--bg-card) !important;
 }
 
 /* ===== Fallback automatico a tema scuro se l'utente lo preferisce ===== */
