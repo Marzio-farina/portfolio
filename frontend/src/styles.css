@@ -22,7 +22,7 @@
   --onyx: hsl(240, 1%, 17%);
   --eerie-black-1: hsl(240, 2%, 13%);
   --eerie-black-2: hsl(240, 2%, 12%);
-  --smoky-black: hsl(0, 0%, 100%); /* Background principale LIGHT - bianco puro */
+  --smoky-black: hsl(0, 0%, 98%); /* Background principale LIGHT - bianco sporco */
   --white-1: hsl(0, 0%, 100%);
   --white-2: hsl(0, 0%, 98%);
   --orange-primary: hsl(25, 95%, 53%); /* #f97316 - Arancione principale */
@@ -38,8 +38,8 @@
   --text-inverse: hsl(0, 0%, 100%); /* Testo su sfondo scuro */
   
   /* Colori Background LIGHT */
-  --bg-primary: hsl(0, 0%, 100%); /* #ffffff - Background principale bianco */
-  --bg-secondary: hsl(0, 0%, 100%); /* #ffffff - Background secondario */
+  --bg-primary: hsl(0, 0%, 98%); /* #fafafa - Background principale bianco sporco */
+  --bg-secondary: hsl(0, 0%, 98%); /* #fafafa - Background secondario */
   --bg-tertiary: hsl(33, 100%, 97%); /* #fef3e7 - Background terziario arancione chiaro */
   --bg-card: hsl(33, 100%, 98%); /* #fff7ed - Background card arancione molto chiaro */
   --bg-card-hover: hsl(48, 96%, 89%); /* #fef3c7 - Background card hover giallo chiaro */
@@ -177,6 +177,32 @@ html {
   transition: background-color var(--transition-1), color var(--transition-1);
 }
 
+/* ===== SELEZIONE TESTO PERSONALIZZATA ===== */
+/* Selezione per tema giorno */
+:not([data-theme]) ::selection,
+[data-theme="light"] ::selection {
+  background-color: var(--accent-primary); /* Arancione per tema giorno */
+  color: var(--bg-primary); /* Testo bianco su sfondo arancione */
+}
+
+/* Selezione per tema notte */
+[data-theme="dark"] ::selection {
+  background-color: var(--accent-primary); /* Giallo per tema notte */
+  color: var(--eerie-black-2); /* Testo scuro su sfondo giallo */
+}
+
+/* Selezione per elementi specifici */
+:not([data-theme]) ::-moz-selection,
+[data-theme="light"] ::-moz-selection {
+  background-color: var(--accent-primary);
+  color: var(--bg-primary);
+}
+
+[data-theme="dark"] ::-moz-selection {
+  background-color: var(--accent-primary);
+  color: var(--eerie-black-2);
+}
+
 body {
   background-color: var(--bg-primary);
   color: var(--text-primary);
@@ -184,6 +210,10 @@ body {
   font-feature-settings: 'cv02', 'cv03', 'cv04', 'cv11';
   transition: background-color var(--transition-1), color var(--transition-1);
 }
+
+/* Tema giorno - Background bianco sporco semplice */
+
+/* Elementi con background bianco sporco semplice */
 
 /* ===== TITOLI ===== */
 .article-title {
