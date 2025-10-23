@@ -69,34 +69,87 @@ export class Maps implements AfterViewInit, OnDestroy {
     const lat = 40.7894;
     const lng = 14.6019;
     
-    // Inizializza la mappa con opzioni ottimizzate
+    // Inizializza la mappa con opzioni ultra-ottimizzate
     this.map = L.map(this.mapContainer.nativeElement, {
       zoomControl: true,
       attributionControl: true,
-      preferCanvas: true, // Usa canvas per performance migliori
+      preferCanvas: true,
       zoomSnap: 0.5,
-      zoomDelta: 0.5
+      zoomDelta: 0.5,
+      fadeAnimation: false, // Disabilita animazioni per performance
+      zoomAnimation: false, // Disabilita animazioni zoom
+      markerZoomAnimation: false, // Disabilita animazioni marker
+      maxBounds: [[-90, -180], [90, 180]], // Limita i bounds
+      maxBoundsViscosity: 1.0, // Mantieni i bounds
+      wheelPxPerZoomLevel: 120, // Velocità scroll wheel
+      zoomAnimationThreshold: 4, // Soglia per animazioni zoom
+      inertia: true, // Abilita inerzia per scroll fluido
+      inertiaDeceleration: 3000, // Decelerazione inerzia
+      inertiaMaxSpeed: 1500, // Velocità massima inerzia
+      easeLinearity: 0.2, // Linearità delle transizioni
+      worldCopyJump: false, // Disabilita salto mondo
+      tap: true, // Abilita tap per mobile
+      tapTolerance: 15, // Tolleranza tap
+      touchZoom: true, // Abilita zoom touch
+      doubleClickZoom: true, // Abilita zoom doppio click
+      boxZoom: true, // Abilita zoom box
+      keyboard: true, // Abilita controlli tastiera
+      dragging: true, // Abilita trascinamento
+      scrollWheelZoom: true, // Abilita zoom scroll
+      bounceAtZoomLimits: false, // Disabilita bounce ai limiti zoom
+      closePopupOnClick: true, // Chiudi popup al click
+      autoClose: true, // Auto-close popup
+      keepInView: false, // Non mantenere in vista
+      className: 'custom-map' // Classe CSS personalizzata
     }).setView([lat, lng], 13);
     
-    // Configura il layer con opzioni di performance
+    // Configura il layer con opzioni ultra-performance
     const tileLayerOptions = {
       attribution: '© <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors',
-      maxZoom: 19,
+      maxZoom: 18, // Ridotto per performance
       minZoom: 1,
-      subdomains: ['a', 'b', 'c'], // Usa subdomains per parallelizzare le richieste
-      keepBuffer: 2, // Mantieni tile in buffer
-      updateWhenIdle: false, // Aggiorna immediatamente
-      updateWhenZooming: false, // Non aggiornare durante zoom
-      updateInterval: 200, // Intervallo di aggiornamento più frequente
-      zIndex: 1
+      subdomains: ['a', 'b', 'c'],
+      keepBuffer: 3, // Aumentato per più tile in cache
+      updateWhenIdle: false,
+      updateWhenZooming: false,
+      updateInterval: 100, // Ridotto per aggiornamenti più frequenti
+      zIndex: 1,
+      tileSize: 256, // Dimensione tile esplicita
+      zoomOffset: 0, // Offset zoom
+      noWrap: false, // Permetti wrap del mondo
+      bounds: undefined, // Nessun bound specifico
+      errorTileUrl: '', // Nessuna tile di errore per performance
+      zoomReverse: false, // Zoom normale
+      detectRetina: true, // Rileva retina per tile HD
+      crossOrigin: false, // Disabilita CORS per performance
+      referrerPolicy: false, // Disabilita referrer policy
+      pane: 'tilePane', // Pane specifico
+      className: 'custom-tile-layer' // Classe CSS personalizzata
     };
     
-    // Aggiungi il layer OpenStreetMap con CDN più veloce
-    L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', tileLayerOptions).addTo(this.map);
+    // Usa un provider più veloce (Stamen)
+    L.tileLayer('https://stamen-tiles-{s}.a.ssl.fastly.net/toner-lite/{z}/{x}/{y}{r}.png', {
+      ...tileLayerOptions,
+      attribution: 'Map tiles by <a href="http://stamen.com">Stamen Design</a>, under <a href="http://creativecommons.org/licenses/by/3.0">CC BY 3.0</a>. Data by <a href="http://openstreetmap.org">OpenStreetMap</a>, under <a href="http://www.openstreetmap.org/copyright">ODbL</a>.',
+      subdomains: ['a', 'b', 'c', 'd']
+    }).addTo(this.map);
     
-    // Aggiungi marker
-    this.marker = L.marker([lat, lng]).addTo(this.map);
-    this.marker.bindPopup('<b>San Valentino Torio</b><br>Italia').openPopup();
+    // Aggiungi marker con icona personalizzata più leggera
+    const customIcon = L.divIcon({
+      className: 'custom-marker',
+      html: '<div class="marker-pin"></div>',
+      iconSize: [20, 20],
+      iconAnchor: [10, 10],
+      popupAnchor: [0, -10]
+    });
+    
+    this.marker = L.marker([lat, lng], { icon: customIcon }).addTo(this.map);
+    this.marker.bindPopup('<b>San Valentino Torio</b><br>Italia', {
+      closeButton: true,
+      autoClose: true,
+      closeOnClick: true,
+      className: 'custom-popup'
+    }).openPopup();
     
     // Ascolta il caricamento dei tile
     this.map.on('tileload', () => {
@@ -112,7 +165,7 @@ export class Maps implements AfterViewInit, OnDestroy {
     // Timeout di sicurezza per nascondere il loading
     setTimeout(() => {
       this.isLoading.set(false);
-    }, 3000);
+    }, 2000); // Ridotto a 2 secondi
   }
 
   private prefetchNearbyTiles(): void {
@@ -174,29 +227,43 @@ export class Maps implements AfterViewInit, OnDestroy {
       }
     });
     
-    // Opzioni ottimizzate per performance
+    // Opzioni ultra-ottimizzate per performance
     const tileLayerOptions = {
       attribution: '© <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors',
-      maxZoom: 19,
+      maxZoom: 18, // Ridotto per performance
       minZoom: 1,
-      subdomains: ['a', 'b', 'c'],
-      keepBuffer: 2,
+      subdomains: ['a', 'b', 'c', 'd'],
+      keepBuffer: 3, // Aumentato per più tile in cache
       updateWhenIdle: false,
       updateWhenZooming: false,
-      updateInterval: 200,
-      zIndex: 1
+      updateInterval: 100, // Ridotto per aggiornamenti più frequenti
+      zIndex: 1,
+      tileSize: 256,
+      zoomOffset: 0,
+      noWrap: false,
+      bounds: undefined,
+      errorTileUrl: '',
+      zoomReverse: false,
+      detectRetina: true,
+      crossOrigin: false,
+      referrerPolicy: false,
+      pane: 'tilePane',
+      className: 'custom-tile-layer'
     };
     
-    // Aggiungi layer con tema appropriato
+    // Aggiungi layer con tema appropriato usando provider più veloci
     if (this.isDarkMode()) {
-      // Tema scuro - usa CDN più veloce
-      L.tileLayer('https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png', {
+      // Tema scuro - usa Stamen Dark
+      L.tileLayer('https://stamen-tiles-{s}.a.ssl.fastly.net/toner/{z}/{x}/{y}{r}.png', {
         ...tileLayerOptions,
-        attribution: '© <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors © <a href="https://carto.com/attributions">CARTO</a>'
+        attribution: 'Map tiles by <a href="http://stamen.com">Stamen Design</a>, under <a href="http://creativecommons.org/licenses/by/3.0">CC BY 3.0</a>. Data by <a href="http://openstreetmap.org">OpenStreetMap</a>, under <a href="http://www.openstreetmap.org/copyright">ODbL</a>.'
       }).addTo(this.map);
     } else {
-      // Tema chiaro - usa CDN più veloce
-      L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', tileLayerOptions).addTo(this.map);
+      // Tema chiaro - usa Stamen Light
+      L.tileLayer('https://stamen-tiles-{s}.a.ssl.fastly.net/toner-lite/{z}/{x}/{y}{r}.png', {
+        ...tileLayerOptions,
+        attribution: 'Map tiles by <a href="http://stamen.com">Stamen Design</a>, under <a href="http://creativecommons.org/licenses/by/3.0">CC BY 3.0</a>. Data by <a href="http://openstreetmap.org">OpenStreetMap</a>, under <a href="http://www.openstreetmap.org/copyright">ODbL</a>.'
+      }).addTo(this.map);
     }
   }
 

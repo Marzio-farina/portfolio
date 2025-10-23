@@ -75,3 +75,83 @@
   0% { transform: rotate(0deg); }
   100% { transform: rotate(360deg); }
 }
+
+/* Marker personalizzato per performance */
+:host ::ng-deep .custom-marker {
+  background: none !important;
+  border: none !important;
+  width: 20px !important;
+  height: 20px !important;
+}
+
+:host ::ng-deep .marker-pin {
+  width: 20px;
+  height: 20px;
+  background: var(--accent-primary);
+  border: 2px solid var(--bg-card);
+  border-radius: 50% 50% 50% 0;
+  transform: rotate(-45deg);
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.3);
+  position: relative;
+}
+
+:host ::ng-deep .marker-pin::after {
+  content: '';
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%) rotate(45deg);
+  width: 8px;
+  height: 8px;
+  background: var(--bg-card);
+  border-radius: 50%;
+}
+
+/* Popup personalizzato per performance */
+:host ::ng-deep .custom-popup .leaflet-popup-content-wrapper {
+  background: var(--bg-card);
+  color: var(--text-primary);
+  border-radius: var(--radius-2xl);
+  box-shadow: var(--shadow-2);
+  border: 1px solid var(--border-primary);
+  padding: 0;
+}
+
+:host ::ng-deep .custom-popup .leaflet-popup-content {
+  font-family: var(--ff-poppins);
+  font-size: 0.9rem;
+  margin: 0.75rem;
+  line-height: 1.4;
+}
+
+:host ::ng-deep .custom-popup .leaflet-popup-tip {
+  background: var(--bg-card);
+  border: 1px solid var(--border-primary);
+}
+
+/* Ottimizzazioni per performance */
+:host ::ng-deep .custom-map {
+  will-change: transform;
+  transform: translateZ(0);
+  backface-visibility: hidden;
+  perspective: 1000px;
+}
+
+:host ::ng-deep .custom-tile-layer {
+  will-change: transform;
+  transform: translateZ(0);
+  backface-visibility: hidden;
+}
+
+/* Disabilita animazioni per performance */
+:host ::ng-deep .leaflet-zoom-animated {
+  transition: none !important;
+}
+
+:host ::ng-deep .leaflet-fade-anim .leaflet-tile {
+  transition: none !important;
+}
+
+:host ::ng-deep .leaflet-zoom-anim .leaflet-zoom-animated {
+  transition: none !important;
+}
