@@ -46,6 +46,9 @@ export class Maps implements AfterViewInit, OnDestroy {
         await this.loadGoogleMapsScript();
       }
 
+      // Attendi che l'API sia completamente caricata
+      await this.waitForGoogleMaps();
+
       // Coordinate di San Valentino Torio
       const lat = 40.7894;
       const lng = 14.6019;
@@ -212,6 +215,25 @@ export class Maps implements AfterViewInit, OnDestroy {
       script.onerror = () => reject(new Error('Errore nel caricamento di Google Maps'));
       
       document.head.appendChild(script);
+    });
+  }
+
+  private waitForGoogleMaps(): Promise<void> {
+    return new Promise((resolve, reject) => {
+      const checkGoogleMaps = () => {
+        if (window.google && window.google.maps && window.google.maps.MapTypeId) {
+          resolve();
+        } else {
+          setTimeout(checkGoogleMaps, 100);
+        }
+      };
+      
+      // Timeout dopo 10 secondi
+      setTimeout(() => {
+        reject(new Error('Timeout nel caricamento di Google Maps'));
+      }, 10000);
+      
+      checkGoogleMaps();
     });
   }
 
