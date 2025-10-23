@@ -1,3 +1,6 @@
+/* ===== LEAFLET CSS ===== */
+@import url('https://unpkg.com/leaflet@1.9.4/dist/leaflet.css');
+
 .map-embed {
   position: relative;
   width: 100%;
