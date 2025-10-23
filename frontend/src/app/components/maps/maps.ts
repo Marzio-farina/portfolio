@@ -88,8 +88,6 @@ export class Maps implements AfterViewInit, OnDestroy {
       inertiaMaxSpeed: 1500, // Velocità massima inerzia
       easeLinearity: 0.2, // Linearità delle transizioni
       worldCopyJump: false, // Disabilita salto mondo
-      tap: true, // Abilita tap per mobile
-      tapTolerance: 15, // Tolleranza tap
       touchZoom: true, // Abilita zoom touch
       doubleClickZoom: true, // Abilita zoom doppio click
       boxZoom: true, // Abilita zoom box
