@@ -279,14 +279,6 @@
   cursor: pointer;
 }
 
-/* X sticky quando si scrolla */
-.bio-close.sticky {
-  position: fixed !important;
-  top: 12px;
-  right: 12px;
-  z-index: 1001;
-  display: block !important;
-}
 
 .bio-close svg {
   width: 100%;
