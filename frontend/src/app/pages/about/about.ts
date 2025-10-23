@@ -281,11 +281,16 @@ export class About implements OnDestroy {
     const bioText = this.profile()?.bio || '';
     if (!bioText) return;
     
-    this.isTyping.set(true);
-    this.displayedText.set('');
+    // Calcola quanti caratteri sono visibili nel riquadro contratto (circa 200px di altezza)
+    const maxVisibleChars = this.calculateVisibleChars(bioText);
+    const startIndex = Math.min(maxVisibleChars, bioText.length);
     
-    let currentIndex = 0;
-    const typingSpeed = 30; // millisecondi tra ogni carattere
+    // Inizia dal testo già visibile
+    this.displayedText.set(bioText.substring(0, startIndex));
+    this.isTyping.set(true);
+    
+    let currentIndex = startIndex;
+    const typingSpeed = 15; // Velocità aumentata: 15ms tra ogni carattere
     
     this.typewriterInterval = window.setInterval(() => {
       if (currentIndex < bioText.length) {
@@ -296,6 +301,24 @@ export class About implements OnDestroy {
         this.stopTypewriterEffect();
       }
     }, typingSpeed);
+  }
+
+  /**
+   * Calculate approximately how many characters are visible in contracted bio card
+   */
+  private calculateVisibleChars(text: string): number {
+    // Stima approssimativa: circa 50 caratteri per riga, 4 righe visibili = 200 caratteri
+    const charsPerLine = 50;
+    const visibleLines = 4;
+    const estimatedVisibleChars = charsPerLine * visibleLines;
+    
+    // Trova l'ultimo spazio prima del limite per non tagliare le parole
+    if (estimatedVisibleChars >= text.length) {
+      return text.length;
+    }
+    
+    const lastSpaceIndex = text.lastIndexOf(' ', estimatedVisibleChars);
+    return lastSpaceIndex > 0 ? lastSpaceIndex : estimatedVisibleChars;
   }
 
   /**
