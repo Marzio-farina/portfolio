@@ -397,56 +397,55 @@ body {
     padding-left: 1.25rem !important; /* Spazio intermedio */
   }
 }
-  
-  /* ===== PREVENZIONE ALLARGAMENTO CONTENUTO ===== */
-  /* Forza tutti gli elementi a rispettare la larghezza del contenitore */
-  * {
-    max-width: 100% !important;
-    box-sizing: border-box !important;
-  }
-  
-  /* Prevenzione overflow per testo lungo */
-  h1, h2, h3, h4, h5, h6, p, span, div, a {
-    word-wrap: break-word !important;
-    word-break: break-word !important;
-    overflow-wrap: break-word !important;
-    hyphens: auto !important;
-  }
-  
-  /* Riduzione font-size per dispositivi piccoli */
-  h1 { font-size: 1.8rem !important; }
-  h2 { font-size: 1.5rem !important; }
-  h3 { font-size: 1.3rem !important; }
-  h4 { font-size: 1.1rem !important; }
-  h5 { font-size: 1rem !important; }
-  h6 { font-size: 0.9rem !important; }
-  p { font-size: 0.85rem !important; }
-  span, div, a { font-size: 0.85rem !important; }
-  
-  /* Prevenzione overflow per immagini */
-  img, svg {
-    max-width: 100% !important;
-    height: auto !important;
-    object-fit: contain !important;
-  }
-  
-  /* Prevenzione overflow per liste */
-  ul, ol, li {
-    max-width: 100% !important;
-    word-wrap: break-word !important;
-  }
-  
-  /* Prevenzione overflow per tabelle */
-  table {
-    max-width: 100% !important;
-    table-layout: fixed !important;
-  }
-  
-  /* Prevenzione overflow per form elements */
-  input, textarea, select, button {
-    max-width: 100% !important;
-    box-sizing: border-box !important;
-  }
+
+/* ===== PREVENZIONE ALLARGAMENTO CONTENUTO ===== */
+/* Forza tutti gli elementi a rispettare la larghezza del contenitore */
+* {
+  max-width: 100% !important;
+  box-sizing: border-box !important;
+}
+
+/* Prevenzione overflow per testo lungo */
+h1, h2, h3, h4, h5, h6, p, span, div, a {
+  word-wrap: break-word !important;
+  word-break: break-word !important;
+  overflow-wrap: break-word !important;
+  hyphens: auto !important;
+}
+
+/* Riduzione font-size per dispositivi piccoli */
+h1 { font-size: 1.8rem !important; }
+h2 { font-size: 1.5rem !important; }
+h3 { font-size: 1.3rem !important; }
+h4 { font-size: 1.1rem !important; }
+h5 { font-size: 1rem !important; }
+h6 { font-size: 0.9rem !important; }
+p { font-size: 0.85rem !important; }
+span, div, a { font-size: 0.85rem !important; }
+
+/* Prevenzione overflow per immagini */
+img, svg {
+  max-width: 100% !important;
+  height: auto !important;
+  object-fit: contain !important;
+}
+
+/* Prevenzione overflow per liste */
+ul, ol, li {
+  max-width: 100% !important;
+  word-wrap: break-word !important;
+}
+
+/* Prevenzione overflow per tabelle */
+table {
+  max-width: 100% !important;
+  table-layout: fixed !important;
+}
+
+/* Prevenzione overflow per form elements */
+input, textarea, select, button {
+  max-width: 100% !important;
+  box-sizing: border-box !important;
 }
 
 /* ===== UTILITY CLASSES ===== */
