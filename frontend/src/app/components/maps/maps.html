@@ -1,3 +1,7 @@
 <figure class="map-embed">
   <div #mapContainer class="map-container"></div>
+  <div class="map-loading" *ngIf="isLoading">
+    <div class="loading-spinner"></div>
+    <span>Caricamento mappa...</span>
+  </div>
 </figure>

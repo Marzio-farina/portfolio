@@ -39,3 +39,39 @@
 :host ::ng-deep .leaflet-popup-tip {
   background: var(--bg-card);
 }
+
+/* Indicatore di caricamento */
+.map-loading {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.5rem;
+  background: var(--bg-card);
+  padding: 1rem 1.5rem;
+  border-radius: var(--radius-2xl);
+  box-shadow: var(--shadow-2);
+  border: 1px solid var(--border-primary);
+  z-index: 1000;
+  color: var(--text-primary);
+  font-family: var(--ff-poppins);
+  font-size: 0.9rem;
+  font-weight: 500;
+}
+
+.loading-spinner {
+  width: 24px;
+  height: 24px;
+  border: 2px solid var(--border-primary);
+  border-top: 2px solid var(--accent-primary);
+  border-radius: 50%;
+  animation: spin 1s linear infinite;
+}
+
+@keyframes spin {
+  0% { transform: rotate(0deg); }
+  100% { transform: rotate(360deg); }
+}
