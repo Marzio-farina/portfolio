@@ -379,7 +379,7 @@
   }
   
   .contacts__list {
-    padding-left: 0.5rem; /* Ridotto da 1rem */
+    padding-left: 1.5rem; /* Aumentato per spostare verso il centro */
     margin: 0; /* Rimuove margini */
   }
   
@@ -390,10 +390,18 @@
   }
 }
 
+/* ========== (>=580px) ========== */
+@media (min-width: 580px) {
+  .contacts__list {
+    padding-left: 1.25rem; /* Spazio intermedio per tablet */
+  }
+}
+
 /* ========== (>=768px) ========== */
 @media (min-width: 768px) {
   .contacts__list {
     grid-template-columns: auto auto;
+    padding-left: 1rem; /* Spazio normale per desktop */
   }
 }
 

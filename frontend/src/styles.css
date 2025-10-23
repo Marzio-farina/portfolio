@@ -380,11 +380,23 @@ body {
     padding: 0 !important;
   }
   
-  .contacts__list,
-  .socials {
-    padding-left: 0.5rem !important; /* Ridotto */
+  .contacts__list {
+    padding-left: 1.5rem !important; /* Aumentato per spostare verso il centro */
     margin: 0 !important;
   }
+  
+  .socials {
+    padding-left: 0.5rem !important; /* Mantenuto ridotto */
+    margin: 0 !important;
+  }
+}
+
+/* ===== REGOLE INTERMEDIE PER DISPOSITIVI MEDI ===== */
+@media (min-width: 580px) and (max-width: 1249px) {
+  .contacts__list {
+    padding-left: 1.25rem !important; /* Spazio intermedio */
+  }
+}
   
   /* ===== PREVENZIONE ALLARGAMENTO CONTENUTO ===== */
   /* Forza tutti gli elementi a rispettare la larghezza del contenitore */
