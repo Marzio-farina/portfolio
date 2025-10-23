@@ -1,3 +1,18 @@
+/* ===== Transizioni fluide per contenuto dinamico ===== */
+.article-title,
+.sub_article-title,
+.sub_article-card,
+.bio-desktop,
+.bio-content,
+section {
+  transition: all 0.3s ease; /* Transizione fluida per tutti gli elementi che possono spostarsi */
+}
+
+/* Contenitore principale per transizioni fluide */
+section {
+  overflow: hidden; /* Previene salti durante la scrittura */
+}
+
 /* ===== Titoli più grandi ===== */
 .article-title {
     font-size: 3rem;
@@ -303,6 +318,7 @@
   font-size: 0.9rem;
   height: 100%;
   overflow: hidden; /* Nasconde lo scroll quando contratto */
+  transition: height 0.3s ease, min-height 0.3s ease; /* Transizione fluida per altezza */
 }
 
 /* Cursore lampeggiante per effetto typewriter */
@@ -424,6 +440,12 @@
 /* Bio desktop - nascosta su mobile */
 .bio-desktop {
   display: block;
+  line-height: 1.6;
+  color: var(--text-primary);
+  font-size: 0.9rem;
+  margin-bottom: 2rem;
+  transition: height 0.3s ease, min-height 0.3s ease; /* Transizione fluida per altezza */
+  overflow: hidden; /* Previene salti durante la scrittura */
 }
 
 /* ===== RESPONSIVE ===== */
