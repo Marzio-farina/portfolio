@@ -3,14 +3,21 @@
     display: flex;
     flex-direction: row;
     align-items:center;
-    gap: var(--gap);
-    padding: var(--pad);
-    height: 145px;                 /* altezza fissa */
+    gap: 24px;
+    padding: 32px;
+    height: 180px;                 /* altezza aumentata */
     box-sizing: border-box;
     background: var(--bg-card);
     border: 1px solid var(--border-primary);
-    border-radius: 14px;
-    transition: background var(--transition-1), border-color var(--transition-1);
+    border-radius: 20px;          /* angoli più arrotondati */
+    transition: all var(--transition-1);
+    box-shadow: var(--shadow-1);
+}
+
+.card:hover {
+    transform: translateY(-2px);
+    box-shadow: var(--shadow-2);
+    border-color: var(--accent-primary);
 }
 
 .card::before{
@@ -22,8 +29,15 @@
 }
 
 .icon {
-    width: var(--icon-w);
-    height: 24px;
+    width: 48px;                   /* icone più grandi */
+    height: 48px;
+    color: var(--accent-primary);
+    transition: all var(--transition-1);
+}
+
+.card:hover .icon {
+    transform: scale(1.1);
+    color: var(--accent-hover);
 }
 
 .description_card{
@@ -36,9 +50,10 @@
 }
 
 .description_card h4 {
-    margin: 0 0 7px 0;
+    margin: 0 0 12px 0;
     color: var(--text-primary);
-    font-size: var(--fs-2);
+    font-size: 1.25rem;            /* titoli più grandi */
+    font-weight: 700;              /* più grassetto */
     text-transform: capitalize;
     transition: color var(--transition-1);
 }
@@ -46,7 +61,7 @@
 .description_card p {
     margin: 0;
     color: var(--text-secondary);
-    font-size: var(--fs-5);
+    font-size: 0.95rem;            /* testo leggermente più grande */
     line-height: 1.6;
     word-break: normal;
     hyphens: none;

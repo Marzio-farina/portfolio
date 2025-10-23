@@ -108,11 +108,11 @@
   --text-inverse: hsl(0, 0%, 7%); /* Testo su sfondo chiaro */
   
   /* Colori Background DARK */
-  --bg-primary: hsl(0, 0%, 7%); /* Background principale scuro */
-  --bg-secondary: hsl(240, 2%, 13%); /* Background secondario */
+  --bg-primary: hsl(240, 2%, 13%); /* Background principale meno scuro */
+  --bg-secondary: hsl(240, 2%, 15%); /* Background secondario */
   --bg-tertiary: hsl(240, 2%, 12%); /* Background terziario */
-  --bg-card: hsl(240, 2%, 12%); /* Background card */
-  --bg-card-hover: hsl(240, 2%, 14%); /* Background card hover */
+  --bg-card: hsl(240, 2%, 15%); /* Background card più chiaro */
+  --bg-card-hover: hsl(240, 2%, 17%); /* Background card hover */
   
   /* Colori Border DARK */
   --border-primary: hsl(0, 0%, 22%); /* Border principale */
@@ -142,11 +142,11 @@
     --text-inverse: hsl(0, 0%, 7%);
     
     /* Colori Background DARK */
-    --bg-primary: hsl(0, 0%, 7%);
-    --bg-secondary: hsl(240, 2%, 13%);
+    --bg-primary: hsl(240, 2%, 13%);
+    --bg-secondary: hsl(240, 2%, 15%);
     --bg-tertiary: hsl(240, 2%, 12%);
-    --bg-card: hsl(240, 2%, 12%);
-    --bg-card-hover: hsl(240, 2%, 14%);
+    --bg-card: hsl(240, 2%, 15%);
+    --bg-card-hover: hsl(240, 2%, 17%);
     
     /* Colori Border DARK */
     --border-primary: hsl(0, 0%, 22%);

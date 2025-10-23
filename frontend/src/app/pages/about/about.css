@@ -1,9 +1,37 @@
+/* ===== Titoli più grandi ===== */
+.article-title {
+    font-size: 3rem;
+    font-weight: 800;
+    line-height: 1.1;
+    margin-bottom: 1.5rem;
+    position: relative;
+}
+
+.article-title::after {
+    content: '';
+    position: absolute;
+    bottom: -8px;
+    left: 0;
+    width: 60px;
+    height: 4px;
+    background: var(--accent-primary);
+    border-radius: 2px;
+}
+
+.sub_article-title {
+    font-size: 2rem;
+    font-weight: 700;
+    line-height: 1.2;
+    margin-bottom: 1.5rem;
+    margin-top: 2rem;
+}
+
 /* ===== Card basic ===== */
 .sub_article-card {
     display: grid;
     grid-template-columns: 1fr;
     gap: 20px;
-    background: var(--bg-primary);
+    background: transparent;
     color: var(--text-primary);
     transition: background-color var(--transition-1), color var(--transition-1);
 }

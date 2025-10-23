@@ -30,15 +30,17 @@
 }
 
 .profile__name {
-  font-size: 1.25rem;
+  font-size: 1.1rem; /* Ridotto per evitare il wrap */
   font-weight: 600;
   line-height: 1.2;
   margin: 0;
+  white-space: nowrap; /* Evita il wrap del testo */
 }
 
 .profile__role {
   margin: 0.125rem 0 0;
   opacity: 0.7;
+  font-size: 0.9rem; /* Ridotto per compattezza */
 }
 
 /* Toggle (in alto a destra) */
@@ -119,6 +121,7 @@
   list-style: none;
   padding: 0;
   margin: 0;
+  padding-left: 1rem; /* Spazio a sinistra per migliorare la grafica */
   display: grid;
   row-gap: var(--space-3);
   grid-template-columns: auto;
@@ -127,25 +130,25 @@
 .contact {
   display: flex;
   align-items: center;
-  column-gap: var(--space-3);
-  margin: 10px 0 0 10px;
-  gap: 10px;
+  column-gap: var(--space-3); /* Ridotto da var(--space-3) */
+  margin: 6px 0 0 0; /* Ulteriormente ridotto */
+  gap: 6px; /* Ulteriormente ridotto */
 }
 
 .contact__icon {
   line-height: 0;
   position: relative;
-  width: 48px;
-  height: 48px;
-  border-radius: 12px;
-  background: var(--border-gradient-onyx);
+  width: 36px; /* Ridotto da 48px */
+  height: 36px; /* Ridotto da 48px */
+  border-radius: 8px; /* Ridotto da 12px */
+  background: transparent; /* Rimosso background */
   display: flex;
   justify-content: center;
   align-items: center;
-  color: var(--accent-primary);
-  box-shadow: var(--shadow-1);
+  color: var(--text-secondary); /* Cambiato da accent-primary */
+  box-shadow: none; /* Rimosso shadow */
   z-index: 1;
-  transition: background-color var(--transition-1), color var(--transition-1);
+  transition: color var(--transition-1), transform var(--transition-1);
 }
 
 .contact__icon::before {
@@ -163,14 +166,14 @@
 
 .contact__label {
   margin: 0;
-  font-size: 0.75rem;
+  font-size: 0.7rem; /* Ridotto da 0.75rem */
   color: var(--text-muted);
   transition: color var(--transition-1);
 }
 
 .contact__link,
 .contact__text {
-  font-size: 0.875rem;
+  font-size: 0.8rem; /* Ridotto da 0.875rem */
   color: var(--text-secondary);
   text-decoration: none;
   transition: color var(--transition-1);
@@ -181,6 +184,12 @@
   color: var(--accent-primary);
   text-decoration: none;
   cursor: pointer;
+}
+
+/* Hover per bottoni social */
+.contact__icon:hover {
+  color: var(--accent-primary);
+  transform: scale(1.1);
 }
 
 /* Divisore */
@@ -197,10 +206,11 @@
   list-style: none;
   padding: 0;
   margin: 0;
+  padding-left: 1rem; /* Spazio a sinistra per coerenza */
   display: flex;
-  justify-content: space-evenly;
+  justify-content: center; /* Centrati invece di space-evenly */
   align-items: center;
-  gap: var(--space-4);
+  gap: 0.75rem; /* Ulteriormente ridotto */
   opacity: 0.9;
 }
 
@@ -238,6 +248,19 @@
   color: color-mix(in oklab, oklch(var(--smoky-black) / 1) 70%, transparent);
 }
 .hover-unmute:hover { color: var(--smoky-black); }
+
+/* ========== MOBILE LAYOUT (quando aside è sopra) ========== */
+@media (max-width: 1249px) {
+  .profile__header {
+    justify-content: flex-start; /* Sposta il contenuto a destra */
+    padding-left: 1rem; /* Spazio extra a destra */
+  }
+  
+  .profile__name {
+    font-size: 1rem; /* Ulteriormente ridotto su mobile */
+    white-space: nowrap; /* Forza il nome su una riga */
+  }
+}
 
 /* ========== (>=768px) ========== */
 @media (min-width: 768px) {

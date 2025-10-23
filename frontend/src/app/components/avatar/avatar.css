@@ -6,6 +6,16 @@
   transition: border-color var(--transition-1), background var(--transition-1);
 }
 
+/* Rimuovi margin sinistro in layout mobile */
+@media (max-width: 1249px) {
+  .profile__avatar {
+    margin-left: 20px; /* Rimuove margin sinistro */
+    margin-top: 20px;
+    margin-right: 20px;
+    margin-bottom: 20px;
+  }
+}
+
 .profile__avatar img {
   display: block;
 }

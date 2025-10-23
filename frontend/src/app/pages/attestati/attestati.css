@@ -3,7 +3,7 @@
   grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
   gap: 18px;
   align-items: stretch;
-  background: var(--bg-primary);
+  background: transparent;
   color: var(--text-primary);
   transition: background-color var(--transition-1), color var(--transition-1);
 }
