@@ -1,5 +1,4 @@
-/* ===== LEAFLET CSS ===== */
-@import url('https://unpkg.com/leaflet@1.9.4/dist/leaflet.css');
+/* ===== GOOGLE MAPS CSS ===== */
 
 .map-embed {
   position: relative;
@@ -19,28 +18,27 @@
   overflow: hidden;
 }
 
-/* Stili per Leaflet */
-:host ::ng-deep .leaflet-container {
-  width: 100%;
-  height: 100%;
-  border-radius: var(--radius-2xl);
-  font-family: var(--ff-poppins);
-}
-
-:host ::ng-deep .leaflet-popup-content-wrapper {
-  background: var(--bg-card);
-  color: var(--text-primary);
-  border-radius: var(--radius-2xl);
-  box-shadow: var(--shadow-2);
-}
-
-:host ::ng-deep .leaflet-popup-content {
+/* Stili per Google Maps */
+:host ::ng-deep .google-info-window {
   font-family: var(--ff-poppins);
   font-size: 0.9rem;
+  color: var(--text-primary);
+  padding: 0.5rem;
 }
 
-:host ::ng-deep .leaflet-popup-tip {
-  background: var(--bg-card);
+:host ::ng-deep .gm-style .gm-style-iw-c {
+  border-radius: var(--radius-2xl) !important;
+  box-shadow: var(--shadow-2) !important;
+  border: 1px solid var(--border-primary) !important;
+}
+
+:host ::ng-deep .gm-style .gm-style-iw-tc {
+  display: none !important;
+}
+
+:host ::ng-deep .gm-style .gm-style-iw-d {
+  overflow: hidden !important;
+  border-radius: var(--radius-2xl) !important;
 }
 
 /* Indicatore di caricamento */
@@ -79,82 +77,24 @@
   100% { transform: rotate(360deg); }
 }
 
-/* Marker personalizzato per performance */
-:host ::ng-deep .custom-marker {
-  background: none !important;
-  border: none !important;
-  width: 20px !important;
-  height: 20px !important;
+/* Ottimizzazioni per Google Maps */
+:host ::ng-deep .gm-style {
+  font-family: var(--ff-poppins) !important;
 }
 
-:host ::ng-deep .marker-pin {
-  width: 20px;
-  height: 20px;
-  background: var(--accent-primary);
-  border: 2px solid var(--bg-card);
-  border-radius: 50% 50% 50% 0;
-  transform: rotate(-45deg);
-  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.3);
-  position: relative;
+:host ::ng-deep .gm-style .gm-style-iw {
+  font-family: var(--ff-poppins) !important;
 }
 
-:host ::ng-deep .marker-pin::after {
-  content: '';
-  position: absolute;
-  top: 50%;
-  left: 50%;
-  transform: translate(-50%, -50%) rotate(45deg);
-  width: 8px;
-  height: 8px;
-  background: var(--bg-card);
-  border-radius: 50%;
+/* Personalizza i controlli di Google Maps */
+:host ::ng-deep .gm-control-active {
+  background-color: var(--bg-card) !important;
+  border: 1px solid var(--border-primary) !important;
+  border-radius: var(--radius-lg) !important;
+  box-shadow: var(--shadow-1) !important;
 }
 
-/* Popup personalizzato per performance */
-:host ::ng-deep .custom-popup .leaflet-popup-content-wrapper {
-  background: var(--bg-card);
-  color: var(--text-primary);
-  border-radius: var(--radius-2xl);
-  box-shadow: var(--shadow-2);
-  border: 1px solid var(--border-primary);
-  padding: 0;
-}
-
-:host ::ng-deep .custom-popup .leaflet-popup-content {
-  font-family: var(--ff-poppins);
-  font-size: 0.9rem;
-  margin: 0.75rem;
-  line-height: 1.4;
-}
-
-:host ::ng-deep .custom-popup .leaflet-popup-tip {
-  background: var(--bg-card);
-  border: 1px solid var(--border-primary);
-}
-
-/* Ottimizzazioni per performance */
-:host ::ng-deep .custom-map {
-  will-change: transform;
-  transform: translateZ(0);
-  backface-visibility: hidden;
-  perspective: 1000px;
-}
-
-:host ::ng-deep .custom-tile-layer {
-  will-change: transform;
-  transform: translateZ(0);
-  backface-visibility: hidden;
-}
-
-/* Disabilita animazioni per performance */
-:host ::ng-deep .leaflet-zoom-animated {
-  transition: none !important;
-}
-
-:host ::ng-deep .leaflet-fade-anim .leaflet-tile {
-  transition: none !important;
-}
-
-:host ::ng-deep .leaflet-zoom-anim .leaflet-zoom-animated {
-  transition: none !important;
+:host ::ng-deep .gm-control-active:hover {
+  background-color: var(--bg-card-hover) !important;
+  box-shadow: var(--shadow-2) !important;
 }

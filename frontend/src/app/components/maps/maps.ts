@@ -1,7 +1,8 @@
 import { Component, ElementRef, ViewChild, AfterViewInit, OnDestroy, signal, inject, effect } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { ThemeService } from '../../services/theme.service';
-import * as L from 'leaflet';
+import { Loader } from '@googlemaps/js-api-loader';
+import { environment } from '../../../environments/environment';
 
 @Component({
   selector: 'app-maps',
@@ -12,11 +13,12 @@ import * as L from 'leaflet';
 export class Maps implements AfterViewInit, OnDestroy {
   @ViewChild('mapContainer', { static: true }) mapContainer!: ElementRef;
   
-  private map: any;
-  private marker: any;
+  private map: google.maps.Map | null = null;
+  private marker: google.maps.Marker | null = null;
   isDarkMode = signal(false);
   isLoading = signal(true);
   private themeService = inject(ThemeService);
+  private loader: Loader | null = null;
 
   constructor() {
     // Effect per ascoltare i cambiamenti del tema effettivo
@@ -30,236 +32,169 @@ export class Maps implements AfterViewInit, OnDestroy {
   }
 
   ngAfterViewInit(): void {
-    this.configureLeafletIcons();
-    this.initializeMap();
-    this.checkTheme();
-  }
-
-  private configureLeafletIcons(): void {
-    // Configura il percorso delle icone di Leaflet
-    const iconRetinaUrl = 'https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/images/marker-icon-2x.png';
-    const iconUrl = 'https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/images/marker-icon.png';
-    const shadowUrl = 'https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/images/marker-shadow.png';
-
-    // Crea l'icona personalizzata
-    const DefaultIcon = L.Icon.extend({
-      options: {
-        iconRetinaUrl: iconRetinaUrl,
-        iconUrl: iconUrl,
-        shadowUrl: shadowUrl,
-        iconSize: [25, 41],
-        iconAnchor: [12, 41],
-        popupAnchor: [1, -34],
-        shadowSize: [41, 41]
-      }
-    });
-
-    // Imposta l'icona di default
-    L.Marker.prototype.options.icon = new DefaultIcon();
+    this.initializeGoogleMaps();
   }
 
   ngOnDestroy(): void {
-    if (this.map) {
-      this.map.remove();
+    // Google Maps si pulisce automaticamente
+    this.map = null;
+    this.marker = null;
+  }
+
+  private async initializeGoogleMaps(): Promise<void> {
+    try {
+      // Inizializza il loader di Google Maps
+      this.loader = new Loader({
+        apiKey: environment.googleMapsApiKey,
+        version: 'weekly',
+        libraries: ['places']
+      });
+
+      // Carica l'API di Google Maps
+      await this.loader.load();
+
+      // Coordinate di San Valentino Torio
+      const lat = 40.7894;
+      const lng = 14.6019;
+
+      // Inizializza la mappa
+      this.map = new google.maps.Map(this.mapContainer.nativeElement, {
+        center: { lat, lng },
+        zoom: 13,
+        mapTypeId: google.maps.MapTypeId.ROADMAP,
+        disableDefaultUI: false,
+        zoomControl: true,
+        mapTypeControl: false,
+        scaleControl: true,
+        streetViewControl: false,
+        rotateControl: false,
+        fullscreenControl: true,
+        gestureHandling: 'greedy',
+        styles: this.getMapStyles()
+      });
+
+      // Aggiungi marker
+      this.marker = new google.maps.Marker({
+        position: { lat, lng },
+        map: this.map,
+        title: 'San Valentino Torio',
+        animation: google.maps.Animation.DROP
+      });
+
+      // Aggiungi info window
+      const infoWindow = new google.maps.InfoWindow({
+        content: '<div class="google-info-window"><b>San Valentino Torio</b><br>Italia</div>'
+      });
+
+      this.marker.addListener('click', () => {
+        infoWindow.open(this.map, this.marker);
+      });
+
+      // Nascondi loading
+      this.isLoading.set(false);
+
+    } catch (error) {
+      console.error('Errore nel caricamento di Google Maps:', error);
+      this.isLoading.set(false);
     }
   }
 
-  private initializeMap(): void {
-    // Coordinate di San Valentino Torio
-    const lat = 40.7894;
-    const lng = 14.6019;
-    
-    // Inizializza la mappa con opzioni ultra-ottimizzate
-    this.map = L.map(this.mapContainer.nativeElement, {
-      zoomControl: true,
-      attributionControl: true,
-      preferCanvas: true,
-      zoomSnap: 0.5,
-      zoomDelta: 0.5,
-      fadeAnimation: false, // Disabilita animazioni per performance
-      zoomAnimation: false, // Disabilita animazioni zoom
-      markerZoomAnimation: false, // Disabilita animazioni marker
-      maxBounds: [[-90, -180], [90, 180]], // Limita i bounds
-      maxBoundsViscosity: 1.0, // Mantieni i bounds
-      wheelPxPerZoomLevel: 120, // Velocità scroll wheel
-      zoomAnimationThreshold: 4, // Soglia per animazioni zoom
-      inertia: true, // Abilita inerzia per scroll fluido
-      inertiaDeceleration: 3000, // Decelerazione inerzia
-      inertiaMaxSpeed: 1500, // Velocità massima inerzia
-      easeLinearity: 0.2, // Linearità delle transizioni
-      worldCopyJump: false, // Disabilita salto mondo
-      touchZoom: true, // Abilita zoom touch
-      doubleClickZoom: true, // Abilita zoom doppio click
-      boxZoom: true, // Abilita zoom box
-      keyboard: true, // Abilita controlli tastiera
-      dragging: true, // Abilita trascinamento
-      scrollWheelZoom: true, // Abilita zoom scroll
-      bounceAtZoomLimits: false, // Disabilita bounce ai limiti zoom
-      className: 'custom-map' // Classe CSS personalizzata
-    }).setView([lat, lng], 13);
-    
-    // Configura il layer con opzioni ultra-performance
-    const tileLayerOptions = {
-      attribution: '© <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors',
-      maxZoom: 18, // Ridotto per performance
-      minZoom: 1,
-      subdomains: ['a', 'b', 'c'],
-      keepBuffer: 3, // Aumentato per più tile in cache
-      updateWhenIdle: false,
-      updateWhenZooming: false,
-      updateInterval: 100, // Ridotto per aggiornamenti più frequenti
-      zIndex: 1,
-      tileSize: 256, // Dimensione tile esplicita
-      zoomOffset: 0, // Offset zoom
-      noWrap: false, // Permetti wrap del mondo
-      bounds: undefined, // Nessun bound specifico
-      errorTileUrl: '', // Nessuna tile di errore per performance
-      zoomReverse: false, // Zoom normale
-      detectRetina: true, // Rileva retina per tile HD
-      crossOrigin: false, // Disabilita CORS per performance
-      referrerPolicy: false, // Disabilita referrer policy
-      pane: 'tilePane', // Pane specifico
-      className: 'custom-tile-layer' // Classe CSS personalizzata
-    };
-    
-    // Usa un provider più veloce (Stamen)
-    L.tileLayer('https://stamen-tiles-{s}.a.ssl.fastly.net/toner-lite/{z}/{x}/{y}{r}.png', {
-      ...tileLayerOptions,
-      attribution: 'Map tiles by <a href="http://stamen.com">Stamen Design</a>, under <a href="http://creativecommons.org/licenses/by/3.0">CC BY 3.0</a>. Data by <a href="http://openstreetmap.org">OpenStreetMap</a>, under <a href="http://www.openstreetmap.org/copyright">ODbL</a>.',
-      subdomains: ['a', 'b', 'c', 'd']
-    }).addTo(this.map);
-    
-    // Aggiungi marker con icona personalizzata più leggera
-    const customIcon = L.divIcon({
-      className: 'custom-marker',
-      html: '<div class="marker-pin"></div>',
-      iconSize: [20, 20],
-      iconAnchor: [10, 10],
-      popupAnchor: [0, -10]
-    });
-    
-    this.marker = L.marker([lat, lng], { icon: customIcon }).addTo(this.map);
-    this.marker.bindPopup('<b>San Valentino Torio</b><br>Italia', {
-      closeButton: true,
-      autoClose: true,
-      closeOnClick: true,
-      className: 'custom-popup'
-    }).openPopup();
-    
-    // Ascolta il caricamento dei tile
-    this.map.on('tileload', () => {
-      this.isLoading.set(false);
-    });
-    
-    // Prefetch tile per l'area circostante
-    this.prefetchNearbyTiles();
-    
-    // Applica il tema
-    this.applyTheme();
-    
-    // Timeout di sicurezza per nascondere il loading
-    setTimeout(() => {
-      this.isLoading.set(false);
-    }, 2000); // Ridotto a 2 secondi
-  }
-
-  private prefetchNearbyTiles(): void {
-    // Prefetch tile per zoom levels 12, 13, 14 per migliorare la performance
-    const center = this.map.getCenter();
-    const prefetchZoom = [12, 13, 14];
-    
-    prefetchZoom.forEach(zoom => {
-      const bounds = this.map.getBounds();
-      const tileSize = 256;
-      const zoomFactor = Math.pow(2, zoom);
-      
-      // Calcola i tile da prefetchare
-      const north = Math.floor((90 - bounds.getNorth()) * zoomFactor / 360);
-      const south = Math.ceil((90 - bounds.getSouth()) * zoomFactor / 360);
-      const west = Math.floor((bounds.getWest() + 180) * zoomFactor / 360);
-      const east = Math.ceil((bounds.getEast() + 180) * zoomFactor / 360);
-      
-      // Prefetch tile in background
-      for (let x = west; x <= east; x++) {
-        for (let y = north; y <= south; y++) {
-          const tileUrl = `https://a.tile.openstreetmap.org/${zoom}/${x}/${y}.png`;
-          this.prefetchTile(tileUrl);
+  private getMapStyles(): google.maps.MapTypeStyle[] {
+    if (this.isDarkMode()) {
+      // Tema scuro per Google Maps
+      return [
+        { elementType: 'geometry', stylers: [{ color: '#242f3e' }] },
+        { elementType: 'labels.text.stroke', stylers: [{ color: '#242f3e' }] },
+        { elementType: 'labels.text.fill', stylers: [{ color: '#746855' }] },
+        {
+          featureType: 'administrative.locality',
+          elementType: 'labels.text.fill',
+          stylers: [{ color: '#d59563' }]
+        },
+        {
+          featureType: 'poi',
+          elementType: 'labels.text.fill',
+          stylers: [{ color: '#d59563' }]
+        },
+        {
+          featureType: 'poi.park',
+          elementType: 'geometry',
+          stylers: [{ color: '#263c3f' }]
+        },
+        {
+          featureType: 'poi.park',
+          elementType: 'labels.text.fill',
+          stylers: [{ color: '#6b9a76' }]
+        },
+        {
+          featureType: 'road',
+          elementType: 'geometry',
+          stylers: [{ color: '#38414e' }]
+        },
+        {
+          featureType: 'road',
+          elementType: 'geometry.stroke',
+          stylers: [{ color: '#212a37' }]
+        },
+        {
+          featureType: 'road',
+          elementType: 'labels.text.fill',
+          stylers: [{ color: '#9ca5b3' }]
+        },
+        {
+          featureType: 'road.highway',
+          elementType: 'geometry',
+          stylers: [{ color: '#746855' }]
+        },
+        {
+          featureType: 'road.highway',
+          elementType: 'geometry.stroke',
+          stylers: [{ color: '#1f2835' }]
+        },
+        {
+          featureType: 'road.highway',
+          elementType: 'labels.text.fill',
+          stylers: [{ color: '#f3d19c' }]
+        },
+        {
+          featureType: 'transit',
+          elementType: 'geometry',
+          stylers: [{ color: '#2f3948' }]
+        },
+        {
+          featureType: 'transit.station',
+          elementType: 'labels.text.fill',
+          stylers: [{ color: '#d59563' }]
+        },
+        {
+          featureType: 'water',
+          elementType: 'geometry',
+          stylers: [{ color: '#17263c' }]
+        },
+        {
+          featureType: 'water',
+          elementType: 'labels.text.fill',
+          stylers: [{ color: '#515c6d' }]
+        },
+        {
+          featureType: 'water',
+          elementType: 'labels.text.stroke',
+          stylers: [{ color: '#17263c' }]
         }
-      }
-    });
-  }
-
-  private prefetchTile(url: string): void {
-    // Prefetch tile in background senza bloccare l'UI
-    const img = new Image();
-    img.crossOrigin = 'anonymous';
-    img.onload = () => {
-      // Tile caricato, ora è in cache del browser
-    };
-    img.onerror = () => {
-      // Ignora errori di prefetch
-    };
-    img.src = url;
-  }
-
-  private checkTheme(): void {
-    // Controlla se è dark mode
-    const isDark = document.documentElement.getAttribute('data-theme') === 'dark' ||
-                   (!document.documentElement.getAttribute('data-theme') && 
-                    window.matchMedia('(prefers-color-scheme: dark)').matches);
-    
-    this.isDarkMode.set(isDark);
-    this.applyTheme();
+      ];
+    } else {
+      // Tema chiaro per Google Maps (default)
+      return [];
+    }
   }
 
   private applyTheme(): void {
     if (!this.map) return;
     
-    // Rimuovi layer precedente
-    this.map.eachLayer((layer: any) => {
-      if (layer._url) {
-        this.map.removeLayer(layer);
-      }
+    // Applica gli stili del tema
+    this.map.setOptions({
+      styles: this.getMapStyles()
     });
-    
-    // Opzioni ultra-ottimizzate per performance
-    const tileLayerOptions = {
-      attribution: '© <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors',
-      maxZoom: 18, // Ridotto per performance
-      minZoom: 1,
-      subdomains: ['a', 'b', 'c', 'd'],
-      keepBuffer: 3, // Aumentato per più tile in cache
-      updateWhenIdle: false,
-      updateWhenZooming: false,
-      updateInterval: 100, // Ridotto per aggiornamenti più frequenti
-      zIndex: 1,
-      tileSize: 256,
-      zoomOffset: 0,
-      noWrap: false,
-      bounds: undefined,
-      errorTileUrl: '',
-      zoomReverse: false,
-      detectRetina: true,
-      crossOrigin: false,
-      referrerPolicy: false,
-      pane: 'tilePane',
-      className: 'custom-tile-layer'
-    };
-    
-    // Aggiungi layer con tema appropriato usando provider più veloci
-    if (this.isDarkMode()) {
-      // Tema scuro - usa Stamen Dark
-      L.tileLayer('https://stamen-tiles-{s}.a.ssl.fastly.net/toner/{z}/{x}/{y}{r}.png', {
-        ...tileLayerOptions,
-        attribution: 'Map tiles by <a href="http://stamen.com">Stamen Design</a>, under <a href="http://creativecommons.org/licenses/by/3.0">CC BY 3.0</a>. Data by <a href="http://openstreetmap.org">OpenStreetMap</a>, under <a href="http://www.openstreetmap.org/copyright">ODbL</a>.'
-      }).addTo(this.map);
-    } else {
-      // Tema chiaro - usa Stamen Light
-      L.tileLayer('https://stamen-tiles-{s}.a.ssl.fastly.net/toner-lite/{z}/{x}/{y}{r}.png', {
-        ...tileLayerOptions,
-        attribution: 'Map tiles by <a href="http://stamen.com">Stamen Design</a>, under <a href="http://creativecommons.org/licenses/by/3.0">CC BY 3.0</a>. Data by <a href="http://openstreetmap.org">OpenStreetMap</a>, under <a href="http://www.openstreetmap.org/copyright">ODbL</a>.'
-      }).addTo(this.map);
-    }
   }
 
 }
