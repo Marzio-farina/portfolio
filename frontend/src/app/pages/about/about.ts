@@ -171,11 +171,9 @@ export class About implements OnDestroy {
         this.profile.set(data ?? null);
         this.profileLoading.set(false);
         
-        // Inizializza il testo parziale per il riquadro contratto
+        // Avvia effetto typewriter per tutti i dispositivi
         if (data?.bio) {
-          const maxVisibleChars = this.calculateVisibleChars(data.bio);
-          this.initialText.set(data.bio.substring(0, maxVisibleChars));
-          this.displayedText.set(data.bio.substring(0, maxVisibleChars));
+          this.startTypewriterEffectForAllDevices(data.bio);
         }
       },
       error: () => {
@@ -285,7 +283,35 @@ export class About implements OnDestroy {
   }
 
   /**
-   * Start typewriter effect for bio text
+   * Start typewriter effect for all devices when data loads
+   */
+  private startTypewriterEffectForAllDevices(bioText: string): void {
+    if (!bioText) return;
+    
+    // Inizia da vuoto per tutti i dispositivi
+    this.displayedText.set('');
+    this.isTyping.set(true);
+    
+    // Calcola testo iniziale per mobile
+    const maxVisibleChars = this.calculateVisibleChars(bioText);
+    this.initialText.set(bioText.substring(0, maxVisibleChars));
+    
+    let currentIndex = 0;
+    const typingSpeed = 5; // Velocità molto alta: 5ms tra ogni carattere
+    
+    this.typewriterInterval = window.setInterval(() => {
+      if (currentIndex < bioText.length) {
+        this.displayedText.set(bioText.substring(0, currentIndex + 1));
+        currentIndex++;
+      } else {
+        this.isTyping.set(false);
+        this.stopTypewriterEffect();
+      }
+    }, typingSpeed);
+  }
+
+  /**
+   * Start typewriter effect for bio text (mobile only)
    */
   private startTypewriterEffect(): void {
     const bioText = this.profile()?.bio || '';

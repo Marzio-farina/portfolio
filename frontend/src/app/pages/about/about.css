@@ -316,8 +316,18 @@
 
 /* Nascondi cursore quando non si sta scrivendo */
 .bio-card-mobile:not(.expanded) .bio-content::after,
-.bio-content:not(.typing)::after {
+.bio-content:not(.typing)::after,
+.bio-desktop:not(.typing)::after {
   display: none;
+}
+
+/* Cursore lampeggiante per bio desktop */
+.bio-desktop::after {
+  content: '|';
+  color: var(--accent-primary);
+  animation: blink 1s infinite;
+  font-weight: bold;
+  margin-left: 2px;
 }
 
 /* Animazione lampeggiante */

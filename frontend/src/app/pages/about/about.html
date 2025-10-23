@@ -34,7 +34,7 @@
   </div>
   
   <!-- Bio normale per desktop -->
-  <p class="bio-desktop" [innerHTML]="profile()?.bio | nl2br"></p>
+  <p class="bio-desktop" [class.typing]="isTyping()" [innerHTML]="(isTyping() ? displayedText() : profile()?.bio) | nl2br"></p>
 }
 
 <!-- Fallback content if no profile data -->
