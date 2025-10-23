@@ -116,6 +116,7 @@ Route::middleware(['api', 'throttle:60,1'])
         Route::middleware(['auth:sanctum', 'fresh'])->group(function () {
             Route::get('/me', [AuthController::class, 'me']);
             Route::post('/logout', [AuthController::class, 'logout']);
+            Route::put('/profile', [AuthController::class, 'updateProfile']);
         });
 
         // ====================================================================

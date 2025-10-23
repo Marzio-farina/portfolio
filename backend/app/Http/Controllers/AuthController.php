@@ -4,9 +4,11 @@ namespace App\Http\Controllers;
 
 use App\Http\Requests\LoginRequest;
 use App\Http\Requests\RegisterRequest;
+use App\Http\Requests\UpdateProfileRequest;
 use App\Models\User;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Support\Facades\Hash;
+use Illuminate\Support\Facades\Cache;
 
 /**
  * Authentication Controller
@@ -81,9 +83,10 @@ class AuthController extends Controller
      */
     public function me(): JsonResponse
     {
+        /** @var User|null $user */
         $user = auth('sanctum')->user();
 
-        if (!$user) {
+        if (!$user instanceof User) {
             return response()->json([
                 'message' => 'Unauthenticated'
             ], 401);
@@ -99,14 +102,47 @@ class AuthController extends Controller
      */
     public function logout(): JsonResponse
     {
+        /** @var User|null $user */
         $user = auth('sanctum')->user();
 
-        if ($user) {
+        if ($user instanceof User) {
             $user->tokens()->delete();
         }
 
         return response()->json([
             'message' => 'Logged out'
         ]);
+    }
+
+    /**
+     * Update authenticated user's profile
+     * 
+     * @param UpdateProfileRequest $request
+     * @return JsonResponse
+     */
+    public function updateProfile(UpdateProfileRequest $request): JsonResponse
+    {
+        /** @var User|null $user */
+        $user = auth('sanctum')->user();
+        if (!$user instanceof User) {
+            return response()->json(['message' => 'Unauthenticated'], 401);
+        }
+
+        $profile = $user->profile;
+        if (!$profile) {
+            $profile = $user->profile()->create([]);
+        }
+
+        $profile->fill($request->validated());
+        $profile->save();
+
+        // Invalida le chiavi cache usate dal profilo pubblico
+        Cache::forget('public_profile_v1');
+        Cache::forget('public_profile_user_' . $user->id . '_v1');
+
+        return response()->json([
+            'message' => 'Profile updated',
+            'profile' => $profile
+        ], 200, [], JSON_UNESCAPED_UNICODE);
     }
 }
