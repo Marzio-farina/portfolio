@@ -322,12 +322,17 @@
   left: 50%;
   transform: translate(-50%, -50%);
   color: var(--text-muted);
-  font-size: 0.8rem;
-  font-weight: 500;
-  opacity: 0.7;
+  font-size: 4rem !important; /* Forza il font-size */
+  font-weight: 700; /* Forza il font-weight */
+  opacity: 0.4;
   pointer-events: none;
   z-index: 5;
   display: none;
+  width: 40%; /* 40% della larghezza del contenitore */
+  text-align: center; /* Centrato orizzontalmente */
+  letter-spacing: 5px; /* Forza la spaziatura */
+  -webkit-text-stroke: 1px rgba(128, 128, 128, 0.7); /* Bordo grigio con opacità 0.7 */
+  text-stroke: 1px rgba(128, 128, 128, 0.7); /* Bordo grigio con opacità 0.7 */
 }
 
 .bio-card-mobile:not(.expanded) .bio-read-more {
