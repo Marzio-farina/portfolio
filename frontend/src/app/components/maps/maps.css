@@ -24,12 +24,7 @@
   transition: filter var(--transition-1);
 }
 
-/* Filtri per tema scuro - evidenzia contorni */
+/* Filtri per tema scuro */
 [data-theme="dark"] .map-embed iframe {
-  filter: 
-    brightness(0.6) 
-    contrast(1.4) 
-    saturate(0.5) 
-    hue-rotate(200deg) 
-    sepia(0.3);
+  filter: grayscale(1) brightness(0.5) contrast(1.2);
 }
