@@ -259,7 +259,7 @@
   line-height: 1.6;
   font-size: 0.9rem;
   height: 100%;
-  overflow-y: auto; /* Scroll se il testo è troppo lungo */
+  overflow: hidden; /* Nasconde lo scroll */
 }
 
 /* Effetto hover come what-i-do-card */
