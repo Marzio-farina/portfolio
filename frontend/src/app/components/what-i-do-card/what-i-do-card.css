@@ -10,99 +10,81 @@
     background: var(--bg-card);
     border: 1px solid var(--border-primary);
     border-radius: 20px;          /* angoli più arrotondati */
-    transition: all var(--transition-1);
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
     box-shadow: var(--shadow-1);
     overflow: hidden;             /* Per contenere i pattern di sfondo */
+    transform-style: preserve-3d; /* Abilita trasformazioni 3D */
+    perspective: 1000px;          /* Profondità per effetto 3D */
 }
 
+/* ===== EFFETTO TAVOLA DA SURF ===== */
+/* Hover generale con effetto 3D */
 .card:hover {
-    transform: translateY(-2px);
-    box-shadow: var(--shadow-2);
+    transform: translateY(-6px) rotateX(5deg) rotateY(2deg);
+    box-shadow: var(--shadow-4);
     border-color: var(--accent-primary);
 }
 
-/* Effetti hover per i pattern */
-.card:hover::before {
-    opacity: 0.9;
-}
-
-.card:hover::after {
-    opacity: 0.8;
-    transform: scale(1.05);
-}
-
-[data-theme="dark"] .card:hover::after {
-    opacity: 1;
-}
-
-.card::before{
-    content:"";
-    position:absolute; 
-    inset: 0;
-    background: var(--bg-card);
+/* Effetto pressione sui bordi usando pseudo-elementi */
+.card::before {
+    content: "";
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: linear-gradient(
+        135deg,
+        transparent 0%,
+        rgba(249, 115, 22, 0.15) 25%,
+        transparent 50%,
+        rgba(234, 88, 12, 0.15) 75%,
+        transparent 100%
+    );
     border-radius: inherit;
-    z-index: 0;
-    transition: all var(--transition-1);
+    opacity: 0;
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    z-index: 1;
+    pointer-events: none;
 }
 
-/* Pattern di sfondo per tema giorno */
-:not([data-theme]) .card::before,
-[data-theme="light"] .card::before {
-    background: linear-gradient(135deg, 
-        rgba(249, 115, 22, 0.05) 0%, 
-        rgba(234, 88, 12, 0.02) 25%,
-        rgba(255, 255, 255, 0.8) 50%,
-        rgba(249, 115, 22, 0.03) 75%,
-        rgba(234, 88, 12, 0.01) 100%);
+/* Effetto pressione quando si passa sopra */
+.card:hover::before {
+    opacity: 1;
+    transform: scale(1.01);
+    background: linear-gradient(
+        135deg,
+        rgba(249, 115, 22, 0.2) 0%,
+        rgba(249, 115, 22, 0.1) 25%,
+        rgba(234, 88, 12, 0.1) 50%,
+        rgba(234, 88, 12, 0.2) 75%,
+        rgba(249, 115, 22, 0.15) 100%
+    );
 }
 
-/* Pattern di sfondo per tema notte */
-[data-theme="dark"] .card::before {
-    background: linear-gradient(135deg, 
-        rgba(45, 100, 72, 0.1) 0%, 
-        rgba(45, 100, 72, 0.05) 25%,
-        rgba(240, 2, 13, 0.08) 50%,
-        rgba(45, 100, 72, 0.06) 75%,
-        rgba(240, 2, 13, 0.03) 100%);
-}
-
-/* Pattern geometrici sottili */
+/* Ombra dinamica per effetto profondità */
 .card::after {
     content: "";
     position: absolute;
-    top: -50%;
-    right: -50%;
-    width: 200%;
-    height: 200%;
-    background-image: 
-        radial-gradient(circle at 25% 25%, rgba(249, 115, 22, 0.1) 0%, transparent 50%),
-        radial-gradient(circle at 75% 75%, rgba(234, 88, 12, 0.08) 0%, transparent 50%);
-    z-index: 0;
-    opacity: 0.6;
-    transition: all var(--transition-1);
+    top: 100%;
+    left: 50%;
+    transform: translateX(-50%);
+    width: 80%;
+    height: 20px;
+    background: radial-gradient(ellipse, rgba(0, 0, 0, 0.1), transparent);
+    opacity: 0;
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    z-index: -1;
 }
 
-/* Pattern per tema notte */
-[data-theme="dark"] .card::after {
-    background-image: 
-        radial-gradient(circle at 25% 25%, rgba(45, 100, 72, 0.15) 0%, transparent 50%),
-        radial-gradient(circle at 75% 75%, rgba(240, 2, 13, 0.1) 0%, transparent 50%);
-    opacity: 0.8;
+.card:hover::after {
+    opacity: 1;
+    transform: translateX(-50%) scale(1.2);
 }
 
-/* Pattern di linee sottili per tema giorno */
-:not([data-theme]) .card,
-[data-theme="light"] .card {
-    background-image: 
-        linear-gradient(45deg, transparent 40%, rgba(249, 115, 22, 0.03) 50%, transparent 60%),
-        linear-gradient(-45deg, transparent 40%, rgba(234, 88, 12, 0.02) 50%, transparent 60%);
-}
-
-/* Pattern di linee sottili per tema notte */
-[data-theme="dark"] .card {
-    background-image: 
-        linear-gradient(45deg, transparent 40%, rgba(45, 100, 72, 0.05) 50%, transparent 60%),
-        linear-gradient(-45deg, transparent 40%, rgba(240, 2, 13, 0.03) 50%, transparent 60%);
+/* Background base per le card */
+.card {
+    background: var(--bg-card);
 }
 
 .icon {
