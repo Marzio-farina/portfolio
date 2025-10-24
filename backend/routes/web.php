@@ -1,6 +1,7 @@
 <?php
 
 use Illuminate\Support\Facades\Route;
+use Illuminate\Support\Facades\Artisan;
 
 /*
 |--------------------------------------------------------------------------
@@ -21,22 +22,21 @@ Route::get('/', function () {
 Route::get('/run-seeder', function () {
     try {
         // Esegui il seeder
-        \Illuminate\Support\Facades\Artisan::call('db:seed', ['--class' => 'UserProfileAndSocialSeeder']);
+        Artisan::call('db:seed', ['--class' => 'UserProfileAndSocialSeeder']);
         
         // Pulisci cache
-        \Illuminate\Support\Facades\Artisan::call('cache:clear');
-        \Illuminate\Support\Facades\Artisan::call('config:clear');
+        Artisan::call('cache:clear');
+        Artisan::call('config:clear');
         
         return response()->json([
             'status' => 'success',
             'message' => 'Seeder eseguito con successo in produzione',
-            'timestamp' => now()->toISOString(),
-            'output' => \Illuminate\Support\Facades\Artisan::output()
+            'timestamp' => now()->toISOString()
         ]);
     } catch (\Exception $e) {
         return response()->json([
             'status' => 'error',
-            'message' => 'Errore durante esecuzione seeder: ' . $e->getMessage(),
+            'message' => 'Errore: ' . $e->getMessage(),
             'timestamp' => now()->toISOString()
         ], 500);
     }
