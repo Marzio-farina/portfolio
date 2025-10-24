@@ -35,24 +35,32 @@ export class Contatti {
   onErrorChange(errorData: {message: string, type: NotificationType, fieldId: string, action: 'add' | 'remove'} | undefined) {
     if (errorData) {
       if (errorData.action === 'add') {
-        // Aggiungi nuova notifica
-        const newNotification: NotificationItem = {
-          id: `${errorData.fieldId}-${Date.now()}`,
-          message: errorData.message,
-          type: errorData.type,
-          timestamp: Date.now(),
-          fieldId: errorData.fieldId
-        };
-        
-        // Rimuovi eventuali notifiche precedenti per lo stesso campo
         const currentNotifications = this.notifications();
-        const filteredNotifications = currentNotifications.filter(n => n.fieldId !== errorData.fieldId);
         
-        // Aggiungi la nuova notifica
-        this.notifications.set([...filteredNotifications, newNotification]);
-        this.showMultipleNotifications = true;
+        // Controlla se esiste già una notifica con lo stesso messaggio
+        const duplicateMessage = currentNotifications.some(n => n.message === errorData.message);
         
-        console.log('Notifica aggiunta:', newNotification);
+        if (!duplicateMessage) {
+          // Aggiungi nuova notifica solo se non esiste già una con lo stesso messaggio
+          const newNotification: NotificationItem = {
+            id: `${errorData.fieldId}-${Date.now()}`,
+            message: errorData.message,
+            type: errorData.type,
+            timestamp: Date.now(),
+            fieldId: errorData.fieldId
+          };
+          
+          // Rimuovi eventuali notifiche precedenti per lo stesso campo
+          const filteredNotifications = currentNotifications.filter(n => n.fieldId !== errorData.fieldId);
+          
+          // Aggiungi la nuova notifica
+          this.notifications.set([...filteredNotifications, newNotification]);
+          this.showMultipleNotifications = true;
+          
+          console.log('Notifica aggiunta:', newNotification);
+        } else {
+          console.log('Notifica duplicata ignorata:', errorData.message);
+        }
       } else if (errorData.action === 'remove') {
         // Rimuovi notifica per campo specifico
         const currentNotifications = this.notifications();
@@ -69,20 +77,29 @@ export class Contatti {
 
   onSuccessChange(success: string | undefined) {
     if (success) {
-      // Crea una notifica di successo
-      const successNotification: NotificationItem = {
-        id: `success-${Date.now()}`,
-        message: success,
-        type: 'success',
-        timestamp: Date.now(),
-        fieldId: 'success'
-      };
+      const currentNotifications = this.notifications();
       
-      // Aggiungi alla lista delle notifiche
-      this.notifications.set([...this.notifications(), successNotification]);
-      this.showMultipleNotifications = true;
+      // Controlla se esiste già una notifica di successo con lo stesso messaggio
+      const duplicateSuccess = currentNotifications.some(n => n.message === success && n.type === 'success');
       
-      console.log('Notifica di successo aggiunta:', successNotification);
+      if (!duplicateSuccess) {
+        // Crea una notifica di successo solo se non esiste già una con lo stesso messaggio
+        const successNotification: NotificationItem = {
+          id: `success-${Date.now()}`,
+          message: success,
+          type: 'success',
+          timestamp: Date.now(),
+          fieldId: 'success'
+        };
+        
+        // Aggiungi alla lista delle notifiche
+        this.notifications.set([...currentNotifications, successNotification]);
+        this.showMultipleNotifications = true;
+        
+        console.log('Notifica di successo aggiunta:', successNotification);
+      } else {
+        console.log('Notifica di successo duplicata ignorata:', success);
+      }
     }
   }
 

@@ -385,9 +385,12 @@ export class Notification implements OnDestroy, AfterViewInit {
     const collapsed = this.collapsedNotifications();
     
     // Trova nuove notifiche che non sono già visibili o collassate
+    // E che non hanno lo stesso messaggio di notifiche esistenti
     const newNotifications = currentNotifications.filter(
       notification => !visible.some(v => v.id === notification.id) && 
-                    !collapsed.some(c => c.id === notification.id)
+                    !collapsed.some(c => c.id === notification.id) &&
+                    !visible.some(v => v.message === notification.message) &&
+                    !collapsed.some(c => c.message === notification.message)
     );
     
     console.log('Gestendo notifiche multiple:', {
