@@ -28,7 +28,7 @@
   padding: 12px 16px;
   background: var(--bg-card);
   background-color: rgba(171, 61, 61, 0.95);
-  border: 1px solid var(--border-primary);
+  border: 2px solid #6b7280;
   border-radius: 12px;
   box-shadow: var(--shadow-3);
   min-height: 38px;
@@ -56,7 +56,7 @@
   align-items: center;
   justify-content: center;
   background: var(--bg-card);
-  border: 1px solid var(--border-primary);
+  border: 2px solid #6b7280;
   border-radius: 12px;
   box-shadow: var(--shadow-3);
   backdrop-filter: saturate(110%);
@@ -227,16 +227,16 @@
   transform: translateX(-50%) !important;
   z-index: 10000 !important;
   pointer-events: auto !important;
-  max-width: 50% !important;
+  max-width: 80% !important;
   width: auto !important;
-  min-width: 200px !important;
+  min-width: 400px !important;
   height: 30px !important;
   overflow: visible !important;
   transition: all 0.3s ease !important;
   display: block !important;
   visibility: visible !important;
   opacity: 1 !important;
-  margin-bottom: 10px !important;
+  margin-bottom: -7.5px !important; /* 25% di 30px = 7.5px sovrapposizione */
 }
 
 /* Contenitore del messaggio per notifiche multiple */
@@ -249,16 +249,16 @@
   display: flex !important;
   align-items: center;
   justify-content: center;
-  padding: 12px 16px;
+  padding: 12px 20px;
   background: var(--bg-card);
-  background-color: rgba(255, 255, 255, 0.95);
-  border: 1px solid var(--border-primary);
+  background-color: #ffffff;
+  border: 2px solid #6b7280;
   border-radius: 12px;
   box-shadow: var(--shadow-3);
   min-height: 38px;
   height: 30px;
   width: 100% !important;
-  min-width: 200px !important;
+  min-width: 400px !important;
   max-width: 100% !important;
   z-index: 2;
   visibility: visible !important;
@@ -268,7 +268,27 @@
 /* Supporto per tema scuro - notifiche multiple */
 @media (prefers-color-scheme: dark) {
   .notification-multiple__message-container {
-    background-color: rgba(30, 30, 30, 0.95);
+    background-color: rgb(30, 30, 30);
+  }
+  
+  .notification-multiple--success .notification-multiple__message-container {
+    border: 2px solid #6b7280 !important;
+    background: #064e3b !important;
+  }
+  
+  .notification-multiple--error .notification-multiple__message-container {
+    border: 2px solid #6b7280 !important;
+    background: #7f1d1d !important;
+  }
+  
+  .notification-multiple--warning .notification-multiple__message-container {
+    border: 2px solid #6b7280 !important;
+    background: #78350f !important;
+  }
+  
+  .notification-multiple--info .notification-multiple__message-container {
+    border: 2px solid #6b7280 !important;
+    background: #1e3a8a !important;
   }
 }
 
@@ -286,39 +306,10 @@
   opacity: 1 !important;
   z-index: 3 !important;
   width: 100% !important;
-  min-width: 150px !important;
+  min-width: 350px !important;
   max-width: 100% !important;
 }
 
-/* Pulsante di chiusura per notifiche multiple */
-.notification-multiple__close {
-  position: absolute;
-  top: 50%;
-  right: 8px;
-  transform: translateY(-50%);
-  width: 24px;
-  height: 24px;
-  border: none;
-  background: transparent;
-  color: var(--text-secondary);
-  cursor: pointer;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  border-radius: 50%;
-  transition: all 0.2s ease;
-  z-index: 3;
-}
-
-.notification-multiple__close:hover {
-  background: rgba(0, 0, 0, 0.1);
-  color: var(--text-primary);
-}
-
-.notification-multiple__close svg {
-  width: 16px;
-  height: 16px;
-}
 
 /* Barra di progresso per countdown */
 .notification-multiple__progress-bar {
@@ -376,29 +367,29 @@
 
 /* Tipi di notifica per notifiche multiple */
 .notification-multiple--success .notification-multiple__message-container {
-  border-color: #10b981 !important;
-  background: rgba(16, 185, 129, 0.2) !important;
+  border: 2px solid #6b7280 !important;
+  background: rgb(16, 185, 129) !important;
   visibility: visible !important;
   opacity: 1 !important;
 }
 
 .notification-multiple--error .notification-multiple__message-container {
-  border-color: #ef4444 !important;
-  background: rgba(239, 68, 68, 0.2) !important;
+  border: 2px solid #6b7280 !important;
+  background: rgb(239, 68, 68) !important;
   visibility: visible !important;
   opacity: 1 !important;
 }
 
 .notification-multiple--warning .notification-multiple__message-container {
-  border-color: #f59e0b !important;
-  background: rgba(245, 158, 11, 0.2) !important;
+  border: 2px solid #6b7280 !important;
+  background: rgb(245, 158, 11) !important;
   visibility: visible !important;
   opacity: 1 !important;
 }
 
 .notification-multiple--info .notification-multiple__message-container {
-  border-color: #3b82f6 !important;
-  background: rgba(59, 130, 246, 0.2) !important;
+  border: 2px solid #6b7280 !important;
+  background: rgb(59, 130, 246) !important;
   visibility: visible !important;
   opacity: 1 !important;
 }
