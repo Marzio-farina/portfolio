@@ -1,4 +1,4 @@
-<div class="card">
+<div class="card" (mouseenter)="onMouseEnter()" (mouseleave)="onMouseLeave()">
   <div class="description_card" (click)="openModal(dlg)">
     <h4>{{ author() }}</h4>
     <p>{{ displayText() }}</p>

@@ -1,4 +1,4 @@
-import { Component, computed, input } from '@angular/core';
+import { Component, computed, input, output } from '@angular/core';
 import { Avatar } from '../avatar/avatar';
 
 @Component({
@@ -16,6 +16,10 @@ export class TestimonialCard {
   company = input<string>('');
   rating = input<number, number | undefined>(5,{ transform: v => v ?? 5 });
   clampChars = input<number>(65);
+  
+  // Eventi per comunicare con il componente padre
+  onHoverStart = output<void>();
+  onHoverEnd = output<void>();
 
   // testo mostrato nella card (sempre 65 char + … se serve). NON cambia quando l’overlay è aperto
   displayText = computed(() => {
@@ -32,5 +36,13 @@ export class TestimonialCard {
   openModal(dlg: HTMLDialogElement) {
     // evita che il click propaghi e riapra
     dlg?.showModal();
+  }
+
+  onMouseEnter() {
+    this.onHoverStart.emit();
+  }
+
+  onMouseLeave() {
+    this.onHoverEnd.emit();
   }
 }

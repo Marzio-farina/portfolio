@@ -16,6 +16,7 @@ export interface Avatar {
 export class Avatar implements OnInit {
 
   width = input<number>(120);
+  highlighted = input<boolean>(false);
   avatars: Avatar[] = [];
   selectedAvatar?: Avatar;
   

@@ -196,7 +196,11 @@
   border-radius: 16px;
   background: none;
   z-index: 1;
+  transition: background var(--transition-1);
 }
+
+/* ===== EFFETTO HOVER AVATAR-BADGE QUANDO SI FA HOVER SULLA TESTIMONIAL-CARD ===== */
+/* L'effetto hover per l'avatar è ora definito in avatar.css per maggiore specificità */
 
 /* Posizionamento avatar per schermi grandi (>1250px) */
 @media (min-width: 1250px) {

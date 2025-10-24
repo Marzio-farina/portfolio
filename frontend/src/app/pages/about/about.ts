@@ -58,6 +58,13 @@ export class About implements OnDestroy {
   @ViewChild('carousel') private carouselRef?: ElementRef<HTMLElement>;
 
   // ========================================================================
+  // Hover State Management
+  // ========================================================================
+
+  /** ID of the currently hovered testimonial */
+  private hoveredTestimonialIdSignal = signal<string | null>(null);
+
+  // ========================================================================
   // Properties
   // ========================================================================
 
@@ -441,6 +448,31 @@ export class About implements OnDestroy {
       window.removeEventListener('resize', this.resizeListener);
       this.resizeListener = undefined;
     }
+  }
+
+  // ========================================================================
+  // Hover Event Handlers
+  // ========================================================================
+
+  /**
+   * Handle testimonial hover start
+   */
+  onTestimonialHoverStart(testimonialId: string): void {
+    this.hoveredTestimonialIdSignal.set(testimonialId);
+  }
+
+  /**
+   * Handle testimonial hover end
+   */
+  onTestimonialHoverEnd(): void {
+    this.hoveredTestimonialIdSignal.set(null);
+  }
+
+  /**
+   * Get the currently hovered testimonial ID for template
+   */
+  get hoveredTestimonialId() {
+    return this.hoveredTestimonialIdSignal();
   }
 
   /**

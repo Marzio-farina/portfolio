@@ -144,7 +144,7 @@ Il mio obiettivo è quello di trasformare le idee in applicazioni concrete, funz
           <div class="testimonial-slide">
             <div class="testimonial-card-wrap">
               <div class="avatar-badge">
-                <app-avatar [width]="56"></app-avatar>
+                <app-avatar [width]="56" [highlighted]="hoveredTestimonialId === t.id"></app-avatar>
               </div>
               <div class="testimonial-card">
                 <app-testimonial-card
@@ -153,6 +153,8 @@ Il mio obiettivo è quello di trasformare le idee in applicazioni concrete, funz
                   [role]="t.role ?? ''"
                   [company]="t.company ?? ''"
                   [rating]="t.rating"
+                  (onHoverStart)="onTestimonialHoverStart(t.id)"
+                  (onHoverEnd)="onTestimonialHoverEnd()"
                 ></app-testimonial-card>
               </div>
             </div>

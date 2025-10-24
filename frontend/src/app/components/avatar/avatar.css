@@ -6,6 +6,12 @@
   transition: border-color var(--transition-1), background var(--transition-1);
 }
 
+/* Effetto hover per avatar nelle testimonial card */
+.profile__avatar.highlighted {
+  border-color: var(--accent-primary) !important;
+  border: 1px solid var(--accent-primary) !important;
+}
+
 /* Background giallino crema per l'avatar SOLO nel tema giorno */
 :not([data-theme]) .profile__avatar {
   background: #FFF8E1 !important; /* Giallino crema come nell'immagine */
