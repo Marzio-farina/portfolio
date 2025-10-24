@@ -1,4 +1,4 @@
-import { Component, input, signal, OnDestroy, OnInit } from '@angular/core';
+import { Component, input, signal, computed, OnDestroy, OnInit } from '@angular/core';
 
 @Component({
   selector: 'app-timeline-item',
@@ -16,6 +16,9 @@ export class TimelineItem implements OnInit, OnDestroy {
   displayedYears = signal('');
   displayedDescription = signal('');
   isTyping = signal(false);
+  
+  // Processed description with clickable links
+  processedDescription = computed(() => this.processLinks(this.displayedDescription()));
   
   private typewriterInterval?: number;
 
@@ -74,5 +77,29 @@ export class TimelineItem implements OnInit, OnDestroy {
       this.typewriterInterval = undefined;
     }
     this.isTyping.set(false);
+  }
+
+  private processLinks(text: string): string {
+    if (!text) return '';
+    
+    // Regex per rilevare URL (http/https) - si ferma a spazi e chiusura parentesi
+    const urlRegex = /(https?:\/\/[^\s)]+)/g;
+    
+    return text.replace(urlRegex, (url) => {
+      // Gestione speciale per GitHub
+      if (url.includes('github.com')) {
+        const parts = url.replace(/^https?:\/\//, '').split('/');
+        if (parts.length >= 3) {
+          const repoName = parts[2]; // Nome del repository
+          return `<a href="${url}" target="_blank" rel="noopener noreferrer" class="tli__link">${repoName}</a>`;
+        }
+      }
+      
+      // Estrai il nome del sito dal dominio per altri URL
+      const domain = url.replace(/^https?:\/\//, '').replace(/^www\./, '').split('/')[0];
+      const siteName = domain.split('.')[0];
+      
+      return `<a href="${url}" target="_blank" rel="noopener noreferrer" class="tli__link">${siteName}</a>`;
+    });
   }
 }
