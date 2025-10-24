@@ -57,9 +57,6 @@ export class Contatti {
           this.notifications.set([...filteredNotifications, newNotification]);
           this.showMultipleNotifications = true;
           
-          console.log('Notifica aggiunta:', newNotification);
-        } else {
-          console.log('Notifica duplicata ignorata:', errorData.message);
         }
       } else if (errorData.action === 'remove') {
         // Rimuovi notifica per campo specifico
@@ -67,11 +64,7 @@ export class Contatti {
         const filteredNotifications = currentNotifications.filter(n => n.fieldId !== errorData.fieldId);
         this.notifications.set(filteredNotifications);
         
-        console.log(`Notifica rimossa per campo: ${errorData.fieldId}`);
       }
-    } else {
-      // Se non c'è errore, non fare nulla (mantieni le notifiche esistenti)
-      console.log('Nessun errore da gestire');
     }
   }
 
@@ -96,9 +89,6 @@ export class Contatti {
         this.notifications.set([...currentNotifications, successNotification]);
         this.showMultipleNotifications = true;
         
-        console.log('Notifica di successo aggiunta:', successNotification);
-      } else {
-        console.log('Notifica di successo duplicata ignorata:', success);
       }
     }
   }

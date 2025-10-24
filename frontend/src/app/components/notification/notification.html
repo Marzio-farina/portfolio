@@ -24,13 +24,6 @@
       </div>
     }
     
-    <!-- Debug info -->
-    <div style="position: fixed; top: 10px; left: 10px; background: red; color: white; padding: 10px; z-index: 99999;">
-      <div>Collassate: {{ collapsedNotifications().length }}</div>
-      <div>Visibili: {{ visibleNotifications().length }}</div>
-      <div>Totali: {{ notifications().length }}</div>
-      <div>Hover: {{ isHoveringIcon() ? 'SI' : 'NO' }}</div>
-    </div>
     
     <!-- Icona unificata per l'errore più grave nell'angolo -->
     @if (collapsedNotifications().length > 0) {

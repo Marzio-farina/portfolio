@@ -395,12 +395,6 @@ export class Notification implements OnDestroy, AfterViewInit {
                     !collapsed.some(c => c.message === notification.message)
     );
     
-    console.log('Gestendo notifiche multiple:', {
-      total: currentNotifications.length,
-      visible: visible.length,
-      collapsed: collapsed.length,
-      new: newNotifications.length
-    });
     
     // Solo se ci sono nuove notifiche, aggiungile a quelle visibili
     if (newNotifications.length > 0) {
@@ -415,7 +409,6 @@ export class Notification implements OnDestroy, AfterViewInit {
     // Rimuovi notifiche che non sono più nell'array principale
     const toRemove = visible.filter(v => !currentNotifications.some(n => n.id === v.id));
     if (toRemove.length > 0) {
-      console.log('Rimuovendo notifiche non più valide:', toRemove.length);
       this.visibleNotifications.set(visible.filter(v => currentNotifications.some(n => n.id === v.id)));
       
       // Rimuovi anche dalle collassate
@@ -451,22 +444,12 @@ export class Notification implements OnDestroy, AfterViewInit {
   }
 
   private restoreNormalState() {
-    console.log('🔥 TIMER HOVER SCADUTO! Ripristinando stato normale');
-    
     // Resetta il flag di hover
     this.isHoveringIcon.set(false);
     
     // Ripristina lo stato normale: mostra solo le notifiche che dovrebbero essere visibili
     // e rimetti le altre nelle collassate
     const allNotifications = this.notifications();
-    const currentlyVisible = this.visibleNotifications();
-    const collapsed = this.collapsedNotifications();
-    
-    console.log('Stato prima del ripristino:', {
-      visible: currentlyVisible.length,
-      collapsed: collapsed.length,
-      total: allNotifications.length
-    });
     
     // Determina quali notifiche dovrebbero essere visibili (quelle con timer attivo)
     const shouldBeVisible: NotificationItem[] = [];
@@ -483,11 +466,6 @@ export class Notification implements OnDestroy, AfterViewInit {
     
     this.visibleNotifications.set(shouldBeVisible);
     this.collapsedNotifications.set(shouldBeCollapsed);
-    
-    console.log('Stato dopo ripristino:', {
-      visible: this.visibleNotifications().length,
-      collapsed: this.collapsedNotifications().length
-    });
   }
 
   private clearHoverTimer() {
@@ -500,18 +478,11 @@ export class Notification implements OnDestroy, AfterViewInit {
   private collapseNotification(notificationId: string) {
     // Non collassare se stiamo facendo hover sull'icona
     if (this.isHoveringIcon()) {
-      console.log('Hover attivo - non collassando notifica:', notificationId);
       return;
     }
     
     const visible = this.visibleNotifications();
     const notification = visible.find(n => n.id === notificationId);
-    
-    console.log('Collassando notifica:', notificationId, notification);
-    console.log('Stato prima del collasso:', {
-      visible: this.visibleNotifications().length,
-      collapsed: this.collapsedNotifications().length
-    });
     
     if (notification) {
       // Rimuovi dalle visibili
@@ -520,45 +491,20 @@ export class Notification implements OnDestroy, AfterViewInit {
       // Aggiungi alle collassate
       this.collapsedNotifications.set([...this.collapsedNotifications(), notification]);
       
-      console.log('Stato dopo il collasso:', {
-        visible: this.visibleNotifications().length,
-        collapsed: this.collapsedNotifications().length
-      });
-      
       // Cancella il timer
       this.clearNotificationTimer(notificationId);
-    } else {
-      console.log('ERRORE: Notifica non trovata per il collasso:', notificationId);
     }
   }
 
   expandAllNotifications() {
-    console.log('🔥 HOVER RILEVATO! Espandendo TUTTE le notifiche per 3 secondi');
-    
     // Imposta il flag di hover
     this.isHoveringIcon.set(true);
     
     // Mostra TUTTE le notifiche (sia visibili che collassate)
     const allNotifications = this.notifications();
-    const collapsed = this.collapsedNotifications();
-    const visible = this.visibleNotifications();
-    
-    console.log('Stato prima dell\'espansione:', {
-      total: allNotifications.length,
-      visible: visible.length,
-      collapsed: collapsed.length
-    });
     
     // Mostra tutte le notifiche
     this.visibleNotifications.set([...allNotifications]);
-    
-    // NON svuotare le collassate, le useremo per il mouse leave
-    // this.collapsedNotifications.set([]);
-    
-    console.log('Stato dopo l\'espansione:', {
-      visible: this.visibleNotifications().length,
-      collapsed: this.collapsedNotifications().length
-    });
     
     // Avvia il timer dell'hover (3 secondi) invece dei timer individuali
     this.startHoverTimer();
@@ -590,14 +536,10 @@ export class Notification implements OnDestroy, AfterViewInit {
 
   onCornerIconMouseLeave() {
     // Al mouse leave non succede nulla - il timer dell'hover gestisce tutto
-    console.log('🔥 MOUSE LEAVE RILEVATO! Nessuna azione - timer in corso');
   }
 
   onNotificationMouseEnter() {
     // Interrompe tutti i timer quando si fa hover sulle notifiche
-    console.log('🔥 HOVER SULLE NOTIFICHE! Interrompendo tutti i timer');
-    
-    // Interrompe il timer dell'hover sull'icona
     this.clearHoverTimer();
     
     // Interrompe tutti i timer delle notifiche individuali
@@ -612,8 +554,6 @@ export class Notification implements OnDestroy, AfterViewInit {
 
   onNotificationMouseLeave() {
     // Quando esci dalle notifiche, riavvia i timer per quelle che dovrebbero essere visibili
-    console.log('🔥 MOUSE LEAVE DALLE NOTIFICHE! Riavviando timer appropriati');
-    
     const visible = this.visibleNotifications();
     const allNotifications = this.notifications();
     
