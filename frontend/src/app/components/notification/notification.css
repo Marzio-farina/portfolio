@@ -1,0 +1,168 @@
+/* Sistema di notifiche riutilizzabile */
+.notification {
+  position: fixed;
+  top: 20px;
+  left: 50%;
+  right: 0%;
+  transform: translateX(-50%);
+  z-index: 9999;
+  pointer-events: auto;
+  cursor: pointer;
+  max-width: 50%;
+  width: auto;
+  min-width: fit-content;
+  height: 56px;
+  overflow: visible;
+  /* Le animazioni sono gestite da TypeScript */
+}
+
+/* Contenitore del messaggio */
+.notification__message-container {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  display: flex;
+  align-items: center;
+  justify-content: flex-start;
+  padding: 16px 20px;
+  background: var(--bg-card);
+  border: 1px solid var(--border-primary);
+  border-radius: 12px;
+  box-shadow: var(--shadow-3);
+  backdrop-filter: saturate(110%);
+  min-height: 56px;
+  z-index: 2;
+  /* Le animazioni sono gestite da TypeScript */
+}
+
+/* Contenitore dell'icona */
+.notification__icon-container {
+  position: absolute;
+  top: 0;
+  right: 0;
+  width: 60px;
+  height: 56px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: var(--bg-card);
+  border: 1px solid var(--border-primary);
+  border-radius: 12px;
+  box-shadow: var(--shadow-3);
+  backdrop-filter: saturate(110%);
+  z-index: 1;
+  opacity: 0;
+  /* Le animazioni sono gestite da TypeScript */
+}
+
+/* Icona separata per l'angolo (fuori dal contenitore padre) */
+.notification__corner-icon {
+  position: fixed !important;
+  right: 20px !important;
+  top: 20px !important;
+  width: 60px !important;
+  height: 56px !important;
+  z-index: 99999 !important;
+  display: flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  background: var(--bg-card) !important;
+  border: 1px solid var(--border-primary) !important;
+  border-radius: 12px !important;
+  box-shadow: var(--shadow-3) !important;
+  backdrop-filter: saturate(110%) !important;
+}
+
+/* Quando l'icona è posizionata nell'angolo */
+.notification__icon-container--corner {
+  display: none !important; /* Nasconde l'icona normale quando è nell'angolo */
+}
+
+/* Tipi di notifica */
+.notification--success .notification__message-container,
+.notification--success .notification__icon-container,
+.notification--success .notification__corner-icon {
+  border-color: #10b981;
+  background: rgba(16, 185, 129, 0.1);
+}
+
+.notification--error .notification__message-container,
+.notification--error .notification__icon-container,
+.notification--error .notification__corner-icon {
+  border-color: #ef4444;
+  background: rgba(239, 68, 68, 0.1);
+}
+
+.notification--warning .notification__message-container,
+.notification--warning .notification__icon-container,
+.notification--warning .notification__corner-icon {
+  border-color: #f59e0b;
+  background: rgba(245, 158, 11, 0.1);
+}
+
+.notification--info .notification__message-container,
+.notification--info .notification__icon-container,
+.notification--info .notification__corner-icon {
+  border-color: #3b82f6;
+  background: rgba(59, 130, 246, 0.1);
+}
+
+/* Icona */
+.notification__icon {
+  width: 20px;
+  height: 20px;
+  flex-shrink: 0;
+  display: block;
+  /* Le animazioni sono gestite da TypeScript */
+}
+
+.notification--success .notification__icon {
+  color: #10b981;
+}
+
+.notification--error .notification__icon {
+  color: #ef4444;
+}
+
+.notification--warning .notification__icon {
+  color: #f59e0b;
+}
+
+.notification--info .notification__icon {
+  color: #3b82f6;
+}
+
+/* Colori delle icone nell'angolo */
+.notification--success .notification__corner-icon .notification__icon {
+  color: #10b981;
+}
+
+.notification--error .notification__corner-icon .notification__icon {
+  color: #ef4444;
+}
+
+.notification--warning .notification__corner-icon .notification__icon {
+  color: #f59e0b;
+}
+
+.notification--info .notification__corner-icon .notification__icon {
+  color: #3b82f6;
+}
+
+/* Messaggio */
+.notification__message {
+  color: var(--text-primary);
+  font-weight: 500;
+  font-size: 0.9rem;
+  line-height: 1.4;
+  white-space: nowrap;
+  overflow: hidden;
+  flex: 1;
+  /* Le animazioni sono gestite da TypeScript */
+}
+
+
+/* Le animazioni sono completamente gestite da TypeScript */
+

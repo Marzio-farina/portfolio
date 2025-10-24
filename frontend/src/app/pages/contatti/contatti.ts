@@ -4,12 +4,14 @@ import { ActivatedRoute } from '@angular/router';
 import { map } from 'rxjs';
 import { Maps } from '../../components/maps/maps';
 import { ContactForm } from '../../components/contact-form/contact-form';
+import { Notification } from '../../components/notification/notification';
 
 @Component({
   selector: 'app-contatti',
   imports: [
     Maps,
-    ContactForm
+    ContactForm,
+    Notification
   ],
   templateUrl: './contatti.html',
   styleUrl: './contatti.css'
@@ -19,14 +21,17 @@ export class Contatti {
   title = toSignal(this.route.data.pipe(map(d => d['title'] as string)), { initialValue: '' });
   
   // Gestione notifiche
-  errorMessage = () => this.currentError;
-  private currentError?: string;
+  showNotification = false;
+  notificationMessage = '';
+  notificationType: 'success' | 'error' | 'warning' | 'info' = 'error';
 
   onErrorChange(error: string | undefined) {
-    this.currentError = error;
-  }
-
-  clearError() {
-    this.currentError = undefined;
+    if (error) {
+      this.notificationMessage = error;
+      this.notificationType = 'error';
+      this.showNotification = true;
+    } else {
+      this.showNotification = false;
+    }
   }
 }
