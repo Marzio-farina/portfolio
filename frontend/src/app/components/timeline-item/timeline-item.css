@@ -16,6 +16,7 @@
     position: relative;
     min-height: 1.2em; /* Riserva spazio minimo per prevenire layout shift */
     overflow: hidden; /* Previene overflow durante typewriter */
+    padding-left: 8px; /* Spazio aggiuntivo a sinistra */
 }
 
 .tli__desc  {
@@ -27,6 +28,13 @@
     position: relative;
     min-height: 1.6em; /* Riserva spazio minimo per prevenire layout shift */
     overflow: hidden; /* Previene overflow durante typewriter */
+    padding-left: 8px; /* Spazio aggiuntivo a sinistra */
+    word-wrap: break-word !important; /* Permette di spezzare parole lunghe */
+    overflow-wrap: break-word !important; /* Standard moderno per word-wrap */
+    hyphens: none !important; /* Disabilita i trattini automatici */
+    word-break: break-word !important; /* Spezza le parole se necessario */
+    -webkit-hyphens: none !important; /* Disabilita trattini su WebKit */
+    -moz-hyphens: none !important; /* Disabilita trattini su Firefox */
 }
 
 /* Cursore lampeggiante per effetto typewriter */
