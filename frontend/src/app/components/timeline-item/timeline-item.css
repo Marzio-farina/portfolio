@@ -4,6 +4,8 @@
     color: var(--text-primary);
     transition: color var(--transition-1);
     position: relative;
+    min-height: 1.2em; /* Riserva spazio minimo per prevenire layout shift */
+    overflow: hidden; /* Previene overflow durante typewriter */
 }
 
 .tli__years {
@@ -12,6 +14,8 @@
     font-weight: 500;
     transition: color var(--transition-1);
     position: relative;
+    min-height: 1.2em; /* Riserva spazio minimo per prevenire layout shift */
+    overflow: hidden; /* Previene overflow durante typewriter */
 }
 
 .tli__desc  {
@@ -21,6 +25,8 @@
     white-space: pre-line;
     transition: color var(--transition-1);
     position: relative;
+    min-height: 1.6em; /* Riserva spazio minimo per prevenire layout shift */
+    overflow: hidden; /* Previene overflow durante typewriter */
 }
 
 /* Cursore lampeggiante per effetto typewriter */
@@ -32,6 +38,8 @@
   animation: blink 1s infinite;
   font-weight: bold;
   margin-left: 2px;
+  width: 1ch; /* Spazio fisso per cursore per prevenire layout shift */
+  display: inline-block; /* Mantiene spazio riservato */
 }
 
 /* Nascondi cursore quando non si sta scrivendo */

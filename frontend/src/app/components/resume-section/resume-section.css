@@ -60,7 +60,7 @@
 }
 
 .section__panel.is-open {
-  max-height: none;
+  max-height: 2000px; /* Valore fisso invece di 'none' per prevenire layout shift */
 }
 
 .timeline {
