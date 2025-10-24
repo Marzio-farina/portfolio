@@ -58,7 +58,7 @@
     box-sizing: border-box;
 }
 
-.field.textarea {
+.field--textarea {
   margin-top: 16px;
   padding: 14px;
 }
@@ -122,10 +122,35 @@
   color: var(--error-color);
 }
 
-/* arrotondamenti della “card mappa” simili allo screenshot (se la sezione è in un box) */
+/* Layout per checkbox del consenso */
+.field.consent {
+  display: flex;
+  align-items: flex-start;
+  gap: 12px;
+  background: transparent;
+  border: none;
+  padding: 0;
+  margin-top: 24px;
+}
+
+.field.consent input[type="checkbox"] {
+  width: auto;
+  margin: 0;
+  flex-shrink: 0;
+  margin-top: 2px;
+}
+
+.field.consent span {
+  color: var(--text-secondary);
+  font-size: 0.9rem;
+  line-height: 1.4;
+}
+
+
+/* arrotondamenti della "card mappa" simili allo screenshot (se la sezione è in un box) */
 .contact,
 .form,
-.field,
+.field:not(.consent),
 .btn {
     backdrop-filter: saturate(110%);
 }
