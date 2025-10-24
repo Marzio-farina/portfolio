@@ -38,6 +38,8 @@ export class WhatIDoCard implements AfterViewInit, OnDestroy {
   private targetRotateX = 0;
   private targetRotateY = 0;
   private isAnimating = false;
+  private lastMouseMoveTime = 0;
+  private mouseMoveThrottle = 16; // ~60fps
 
   constructor(private elementRef: ElementRef) {}
 
@@ -62,6 +64,11 @@ export class WhatIDoCard implements AfterViewInit, OnDestroy {
     this.mouseMoveListener = (event: MouseEvent) => {
       if (!this.cardElement || !this.isMouseInside) return;
 
+      // Throttling per evitare troppi calcoli
+      const now = performance.now();
+      if (now - this.lastMouseMoveTime < this.mouseMoveThrottle) return;
+      this.lastMouseMoveTime = now;
+
       const rect = this.cardElement.getBoundingClientRect();
       const centerX = rect.left + rect.width / 2;
       const centerY = rect.top + rect.height / 2;
@@ -71,9 +78,19 @@ export class WhatIDoCard implements AfterViewInit, OnDestroy {
       
       // Calcola l'angolo di rotazione basato sulla posizione del mouse
       // Limita la rotazione per un effetto più sottile e controllato
-      const maxRotation = 15; // Massimo 15 gradi di rotazione
-      this.targetRotateX = Math.max(-maxRotation, Math.min(maxRotation, (mouseY / rect.height) * -maxRotation));
-      this.targetRotateY = Math.max(-maxRotation, Math.min(maxRotation, (mouseX / rect.width) * maxRotation));
+      const maxRotation = 8; // Ridotto da 15 a 8 gradi per maggiore stabilità
+      const sensitivity = 0.5; // Ridotta sensibilità per movimenti più fluidi
+      
+      // Applica una curva di easing per movimenti più naturali
+      const normalizedX = mouseX / (rect.width / 2);
+      const normalizedY = mouseY / (rect.height / 2);
+      
+      // Usa una funzione di easing per movimenti più fluidi
+      const easeX = Math.sign(normalizedX) * Math.pow(Math.abs(normalizedX), 0.7);
+      const easeY = Math.sign(normalizedY) * Math.pow(Math.abs(normalizedY), 0.7);
+      
+      this.targetRotateX = Math.max(-maxRotation, Math.min(maxRotation, easeY * -maxRotation * sensitivity));
+      this.targetRotateY = Math.max(-maxRotation, Math.min(maxRotation, easeX * maxRotation * sensitivity));
       
       this.animateToTarget();
     };
@@ -100,21 +117,22 @@ export class WhatIDoCard implements AfterViewInit, OnDestroy {
 
     this.isAnimating = true;
     const startTime = performance.now();
-    const duration = this.isMouseInside ? 100 : 300; // Più veloce quando il mouse è dentro
+    const duration = this.isMouseInside ? 150 : 400; // Aumentata durata per maggiore stabilità
 
     const animate = (currentTime: number) => {
       const elapsed = currentTime - startTime;
       const progress = Math.min(elapsed / duration, 1);
       
-      // Easing function per transizione smooth
-      const easeOut = 1 - Math.pow(1 - progress, 3);
+      // Easing function più smooth per transizioni più naturali
+      const easeOut = 1 - Math.pow(1 - progress, 2.5);
       
-      // Interpola tra la posizione corrente e quella target
-      this.currentRotateX = this.currentRotateX + (this.targetRotateX - this.currentRotateX) * easeOut;
-      this.currentRotateY = this.currentRotateY + (this.targetRotateY - this.currentRotateY) * easeOut;
+      // Interpola tra la posizione corrente e quella target con smoothing
+      const smoothing = 0.15; // Fattore di smoothing per ridurre i tremori
+      this.currentRotateX = this.currentRotateX + (this.targetRotateX - this.currentRotateX) * easeOut * smoothing;
+      this.currentRotateY = this.currentRotateY + (this.targetRotateY - this.currentRotateY) * easeOut * smoothing;
       
-      // Applica la trasformazione
-      this.cardElement!.style.transform = `perspective(1000px) rotateX(${this.currentRotateX}deg) rotateY(${this.currentRotateY}deg) translateZ(10px)`;
+      // Applica la trasformazione con smoothing aggiuntivo
+      this.cardElement!.style.transform = `perspective(1000px) rotateX(${this.currentRotateX}deg) rotateY(${this.currentRotateY}deg) translateZ(8px)`;
       
       if (progress < 1) {
         this.animationFrameId = requestAnimationFrame(animate);
