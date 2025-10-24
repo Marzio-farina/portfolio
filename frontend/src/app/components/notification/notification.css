@@ -12,7 +12,14 @@
   min-width: fit-content;
   height: 30px;
   overflow: visible;
+  transition: all 0.3s ease;
   /* Le animazioni sono gestite da TypeScript */
+}
+
+/* Effetto hover per notifica singola */
+.notification:hover {
+  transform: translateX(-50%) scale(1.02);
+  box-shadow: 0 4px 20px rgba(0,0,0,0.15);
 }
 
 /* Contenitore del messaggio */
@@ -239,6 +246,25 @@
   margin-bottom: -7.5px !important; /* 25% di 30px = 7.5px sovrapposizione */
 }
 
+/* Effetto hover per distanziare le notifiche */
+.notification-stack:hover .notification-multiple {
+  margin-bottom: 10px !important; /* Distanza normale tra le notifiche */
+  transform: translateX(-50%) scale(1.02) !important; /* Leggero ingrandimento */
+  box-shadow: 0 4px 20px rgba(0,0,0,0.15) !important; /* Ombra più pronunciata */
+}
+
+/* Calcolo dinamico della posizione durante hover */
+.notification-stack:hover .notification-multiple:nth-child(1) { top: 20px !important; }
+.notification-stack:hover .notification-multiple:nth-child(2) { top: 60px !important; }
+.notification-stack:hover .notification-multiple:nth-child(3) { top: 100px !important; }
+.notification-stack:hover .notification-multiple:nth-child(4) { top: 140px !important; }
+.notification-stack:hover .notification-multiple:nth-child(5) { top: 180px !important; }
+.notification-stack:hover .notification-multiple:nth-child(6) { top: 220px !important; }
+.notification-stack:hover .notification-multiple:nth-child(7) { top: 260px !important; }
+.notification-stack:hover .notification-multiple:nth-child(8) { top: 300px !important; }
+.notification-stack:hover .notification-multiple:nth-child(9) { top: 340px !important; }
+.notification-stack:hover .notification-multiple:nth-child(10) { top: 380px !important; }
+
 /* Contenitore del messaggio per notifiche multiple */
 .notification-multiple__message-container {
   position: absolute;
@@ -311,27 +337,6 @@
 }
 
 
-/* Barra di progresso per countdown */
-.notification-multiple__progress-bar {
-  position: absolute;
-  bottom: 0;
-  left: 0;
-  height: 3px;
-  background: var(--accent-color, #f59e0b);
-  border-radius: 0 0 12px 12px;
-  width: 100%;
-  animation: countdown 1.5s linear forwards;
-  z-index: 4;
-}
-
-@keyframes countdown {
-  from {
-    width: 100%;
-  }
-  to {
-    width: 0%;
-  }
-}
 
 /* Icona nell'angolo per notifiche multiple */
 .notification-multiple__corner-icon {

@@ -593,4 +593,36 @@ export class Notification implements OnDestroy, AfterViewInit {
     console.log('🔥 MOUSE LEAVE RILEVATO! Nessuna azione - timer in corso');
   }
 
+  onNotificationMouseEnter() {
+    // Interrompe tutti i timer quando si fa hover sulle notifiche
+    console.log('🔥 HOVER SULLE NOTIFICHE! Interrompendo tutti i timer');
+    
+    // Interrompe il timer dell'hover sull'icona
+    this.clearHoverTimer();
+    
+    // Interrompe tutti i timer delle notifiche individuali
+    this.notificationTimers.forEach((timer, notificationId) => {
+      clearTimeout(timer);
+      this.notificationTimers.delete(notificationId);
+    });
+    
+    // Resetta il flag di hover sull'icona
+    this.isHoveringIcon.set(false);
+  }
+
+  onNotificationMouseLeave() {
+    // Quando esci dalle notifiche, riavvia i timer per quelle che dovrebbero essere visibili
+    console.log('🔥 MOUSE LEAVE DALLE NOTIFICHE! Riavviando timer appropriati');
+    
+    const visible = this.visibleNotifications();
+    const allNotifications = this.notifications();
+    
+    // Riavvia i timer solo per le notifiche che sono ancora nell'array principale
+    visible.forEach(notification => {
+      if (allNotifications.some(n => n.id === notification.id)) {
+        this.startNotificationTimer(notification.id);
+      }
+    });
+  }
+
 }

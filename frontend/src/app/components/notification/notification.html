@@ -13,15 +13,14 @@
       <div class="notification-multiple" 
            [class]="'notification-multiple--' + notification.type"
            [style.top.px]="20 + (i * 22.5)"
-           [style.z-index]="10000 - i">
+           [style.z-index]="10000 - i"
+           (mouseenter)="onNotificationMouseEnter()"
+           (mouseleave)="onNotificationMouseLeave()">
         
         <!-- Messaggio -->
         <div class="notification-multiple__message-container">
           <span class="notification-multiple__message">{{ notification.message }}</span>
         </div>
-        
-        <!-- Barra di progresso per countdown -->
-        <div class="notification-multiple__progress-bar"></div>
       </div>
     }
     
@@ -56,7 +55,9 @@
 @if (show() && !showMultiple()) {
   <!-- Contenitore principale -->
   <div #notificationElement class="notification" 
-       [class]="'notification--' + type()">
+       [class]="'notification--' + type()"
+       (mouseenter)="onNotificationMouseEnter()"
+       (mouseleave)="onNotificationMouseLeave()">
     
     <!-- Messaggio (si muove e scompare) -->
     <div #messageContainer class="notification__message-container">
