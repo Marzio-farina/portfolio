@@ -1,4 +1,4 @@
-/* Sistema di notifiche riutilizzabile */
+/* Sistema notifiche */
 .notification {
   position: fixed;
   top: 20px;
@@ -13,10 +13,8 @@
   height: 30px;
   overflow: visible;
   transition: all 0.3s ease;
-  /* Le animazioni sono gestite da TypeScript */
 }
 
-/* Effetto hover per notifica singola */
 .notification:hover {
   transform: translateX(-50%) scale(1.02);
   box-shadow: 0 4px 20px rgba(0,0,0,0.15);
@@ -102,7 +100,7 @@
   display: none !important; /* Nasconde l'icona normale quando è nell'angolo */
 }
 
-/* Tipi di notifica */
+/* Tipi notifica */
 .notification--success .notification__message-container,
 .notification--success .notification__icon-container {
   border-color: #10b981;
@@ -196,9 +194,7 @@
 
 /* Le animazioni sono completamente gestite da TypeScript */
 
-/* ===== NOTIFICHE MULTIPLE ===== */
-
-/* Stack di notifiche multiple */
+/* NOTIFICHE MULTIPLE */
 .notification-stack {
   position: fixed;
   top: 0;
@@ -211,7 +207,6 @@
   max-height: 100vh;
 }
 
-/* Contatore notifiche */
 .notification-counter {
   position: fixed;
   top: 10px;
@@ -227,7 +222,6 @@
   box-shadow: 0 2px 8px rgba(0,0,0,0.15);
 }
 
-/* Notifiche multiple - contenitori individuali */
 .notification-multiple {
   position: fixed !important;
   left: 50% !important;
@@ -243,17 +237,15 @@
   display: block !important;
   visibility: visible !important;
   opacity: 1 !important;
-  margin-bottom: -7.5px !important; /* 25% di 30px = 7.5px sovrapposizione */
+  margin-bottom: -7.5px !important;
 }
 
-/* Effetto hover per distanziare le notifiche */
 .notification-stack:hover .notification-multiple {
-  margin-bottom: 10px !important; /* Distanza normale tra le notifiche */
-  transform: translateX(-50%) scale(1.02) !important; /* Leggero ingrandimento */
-  box-shadow: 0 4px 20px rgba(0,0,0,0.15) !important; /* Ombra più pronunciata */
+  margin-bottom: 10px !important;
+  transform: translateX(-50%) scale(1.02) !important;
+  box-shadow: 0 4px 20px rgba(0,0,0,0.15) !important;
 }
 
-/* Calcolo dinamico della posizione durante hover */
 .notification-stack:hover .notification-multiple:nth-child(1) { top: 20px !important; }
 .notification-stack:hover .notification-multiple:nth-child(2) { top: 60px !important; }
 .notification-stack:hover .notification-multiple:nth-child(3) { top: 100px !important; }
@@ -371,7 +363,7 @@
   display: block;
 }
 
-/* Tipi di notifica per notifiche multiple */
+/* Tipi notifica multiple */
 .notification-multiple--success .notification-multiple__message-container {
   border: 2px solid #6b7280 !important;
   background: rgb(16, 185, 129) !important;
@@ -400,24 +392,13 @@
   opacity: 1 !important;
 }
 
-/* Colori delle icone per notifiche multiple */
-.notification-multiple--success .notification-multiple__icon {
-  color: #10b981;
-}
+/* Colori icone multiple */
+.notification-multiple--success .notification-multiple__icon { color: #10b981; }
+.notification-multiple--error .notification-multiple__icon { color: #ef4444; }
+.notification-multiple--warning .notification-multiple__icon { color: #f59e0b; }
+.notification-multiple--info .notification-multiple__icon { color: #3b82f6; }
 
-.notification-multiple--error .notification-multiple__icon {
-  color: #ef4444;
-}
-
-.notification-multiple--warning .notification-multiple__icon {
-  color: #f59e0b;
-}
-
-.notification-multiple--info .notification-multiple__icon {
-  color: #3b82f6;
-}
-
-/* Forza la visibilità del testo per tutti i tipi */
+/* Visibilità testo */
 .notification-multiple--success .notification-multiple__message,
 .notification-multiple--error .notification-multiple__message,
 .notification-multiple--warning .notification-multiple__message,
