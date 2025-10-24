@@ -187,10 +187,6 @@
 }
 
 
-/* Le animazioni sono completamente gestite da TypeScript */
-
-/* ===== NOTIFICHE MULTIPLE ===== */
-
 /* Stack di notifiche multiple */
 .notification-stack {
   position: fixed;
@@ -212,7 +208,7 @@
   max-width: 50% !important;
   width: auto !important;
   min-width: 200px !important;
-  height: 30px !important;
+  height: 50px !important;
   overflow: visible !important;
   transition: all 0.3s ease !important;
   display: block !important;
@@ -237,8 +233,8 @@
   border: 1px solid var(--border-primary);
   border-radius: 12px;
   box-shadow: var(--shadow-3);
-  min-height: 38px;
-  height: 30px;
+  min-height: 48px;
+  height: 50px;
   width: 100% !important;
   min-width: 200px !important;
   max-width: 100% !important;
@@ -292,16 +288,6 @@
   z-index: 3;
 }
 
-.notification-multiple__close:hover {
-  background: rgba(0, 0, 0, 0.1);
-  color: var(--text-primary);
-}
-
-.notification-multiple__close svg {
-  width: 16px;
-  height: 16px;
-}
-
 /* Barra di progresso per countdown */
 .notification-multiple__progress-bar {
   position: absolute;
@@ -324,12 +310,22 @@
   }
 }
 
-/* Icona nell'angolo per notifiche multiple */
+.notification-multiple__close:hover {
+  background: rgba(0, 0, 0, 0.1);
+  color: var(--text-primary);
+}
+
+.notification-multiple__close svg {
+  width: 16px;
+  height: 16px;
+}
+
+/* Icone multiple nell'angolo */
 .notification-multiple__corner-icon {
   position: fixed !important;
   right: 20px !important;
-  width: 50px !important;
-  height: 50px !important;
+  width: 45px !important;
+  height: 45px !important;
   z-index: 99999 !important;
   display: flex !important;
   align-items: center !important;
@@ -341,6 +337,86 @@
   backdrop-filter: blur(10px) !important;
   transition: all 0.3s ease !important;
   cursor: pointer !important;
+}
+
+/* Icona unificata */
+.notification-multiple__corner-icon--unified {
+  width: 50px !important;
+  height: 50px !important;
+}
+
+/* Icona composita per multiple notifiche */
+.notification-multiple__composite-icon {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: center;
+  width: 100%;
+  height: 100%;
+  gap: 2px;
+}
+
+/* Mini icone nella composita */
+.notification-multiple__mini-icon {
+  width: 12px;
+  height: 12px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 50%;
+  background: rgba(255, 255, 255, 0.2);
+}
+
+.notification-multiple__mini-icon svg {
+  width: 8px;
+  height: 8px;
+}
+
+/* Indicatore per notifiche aggiuntive */
+.notification-multiple__more-indicator {
+  width: 12px;
+  height: 12px;
+  background: var(--accent-color, #f59e0b);
+  color: white;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 8px;
+  font-weight: bold;
+}
+
+/* Colori per mini icone */
+.notification-multiple--success .notification-multiple__mini-icon {
+  background: rgba(16, 185, 129, 0.3);
+}
+
+.notification-multiple--error .notification-multiple__mini-icon {
+  background: rgba(239, 68, 68, 0.3);
+}
+
+.notification-multiple--warning .notification-multiple__mini-icon {
+  background: rgba(245, 158, 11, 0.3);
+}
+
+.notification-multiple--info .notification-multiple__mini-icon {
+  background: rgba(59, 130, 246, 0.3);
+}
+
+.notification-multiple--success .notification-multiple__mini-icon svg {
+  color: #10b981;
+}
+
+.notification-multiple--error .notification-multiple__mini-icon svg {
+  color: #ef4444;
+}
+
+.notification-multiple--warning .notification-multiple__mini-icon svg {
+  color: #f59e0b;
+}
+
+.notification-multiple--info .notification-multiple__mini-icon svg {
+  color: #3b82f6;
 }
 
 .notification-multiple__corner-icon:hover {
@@ -413,4 +489,6 @@
   display: block !important;
   z-index: 3 !important;
 }
+
+/* Le animazioni sono completamente gestite da TypeScript */
 

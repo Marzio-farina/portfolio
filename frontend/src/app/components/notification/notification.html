@@ -1,4 +1,48 @@
-@if (show()) {
+<!-- Notifiche multiple -->
+@if (showMultiple()) {
+  <div class="notification-stack">
+    <!-- Notifiche visibili (massimo 3 per ora) -->
+    @for (notification of notifications().slice(0, 3); track notification.id; let i = $index) {
+      <div class="notification-multiple" 
+           [class]="'notification-multiple--' + notification.type"
+           [style.top.px]="20 + (i * 60)"
+           [style.z-index]="10000 - i">
+        
+        <!-- Messaggio -->
+        <div class="notification-multiple__message-container">
+          <span class="notification-multiple__message">{{ notification.message }}</span>
+          <button class="notification-multiple__close" 
+                  (click)="removeNotification(notification.id)"
+                  aria-label="Chiudi notifica">
+            <svg viewBox="0 0 24 24" fill="currentColor">
+              <path d="M19 6.41L17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12z"/>
+            </svg>
+          </button>
+        </div>
+        
+        <!-- Barra di progresso per countdown -->
+        <div class="notification-multiple__progress-bar"></div>
+      </div>
+    }
+    
+    <!-- Icona unificata per l'errore più grave nell'angolo -->
+    @if (mostSevereNotification()) {
+      <div class="notification-multiple__corner-icon" 
+           [class]="'notification-multiple--' + mostSevereNotification()!.type"
+           [style.top.px]="20"
+           (mouseenter)="expandAllNotifications()"
+           (mouseleave)="onCornerIconMouseLeave()">
+        
+        <svg class="notification-multiple__icon" viewBox="0 0 24 24" fill="currentColor">
+          <path [attr.d]="getNotificationIconPath(mostSevereNotification()!.type)"/>
+        </svg>
+      </div>
+    }
+  </div>
+}
+
+<!-- Notifica singola (compatibilità) -->
+@if (show() && !showMultiple()) {
   <!-- Contenitore principale -->
   <div #notificationElement class="notification" 
        [class]="'notification--' + type()">

@@ -1,9 +1,12 @@
-<!-- Sistema di notifiche multiple -->
+<!-- Sistema di notifiche unificato -->
 <app-notification 
+  [message]="notificationMessage"
+  [type]="notificationType"
+  [show]="showNotification"
   [notifications]="notifications()"
-  [showMultiple]="showMultipleNotifications"
-  [mostSevereNotification]="getMostSevereNotification()">
+  [showMultiple]="showMultipleNotifications">
 </app-notification>
+
 
 <h2 class="article-title">{{ title() }}</h2>
 <app-maps/>

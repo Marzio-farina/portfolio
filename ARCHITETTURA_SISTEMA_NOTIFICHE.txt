@@ -1,0 +1,148 @@
+┌─────────────────────────────────────────────────────────────────────────────────┐
+│                           SISTEMA DI NOTIFICHE                                 │
+│                              Architettura                                      │
+└─────────────────────────────────────────────────────────────────────────────────┘
+
+┌─────────────────┐    errorChange     ┌─────────────────┐    [message, type, show]    ┌─────────────────┐
+│   ContactForm   │ ──────────────────► │    Contatti     │ ──────────────────────────► │   Notification  │
+│                 │                     │                 │                             │                 │
+│ ┌─────────────┐ │                     │ ┌─────────────┐ │                             │ ┌─────────────┐ │
+│ │ Validazione │ │                     │ │ Gestione    │ │                             │ │ Visualizza- │ │
+│ │ - Required  │ │                     │ │ Stato       │ │                             │ │ zione       │ │
+│ │ - MinLength │ │                     │ │ - show      │ │                             │ │ - Messaggio │ │
+│ │ - Email     │ │                     │ │ - message   │ │                             │ │ - Icona     │ │
+│ │ - Consent   │ │                     │ │ - type      │ │                             │ │ - Animazioni│ │
+│ └─────────────┘ │                     │ └─────────────┘ │                             │ └─────────────┘ │
+│                 │                     │                 │                             │                 │
+│ ┌─────────────┐ │                     │ ┌─────────────┐ │                             │ ┌─────────────┐ │
+│ │ Submit      │ │                     │ │ onErrorChange│ │                             │ │ Auto-Collapse│ │
+│ │ - Validation│ │                     │ │ - Gestisce  │ │                             │ │ - Timer 1.5s│ │
+│ │ - API Call  │ │                     │ │   eventi    │ │                             │ │ - Collassa  │ │
+│ │ - Error     │ │                     │ │ - Aggiorna  │ │                             │ │ - Icona angolo│
+│ └─────────────┘ │                     │ │   stato     │ │                             │ └─────────────┘ │
+└─────────────────┘                     │ └─────────────┘ │                             │                 │
+                                       └─────────────────┘                             │ ┌─────────────┐ │
+                                                                                       │ │ Hover       │ │
+                                                                                       │ │ - Espandi   │ │
+                                                                                       │ │ - Riavvia   │ │
+                                                                                       │ │   timer     │ │
+                                                                                       │ └─────────────┘ │
+                                                                                       └─────────────────┘
+
+┌─────────────────────────────────────────────────────────────────────────────────┐
+│                              FLUSSO DI DATI                                    │
+└─────────────────────────────────────────────────────────────────────────────────┘
+
+1. UTENTE INTERAGISCE CON FORM
+   │
+   ▼
+2. CONTACTFORM VALIDA CAMPO
+   │
+   ▼
+3. SE INVALIDO → showFieldError()
+   │
+   ▼
+4. errorChange.emit(errorMessage)
+   │
+   ▼
+5. CONTATTI.onErrorChange()
+   │
+   ▼
+6. Aggiorna stato: showNotification = true
+   │
+   ▼
+7. NOTIFICATION riceve [message, type, show]
+   │
+   ▼
+8. Mostra notifica → Timer 1.5s → Collassa → Icona angolo
+
+┌─────────────────────────────────────────────────────────────────────────────────┐
+│                              TIPI DI NOTIFICA                                  │
+└─────────────────────────────────────────────────────────────────────────────────┘
+
+┌─────────────┐  ┌─────────────┐  ┌─────────────┐  ┌─────────────┐
+│   SUCCESS   │  │    ERROR    │  │   WARNING   │  │     INFO    │
+│             │  │             │  │             │  │             │
+│   Verde     │  │    Rosso    │  │  Arancione  │  │     Blu     │
+│ #10b981     │  │  #ef4444    │  │  #f59e0b    │  │  #3b82f6    │
+│             │  │             │  │             │  │             │
+│     ✓       │  │      ✕      │  │      ⚠      │  │      ℹ      │
+└─────────────┘  └─────────────┘  └─────────────┘  └─────────────┘
+
+┌─────────────────────────────────────────────────────────────────────────────────┐
+│                              STATI DELLA NOTIFICA                              │
+└─────────────────────────────────────────────────────────────────────────────────┘
+
+VISIBILE ──────────► COLLASSATA ──────────► ICONA ANGOLO
+   │                     │                      │
+   │                     │                      │
+   ▼                     ▼                      ▼
+┌─────────┐           ┌─────────┐            ┌─────────┐
+│ Messaggio│           │  Vuoto  │            │  Icona  │
+│ + Icona  │           │         │            │  Piccola│
+│         │           │         │            │         │
+└─────────┘           └─────────┘            └─────────┘
+   │                     │                      │
+   │                     │                      │
+   │ Timer 1.5s          │                      │
+   │                     │                      │
+   └─────────────────────┼──────────────────────┘
+                         │
+                         │ Hover
+                         │
+                         ▼
+                   ┌─────────┐
+                   │ Espandi │
+                   │ + Timer │
+                   │         │
+                   └─────────┘
+
+┌─────────────────────────────────────────────────────────────────────────────────┐
+│                              VALIDAZIONI FORM                                  │
+└─────────────────────────────────────────────────────────────────────────────────┘
+
+┌─────────────┐  ┌─────────────┐  ┌─────────────┐  ┌─────────────┐  ┌─────────────┐
+│    NOME     │  │   COGNOME   │  │    EMAIL    │  │  MESSAGGIO  │  │   CONSENSO  │
+│             │  │             │  │             │  │             │  │             │
+│ Required    │  │ Required    │  │ Required    │  │ Required    │  │ RequiredTrue│
+│ MinLength(2)│  │ MinLength(2)│  │ Email       │  │ MinLength(10)│  │             │
+│             │  │             │  │             │  │             │  │             │
+│ "Il nome è  │  │ "Il cognome │  │ "L'email è  │  │ "Il messaggio│  │ "Devi       │
+│ obbligatorio"│  │ è obbligatorio"│  │ obbligatoria"│  │ è obbligatorio"│  │ acconsentire│
+│             │  │             │  │             │  │             │  │ al trattamento│
+│ "Il nome    │  │ "Il cognome │  │ "Inserisci  │  │ "Il messaggio│  │ dei dati"   │
+│ deve contenere│  │ deve contenere│  │ una email  │  │ deve contenere│  │             │
+│ almeno 2    │  │ almeno 2    │  │ valida"     │  │ almeno 10   │  │             │
+│ caratteri"  │  │ caratteri"  │  │             │  │ caratteri"  │  │             │
+└─────────────┘  └─────────────┘  └─────────────┘  └─────────────┘  └─────────────┘
+
+┌─────────────────────────────────────────────────────────────────────────────────┐
+│                              ANIMAZIONI                                        │
+└─────────────────────────────────────────────────────────────────────────────────┘
+
+MOSTRA:     Fade In + Slide Down
+COLLASSA:   Slide Up + Fade Out  
+ICONA:      Scale + Fade In
+HOVER:      Scale Up + Shadow
+ESPANDI:    Slide Down + Fade In
+
+┌─────────────────────────────────────────────────────────────────────────────────┐
+│                              RESPONSABILITÀ                                    │
+└─────────────────────────────────────────────────────────────────────────────────┘
+
+CONTACTFORM:
+- Validazione campi
+- Gestione errori
+- Submit form
+- Emit eventi
+
+CONTATTI:
+- Coordinamento
+- Gestione stato
+- Bridge tra form e notifiche
+
+NOTIFICATION:
+- Visualizzazione
+- Animazioni
+- Auto-collapse
+- Hover effects

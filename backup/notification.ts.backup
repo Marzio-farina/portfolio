@@ -8,7 +8,6 @@ export interface NotificationItem {
   message: string;
   type: NotificationType;
   timestamp: number;
-  fieldId: string;
 }
 
 @Component({
@@ -18,7 +17,7 @@ export interface NotificationItem {
   styleUrl: './notification.css'
 })
 export class Notification implements OnDestroy, AfterViewInit {
-  // Inputs per notifiche singole (compatibilità)
+  // Inputs unificati
   message = input<string>('');
   type = input<NotificationType>('info');
   show = input<boolean>(false);
@@ -28,10 +27,14 @@ export class Notification implements OnDestroy, AfterViewInit {
   // Inputs per notifiche multiple
   notifications = input<NotificationItem[]>([]);
   showMultiple = input<boolean>(false);
-  mostSevereNotification = input<NotificationItem | null>(null);
 
-
-  // State
+  // State unificato
+  allNotifications = signal<NotificationItem[]>([]);
+  visibleNotifications = signal<NotificationItem[]>([]);
+  collapsedNotifications = signal<NotificationItem[]>([]);
+  private notificationTimers = new Map<string, number>();
+  
+  // State per compatibilità con notifiche singole
   isCollapsed = signal(false);
   isIconInCorner = signal(false);
   private collapseTimer?: number;
@@ -49,13 +52,28 @@ export class Notification implements OnDestroy, AfterViewInit {
   private isHovering = false;
 
   constructor() {
-    // Effect per gestire l'auto-collapse
+    // Effect per notifiche singole
     effect(() => {
-      if (this.show() && this.autoCollapse()) {
-        this.startCollapseTimer();
-      } else {
-        this.clearCollapseTimer();
+      if (this.show() && !this.showMultiple()) {
+        this.handleSingleNotification();
+      } else if (!this.show() && !this.showMultiple()) {
+        this.clearAllNotifications();
       }
+      // Se showMultiple() è true, non fare nulla qui
+    });
+
+    // Effect per notifiche multiple
+    effect(() => {
+      if (this.showMultiple()) {
+        // Usa setTimeout per evitare loop infiniti
+        setTimeout(() => {
+          this.handleMultipleNotifications();
+        }, 0);
+      } else if (!this.showMultiple() && !this.show()) {
+        // Solo se entrambi sono false, cancella tutto
+        this.clearAllNotifications();
+      }
+      // Se show() è true ma showMultiple() è false, gestito dall'effect singolo
     });
   }
 
@@ -71,6 +89,9 @@ export class Notification implements OnDestroy, AfterViewInit {
     if (this.animationFrame) {
       cancelAnimationFrame(this.animationFrame);
     }
+    // Pulisci tutti i timer delle notifiche multiple
+    this.notificationTimers.forEach(timer => clearTimeout(timer));
+    this.notificationTimers.clear();
   }
 
   private startCollapseTimer() {
@@ -343,6 +364,218 @@ export class Notification implements OnDestroy, AfterViewInit {
     }
   }
 
+  // Metodo per gestire notifiche singole
+  private handleSingleNotification() {
+    try {
+      console.log('Gestendo notifica singola:', this.message(), this.type());
+      
+      // Crea una notifica singola
+      const singleNotification: NotificationItem = {
+        id: 'single-notification',
+        message: this.message(),
+        type: this.type(),
+        timestamp: Date.now()
+      };
+      
+      // Aggiungi alla lista unificata
+      this.allNotifications.set([singleNotification]);
+      this.visibleNotifications.set([singleNotification]);
+      this.collapsedNotifications.set([]);
+      
+      // Avvia timer per auto-collapse
+      if (this.autoCollapse()) {
+        this.startCollapseTimer();
+      }
+    } catch (error) {
+      console.error('Errore nella gestione notifica singola:', error);
+    }
+  }
+
+  // Metodi per notifiche multiple
+  private handleMultipleNotifications() {
+    try {
+      const notifications = this.notifications();
+      console.log('Notifiche ricevute:', notifications.length);
+      
+      // Se non ci sono notifiche, pulisci tutto
+      if (notifications.length === 0) {
+        this.visibleNotifications.set([]);
+        this.collapsedNotifications.set([]);
+        this.notificationTimers.forEach(timer => clearTimeout(timer));
+        this.notificationTimers.clear();
+        return;
+      }
+
+      // Sincronizza sempre con l'array completo delle notifiche
+      this.visibleNotifications.set([...notifications]);
+      console.log('Notifiche visibili:', this.visibleNotifications().length);
+
+      // Avvia timer per auto-collapse per tutte le notifiche
+      notifications.forEach(notification => {
+        // Solo se non ha già un timer attivo
+        if (!this.notificationTimers.has(notification.id)) {
+          this.startNotificationTimer(notification);
+        }
+      });
+    } catch (error) {
+      console.error('Errore in handleMultipleNotifications:', error);
+    }
+  }
+
+  private startNotificationTimer(notification: NotificationItem) {
+    try {
+      // Cancella timer esistente se presente
+      if (this.notificationTimers.has(notification.id)) {
+        clearTimeout(this.notificationTimers.get(notification.id)!);
+      }
+
+      console.log(`⏰ Avviando timer 1.5s per: ${notification.message}`);
+      const timer = window.setTimeout(() => {
+        console.log(`⏰ Timer scaduto per: ${notification.message}`);
+        this.collapseNotification(notification);
+      }, 1500); // 1.5 secondi
+
+      this.notificationTimers.set(notification.id, timer);
+    } catch (error) {
+      console.error('Errore nell\'avvio del timer:', error);
+    }
+  }
+
+  private collapseNotification(notification: NotificationItem) {
+    try {
+      console.log(`📦 Collassando notifica: ${notification.message}`);
+      
+      // Rimuovi dalla lista visibile
+      const currentVisible = this.visibleNotifications();
+      this.visibleNotifications.set(
+        currentVisible.filter(n => n.id !== notification.id)
+      );
+
+      // Aggiungi alla lista collassata
+      const currentCollapsed = this.collapsedNotifications();
+      this.collapsedNotifications.set([...currentCollapsed, notification]);
+
+      // Pulisci timer
+      if (this.notificationTimers.has(notification.id)) {
+        clearTimeout(this.notificationTimers.get(notification.id)!);
+        this.notificationTimers.delete(notification.id);
+      }
+      
+      console.log(`✅ Notifica collassata: ${notification.message}`);
+    } catch (error) {
+      console.error('Errore nel collasso della notifica:', error);
+    }
+  }
+
+  removeNotification(notificationId: string) {
+    try {
+      // Rimuovi da entrambe le liste
+      this.visibleNotifications.set(
+        this.visibleNotifications().filter(n => n.id !== notificationId)
+      );
+      this.collapsedNotifications.set(
+        this.collapsedNotifications().filter(n => n.id !== notificationId)
+      );
+
+      // Pulisci timer
+      if (this.notificationTimers.has(notificationId)) {
+        clearTimeout(this.notificationTimers.get(notificationId)!);
+        this.notificationTimers.delete(notificationId);
+      }
+    } catch (error) {
+      console.error('Errore nella rimozione della notifica:', error);
+    }
+  }
+
+  clearAllNotifications() {
+    try {
+      console.log('Cancellando tutte le notifiche');
+      this.allNotifications.set([]);
+      this.visibleNotifications.set([]);
+      this.collapsedNotifications.set([]);
+      this.notificationTimers.forEach(timer => clearTimeout(timer));
+      this.notificationTimers.clear();
+      this.clearCollapseTimer();
+      console.log('Tutte le notifiche cancellate');
+    } catch (error) {
+      console.error('Errore nella cancellazione delle notifiche:', error);
+    }
+  }
+
+  expandNotification(notificationId: string) {
+    try {
+      const collapsed = this.collapsedNotifications();
+      const notification = collapsed.find(n => n.id === notificationId);
+      
+      if (notification) {
+        console.log(`🔄 Espandendo notifica: ${notification.message}`);
+        
+        // Rimuovi dalla lista collassata
+        this.collapsedNotifications.set(
+          collapsed.filter(n => n.id !== notificationId)
+        );
+        
+        // Aggiungi alla lista visibile
+        this.visibleNotifications.set([...this.visibleNotifications(), notification]);
+        
+        // Riavvia timer per 1.5 secondi
+        this.startNotificationTimer(notification);
+        
+        // Riavvia l'animazione della barra di progresso
+        setTimeout(() => {
+          this.restartProgressBarAnimation(notificationId);
+        }, 0);
+        
+        console.log(`✅ Notifica espansa e timer riavviato: ${notification.message}`);
+      }
+    } catch (error) {
+      console.error('Errore nell\'espansione della notifica:', error);
+    }
+  }
+
+  private restartProgressBarAnimation(notificationId: string) {
+    try {
+      // Trova l'elemento della barra di progresso
+      const progressBar = document.querySelector(`[data-notification-id="${notificationId}"] .notification-multiple__progress-bar`) as HTMLElement;
+      if (progressBar) {
+        // Riavvia l'animazione rimuovendo e riaggiungendo la classe
+        progressBar.style.animation = 'none';
+        progressBar.offsetHeight; // Trigger reflow
+        progressBar.style.animation = 'countdown 1.5s linear forwards';
+      }
+    } catch (error) {
+      console.error('Errore nel riavvio dell\'animazione:', error);
+    }
+  }
+
+  onCornerIconMouseLeave() {
+    // Per le notifiche multiple, non fare nulla al mouse leave
+    // Il timer continuerà a funzionare normalmente
+    console.log('🖱️ Mouse leave su icona notifica multipla');
+  }
+
+  expandAllNotifications() {
+    try {
+      console.log('🔄 Espandendo tutte le notifiche collassate');
+      const collapsed = this.collapsedNotifications();
+      
+      if (collapsed.length > 0) {
+        // Sposta tutte le notifiche collassate a quelle visibili
+        this.visibleNotifications.set([...this.visibleNotifications(), ...collapsed]);
+        this.collapsedNotifications.set([]);
+        
+        // Riavvia timer per tutte le notifiche
+        collapsed.forEach(notification => {
+          this.startNotificationTimer(notification);
+        });
+        
+        console.log(`✅ ${collapsed.length} notifiche espanse`);
+      }
+    } catch (error) {
+      console.error('Errore nell\'espansione di tutte le notifiche:', error);
+    }
+  }
+
   getNotificationIconPath(type: NotificationType): string {
     switch (type) {
       case 'success':
@@ -355,20 +588,5 @@ export class Notification implements OnDestroy, AfterViewInit {
       default:
         return 'M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm1 15h-2v-6h2v6zm0-8h-2V7h2v2z';
     }
-  }
-
-  removeNotification(notificationId: string) {
-    // Questo metodo sarà gestito dal componente padre
-    console.log('Rimozione notifica:', notificationId);
-  }
-
-  expandAllNotifications() {
-    // Espande tutte le notifiche collassate
-    console.log('Espansione di tutte le notifiche');
-  }
-
-  onCornerIconMouseLeave() {
-    // Gestisce il mouse leave sull'icona nell'angolo
-    console.log('Mouse leave su icona notifica multipla');
   }
 }

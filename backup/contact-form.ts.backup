@@ -18,7 +18,7 @@ export class ContactForm {
   errorMessage = () => this.error;
   
   // Output per comunicare con il componente padre
-  errorChange = output<{message: string, type: 'error' | 'warning' | 'info' | 'success', fieldId: string, action: 'add' | 'remove'} | undefined>();
+  errorChange = output<{message: string, type: 'error' | 'warning' | 'info' | 'success', fieldId?: string, removeId?: string} | undefined>();
   successChange = output<string | undefined>();
 
   form = this.fb.group({
@@ -32,7 +32,7 @@ export class ContactForm {
   });
 
   constructor() {
-    // Validazione in tempo reale per ogni campo
+    // Validazione in tempo reale per ogni campo - solo per aggiornare lo stato interno
     this.form.get('name')?.valueChanges.subscribe(() => this.validateField('name'));
     this.form.get('surname')?.valueChanges.subscribe(() => this.validateField('surname'));
     this.form.get('email')?.valueChanges.subscribe(() => this.validateField('email'));
@@ -42,7 +42,7 @@ export class ContactForm {
 
   submit() {
     this.error = undefined;
-    this.errorChange.emit(this.error);
+    this.errorChange.emit(undefined);
     if (this.form.invalid) {
       this.form.markAllAsTouched();
       this.showValidationError();
@@ -62,19 +62,14 @@ export class ContactForm {
         this.sending = false;
         this.form.reset({ consent: false, website: '' });
         
-        // Emetti notifica di successo
+        // Emetti evento di successo
         this.successChange.emit('Messaggio inviato con successo!');
       },
       error: (err) => {
         console.error('[contact] error', err);
         const errorMessage = err?.error?.message ?? 'Invio non riuscito. Riprova.';
         this.error = errorMessage;
-        this.errorChange.emit({
-          message: errorMessage,
-          type: 'error',
-          fieldId: 'submit',
-          action: 'add'
-        });
+        this.errorChange.emit({ message: errorMessage, type: 'error' });
         this.sending = false;
       }
     });
@@ -84,47 +79,11 @@ export class ContactForm {
     const errors = this.getValidationErrors();
     this.error = errors.join(', ');
     
-    // Emetti ogni singolo errore come notifica separata
-    if (this.form.get('name')?.invalid) {
-      this.errorChange.emit({
-        message: 'Inserisci un nome valido (min 2 caratteri)',
-        type: this.getErrorType('name'),
-        fieldId: 'name',
-        action: 'add'
-      });
-    }
-    if (this.form.get('surname')?.invalid) {
-      this.errorChange.emit({
-        message: 'Inserisci un cognome valido (min 2 caratteri)',
-        type: this.getErrorType('surname'),
-        fieldId: 'surname',
-        action: 'add'
-      });
-    }
-    if (this.form.get('email')?.invalid) {
-      this.errorChange.emit({
-        message: 'Inserisci una email valida',
-        type: this.getErrorType('email'),
-        fieldId: 'email',
-        action: 'add'
-      });
-    }
-    if (this.form.get('message')?.invalid) {
-      this.errorChange.emit({
-        message: 'Il messaggio deve contenere almeno 10 caratteri',
-        type: this.getErrorType('message'),
-        fieldId: 'message',
-        action: 'add'
-      });
-    }
-    if (this.form.get('consent')?.invalid) {
-      this.errorChange.emit({
-        message: 'Devi acconsentire al trattamento dei dati',
-        type: this.getErrorType('consent'),
-        fieldId: 'consent',
-        action: 'add'
-      });
-    }
+    // Emetti ogni singolo errore come notifica separata con tipo appropriato
+    errors.forEach(error => {
+      const errorType = this.getErrorType(error);
+      this.errorChange.emit({ message: error, type: errorType });
+    });
   }
 
   getValidationErrors(): string[] {
@@ -149,19 +108,19 @@ export class ContactForm {
     return errors;
   }
 
-  getErrorType(fieldName: string): 'error' | 'warning' | 'info' | 'success' {
-    // Scala di gravità: Error > Warning > Info > Success
-    if (fieldName === 'email') {
-      return 'error'; // Errori di email sono i più gravi
+  getErrorType(errorMessage: string): 'error' | 'warning' | 'info' | 'success' {
+    // Determina il tipo di notifica in base al messaggio
+    if (errorMessage.includes('email')) {
+      return 'error'; // Errori di email sono critici
     }
-    if (fieldName === 'consent') {
-      return 'warning'; // Consenso è importante
+    if (errorMessage.includes('consentire')) {
+      return 'warning'; // Consenso è un avviso importante
     }
-    if (fieldName === 'name' || fieldName === 'surname') {
-      return 'warning'; // Nome e cognome sono importanti
+    if (errorMessage.includes('caratteri')) {
+      return 'info'; // Lunghezza minima è informativo
     }
-    if (fieldName === 'message') {
-      return 'info'; // Messaggio è informativo
+    if (errorMessage.includes('valido')) {
+      return 'warning'; // Validazione è un avviso
     }
     
     return 'error'; // Default per errori generici
@@ -169,7 +128,7 @@ export class ContactForm {
 
   clearError() {
     this.error = undefined;
-    this.errorChange.emit(this.error);
+    this.errorChange.emit(undefined);
   }
 
   validateField(fieldName: string) {
@@ -177,19 +136,10 @@ export class ContactForm {
     if (field && field.touched && field.invalid) {
       this.showFieldError(fieldName);
     } else if (field && field.valid) {
-      // Se il campo è valido, rimuovi la sua notifica
+      // Se il campo è valido, rimuovi eventuali notifiche per questo campo
       this.removeFieldNotification(fieldName);
       this.checkForOtherErrors();
     }
-  }
-
-  removeFieldNotification(fieldName: string) {
-    this.errorChange.emit({
-      message: '',
-      type: 'success',
-      fieldId: fieldName,
-      action: 'remove'
-    });
   }
 
   showFieldError(fieldName: string) {
@@ -218,7 +168,7 @@ export class ContactForm {
       }
     } else if (fieldName === 'message') {
       if (field.hasError('required')) {
-        errorMessage = 'Il messaggio deve contenere almeno 10 caratteri';
+        errorMessage = 'Il messaggio è obbligatorio';
       } else if (field.hasError('minlength')) {
         errorMessage = 'Il messaggio deve contenere almeno 10 caratteri';
       }
@@ -228,14 +178,14 @@ export class ContactForm {
       }
     }
 
-    // Emetti notifica con tipo e fieldId
+    // Emetti notifica solo se c'è un errore
     if (errorMessage) {
       this.error = errorMessage;
-      this.errorChange.emit({
-        message: errorMessage,
-        type: this.getErrorType(fieldName),
-        fieldId: fieldName,
-        action: 'add'
+      const errorType = this.getErrorType(errorMessage);
+      this.errorChange.emit({ 
+        message: errorMessage, 
+        type: errorType,
+        fieldId: fieldName 
       });
     }
   }
@@ -252,7 +202,36 @@ export class ContactForm {
     const field = this.form.get(fieldName);
     if (field) {
       field.markAsTouched();
-      this.validateField(fieldName);
+      // Mostra solo l'errore del campo specifico quando l'utente esce
+      this.showFieldError(fieldName);
     }
+  }
+
+  showAllValidationErrors() {
+    // Se il form è valido, non mostrare errori
+    if (this.form.valid) {
+      this.checkForOtherErrors();
+      return;
+    }
+
+    // Mostra tutti gli errori di validazione come notifiche separate
+    const errors = this.getValidationErrors();
+    errors.forEach(error => {
+      const errorType = this.getErrorType(error);
+      this.errorChange.emit({ message: error, type: errorType });
+    });
+  }
+
+  removeFieldNotification(fieldName: string) {
+    // Crea un ID univoco per la notifica di questo campo
+    const fieldNotificationId = `form-field-${fieldName}`;
+    
+    // Emetti un evento per rimuovere la notifica specifica di questo campo
+    // Il componente padre dovrà gestire la rimozione basandosi su questo ID
+    this.errorChange.emit({ 
+      message: '', 
+      type: 'success', 
+      removeId: fieldNotificationId 
+    } as any);
   }
 }
