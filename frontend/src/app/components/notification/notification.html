@@ -30,6 +30,7 @@
       <div>Collassate: {{ collapsedNotifications().length }}</div>
       <div>Visibili: {{ visibleNotifications().length }}</div>
       <div>Totali: {{ notifications().length }}</div>
+      <div>Hover: {{ isHoveringIcon() ? 'SI' : 'NO' }}</div>
     </div>
     
     <!-- Icona unificata per l'errore più grave nell'angolo -->
@@ -38,13 +39,16 @@
            [class]="'notification-multiple--' + getMostSevereCollapsedType()"
            [style.top.px]="20"
            (mouseenter)="expandAllNotifications()"
-           (mouseleave)="onCornerIconMouseLeave()">
+           (mouseleave)="onCornerIconMouseLeave()"
+           (click)="expandAllNotifications()"
+           title="Clicca o passa il mouse per vedere tutte le notifiche">
         
         <svg class="notification-multiple__icon" viewBox="0 0 24 24" fill="currentColor">
           <path [attr.d]="getNotificationIconPath(getMostSevereCollapsedType())"/>
         </svg>
       </div>
     }
+    
   </div>
 }
 

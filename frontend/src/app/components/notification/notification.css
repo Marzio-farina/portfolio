@@ -339,7 +339,7 @@
   right: 20px !important;
   width: 50px !important;
   height: 50px !important;
-  z-index: 99999 !important;
+  z-index: 999999 !important;
   display: flex !important;
   align-items: center !important;
   justify-content: center !important;
@@ -350,6 +350,7 @@
   backdrop-filter: blur(10px) !important;
   transition: all 0.3s ease !important;
   cursor: pointer !important;
+  pointer-events: auto !important;
 }
 
 .notification-multiple__corner-icon:hover {

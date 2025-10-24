@@ -40,6 +40,7 @@ export class Notification implements OnDestroy, AfterViewInit {
   visibleNotifications = signal<NotificationItem[]>([]);
   collapsedNotifications = signal<NotificationItem[]>([]);
   private notificationTimers = new Map<string, number>();
+  isHoveringIcon = signal(false);
   
   // Animation state
   @ViewChild('notificationElement', { static: false }) notificationElement?: ElementRef<HTMLElement>;
@@ -438,6 +439,12 @@ export class Notification implements OnDestroy, AfterViewInit {
   }
 
   private collapseNotification(notificationId: string) {
+    // Non collassare se stiamo facendo hover sull'icona
+    if (this.isHoveringIcon()) {
+      console.log('Hover attivo - non collassando notifica:', notificationId);
+      return;
+    }
+    
     const visible = this.visibleNotifications();
     const notification = visible.find(n => n.id === notificationId);
     
@@ -467,7 +474,10 @@ export class Notification implements OnDestroy, AfterViewInit {
   }
 
   expandAllNotifications() {
-    console.log('Hover sull\'icona - espandendo TUTTE le notifiche');
+    console.log('🔥 HOVER RILEVATO! Espandendo TUTTE le notifiche');
+    
+    // Imposta il flag di hover
+    this.isHoveringIcon.set(true);
     
     // Mostra TUTTE le notifiche (sia visibili che collassate)
     const allNotifications = this.notifications();
@@ -483,8 +493,8 @@ export class Notification implements OnDestroy, AfterViewInit {
     // Mostra tutte le notifiche
     this.visibleNotifications.set([...allNotifications]);
     
-    // Svuota le notifiche collassate
-    this.collapsedNotifications.set([]);
+    // NON svuotare le collassate, le useremo per il mouse leave
+    // this.collapsedNotifications.set([]);
     
     console.log('Stato dopo l\'espansione:', {
       visible: this.visibleNotifications().length,
@@ -523,23 +533,43 @@ export class Notification implements OnDestroy, AfterViewInit {
 
   onCornerIconMouseLeave() {
     // Gestisce il mouse leave sull'icona nell'angolo
-    console.log('Mouse leave - ripristinando stato normale');
+    console.log('🔥 MOUSE LEAVE RILEVATO! Ripristinando stato normale');
+    
+    // Resetta il flag di hover
+    this.isHoveringIcon.set(false);
     
     // Ripristina lo stato normale: mostra solo le notifiche che dovrebbero essere visibili
-    // (quelle che non sono ancora scadute)
+    // e rimetti le altre nelle collassate
     const allNotifications = this.notifications();
     const currentlyVisible = this.visibleNotifications();
+    const collapsed = this.collapsedNotifications();
     
-    // Mantieni solo le notifiche che sono ancora valide e non sono scadute
-    const validVisible = currentlyVisible.filter(notification => 
-      allNotifications.some(n => n.id === notification.id)
-    );
+    console.log('Stato prima del mouse leave:', {
+      visible: currentlyVisible.length,
+      collapsed: collapsed.length,
+      total: allNotifications.length
+    });
     
-    this.visibleNotifications.set(validVisible);
+    // Determina quali notifiche dovrebbero essere visibili (quelle con timer attivo)
+    const shouldBeVisible: NotificationItem[] = [];
+    const shouldBeCollapsed: NotificationItem[] = [];
+    
+    allNotifications.forEach(notification => {
+      // Se ha un timer attivo, dovrebbe essere visibile
+      if (this.notificationTimers.has(notification.id)) {
+        shouldBeVisible.push(notification);
+      } else {
+        shouldBeCollapsed.push(notification);
+      }
+    });
+    
+    this.visibleNotifications.set(shouldBeVisible);
+    this.collapsedNotifications.set(shouldBeCollapsed);
     
     console.log('Stato dopo mouse leave:', {
       visible: this.visibleNotifications().length,
       collapsed: this.collapsedNotifications().length
     });
   }
+
 }
