@@ -221,12 +221,48 @@
   border-color: var(--accent-hover);
 }
 
+/* Hover reciproco: quando si passa sopra l'icona, si colora anche il link */
+.contact:hover .contact__icon {
+  color: var(--accent-hover);
+  transform: scale(1.1);
+  border-color: var(--accent-hover);
+}
+
+.contact:hover .contact__link,
+.contact:hover .contact__text {
+  color: var(--accent-primary);
+}
+
+/* Hover per link */
+.contact__link:hover,
+.contact__text:hover {
+  color: var(--accent-primary);
+  text-decoration: none;
+  cursor: pointer;
+}
+
 /* Hover specifico per tema light */
 [data-theme="light"] .contact__icon:hover,
 :not([data-theme]) .contact__icon:hover {
   background: var(--accent-primary);
   color: var(--bg-card);
   border-color: var(--accent-primary);
+}
+
+/* Hover reciproco per tema light: quando si passa sopra il container contact */
+[data-theme="light"] .contact:hover .contact__icon,
+:not([data-theme]) .contact:hover .contact__icon {
+  background: var(--accent-primary);
+  color: var(--bg-card);
+  border-color: var(--accent-primary);
+  transform: scale(1.1);
+}
+
+[data-theme="light"] .contact:hover .contact__link,
+:not([data-theme]) .contact:hover .contact__link,
+[data-theme="light"] .contact:hover .contact__text,
+:not([data-theme]) .contact:hover .contact__text {
+  color: var(--accent-primary);
 }
 
 
