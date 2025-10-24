@@ -36,6 +36,11 @@ export class Notification implements OnDestroy, AfterViewInit {
   isIconInCorner = signal(false);
   private collapseTimer?: number;
   
+  // State per notifiche multiple
+  visibleNotifications = signal<NotificationItem[]>([]);
+  collapsedNotifications = signal<NotificationItem[]>([]);
+  private notificationTimers = new Map<string, number>();
+  
   // Animation state
   @ViewChild('notificationElement', { static: false }) notificationElement?: ElementRef<HTMLElement>;
   @ViewChild('messageContainer', { static: false }) messageContainer?: ElementRef<HTMLElement>;
@@ -55,6 +60,19 @@ export class Notification implements OnDestroy, AfterViewInit {
         this.startCollapseTimer();
       } else {
         this.clearCollapseTimer();
+      }
+    });
+
+    // Effect per gestire le notifiche multiple
+    effect(() => {
+      if (this.showMultiple()) {
+        const currentNotifications = this.notifications();
+        if (currentNotifications.length > 0) {
+          // Usa setTimeout per evitare loop infiniti
+          setTimeout(() => {
+            this.handleMultipleNotifications();
+          }, 0);
+        }
       }
     });
   }
@@ -357,18 +375,171 @@ export class Notification implements OnDestroy, AfterViewInit {
     }
   }
 
-  removeNotification(notificationId: string) {
-    // Questo metodo sarà gestito dal componente padre
-    console.log('Rimozione notifica:', notificationId);
+
+
+  // Metodi per gestire le notifiche multiple
+  private handleMultipleNotifications() {
+    const currentNotifications = this.notifications();
+    const visible = this.visibleNotifications();
+    const collapsed = this.collapsedNotifications();
+    
+    // Trova nuove notifiche che non sono già visibili o collassate
+    const newNotifications = currentNotifications.filter(
+      notification => !visible.some(v => v.id === notification.id) && 
+                    !collapsed.some(c => c.id === notification.id)
+    );
+    
+    console.log('Gestendo notifiche multiple:', {
+      total: currentNotifications.length,
+      visible: visible.length,
+      collapsed: collapsed.length,
+      new: newNotifications.length
+    });
+    
+    // Solo se ci sono nuove notifiche, aggiungile a quelle visibili
+    if (newNotifications.length > 0) {
+      this.visibleNotifications.set([...visible, ...newNotifications]);
+      
+      // Avvia timer SOLO per le nuove notifiche
+      newNotifications.forEach(notification => {
+        this.startNotificationTimer(notification.id);
+      });
+    }
+    
+    // Rimuovi notifiche che non sono più nell'array principale
+    const toRemove = visible.filter(v => !currentNotifications.some(n => n.id === v.id));
+    if (toRemove.length > 0) {
+      console.log('Rimuovendo notifiche non più valide:', toRemove.length);
+      this.visibleNotifications.set(visible.filter(v => currentNotifications.some(n => n.id === v.id)));
+      
+      // Rimuovi anche dalle collassate
+      this.collapsedNotifications.set(collapsed.filter(c => currentNotifications.some(n => n.id === c.id)));
+    }
+  }
+
+  private startNotificationTimer(notificationId: string) {
+    // Cancella timer esistente se presente
+    this.clearNotificationTimer(notificationId);
+    
+    // Avvia nuovo timer
+    const timer = window.setTimeout(() => {
+      this.collapseNotification(notificationId);
+    }, this.collapseDelay());
+    
+    this.notificationTimers.set(notificationId, timer);
+  }
+
+  private clearNotificationTimer(notificationId: string) {
+    const timer = this.notificationTimers.get(notificationId);
+    if (timer) {
+      clearTimeout(timer);
+      this.notificationTimers.delete(notificationId);
+    }
+  }
+
+  private collapseNotification(notificationId: string) {
+    const visible = this.visibleNotifications();
+    const notification = visible.find(n => n.id === notificationId);
+    
+    console.log('Collassando notifica:', notificationId, notification);
+    console.log('Stato prima del collasso:', {
+      visible: this.visibleNotifications().length,
+      collapsed: this.collapsedNotifications().length
+    });
+    
+    if (notification) {
+      // Rimuovi dalle visibili
+      this.visibleNotifications.set(visible.filter(n => n.id !== notificationId));
+      
+      // Aggiungi alle collassate
+      this.collapsedNotifications.set([...this.collapsedNotifications(), notification]);
+      
+      console.log('Stato dopo il collasso:', {
+        visible: this.visibleNotifications().length,
+        collapsed: this.collapsedNotifications().length
+      });
+      
+      // Cancella il timer
+      this.clearNotificationTimer(notificationId);
+    } else {
+      console.log('ERRORE: Notifica non trovata per il collasso:', notificationId);
+    }
   }
 
   expandAllNotifications() {
-    // Espande tutte le notifiche collassate
-    console.log('Espansione di tutte le notifiche');
+    console.log('Hover sull\'icona - espandendo TUTTE le notifiche');
+    
+    // Mostra TUTTE le notifiche (sia visibili che collassate)
+    const allNotifications = this.notifications();
+    const collapsed = this.collapsedNotifications();
+    const visible = this.visibleNotifications();
+    
+    console.log('Stato prima dell\'espansione:', {
+      total: allNotifications.length,
+      visible: visible.length,
+      collapsed: collapsed.length
+    });
+    
+    // Mostra tutte le notifiche
+    this.visibleNotifications.set([...allNotifications]);
+    
+    // Svuota le notifiche collassate
+    this.collapsedNotifications.set([]);
+    
+    console.log('Stato dopo l\'espansione:', {
+      visible: this.visibleNotifications().length,
+      collapsed: this.collapsedNotifications().length
+    });
+    
+    // Riavvia i timer per tutte le notifiche visibili
+    this.visibleNotifications().forEach(notification => {
+      this.startNotificationTimer(notification.id);
+    });
+  }
+
+  removeNotification(notificationId: string) {
+    // Rimuovi dalle notifiche visibili
+    const visible = this.visibleNotifications();
+    this.visibleNotifications.set(visible.filter(n => n.id !== notificationId));
+    
+    // Rimuovi dalle notifiche collassate
+    const collapsed = this.collapsedNotifications();
+    this.collapsedNotifications.set(collapsed.filter(n => n.id !== notificationId));
+    
+    // Cancella il timer
+    this.clearNotificationTimer(notificationId);
+  }
+
+  getMostSevereCollapsedType(): NotificationType {
+    const collapsed = this.collapsedNotifications();
+    if (collapsed.length === 0) return 'info';
+    
+    const severityOrder = { 'error': 0, 'warning': 1, 'info': 2, 'success': 3 };
+    
+    return collapsed.reduce((mostSevere, current) => {
+      return severityOrder[current.type] < severityOrder[mostSevere] ? current.type : mostSevere;
+    }, collapsed[0].type);
   }
 
   onCornerIconMouseLeave() {
     // Gestisce il mouse leave sull'icona nell'angolo
-    console.log('Mouse leave su icona notifica multipla');
+    console.log('Mouse leave - ripristinando stato normale');
+    
+    // Ripristina lo stato normale: mostra solo le notifiche che dovrebbero essere visibili
+    // (quelle che non sono ancora scadute)
+    const allNotifications = this.notifications();
+    const currentlyVisible = this.visibleNotifications();
+    
+    // Mantieni solo le notifiche che sono ancora valide e non sono scadute
+    const validVisible = currentlyVisible.filter(notification => 
+      allNotifications.some(n => n.id === notification.id)
+    );
+    
+    this.visibleNotifications.set(validVisible);
+    
+    console.log('Stato dopo mouse leave:', {
+      visible: this.visibleNotifications().length,
+      collapsed: this.collapsedNotifications().length
+    });
   }
 }
