@@ -71,7 +71,6 @@
 /* ===== EFFETTO HOVER COME WHAT-I-DO-CARD ===== */
 /* Hover generale con effetto 3D e glow intensificato */
 .card:hover {
-  box-shadow: var(--shadow-4);
   border-color: var(--accent-primary);
 }
 
@@ -131,24 +130,4 @@
     rgba(234, 88, 12, 0.2) 75%,
     rgba(249, 115, 22, 0.15) 100%
   );
-}
-
-/* Ombra dinamica per effetto profondità */
-.card::after {
-  content: "";
-  position: absolute;
-  top: 100%;
-  left: 50%;
-  transform: translateX(-50%);
-  width: 80%;
-  height: 20px;
-  background: radial-gradient(ellipse, rgba(0, 0, 0, 0.1), transparent);
-  opacity: 0;
-  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-  z-index: -1;
-}
-
-.card:hover::after {
-  opacity: 1;
-  transform: translateX(-50%) scale(1.2);
 }
