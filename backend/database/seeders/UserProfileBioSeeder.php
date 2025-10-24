@@ -50,7 +50,7 @@ Non mollare mai.
 Nel mio percorso continuo a ricercare l\'equilibrio tra precisione tecnica e creatività, convinto che un software ben progettato debba essere non solo stabile e performante, ma anche piacevole da usare e da guardare.
 
 Il mio obiettivo è quello di trasformare le idee in applicazioni concrete, funzionali e curate nei dettagli, portando valore reale a chi le utilizza ogni giorno.',
-                'phone' => '+39 123 456 7890',
+                'phone' => '+39 351 820 2248',
                 'location' => 'Italia',
                 'avatar_url' => null
             ]

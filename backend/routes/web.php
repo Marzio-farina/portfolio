@@ -1,7 +1,6 @@
 <?php
 
 use Illuminate\Support\Facades\Route;
-use Illuminate\Support\Facades\Artisan;
 
 /*
 |--------------------------------------------------------------------------
@@ -16,28 +15,4 @@ use Illuminate\Support\Facades\Artisan;
 
 Route::get('/', function () {
     return view('welcome');
-});
-
-// Endpoint per sincronizzare i dati in produzione
-Route::get('/sync-data', function () {
-    try {
-        // Esegui il seeder per aggiornare i dati
-        Artisan::call('db:seed', ['--class' => 'UserProfileAndSocialSeeder']);
-        
-        // Pulisci la cache
-        Artisan::call('cache:clear');
-        Artisan::call('config:clear');
-        
-        return response()->json([
-            'status' => 'success',
-            'message' => 'Dati sincronizzati correttamente',
-            'timestamp' => now()->toISOString()
-        ]);
-    } catch (\Exception $e) {
-        return response()->json([
-            'status' => 'error',
-            'message' => 'Errore durante la sincronizzazione: ' . $e->getMessage(),
-            'timestamp' => now()->toISOString()
-        ], 500);
-    }
 });
