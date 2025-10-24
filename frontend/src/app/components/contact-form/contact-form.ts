@@ -28,24 +28,20 @@ export class ContactForm {
 
   submit() {
     this.error = undefined;
-    console.log('[contact] submit clicked');
     if (this.form.invalid) {
       this.form.markAllAsTouched();
       return;
     }
     // honeypot: se è stato riempito, non inviare
     if (this.form.value.website) {
-      console.log('[contact] honeypot filled, faking success');
       this.sent = true;
       this.form.reset({ consent: false, website: '' });
       return;
     }
 
     this.sending = true;
-    console.log('[contact] sending payload', this.form.value);
     this.api.send(this.form.value as any).subscribe({
       next: () => {
-        console.log('[contact] success');
         this.sent = true;
         this.sending = false;
         this.form.reset({ consent: false, website: '' });
