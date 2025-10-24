@@ -1,76 +1,43 @@
 <?php
 
-/**
- * Web Routes for Portfolio Application
- * 
- * This file defines web-specific routes including image proxy
- * and development/debugging endpoints.
- */
-
-use App\Http\Controllers\ImageProxyController;
-use Illuminate\Cookie\Middleware\AddQueuedCookiesToResponse;
-use Illuminate\Cookie\Middleware\EncryptCookies;
-use Illuminate\Foundation\Http\Middleware\VerifyCsrfToken;
-use Illuminate\Http\JsonResponse;
-use Illuminate\Session\Middleware\StartSession;
 use Illuminate\Support\Facades\Route;
-use Illuminate\View\Middleware\ShareErrorsFromSession;
+use Illuminate\Support\Facades\Artisan;
 
-// ============================================================================
-// Root Endpoint
-// ============================================================================
+/*
+|--------------------------------------------------------------------------
+| Web Routes
+|--------------------------------------------------------------------------
+|
+| Here is where you can register web routes for your application. These
+| routes are loaded by the RouteServiceProvider and all of them will
+| be assigned to the "web" middleware group. Make something great!
+|
+*/
 
-/**
- * Application root endpoint
- * Returns basic application information
- */
 Route::get('/', function () {
-    return new JsonResponse([
-        'ok' => true,
-        'app' => 'backend-root'
-    ], 200, [], JSON_UNESCAPED_UNICODE);
+    return view('welcome');
 });
 
-// ============================================================================
-// Development/Debug Endpoints
-// ============================================================================
-
-/**
- * Routes dump endpoint for development
- * Lists all registered routes for debugging purposes
- */
-Route::get('/routes-dump', function () {
-    $routes = Route::getRoutes();
-    $uris = [];
-
-    foreach ($routes as $route) {
-        $uris[] = $route->uri();
+// Endpoint per sincronizzare i dati in produzione
+Route::get('/sync-data', function () {
+    try {
+        // Esegui il seeder per aggiornare i dati
+        Artisan::call('db:seed', ['--class' => 'UserProfileAndSocialSeeder']);
+        
+        // Pulisci la cache
+        Artisan::call('cache:clear');
+        Artisan::call('config:clear');
+        
+        return response()->json([
+            'status' => 'success',
+            'message' => 'Dati sincronizzati correttamente',
+            'timestamp' => now()->toISOString()
+        ]);
+    } catch (\Exception $e) {
+        return response()->json([
+            'status' => 'error',
+            'message' => 'Errore durante la sincronizzazione: ' . $e->getMessage(),
+            'timestamp' => now()->toISOString()
+        ], 500);
     }
-
-    return new JsonResponse([
-        'count' => count($uris),
-        'uris' => $uris,
-        'hasPing' => Route::has('ping'),
-    ]);
 });
-
-// ============================================================================
-// Image Proxy Endpoint
-// ============================================================================
-
-/**
- * Image proxy endpoint for serving and processing images
- * Removes session/cookie/CSRF middleware for stateless operation
- * Includes rate limiting to prevent abuse
- */
-Route::get('/i/{path}', [ImageProxyController::class, 'show'])
-    ->where('path', '.*')
-    ->withoutMiddleware([
-        StartSession::class,
-        AddQueuedCookiesToResponse::class,
-        EncryptCookies::class,
-        ShareErrorsFromSession::class,
-        VerifyCsrfToken::class,
-    ])
-    ->middleware('throttle:60,1')
-    ->name('img.show');
