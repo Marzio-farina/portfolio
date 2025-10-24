@@ -16,6 +16,7 @@
   --bg-gradient-orange-2: linear-gradient(135deg, hsla(25, 95%, 53%, 0.251) 0%, hsla(20, 90%, 48%, 0) 59.86%), hsl(0, 0%, 100%);
   --border-gradient-onyx: linear-gradient(to bottom right, hsl(0, 0%, 25%) 0%, hsla(0, 0%, 25%, 0) 50%);
   --text-gradient-orange: linear-gradient(to right, hsl(25, 95%, 53%), hsl(20, 90%, 48%));
+  --text-gradient-yellow: linear-gradient(to right, hsl(25, 95%, 53%), hsl(20, 90%, 48%));
   
   /* Colori Base */
   --jet: hsl(0, 0%, 22%);
@@ -123,6 +124,9 @@
   --accent-primary: hsl(45, 100%, 72%); /* Accent principale */
   --accent-secondary: hsl(45, 54%, 58%); /* Accent secondario */
   --accent-hover: hsl(45, 100%, 75%); /* Accent hover */
+  
+  /* Gradients DARK */
+  --text-gradient-yellow: linear-gradient(to right, hsl(45, 100%, 72%), hsl(45, 100%, 75%));
   
   /* Shadows DARK (più intense) */
   --shadow-1: -4px 8px 24px hsla(0, 0%, 0%, 0.4);
@@ -264,10 +268,10 @@ body {
   position: absolute;
   bottom: 0;
   left: 0;
-  width: 30px;
-  height: 5px;
+  width: 60px;
+  height: 4px;
   background: var(--text-gradient-yellow);
-  border-radius: 3px;
+  border-radius: 2px;
 }
 
 .sub_article-title {

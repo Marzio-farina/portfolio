@@ -17,6 +17,9 @@ export class ContactForm {
   error?: string;
   errorMessage = () => this.error;
   
+  // Gestione tooltip
+  tooltipVisible: string | null = null;
+  
   // Output per comunicare con il componente padre
   errorChange = output<{message: string, type: 'error' | 'warning' | 'info' | 'success', fieldId: string, action: 'add' | 'remove'} | undefined>();
   successChange = output<string | undefined>();
@@ -255,4 +258,16 @@ export class ContactForm {
       this.validateField(fieldName);
     }
   }
+
+  // Metodi per gestire i tooltip
+  showTooltip(fieldName: string) {
+    this.tooltipVisible = fieldName;
+  }
+
+  hideTooltip(fieldName: string) {
+    if (this.tooltipVisible === fieldName) {
+      this.tooltipVisible = null;
+    }
+  }
+
 }

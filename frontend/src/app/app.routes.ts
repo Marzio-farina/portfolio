@@ -10,7 +10,7 @@ import { Accedi } from './pages/accedi/accedi';
 export const routes: Routes = [
   { path: '', pathMatch: 'full', redirectTo: 'about' },
   { path: 'about',     component: About,     data: { title: 'Chi sono' } },
-  { path: 'curriculum',component: Curriculum,data: { title: 'CV' } },
+  { path: 'curriculum',component: Curriculum,data: { title: 'Curriculum' } },
   { path: 'progetti',  component: Progetti,  data: { title: 'Progetti' } },
   { path: 'attestati',  component: Attestati,  data: { title: 'Attestati' } },
   { path: 'contatti',  component: Contatti,  data: { title: 'Contatti' } },

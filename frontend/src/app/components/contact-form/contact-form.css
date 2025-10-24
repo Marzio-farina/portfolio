@@ -36,6 +36,22 @@
   padding: 12px 14px;
   color: var(--text-primary);
   transition: border-color var(--transition-1), box-shadow var(--transition-1), background var(--transition-1);
+  position: relative;
+}
+
+/* floating label */
+.field-label {
+  position: absolute;
+  left: 14px;
+  top: 50%;
+  transform: translateY(-50%);
+  color: var(--text-secondary);
+  font-size: 1rem;
+  transition: all var(--transition-1);
+  pointer-events: none;
+  background: var(--bg-card);
+  padding: 0 4px;
+  z-index: 1;
 }
 
 .field input,
@@ -47,11 +63,12 @@
   color: inherit;
   font: inherit;
   caret-color: var(--accent-primary);
+  padding-right: 28px;
 }
 
 .field textarea {
     height: 180px;
-    padding: 8px 0;
+    padding: 8px 28px 8px 0;
     resize: vertical;
     min-height: 160px;
     line-height: 1.5;
@@ -63,11 +80,108 @@
   padding: 14px;
 }
 
-/* focus styling */
-.field:has(input:focus),
-.field:has(textarea:focus) {
+/* icona informativa */
+.field-icon {
+  position: absolute;
+  top: 6px;
+  right: 6px;
+  width: 16px;
+  height: 16px;
+  fill: var(--text-secondary);
+  stroke: var(--text-secondary);
+  opacity: 0.6;
+  transition: opacity var(--transition-1), transform var(--transition-1), fill var(--transition-1), stroke var(--transition-1);
+  pointer-events: auto;
+  cursor: pointer;
+}
+
+.field-icon:hover {
+  opacity: 1;
+  transform: scale(1.1);
+  fill: var(--accent-primary);
+  stroke: var(--accent-primary);
+}
+
+.field:focus-within .field-icon {
+  opacity: 1;
+  stroke: var(--accent-primary);
+  fill: var(--accent-primary);
+}
+
+/* popup tooltip */
+.field-tooltip {
+  position: absolute;
+  top: -8px;
+  right: 24px;
+  background: var(--bg-card);
+  border: 1px solid var(--border-primary);
+  border-radius: var(--radius-lg, 8px);
+  padding: 8px 12px;
+  font-size: 0.85rem;
+  color: var(--text-primary);
+  white-space: nowrap;
+  box-shadow: var(--shadow-2);
+  z-index: 1000;
+  opacity: 0;
+  transform: translateY(4px);
+  transition: opacity var(--transition-1), transform var(--transition-1);
+  pointer-events: none;
+}
+
+.field-tooltip::after {
+  content: '';
+  position: absolute;
+  top: 50%;
+  right: -6px;
+  transform: translateY(-50%);
+  width: 0;
+  height: 0;
+  border-left: 6px solid var(--border-primary);
+  border-top: 6px solid transparent;
+  border-bottom: 6px solid transparent;
+}
+
+.field-tooltip.show {
+  opacity: 1;
+  transform: translateY(0);
+}
+
+/* focus styling (uso :focus-within per compatibilità ampia) */
+.field:focus-within {
   border-color: var(--accent-primary);
   box-shadow: 0 0 0 3px var(--accent-primary-alpha);
+}
+
+
+/* floating label animation */
+.field:focus-within .field-label,
+.field input:not(:placeholder-shown) + .field-label,
+.field textarea:not(:placeholder-shown) + .field-label {
+  top: 0;
+  font-size: 0.85rem;
+  color: var(--accent-primary);
+  transform: translateY(-50%);
+}
+
+/* label textarea come placeholder interno */
+.field--textarea .field-label {
+  top: 14px;
+  left: 14px;
+  font-size: 1rem;
+  color: var(--text-secondary);
+  transform: none;
+  background: var(--bg-card);
+  padding: 0 4px;
+  z-index: 2;
+  transition: opacity var(--transition-1);
+}
+
+.field--textarea:focus-within .field-label {
+  color: var(--accent-primary);
+}
+
+.field--textarea textarea:not(:placeholder-shown) + .field-label {
+  opacity: 0;
 }
 
 /* pulsante */

@@ -4,18 +4,46 @@
   <form class="form" (ngSubmit)="submit()" [formGroup]="form" novalidate>
     <div class="row">
       <label class="field">
-        <input type="text" formControlName="name" placeholder="nome" required (blur)="onFieldBlur('name')"/>
+        <input type="text" formControlName="name" placeholder=" " required (blur)="onFieldBlur('name')"/>
+        <span class="field-label">nome</span>
+        <svg class="field-icon" viewBox="0 0 24 24" aria-hidden="true" (mouseenter)="showTooltip('name')" (mouseleave)="hideTooltip('name')">
+          <path d="M11,18H13V16H11V18M12,2A10,10 0 0,0 2,12A10,10 0 0,0 12,22A10,10 0 0,0 22,12A10,10 0 0,0 12,2M12,4C16.41,4 20,7.59 20,12C20,16.41 16.41,20 12,20C7.59,20 4,16.41 4,12C4,7.59 7.59,4 12,4M12,6A4,4 0 0,0 8,10H10A2,2 0 0,1 12,8A2,2 0 0,1 14,10C14,12 11,11.75 11,15H13C13,12.75 16,12.5 16,10A4,4 0 0,0 12,6Z"/>
+        </svg>
+        <div class="field-tooltip" [class.show]="tooltipVisible === 'name'">
+          Inserisci il tuo nome
+        </div>
       </label>
       <label class="field">
-        <input type="text" formControlName="surname" placeholder="cognome" required (blur)="onFieldBlur('surname')"/>
+        <input type="text" formControlName="surname" placeholder=" " required (blur)="onFieldBlur('surname')"/>
+        <span class="field-label">cognome</span>
+        <svg class="field-icon" viewBox="0 0 24 24" aria-hidden="true" (mouseenter)="showTooltip('surname')" (mouseleave)="hideTooltip('surname')">
+          <path d="M11,18H13V16H11V18M12,2A10,10 0 0,0 2,12A10,10 0 0,0 12,22A10,10 0 0,0 22,12A10,10 0 0,0 12,2M12,4C16.41,4 20,7.59 20,12C20,16.41 16.41,20 12,20C7.59,20 4,16.41 4,12C4,7.59 7.59,4 12,4M12,6A4,4 0 0,0 8,10H10A2,2 0 0,1 12,8A2,2 0 0,1 14,10C14,12 11,11.75 11,15H13C13,12.75 16,12.5 16,10A4,4 0 0,0 12,6Z"/>
+        </svg>
+        <div class="field-tooltip" [class.show]="tooltipVisible === 'surname'">
+          Inserisci il tuo cognome
+        </div>
       </label>
       <label class="field">
-        <input type="email" formControlName="email" placeholder="Email" required (blur)="onFieldBlur('email')"/>
+        <input type="email" formControlName="email" placeholder=" " required (blur)="onFieldBlur('email')"/>
+        <span class="field-label">Email</span>
+        <svg class="field-icon" viewBox="0 0 24 24" aria-hidden="true" (mouseenter)="showTooltip('email')" (mouseleave)="hideTooltip('email')">
+          <path d="M11,18H13V16H11V18M12,2A10,10 0 0,0 2,12A10,10 0 0,0 12,22A10,10 0 0,0 22,12A10,10 0 0,0 12,2M12,4C16.41,4 20,7.59 20,12C20,16.41 16.41,20 12,20C7.59,20 4,16.41 4,12C4,7.59 7.59,4 12,4M12,6A4,4 0 0,0 8,10H10A2,2 0 0,1 12,8A2,2 0 0,1 14,10C14,12 11,11.75 11,15H13C13,12.75 16,12.5 16,10A4,4 0 0,0 12,6Z"/>
+        </svg>
+        <div class="field-tooltip" [class.show]="tooltipVisible === 'email'">
+          Inserisci un indirizzo email valido
+        </div>
       </label>
     </div>
 
     <label class="field field--textarea">
-      <textarea rows="6" formControlName="message" placeholder="Il tuo messaggio..." required (blur)="onFieldBlur('message')"></textarea>
+      <textarea rows="6" formControlName="message" placeholder=" " required (blur)="onFieldBlur('message')"></textarea>
+      <span class="field-label">Il tuo messaggio...</span>
+      <svg class="field-icon" viewBox="0 0 24 24" aria-hidden="true" (mouseenter)="showTooltip('message')" (mouseleave)="hideTooltip('message')">
+        <path d="M11,18H13V16H11V18M12,2A10,10 0 0,0 2,12A10,10 0 0,0 12,22A10,10 0 0,0 22,12A10,10 0 0,0 12,2M12,4C16.41,4 20,7.59 20,12C20,16.41 16.41,20 12,20C7.59,20 4,16.41 4,12C4,7.59 7.59,4 12,4M12,6A4,4 0 0,0 8,10H10A2,2 0 0,1 12,8A2,2 0 0,1 14,10C14,12 11,11.75 11,15H13C13,12.75 16,12.5 16,10A4,4 0 0,0 12,6Z"/>
+      </svg>
+      <div class="field-tooltip" [class.show]="tooltipVisible === 'message'">
+        Inserisci il tuo messaggio (min. 10 caratteri)
+      </div>
     </label>
     <!-- Consenso privacy -->
     <label class="field consent">
