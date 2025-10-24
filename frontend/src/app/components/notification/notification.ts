@@ -86,6 +86,7 @@ export class Notification implements OnDestroy, AfterViewInit {
       this.isHovering = true;
       this.clearCollapseTimer(); // Cancella il timer di auto-collapse
       this.isCollapsed.set(false);
+      this.isIconInCorner.set(false); // Nasconde l'icona nell'angolo
       this.animateToExpanded();
     }
   }
@@ -95,6 +96,9 @@ export class Notification implements OnDestroy, AfterViewInit {
     // Quando il mouse esce, riavvia il timer di auto-collapse se necessario
     if (this.autoCollapse() && !this.isCollapsed()) {
       this.startCollapseTimer();
+    } else if (this.isCollapsed()) {
+      // Se è collassata, assicurati che l'icona nell'angolo sia visibile
+      this.isIconInCorner.set(true);
     }
   }
 
@@ -134,7 +138,6 @@ export class Notification implements OnDestroy, AfterViewInit {
     message.style.transform = 'translateX(0) translateY(0)';
     message.style.display = 'block';
     message.style.visibility = 'visible';
-    message.style.flex = '1';
     message.style.whiteSpace = '';
     message.style.overflow = '';
     
@@ -195,7 +198,6 @@ export class Notification implements OnDestroy, AfterViewInit {
         message.style.opacity = `${messageOpacity}`;
         message.style.transform = 'translateX(0) translateY(0)';
         message.style.display = 'block';
-        message.style.flex = '1';
         
         // L'icona rimane nascosta
         iconContainer.style.opacity = '0';
@@ -248,7 +250,6 @@ export class Notification implements OnDestroy, AfterViewInit {
     message.style.display = 'none';
     message.style.opacity = '0';
     message.style.transform = 'translateX(0) translateY(0)';
-    message.style.flex = '1';
     
     // Posiziona l'icona nell'angolo in alto a destra (usa icona separata)
     this.isIconInCorner.set(true);
@@ -279,17 +280,15 @@ export class Notification implements OnDestroy, AfterViewInit {
       // Easing function (ease-out)
       const easeOut = 1 - Math.pow(1 - progress, 3);
       
-      // Fase 1: L'icona scompare dall'angolo e il contenitore principale diventa visibile
-      if (progress < 0.4) {
-        // Il contenitore principale rimane invariato (usa le classi CSS)
-        
-        // L'icona scompare gradualmente dall'angolo (icona separata)
+      // Fase 1: L'icona scompare dall'angolo (icona separata)
+      if (progress < 0.3) {
         // L'icona separata viene nascosta automaticamente dal CSS quando isIconInCorner è false
+        // Il contenitore principale rimane invariato (usa le classi CSS)
       }
       
       // Fase 2: Il messaggio scende dall'alto verso il centro
       else {
-        const messageProgress = (progress - 0.4) * (1 / 0.6); // Da 0 a 1 nella seconda fase
+        const messageProgress = (progress - 0.3) * (1 / 0.7); // Da 0 a 1 nella seconda fase
         const messageOpacity = messageProgress;
         const messageTranslateY = (1 - messageProgress) * -120; // Scorre dall'alto (-120px) verso il centro (0px)
         
@@ -303,7 +302,6 @@ export class Notification implements OnDestroy, AfterViewInit {
         message.style.visibility = 'visible';
         message.style.transform = `translateX(0) translateY(0)`;
         message.style.display = 'block';
-        message.style.flex = '1';
       }
       
       // Il contenitore principale rimane invariato (usa le classi CSS)

@@ -1,9 +1,7 @@
 @if (show()) {
   <!-- Contenitore principale -->
   <div #notificationElement class="notification" 
-       [class]="'notification--' + type()"
-       (mouseenter)="expand()"
-       (mouseleave)="onMouseLeave()">
+       [class]="'notification--' + type()">
     
     <!-- Messaggio (si muove e scompare) -->
     <div #messageContainer class="notification__message-container">
@@ -21,7 +19,10 @@
   
   <!-- Icona separata per l'angolo (fuori dal contenitore padre) -->
   <div #cornerIconContainer class="notification__corner-icon" 
-       [style.display]="isIconInCorner() ? 'flex' : 'none'">
+       [class]="'notification__corner-icon notification--' + type()"
+       [style.display]="isIconInCorner() ? 'flex' : 'none'"
+       (mouseenter)="expand()"
+       (mouseleave)="onMouseLeave()">
     <svg class="notification__icon" viewBox="0 0 24 24" fill="currentColor">
       <path [attr.d]="getIconPath()"/>
     </svg>
