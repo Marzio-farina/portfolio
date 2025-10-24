@@ -1,8 +1,15 @@
 <!-- Notifiche multiple -->
 @if (showMultiple()) {
   <div class="notification-stack">
-    <!-- Notifiche visibili (massimo 3 per ora) -->
-    @for (notification of notifications().slice(0, 3); track notification.id; let i = $index) {
+    <!-- Indicatore numero notifiche se ce ne sono molte -->
+    @if (notifications().length > 5) {
+      <div class="notification-counter">
+        {{ notifications().length }} notifiche
+      </div>
+    }
+    
+    <!-- Notifiche visibili (accumulo indefinito) -->
+    @for (notification of notifications(); track notification.id; let i = $index) {
       <div class="notification-multiple" 
            [class]="'notification-multiple--' + notification.type"
            [style.top.px]="20 + (i * 60)"
