@@ -27,7 +27,7 @@ class UserProfileAndSocialSeeder extends Seeder
         UserProfile::updateOrCreate(
             ['user_id' => $user->id],
             [
-                'phone'    => '+39 3518202248',
+                'phone'    => '+39 351 820 2248',
                 'location' => 'San Valentino Torio (SA)',
                 'title'    => 'Full Stack Developer',
                 'bio'      => 'Sono Full Stack Developer e sviluppatore di applicazioni desktop con una forte attitudine analitica e una costante voglia di migliorarmi.
