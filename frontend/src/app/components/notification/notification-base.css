@@ -1,0 +1,188 @@
+/* Sistema notifiche */
+.notification {
+  position: fixed;
+  top: 20px;
+  left: 50%;
+  right: 0%;
+  transform: translateX(-50%);
+  z-index: 9999;
+  pointer-events: auto;
+  max-width: 50%;
+  width: auto;
+  min-width: fit-content;
+  height: 30px;
+  overflow: visible;
+  transition: all 0.3s ease;
+}
+
+.notification:hover {
+  transform: translateX(-50%) scale(1.02);
+  box-shadow: 0 4px 20px rgba(0,0,0,0.15);
+}
+
+/* Contenitore del messaggio */
+.notification__message-container {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 12px 16px;
+  background: var(--bg-card);
+  background-color: rgba(171, 61, 61, 0.95);
+  border: 2px solid #6b7280;
+  border-radius: 12px;
+  box-shadow: var(--shadow-3);
+  min-height: 38px;
+  height: 30px;
+  max-width: 50%;
+  z-index: 2;
+}
+
+/* Supporto per tema scuro */
+@media (prefers-color-scheme: dark) {
+  .notification__message-container {
+    background-color: rgba(30, 30, 30, 0.95);
+  }
+}
+
+/* Contenitore dell'icona */
+.notification__icon-container {
+  position: absolute;
+  top: 0;
+  right: 0;
+  width: 50px;
+  height: 40px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: var(--bg-card);
+  border: 2px solid #6b7280;
+  border-radius: 12px;
+  box-shadow: var(--shadow-3);
+  backdrop-filter: saturate(110%);
+  z-index: 1;
+  opacity: 0;
+}
+
+/* Icona separata per l'angolo */
+.notification__corner-icon {
+  position: fixed !important;
+  right: 20px !important;
+  top: 20px !important;
+  width: 50px !important;
+  height: 50px !important;
+  z-index: 99999 !important;
+  display: flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  background: transparent !important;
+  border: 3px solid var(--accent-color, #f59e0b);
+  border-radius: 50% !important;
+  box-shadow: 0 4px 12px rgba(0,0,0,0.15) !important;
+  backdrop-filter: blur(10px) !important;
+  transition: all 0.3s ease !important;
+  cursor: pointer !important;
+}
+
+.notification__corner-icon:hover {
+  transform: scale(1.1) !important;
+  box-shadow: 0 6px 20px rgba(0,0,0,0.25) !important;
+}
+
+/* Quando l'icona è posizionata nell'angolo */
+.notification__icon-container--corner {
+  display: none !important;
+}
+
+/* Tipi notifica */
+.notification--success .notification__message-container,
+.notification--success .notification__icon-container {
+  border-color: #10b981;
+  background: rgba(16, 185, 129, 0.2);
+}
+
+.notification--error .notification__message-container,
+.notification--error .notification__icon-container {
+  border-color: #ef4444;
+  background: rgba(239, 68, 68, 0.2);
+}
+
+.notification--warning .notification__message-container,
+.notification--warning .notification__icon-container {
+  border-color: #f59e0b;
+  background: rgba(245, 158, 11, 0.2);
+}
+
+.notification--info .notification__message-container,
+.notification--info .notification__icon-container {
+  border-color: #3b82f6;
+  background: rgba(59, 130, 246, 0.2);
+}
+
+/* Stili specifici per l'icona nell'angolo */
+.notification__corner-icon {
+  border-color: var(--accent-color, #f59e0b) !important;
+  background: rgba(245, 158, 11, 0.05) !important;
+}
+
+/* Icona */
+.notification__icon {
+  width: 20px;
+  height: 20px;
+  flex-shrink: 0;
+  display: block;
+}
+
+.notification--success .notification__icon {
+  color: #10b981;
+}
+
+.notification--error .notification__icon {
+  color: #ef4444;
+}
+
+.notification--warning .notification__icon {
+  color: #f59e0b;
+}
+
+.notification--info .notification__icon {
+  color: #3b82f6;
+}
+
+/* Colori e dimensioni delle icone nell'angolo */
+.notification__corner-icon .notification__icon {
+  width: 24px !important;
+  height: 24px !important;
+}
+
+/* Colori delle icone nell'angolo basati sul tipo di messaggio */
+.notification--success .notification__corner-icon .notification__icon {
+  color: #10b981 !important;
+}
+
+.notification--error .notification__corner-icon .notification__icon {
+  color: #ef4444 !important;
+}
+
+.notification--warning .notification__corner-icon .notification__icon {
+  color: #f59e0b !important;
+}
+
+.notification--info .notification__corner-icon .notification__icon {
+  color: #3b82f6 !important;
+}
+
+/* Messaggio */
+.notification__message {
+  color: var(--text-primary);
+  font-weight: 500;
+  font-size: 0.9rem;
+  line-height: 1.4;
+  white-space: nowrap;
+  overflow: hidden;
+  text-align: center;
+}

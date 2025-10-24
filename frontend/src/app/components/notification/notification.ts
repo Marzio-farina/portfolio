@@ -15,7 +15,7 @@ export interface NotificationItem {
   selector: 'app-notification',
   imports: [CommonModule],
   templateUrl: './notification.html',
-  styleUrl: './notification.css'
+  styleUrls: ['./notification-base.css', './notification-multiple.css']
 })
 export class Notification implements OnDestroy, AfterViewInit {
   // Inputs per notifiche singole (compatibilità)
