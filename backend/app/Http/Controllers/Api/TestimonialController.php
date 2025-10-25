@@ -68,6 +68,14 @@ class TestimonialController extends Controller
             'rating' => 'required|integer|min:1|max:5',
         ]);
 
+        // Normalizza stringhe vuote in null per i campi nullable
+        $nullableFields = ['author_surname', 'avatar_url', 'role_company', 'company'];
+        foreach ($nullableFields as $field) {
+            if (isset($validated[$field]) && $validated[$field] === '') {
+                $validated[$field] = null;
+            }
+        }
+
         // Cattura automatica IP e User-Agent
         $testimonial = Testimonial::create([
             ...$validated,
