@@ -19,4 +19,9 @@ export class TestimonialService {
     const url = apiUrl('testimonials');
     return this.http.get<Paginated<Testimonial>>(url, { params: { page, per_page: perPage }});
   }
+
+  create$(data: any): Observable<Testimonial> {
+    const url = apiUrl('testimonials');
+    return this.http.post<Testimonial>(url, data);
+  }
 }

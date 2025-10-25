@@ -1,6 +1,6 @@
 import { Component, ElementRef, inject, signal, ViewChild } from '@angular/core';
 import { toSignal } from '@angular/core/rxjs-interop';
-import { ActivatedRoute } from '@angular/router';
+import { ActivatedRoute, Router } from '@angular/router';
 import { map } from 'rxjs';
 
 import { Avatar } from '../../components/avatar/avatar';
@@ -46,6 +46,7 @@ export class About {
   // ========================================================================
 
   private readonly route = inject(ActivatedRoute);
+  private readonly router = inject(Router);
   private readonly testimonialApi = inject(TestimonialService);
   private readonly whatIDoApi = inject(WhatIDoService);
   private readonly profileApi = inject(ProfileService);
@@ -215,6 +216,13 @@ export class About {
    */
   get hoveredTestimonialId() {
     return this.hoveredTestimonialIdSignal();
+  }
+
+  /**
+   * Navigate to add testimonial page
+   */
+  openAddTestimonial(): void {
+    this.router.navigate(['/about/nuova-recensione']);
   }
 
 }

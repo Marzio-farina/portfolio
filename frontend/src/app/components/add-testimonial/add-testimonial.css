@@ -1,0 +1,357 @@
+/* Header */
+.add-testimonial .header {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  margin-bottom: 24px;
+}
+
+.back-btn {
+  width: 40px;
+  height: 40px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: transparent;
+  border: 1px solid var(--border-primary);
+  border-radius: 50%;
+  cursor: pointer;
+  transition: all var(--transition-1);
+  color: var(--text-primary);
+}
+
+.back-btn:hover {
+  background: var(--bg-secondary);
+  border-color: var(--accent-primary);
+  transform: translateX(-2px);
+}
+
+.back-btn svg {
+  width: 20px;
+  height: 20px;
+}
+
+.title {
+  margin: 0;
+  font-weight: 800;
+  color: var(--text-primary);
+  transition: color var(--transition-1);
+}
+
+/* Success Message */
+.success-message {
+  background: var(--bg-card);
+  border: 1px solid var(--border-primary);
+  border-radius: var(--radius-xl, 14px);
+  padding: 32px;
+  text-align: center;
+}
+
+.success-message p {
+  margin: 0 0 8px;
+  font-size: 1.1rem;
+  color: var(--text-primary);
+}
+
+.success-message .subtitle {
+  font-size: 0.9rem;
+  color: var(--text-secondary);
+}
+
+/* form card */
+.form {
+  background: transparent;
+}
+
+/* griglia responsive */
+.row {
+  display: grid;
+  gap: 16px;
+  grid-template-columns: repeat(2, 1fr);
+}
+
+@media (max-width: 720px) {
+  .row {
+    grid-template-columns: 1fr;
+  }
+}
+
+/* campi */
+.field {
+  display: block;
+  background: var(--bg-card);
+  border: 1px solid var(--border-primary);
+  border-radius: var(--radius-xl, 14px);
+  padding: 12px 14px;
+  color: var(--text-primary);
+  transition: border-color var(--transition-1), box-shadow var(--transition-1), background var(--transition-1);
+  position: relative;
+}
+
+/* floating label */
+.field-label {
+  position: absolute;
+  left: 14px;
+  top: 50%;
+  transform: translateY(-50%);
+  color: var(--text-secondary);
+  font-size: 1rem;
+  transition: all var(--transition-1);
+  pointer-events: none;
+  background: var(--bg-card);
+  padding: 0 4px;
+  z-index: 1;
+}
+
+.field input,
+.field textarea {
+  width: 100%;
+  background: transparent;
+  border: 0;
+  outline: 0;
+  color: inherit;
+  font: inherit;
+  caret-color: var(--accent-primary);
+  padding-right: 28px;
+}
+
+.field textarea {
+  height: 180px;
+  padding: 8px 28px 8px 0;
+  resize: vertical;
+  min-height: 160px;
+  line-height: 1.5;
+  box-sizing: border-box;
+}
+
+.field--textarea {
+  margin-top: 16px;
+  padding: 14px;
+}
+
+/* Rating Label */
+.rating-label {
+  position: relative;
+  display: block;
+  margin-bottom: 8px;
+  color: var(--text-secondary);
+  font-size: 0.9rem;
+  z-index: 2;
+}
+
+/* Rating Input */
+.rating-input {
+  display: flex;
+  gap: 8px;
+  align-items: center;
+}
+
+.rating-input input[type="radio"] {
+  display: none;
+}
+
+.rating-input label {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 40px;
+  height: 40px;
+  border: 2px solid var(--border-primary);
+  border-radius: 8px;
+  background: var(--bg-card);
+  color: var(--text-secondary);
+  font-weight: 600;
+  cursor: pointer;
+  transition: all var(--transition-1);
+}
+
+.rating-input input[type="radio"]:checked + label {
+  background: var(--accent-primary);
+  border-color: var(--accent-primary);
+  color: var(--text-inverse);
+}
+
+.rating-input label:hover {
+  border-color: var(--accent-primary);
+  background: var(--accent-primary-alpha);
+}
+
+/* icona informativa */
+.field-icon {
+  position: absolute;
+  top: 6px;
+  right: 6px;
+  width: 16px;
+  height: 16px;
+  fill: var(--text-secondary);
+  stroke: var(--text-secondary);
+  opacity: 0.6;
+  transition: opacity var(--transition-1), transform var(--transition-1), fill var(--transition-1), stroke var(--transition-1);
+  pointer-events: auto;
+  cursor: pointer;
+}
+
+.field-icon:hover {
+  opacity: 1;
+  transform: scale(1.1);
+  fill: var(--accent-primary);
+  stroke: var(--accent-primary);
+}
+
+.field:focus-within .field-icon {
+  opacity: 1;
+  stroke: var(--accent-primary);
+  fill: var(--accent-primary);
+}
+
+/* popup tooltip */
+.field-tooltip {
+  position: absolute;
+  top: -8px;
+  right: 24px;
+  background: var(--bg-card);
+  border: 1px solid var(--border-primary);
+  border-radius: var(--radius-lg, 8px);
+  padding: 8px 12px;
+  font-size: 0.85rem;
+  color: var(--text-primary);
+  white-space: nowrap;
+  box-shadow: var(--shadow-2);
+  z-index: 1000;
+  opacity: 0;
+  transform: translateY(4px);
+  transition: opacity var(--transition-1), transform var(--transition-1);
+  pointer-events: none;
+}
+
+.field-tooltip::after {
+  content: '';
+  position: absolute;
+  top: 50%;
+  right: -6px;
+  transform: translateY(-50%);
+  width: 0;
+  height: 0;
+  border-left: 6px solid var(--border-primary);
+  border-top: 6px solid transparent;
+  border-bottom: 6px solid transparent;
+}
+
+.field-tooltip.show {
+  opacity: 1;
+  transform: translateY(0);
+}
+
+/* focus styling */
+.field:focus-within {
+  border-color: var(--accent-primary);
+  box-shadow: 0 0 0 3px var(--accent-primary-alpha);
+}
+
+/* floating label animation */
+.field:focus-within .field-label,
+.field input:not(:placeholder-shown) + .field-label,
+.field textarea:not(:placeholder-shown) + .field-label {
+  top: 0;
+  font-size: 0.85rem;
+  color: var(--accent-primary);
+  transform: translateY(-50%);
+}
+
+/* label textarea come placeholder interno */
+.field--textarea .field-label {
+  top: 14px;
+  left: 14px;
+  font-size: 1rem;
+  color: var(--text-secondary);
+  transform: none;
+  background: var(--bg-card);
+  padding: 0 4px;
+  z-index: 2;
+  transition: opacity var(--transition-1);
+}
+
+.field--textarea:focus-within .field-label {
+  color: var(--accent-primary);
+}
+
+.field--textarea textarea:not(:placeholder-shown) + .field-label {
+  opacity: 0;
+}
+
+/* Error Message */
+.error-message {
+  margin-top: 16px;
+  padding: 12px 16px;
+  background: rgba(239, 68, 68, 0.1);
+  border: 1px solid rgba(239, 68, 68, 0.3);
+  border-radius: var(--radius-lg, 8px);
+  color: var(--error-color);
+  font-size: 0.9rem;
+}
+
+/* pulsante */
+.actions {
+  display: flex;
+  justify-content: space-between;
+  gap: 12px;
+  margin-top: 24px;
+}
+
+.btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 10px;
+  padding: 14px 22px;
+  border: 0;
+  border-radius: 999px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: transform var(--transition-1), box-shadow var(--transition-1), background var(--transition-1), border-color var(--transition-1);
+  flex: 1;
+}
+
+.btn-primary {
+  background: var(--accent-primary);
+  color: var(--text-inverse);
+}
+
+.btn-secondary {
+  background: transparent;
+  color: var(--text-primary);
+  border: 2px solid var(--border-primary);
+}
+
+.btn:hover:not(:disabled) {
+  transform: translateY(-1px);
+  box-shadow: var(--shadow-2);
+}
+
+.btn-secondary:hover:not(:disabled) {
+  border-color: var(--accent-primary);
+  background: var(--accent-primary-alpha);
+}
+
+.btn:active:not(:disabled) {
+  transform: translateY(0);
+}
+
+.btn:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+.btn .icon {
+  width: 18px;
+  height: 18px;
+  fill: currentColor;
+  transform: translateY(-1px);
+}
+
+/* Arrotondamenti */
+.add-testimonial,
+.form,
+.field,
+.btn {
+  backdrop-filter: saturate(110%);
+}
