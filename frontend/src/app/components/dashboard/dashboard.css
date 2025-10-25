@@ -1,12 +1,12 @@
 .dashboard__container {
     display: grid;
-    grid-template-columns: 40px 1fr 40px;
+    grid-template-columns: 15px 1fr 15px;  /* Spazio ridotto per mobile */
     background: transparent;
     color: inherit;
 }
 
 .dashboard__container > * {
-    grid-column: 1;
+    grid-column: 1;  /* Contenuto nella colonna centrale */
 }
 
 /* Padding laterale per dispositivi grandi */
