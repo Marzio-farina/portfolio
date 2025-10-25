@@ -215,7 +215,6 @@
 .btn:hover {
   transform: translateY(-1px);
   box-shadow: var(--shadow-2);
-  background: var(--accent-primary-hover);
 }
 
 .btn:active {
