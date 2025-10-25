@@ -9,6 +9,7 @@
  */
 
 use App\Http\Controllers\Api\AttestatiController;
+use App\Http\Controllers\Api\AvatarController;
 use App\Http\Controllers\Api\CvController;
 use App\Http\Controllers\Api\ProjectController;
 use App\Http\Controllers\Api\TestimonialController;
@@ -93,6 +94,8 @@ Route::middleware(['api', "throttle:{$throttleLimit}", 'db.connection'])
         // ====================================================================
         Route::middleware('http.cache:300')->group(function () {
             Route::get('testimonials', [TestimonialController::class, 'index']);
+            Route::get('testimonials/icons', [TestimonialController::class, 'getIcons']); // Tutte le icone
+            Route::get('testimonials/default-avatars', [TestimonialController::class, 'getDefaultAvatars']); // Solo avatar predefiniti
             Route::get('projects', [ProjectController::class, 'index']);
             Route::get('cv', [CvController::class, 'index']);
             Route::get('what-i-do', [WhatIDoController::class, 'index']);
@@ -107,6 +110,7 @@ Route::middleware(['api', "throttle:{$throttleLimit}", 'db.connection'])
         $writeThrottleLimit = app()->environment('local') ? '100,1' : '20,1';
         Route::middleware("throttle:{$writeThrottleLimit}")->group(function () {
             Route::post('testimonials', [TestimonialController::class, 'store']);
+            Route::post('avatars/upload', [AvatarController::class, 'upload']); // Upload avatar
         });
 
         // ====================================================================
@@ -128,6 +132,7 @@ Route::middleware(['api', "throttle:{$throttleLimit}", 'db.connection'])
             Route::get('/me', [AuthController::class, 'me']);
             Route::post('/logout', [AuthController::class, 'logout']);
             Route::put('/profile', [AuthController::class, 'updateProfile']);
+            Route::delete('avatars/{id}', [AvatarController::class, 'delete']); // Delete avatar
         });
 
         // ====================================================================

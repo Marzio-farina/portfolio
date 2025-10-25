@@ -13,7 +13,8 @@ class Testimonial extends Model
         'user_id',
         'author_name', // Nome del visitatore
         'author_surname', // Cognome del visitatore
-        'avatar_url', // Icona/immagine del visitatore
+        'icon_id', // Icona del visitatore (FK → icons.id)
+        'avatar_url', // Icona/immagine del visitatore (DEPRECATO - mantenuto per compatibilità)
         'text',
         'role_company',
         'company',
@@ -34,6 +35,16 @@ class Testimonial extends Model
     public function user()
     {
         return $this->belongsTo(User::class);
+    }
+
+    /**
+     * Get the icon for the testimonial author (visitor or user)
+     *
+     * @return \Illuminate\Database\Eloquent\Relations\BelongsTo
+     */
+    public function icon()
+    {
+        return $this->belongsTo(Icon::class);
     }
 
     /**
@@ -78,5 +89,44 @@ class Testimonial extends Model
         }
         
         return trim($this->author_name . ' ' . ($this->author_surname ?? ''));
+    }
+
+    /**
+     * Metodo helper per ottenere l'icona dell'autore
+     * Priorità: icon_id (nuovo) > user.icon (se utente registrato) > avatar_url (deprecato)
+     */
+    public function getAuthorIconAttribute(): ?string
+    {
+        // Se ha icon_id specifico (nuovo sistema)
+        if ($this->icon_id && $this->icon) {
+            return $this->icon->img;
+        }
+        
+        // Se è un utente registrato, usa la sua icona
+        if ($this->isFromUser() && $this->user && $this->user->icon) {
+            return $this->user->icon->img;
+        }
+        
+        // Fallback al vecchio sistema (deprecato)
+        return $this->avatar_url;
+    }
+
+    /**
+     * Metodo helper per ottenere l'alt text dell'icona
+     */
+    public function getAuthorIconAltAttribute(): ?string
+    {
+        // Se ha icon_id specifico
+        if ($this->icon_id && $this->icon) {
+            return $this->icon->alt ?? $this->getAuthorFullNameAttribute();
+        }
+        
+        // Se è un utente registrato
+        if ($this->isFromUser() && $this->user && $this->user->icon) {
+            return $this->user->icon->alt ?? $this->getAuthorFullNameAttribute();
+        }
+        
+        // Fallback
+        return $this->getAuthorFullNameAttribute();
     }
 }

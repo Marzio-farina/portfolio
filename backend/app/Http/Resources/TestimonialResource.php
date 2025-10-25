@@ -31,6 +31,7 @@ class TestimonialResource extends JsonResource
             'isFromUser' => $this->isFromUser(),
             'isFromVisitor' => $this->isFromVisitor(),
             'avatar' => $this->getAvatar(),
+            'icon' => $this->getIconData(), // Nuovo campo per dati icona
             'createdAt' => $this->created_at?->toISOString(),
         ];
     }
@@ -65,5 +66,69 @@ class TestimonialResource extends JsonResource
 
         // Altrimenti usa l'avatar del visitatore (se presente)
         return $this->avatar_url;
+    }
+
+    /**
+     * Get icon data for the testimonial author
+     * 
+     * @return array|null
+     */
+    private function getIconData(): ?array
+    {
+        // Se ha icon_id specifico (nuovo sistema)
+        if ($this->icon_id && $this->icon) {
+            return [
+                'id' => $this->icon->id,
+                'img' => $this->getAbsoluteUrl($this->icon->img),
+                'alt' => $this->icon->alt ?? $this->getAuthorName()
+            ];
+        }
+        
+        // Se è un utente registrato, usa la sua icona
+        if ($this->isFromUser() && $this->user && $this->user->icon) {
+            return [
+                'id' => $this->user->icon->id,
+                'img' => $this->getAbsoluteUrl($this->user->icon->img),
+                'alt' => $this->user->icon->alt ?? $this->getAuthorName()
+            ];
+        }
+        
+        // Fallback al vecchio sistema (deprecato)
+        if ($this->avatar_url) {
+            return [
+                'id' => null,
+                'img' => $this->getAbsoluteUrl($this->avatar_url),
+                'alt' => $this->getAuthorName()
+            ];
+        }
+        
+        return null;
+    }
+
+    /**
+     * Convert relative path to absolute URL
+     * 
+     * @param string $path
+     * @return string
+     */
+    private function getAbsoluteUrl(string $path): string
+    {
+        // Se è già un URL assoluto, restituiscilo così com'è
+        if (str_starts_with($path, 'http://') || str_starts_with($path, 'https://')) {
+            return $path;
+        }
+        
+        // Se inizia con storage/, rimuovi il prefisso e usa asset()
+        if (str_starts_with($path, 'storage/')) {
+            return asset($path);
+        }
+        
+        // Se inizia con icons/, usa asset()
+        if (str_starts_with($path, 'icons/')) {
+            return asset($path);
+        }
+        
+        // Per altri percorsi, usa asset()
+        return asset($path);
     }
 }

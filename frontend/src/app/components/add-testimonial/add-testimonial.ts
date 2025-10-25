@@ -2,6 +2,8 @@ import { Component, inject, signal, output, ViewChild, ElementRef } from '@angul
 import { FormBuilder, FormGroup, ReactiveFormsModule, Validators } from '@angular/forms';
 import { Router } from '@angular/router';
 import { TestimonialService } from '../../services/testimonial.service';
+import { DefaultAvatarService } from '../../services/default-avatar.service';
+import { AvatarData } from '../avatar/avatar';
 import { Notification, NotificationType } from '../../components/notification/notification';
 
 export interface NotificationItem {
@@ -22,6 +24,7 @@ export class AddTestimonial {
   private fb = inject(FormBuilder);
   private router = inject(Router);
   private testimonialApi = inject(TestimonialService);
+  private defaultAvatarService = inject(DefaultAvatarService);
 
   @ViewChild('avatarFileInput') avatarFileInputRef?: ElementRef<HTMLInputElement>;
 
@@ -47,16 +50,12 @@ export class AddTestimonial {
     role_company: [''],
     company: [''],
     rating: [3, [Validators.required, Validators.min(1), Validators.max(5)]],
-    avatar_url: ['']
+    avatar_url: [''],
+    avatar_file: [null as File | null] // Campo per il file caricato
   });
 
-  // Avatar di default disponibili
-  private readonly defaultAvatars = [
-    'assets/images/avatar-1.png',
-    'assets/images/avatar-2.png', 
-    'assets/images/avatar-3.png',
-    'assets/images/avatar-4.png'
-  ];
+  // Avatar di default disponibili (caricati dal backend)
+  private defaultAvatars: AvatarData[] = [];
 
   // URL dell'immagine caricata dall'utente
   private uploadedAvatarUrl = signal<string | null>(null);
@@ -70,8 +69,12 @@ export class AddTestimonial {
     this.form.get('text')?.valueChanges.subscribe(() => this.validateField('text'));
     this.form.get('rating')?.valueChanges.subscribe(() => this.validateField('rating'));
     
-    // Imposta un avatar di default casuale
-    this.setRandomDefaultAvatar();
+    // Carica gli avatar predefiniti dal backend
+    this.defaultAvatarService.getDefaultAvatars().subscribe((avatars: AvatarData[]) => {
+      this.defaultAvatars = avatars;
+      // Imposta un avatar di default casuale
+      this.setRandomDefaultAvatar();
+    });
   }
 
   /**
@@ -93,7 +96,12 @@ export class AddTestimonial {
     
     // Infine usa l'avatar di default corrente
     const currentIndex = this.currentDefaultAvatarIndex();
-    return this.defaultAvatars[currentIndex];
+    if (this.defaultAvatars.length > 0 && currentIndex < this.defaultAvatars.length) {
+      return this.defaultAvatars[currentIndex].img;
+    }
+    
+    // Fallback se non ci sono avatar caricati
+    return '';
   }
 
   /**
@@ -145,8 +153,10 @@ export class AddTestimonial {
         const result = e.target?.result as string;
         this.uploadedAvatarUrl.set(result);
         
-        // Salva anche l'URL nel form per l'invio
-        this.form.get('avatar_url')?.setValue(result);
+        // Salva il file nel form per l'invio
+        this.form.get('avatar_file')?.setValue(file);
+        // Pulisci l'avatar_url quando si carica un file
+        this.form.get('avatar_url')?.setValue('');
       };
       reader.readAsDataURL(file);
     }
@@ -162,6 +172,7 @@ export class AddTestimonial {
     
     // Aggiorna il form con l'avatar selezionato
     this.form.get('avatar_url')?.setValue('');
+    this.form.get('avatar_file')?.setValue(null);
     this.uploadedAvatarUrl.set(null);
   }
 
@@ -175,6 +186,7 @@ export class AddTestimonial {
     
     // Aggiorna il form con l'avatar selezionato
     this.form.get('avatar_url')?.setValue('');
+    this.form.get('avatar_file')?.setValue(null);
     this.uploadedAvatarUrl.set(null);
   }
 
@@ -186,7 +198,8 @@ export class AddTestimonial {
     if (this.uploadedAvatarUrl()) {
       return false;
     }
-    return true;
+    // Se non ci sono avatar caricati, non mostrare le frecce
+    return this.defaultAvatars.length > 1;
   }
 
   /**
@@ -197,15 +210,23 @@ export class AddTestimonial {
     if (this.uploadedAvatarUrl()) {
       return false;
     }
-    return true;
+    // Se non ci sono avatar caricati, non mostrare le frecce
+    return this.defaultAvatars.length > 1;
   }
 
   /**
    * Imposta un avatar di default casuale
    */
   private setRandomDefaultAvatar(): void {
-    const randomIndex = Math.floor(Math.random() * this.defaultAvatars.length);
-    this.currentDefaultAvatarIndex.set(randomIndex);
+    if (this.defaultAvatars.length > 0) {
+      const randomIndex = Math.floor(Math.random() * this.defaultAvatars.length);
+      this.currentDefaultAvatarIndex.set(randomIndex);
+    } else {
+      this.currentDefaultAvatarIndex.set(0);
+    }
+    // Pulisci i campi avatar quando si imposta un avatar di default
+    this.form.get('avatar_url')?.setValue('');
+    this.form.get('avatar_file')?.setValue(null);
   }
 
   submit() {

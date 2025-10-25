@@ -31,7 +31,7 @@
         <!-- Header -->
         <div class="testimonial-dialog-header">
           <div class="testimonial-avatar">
-            <app-avatar [width]="64"></app-avatar>
+            <app-avatar [width]="64" [avatarData]="icon() ?? null"></app-avatar>
           </div>
           <div class="testimonial-info">
             <h3 class="testimonial-dialog-author">{{ author() }}</h3>

@@ -1,6 +1,12 @@
 import { Component, computed, input, output, signal } from '@angular/core';
 import { Avatar } from '../avatar/avatar';
 
+export interface TestimonialIcon {
+  id: number;
+  img: string;
+  alt: string;
+}
+
 @Component({
   selector: 'app-testimonial-card',
   imports: [
@@ -16,6 +22,7 @@ export class TestimonialCard {
   company = input<string>('');
   rating = input<number, number | undefined>(5,{ transform: v => v ?? 5 });
   clampChars = input<number>(65);
+  icon = input<TestimonialIcon | null>(null);
   
   // Eventi per comunicare con il componente padre
   onHoverStart = output<void>();

@@ -8,13 +8,13 @@ import { apiUrl } from '../core/api/api-url';
 @Injectable({
   providedIn: 'root'
 })
-export class AvatarService {
+export class DefaultAvatarService {
 
   constructor(private http: HttpClient) {}
 
-  getAvatars(): Observable<AvatarData[]> {
-    return this.http.get<{icons: AvatarData[]}>(apiUrl('testimonials/icons')).pipe(
-      map(response => response.icons)
+  getDefaultAvatars(): Observable<AvatarData[]> {
+    return this.http.get<{avatars: AvatarData[]}>(apiUrl('testimonials/default-avatars')).pipe(
+      map(response => response.avatars)
     );
   }
 }

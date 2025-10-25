@@ -1,3 +1,9 @@
+export interface TestimonialIcon {
+  id: number;
+  img: string;
+  alt: string;
+}
+
 export interface Testimonial {
   id: string;
   author: string;
@@ -5,6 +11,11 @@ export interface Testimonial {
   role?: string;
   company?: string;
   rating: number;
+  isFromUser?: boolean;
+  isFromVisitor?: boolean;
+  avatar?: string | null;
+  icon?: TestimonialIcon | null;
+  createdAt?: string;
 }
 
 export interface Paginated<T> {

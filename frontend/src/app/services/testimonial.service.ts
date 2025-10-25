@@ -22,6 +22,22 @@ export class TestimonialService {
 
   create$(data: any): Observable<Testimonial> {
     const url = apiUrl('testimonials');
+    
+    // Se c'è un file da caricare, usa FormData
+    if (data.avatar_file) {
+      const formData = new FormData();
+      
+      // Aggiungi tutti i campi del form
+      Object.keys(data).forEach(key => {
+        if (data[key] !== null && data[key] !== undefined) {
+          formData.append(key, data[key]);
+        }
+      });
+      
+      return this.http.post<Testimonial>(url, formData);
+    }
+    
+    // Altrimenti invia come JSON normale
     return this.http.post<Testimonial>(url, data);
   }
 }
