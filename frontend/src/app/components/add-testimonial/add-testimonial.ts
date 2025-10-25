@@ -44,7 +44,7 @@ export class AddTestimonial {
     text: ['', [Validators.required, Validators.minLength(10)]],
     role_company: [''],
     company: [''],
-    rating: [5, [Validators.required, Validators.min(1), Validators.max(5)]],
+    rating: [3, [Validators.required, Validators.min(1), Validators.max(5)]],
     avatar_url: ['']
   });
 
