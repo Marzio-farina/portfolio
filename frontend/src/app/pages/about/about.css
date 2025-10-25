@@ -44,25 +44,6 @@
         overflow-wrap: break-word;
         max-width: 100%;
     }
-    
-    /* Spazio extra per testimonial su dispositivi piccoli */
-    .testimonial-track {
-        padding-top: 30px; /* Più spazio per iPhone SE */
-    }
-}
-
-/* ===== Ottimizzazione per dispositivi medi ===== */
-@media (min-width: 480px) and (max-width: 768px) {
-    .testimonial-track {
-        padding-top: 25px; /* Spazio intermedio per tablet */
-    }
-}
-
-/* ===== Ottimizzazione per dispositivi grandi ===== */
-@media (min-width: 769px) {
-    .testimonial-track {
-        padding-top: 20px; /* Spazio standard per desktop */
-    }
 }
 
 .article-title::after {
@@ -122,7 +103,6 @@
   overflow-x: auto;
   overflow-y: hidden;
   scroll-snap-type: x mandatory;
-  padding-top: 20px;         /* Spazio sopra per evitare taglio immagine utente */
   scroll-behavior: smooth;
   width: 100%;
   max-width: 100%;

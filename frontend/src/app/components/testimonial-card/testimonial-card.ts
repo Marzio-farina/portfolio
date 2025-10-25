@@ -1,4 +1,4 @@
-import { Component, computed, input, output } from '@angular/core';
+import { Component, computed, input, output, signal } from '@angular/core';
 import { Avatar } from '../avatar/avatar';
 
 @Component({
@@ -21,7 +21,16 @@ export class TestimonialCard {
   onHoverStart = output<void>();
   onHoverEnd = output<void>();
 
-  // testo mostrato nella card (sempre 65 char + … se serve). NON cambia quando l’overlay è aperto
+  // Stato del dialog
+  dialogOpen = signal<boolean>(false);
+  
+  // Stato per l'effetto typewriter
+  displayedText = signal<string>('');
+  isTyping = signal<boolean>(false);
+  private typewriterInterval: any;
+  private initialText = '';
+
+  // testo mostrato nella card (sempre 65 char + … se serve). NON cambia quando l'overlay è aperto
   displayText = computed(() => {
     const full = this.text()?.trim() ?? '';
     const limit = this.clampChars();
@@ -33,9 +42,40 @@ export class TestimonialCard {
     return base.trimEnd() + '…';
   });
 
-  openModal(dlg: HTMLDialogElement) {
-    // evita che il click propaghi e riapra
-    dlg?.showModal();
+  openDialog() {
+    this.dialogOpen.set(true);
+    this.initialText = this.text();
+    this.displayedText.set('');
+    this.startTypewriterEffect();
+  }
+
+  closeDialog() {
+    this.dialogOpen.set(false);
+    this.stopTypewriterEffect();
+    this.displayedText.set('');
+  }
+
+  startTypewriterEffect() {
+    const fullText = this.initialText;
+    let currentIndex = 0;
+    this.isTyping.set(true);
+
+    this.typewriterInterval = setInterval(() => {
+      if (currentIndex <= fullText.length) {
+        this.displayedText.set(fullText.slice(0, currentIndex));
+        currentIndex++;
+      } else {
+        this.stopTypewriterEffect();
+      }
+    }, 30); // Velocità: 30ms per carattere
+  }
+
+  stopTypewriterEffect() {
+    if (this.typewriterInterval) {
+      clearInterval(this.typewriterInterval);
+      this.typewriterInterval = null;
+    }
+    this.isTyping.set(false);
   }
 
   onMouseEnter() {
