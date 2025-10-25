@@ -1,6 +1,17 @@
 <div class="card" (mouseenter)="onMouseEnter()" (mouseleave)="onMouseLeave()">
   <div class="description_card" (click)="openModal(dlg)">
     <h4>{{ author() }}</h4>
+    @if (rating()) {
+      <div class="rating-container">
+        <div class="rating rating-sm">
+          <input type="radio" class="mask mask-star-2 bg-amber-400" [checked]="rating() >= 1" />
+          <input type="radio" class="mask mask-star-2 bg-amber-400" [checked]="rating() >= 2" />
+          <input type="radio" class="mask mask-star-2 bg-amber-400" [checked]="rating() >= 3" />
+          <input type="radio" class="mask mask-star-2 bg-amber-400" [checked]="rating() >= 4" />
+          <input type="radio" class="mask mask-star-2 bg-amber-400" [checked]="rating() >= 5" />
+        </div>
+      </div>
+    }
     <p>{{ displayText() }}</p>
 
     <!-- MODALE DaisyUI -->

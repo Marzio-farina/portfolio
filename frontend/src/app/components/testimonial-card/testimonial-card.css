@@ -2,9 +2,9 @@
     position: relative;
     display: flex;
     flex-direction: row;
-    align-items:center;
+    align-items: start;
     gap: var(--gap);
-    padding: var(--pad);
+    padding: 5px 40px;
     height: 145px;                 /* altezza fissa */
     box-sizing: border-box;
     background: var(--bg-card);
@@ -61,19 +61,27 @@
     position: relative;
     display: flex;
     flex-direction: column;
-    justify-content: center;
+    gap: var(--gap);
     flex: 1;
     min-width: 0;
 }
 
 .description_card h4 {
-    margin: 0 0 7px 0px;
+    margin: 0;
     color: var(--text-primary);
     font-size: var(--fs-2);
     font-weight: 700;
     text-transform: capitalize;
     text-align: center;
     transition: color var(--transition-1);
+}
+
+.rating-container {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    margin-top: -4px;
+    margin-bottom: -4px;
 }
 
 .description_card p {
