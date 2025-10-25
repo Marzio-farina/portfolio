@@ -222,7 +222,7 @@ export class About {
    * Navigate to add testimonial page
    */
   openAddTestimonial(): void {
-    this.router.navigate(['/about/nuova-recensione']);
+    this.router.navigate(['/nuova-recensione']);
   }
 
 }

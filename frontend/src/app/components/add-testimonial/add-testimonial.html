@@ -1,3 +1,10 @@
+<!-- Sistema di notifiche multiple -->
+<app-notification 
+  [notifications]="notifications()"
+  [showMultiple]="showMultipleNotifications"
+  [mostSevereNotification]="getMostSevereNotification()">
+</app-notification>
+
 <section class="add-testimonial">
   <div class="header">
     <button class="back-btn" (click)="goBack()">

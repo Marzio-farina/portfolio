@@ -11,7 +11,7 @@ import { AddTestimonial } from './components/add-testimonial/add-testimonial';
 export const routes: Routes = [
   { path: '', pathMatch: 'full', redirectTo: 'about' },
   { path: 'about',     component: About,     data: { title: 'Chi sono' } },
-  { path: 'about/nuova-recensione', component: AddTestimonial, data: { title: 'Nuova Recensione' } },
+  { path: 'nuova-recensione', component: AddTestimonial, data: { title: 'Nuova Recensione' } },
   { path: 'curriculum',component: Curriculum,data: { title: 'Curriculum' } },
   { path: 'progetti',  component: Progetti,  data: { title: 'Progetti' } },
   { path: 'attestati',  component: Attestati,  data: { title: 'Attestati' } },
