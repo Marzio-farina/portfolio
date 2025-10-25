@@ -1,0 +1,523 @@
+/* ===== BIO CARD MOBILE ===== */
+.bio-card-mobile {
+  display: none; /* Nascosto di default */
+  position: relative;
+  background: var(--bg-card);
+  border: 1px solid var(--border-primary);
+  border-radius: 14px;
+  padding: 20px;
+  margin: 20px 0;
+  height: 200px; /* Altezza fissa */
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  overflow: hidden;
+  transform-style: preserve-3d;
+  perspective: 1000px;
+  cursor: pointer; /* Manina al hover */
+}
+
+.bio-arrow {
+  position: absolute;
+  color: #FFF8E1; /* Giallino crema come background avatar */
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  z-index: 10; /* Sopra al testo */
+  width: 28px; /* Frecce più cicciottelle */
+  height: 28px;
+}
+
+.bio-arrow svg {
+  width: 100%;
+  height: 100%;
+}
+
+.bio-arrow--top-left {
+  top: 20px; /* Più padding dal bordo */
+  left: 20px; /* Più padding dal bordo */
+  /* Nessuna rotazione - angolo L già orientato correttamente */
+}
+
+.bio-arrow--bottom-right {
+  bottom: 20px; /* Più padding dal bordo */
+  right: 20px; /* Più padding dal bordo */
+  /* Nessuna rotazione - angolo L già orientato correttamente */
+}
+
+/* Colore frecce per tema chiaro */
+:not([data-theme]) .bio-arrow,
+[data-theme="light"] .bio-arrow {
+  color: #9CA3AF; /* Grigio chiaro per tema giorno */
+}
+
+.bio-content {
+  position: relative;
+  z-index: 1; /* Sotto alle frecce */
+  color: var(--text-primary);
+  line-height: 1.6;
+  font-size: 0.9rem;
+  height: 100%;
+  overflow: hidden; /* Nasconde lo scroll quando contratto */
+  white-space: normal !important;
+  word-wrap: break-word !important;
+  overflow-wrap: break-word !important;
+  hyphens: none !important;
+  word-break: break-word !important;
+  -webkit-hyphens: none !important;
+  -moz-hyphens: none !important;
+  -ms-hyphens: none !important;
+}
+
+/* Puntini di sospensione per bio mobile card - sempre visibili */
+@media (max-width: 768px) {
+  .bio-content::after {
+    content: '...';
+    position: absolute;
+    bottom: 0;
+    right: 0;
+    background: var(--bg-card);
+    padding-left: 20px;
+    color: var(--text-primary);
+  }
+}
+
+/* Scritta "Leggi" al centro quando contratto */
+.bio-read-more {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  color: var(--text-muted);
+  font-size: clamp(1.2rem, 6vw, 4rem); /* Font-size responsivo: min 1.2rem, max 4rem, preferito 6vw */
+  font-weight: 700; /* Forza il font-weight */
+  opacity: 0.4;
+  pointer-events: none;
+  z-index: 5;
+  display: none;
+  width: 100%; /* Larghezza completa per permettere riduzione */
+  max-width: 100%; /* Massimo larghezza completa */
+  text-align: center; /* Centrato orizzontalmente */
+  letter-spacing: clamp(0.5px, 1vw, 5px); /* Letter-spacing responsivo */
+  white-space: nowrap; /* Impedisce il wrapping su due righe */
+  transition: font-size 0.3s ease, letter-spacing 0.3s ease; /* Transizione fluida */
+  -webkit-text-stroke: 1px rgba(128, 128, 128, 0.7); /* Bordo grigio con opacità 0.7 */
+  text-stroke: 1px rgba(128, 128, 128, 0.7); /* Bordo grigio con opacità 0.7 */
+}
+
+.bio-read-more {
+  display: block;
+}
+
+/* Effetto hover per la scritta "Leggi" */
+.bio-card-mobile:hover .bio-read-more {
+  color: var(--accent-primary); /* Colore primario del tema */
+  -webkit-text-stroke: 1px var(--accent-primary); /* Bordo con colore primario */
+  text-stroke: 1px var(--accent-primary); /* Bordo con colore primario */
+  opacity: 0.8; /* Maggiore opacità al hover */
+}
+
+/* Effetto hover come what-i-do-card */
+.bio-card-mobile:hover {
+  box-shadow: var(--shadow-4);
+  border-color: var(--accent-primary);
+}
+
+.bio-card-mobile:hover .bio-arrow--top-left {
+  transform: scale(1.2);
+  color: var(--accent-primary);
+}
+
+.bio-card-mobile:hover .bio-arrow--bottom-right {
+  transform: scale(1.2);
+  color: var(--accent-primary);
+}
+
+/* Glow interno per tema giorno */
+:not([data-theme]) .bio-card-mobile:hover,
+[data-theme="light"] .bio-card-mobile:hover {
+  background: 
+    radial-gradient(ellipse at 80% 20%, rgba(249, 115, 22, 0.25) 0%, transparent 70%),
+    radial-gradient(ellipse at 20% 80%, rgba(234, 88, 12, 0.2) 0%, transparent 60%),
+    var(--bg-card);
+}
+
+/* Glow interno per tema notte */
+[data-theme="dark"] .bio-card-mobile:hover {
+  background: 
+    radial-gradient(ellipse at 80% 20%, rgba(45, 100, 72, 0.3) 0%, transparent 70%),
+    radial-gradient(ellipse at 20% 80%, rgba(240, 2, 13, 0.25) 0%, transparent 60%),
+    var(--bg-card);
+}
+
+/* Contenitore bio desktop che si ingrandisce fluidamente */
+.bio-desktop-container {
+  overflow: hidden;
+  transition: min-height 0.3s ease-out;
+  min-height: 100px; /* Altezza minima per iniziare */
+}
+
+/* Bio desktop - nascosta su mobile */
+.bio-desktop {
+  display: block;
+  white-space: normal !important;
+  word-wrap: break-word !important;
+  overflow-wrap: break-word !important;
+  hyphens: none !important;
+  word-break: break-word !important;
+  -webkit-hyphens: none !important;
+  -moz-hyphens: none !important;
+  -ms-hyphens: none !important;
+  line-height: 1.7;
+  font-size: 1.1rem;
+  transition: opacity 0.2s ease;
+}
+
+/* Cursore lampeggiante per bio desktop */
+.bio-desktop.typing::after {
+  content: '|';
+  color: var(--accent-primary);
+  animation: blink 1s infinite;
+  font-weight: bold;
+  margin-left: 2px;
+}
+
+/* Cursore lampeggiante per bio dialog */
+.bio-dialog-content.typing::after {
+  content: '|';
+  color: var(--accent-primary);
+  animation: blink 1s infinite;
+  font-weight: bold;
+  margin-left: 2px;
+}
+
+/* Nascondi cursore quando non si sta scrivendo per desktop */
+.bio-desktop:not(.typing)::after {
+  display: none;
+}
+
+/* Nascondi cursore quando non si sta scrivendo nel dialog */
+.bio-dialog-content:not(.typing)::after {
+  display: none;
+}
+
+/* ===== BIO DIALOG ===== */
+.bio-dialog-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(0, 0, 0, 0.7);
+  backdrop-filter: blur(6px);
+  z-index: 9999;
+  display: flex;
+  align-items: flex-start;
+  justify-content: center;
+  padding: 20px;
+  animation: fadeIn 0.3s ease-out;
+}
+
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+.bio-dialog {
+  background: var(--bg-card);
+  border: 1px solid var(--border-primary);
+  border-radius: 20px;
+  padding: 24px;
+  width: 100%;
+  max-width: 90vw;
+  height: 85vh;
+  max-height: 85vh;
+  position: relative;
+  box-shadow: var(--shadow-4);
+  animation: slideUp 0.3s ease-out;
+  overflow: hidden;
+  display: block;
+  margin-top: 2vh;
+}
+
+@keyframes slideUp {
+  from {
+    transform: translateY(20px);
+    opacity: 0;
+  }
+  to {
+    transform: translateY(0);
+    opacity: 1;
+  }
+}
+
+.bio-dialog-close {
+  position: absolute;
+  top: 16px;
+  right: 16px;
+  width: 44px;
+  height: 44px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border: none;
+  background: transparent;
+  color: var(--text-secondary);
+  cursor: pointer;
+  border-radius: 12px;
+  transition: all 0.3s ease;
+  z-index: 10;
+  font-weight: bold;
+  font-size: 18px;
+}
+
+.bio-dialog-close:hover {
+  background: var(--bg-secondary);
+  color: var(--accent-primary);
+  transform: scale(1.05);
+}
+
+.bio-dialog-close svg {
+  width: 22px;
+  height: 22px;
+  stroke-width: 3;
+}
+
+.bio-dialog-content {
+  color: var(--text-primary);
+  line-height: 1.7;
+  font-size: 1rem;
+  white-space: normal !important;
+  word-wrap: break-word !important;
+  overflow-wrap: break-word !important;
+  hyphens: none !important;
+  word-break: break-word !important;
+  -webkit-hyphens: none !important;
+  -moz-hyphens: none !important;
+  -ms-hyphens: none !important;
+  overflow-y: auto;
+  padding-right: 12px;
+  scroll-behavior: smooth;
+}
+
+/* Scrollbar per il contenuto del dialog */
+.bio-dialog-content::-webkit-scrollbar {
+  width: 6px;
+}
+
+.bio-dialog-content::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+.bio-dialog-content::-webkit-scrollbar-thumb {
+  background: var(--text-muted);
+  border-radius: 9999px;
+  transition: background var(--transition-1);
+}
+
+.bio-dialog-content::-webkit-scrollbar-thumb:hover {
+  background: var(--text-secondary);
+}
+
+/* Animazione lampeggiante per il cursore */
+@keyframes blink {
+  0%, 50% { opacity: 1; }
+  51%, 100% { opacity: 0; }
+}
+
+/* ===== RESPONSIVE ===== */
+/* Mostra bio card mobile solo su dispositivi piccoli */
+@media (max-width: 768px) {
+  .bio-card-mobile {
+    display: block;
+  }
+  
+  .bio-desktop {
+    display: none;
+  }
+}
+
+/* Tablet - usa versione desktop */
+@media (min-width: 769px) and (max-width: 1024px) {
+  .bio-dialog {
+    padding: 24px 56px 24px 24px;
+  }
+
+  .bio-dialog-content {
+    height: calc(100% - 76px);
+  }
+
+  .bio-dialog-close {
+    width: 44px;
+    height: 44px;
+    font-size: 18px;
+    border-radius: 12px;
+  }
+
+  .bio-dialog-close svg {
+    width: 22px;
+    height: 22px;
+    stroke-width: 3;
+  }
+
+  .bio-desktop-container {
+    min-height: 80px;
+  }
+
+  .bio-desktop {
+    font-size: 1rem;
+    line-height: 1.6;
+  }
+
+  .bio-content::after {
+    display: none;
+  }
+}
+
+/* Desktop grande */
+@media (min-width: 1025px) {
+  .bio-dialog {
+    padding: 24px 56px 24px 24px;
+  }
+
+  .bio-dialog-content {
+    height: calc(100% - 76px);
+  }
+
+  .bio-dialog-close {
+    width: 44px;
+    height: 44px;
+    font-size: 18px;
+    border-radius: 12px;
+  }
+
+  .bio-dialog-close svg {
+    width: 22px;
+    height: 22px;
+    stroke-width: 3;
+  }
+
+  .bio-desktop-container {
+    min-height: 120px;
+  }
+
+  .bio-content::after {
+    display: none;
+  }
+}
+
+/* Mobile responsive per dialog - ottimizzato per lettura typewriter */
+@media (max-width: 768px) {
+  .bio-dialog-overlay {
+    align-items: center;
+    padding: 20px;
+    background: rgba(0, 0, 0, 0.4);
+  }
+
+  .bio-dialog {
+    width: 90vw;
+    max-width: 90vw;
+    max-height: 80vh;
+    padding: 60px 8px 8px 8px; /* Top padding per far spazio alla X, minimo padding laterale */
+    margin-top: 0;
+    border-radius: 16px;
+    display: flex;
+    flex-direction: column;
+  }
+
+  .bio-dialog-content {
+    font-size: 0.95rem;
+    line-height: 1.6;
+    padding-right: 8px; /* Ridotto padding right per far più spazio al testo */
+    padding-left: 8px; /* Minimizzato padding left */
+    flex: 1;
+    min-height: 0;
+  }
+
+  .bio-dialog-close {
+    top: 12px;
+    right: 12px;
+    width: 44px;
+    height: 44px;
+    font-size: 18px;
+    border-radius: 12px;
+  }
+
+  .bio-dialog-close svg {
+    width: 22px;
+    height: 22px;
+    stroke-width: 3;
+  }
+}
+
+/* Dispositivi molto piccoli */
+@media (max-width: 480px) {
+  .bio-dialog-overlay {
+    padding: 15px;
+  }
+
+  .bio-dialog {
+    width: 90vw;
+    max-height: 80vh;
+    padding: 56px 8px 8px 8px; /* Top padding per far spazio alla X, minimo padding laterale */
+    border-radius: 12px;
+    display: flex;
+    flex-direction: column;
+  }
+
+  .bio-dialog-content {
+    font-size: 0.9rem;
+    line-height: 1.5;
+    padding-right: 8px; /* Ridotto padding right per far più spazio al testo */
+    padding-left: 8px; /* Minimizzato padding left */
+    flex: 1;
+    min-height: 0;
+  }
+
+  .bio-dialog-close {
+    top: 10px;
+    right: 10px;
+    width: 40px;
+    height: 40px;
+    font-size: 16px;
+    border-radius: 10px;
+  }
+
+  .bio-dialog-close svg {
+    width: 20px;
+    height: 20px;
+    stroke-width: 3;
+  }
+}
+
+/* ===== OTTIMIZZAZIONE TABLET (768px) ===== */
+@media (max-width: 768px) {
+  .bio-read-more {
+    font-size: clamp(1.5rem, 5.5vw, 3.5rem); /* Più piccolo su tablet */
+    letter-spacing: clamp(1px, 1.2vw, 4px);
+  }
+}
+
+/* ===== OTTIMIZZAZIONE MOBILE LARGE (480px) ===== */
+@media (max-width: 480px) {
+  .bio-read-more {
+    font-size: clamp(1.3rem, 5vw, 3rem); /* Ancora più piccolo */
+    letter-spacing: clamp(0.8px, 1vw, 3px);
+  }
+}
+
+/* ===== OTTIMIZZAZIONE IPHONE SE (375px) ===== */
+@media (max-width: 376px) {
+  .bio-read-more {
+    font-size: clamp(1.1rem, 4.5vw, 2.5rem); /* Molto più piccolo per iPhone SE */
+    letter-spacing: clamp(0.6px, 0.8vw, 2px);
+  }
+}
+
+/* ===== OTTIMIZZAZIONE DISPOSITIVI MOLTO PICCOLI (320px) ===== */
+@media (max-width: 320px) {
+  .bio-read-more {
+    font-size: clamp(0.9rem, 4vw, 2rem); /* Minimo per schermi molto piccoli */
+    letter-spacing: clamp(0.4px, 0.6vw, 1.5px);
+  }
+}

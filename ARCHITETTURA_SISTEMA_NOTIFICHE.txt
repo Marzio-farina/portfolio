@@ -1,6 +1,6 @@
 ┌─────────────────────────────────────────────────────────────────────────────────┐
 │                           SISTEMA DI NOTIFICHE                                 │
-│                              Architettura                                      │
+│                              Architettura v2.0                                 │
 └─────────────────────────────────────────────────────────────────────────────────┘
 
 ┌─────────────────┐    errorChange     ┌─────────────────┐    [message, type, show]    ┌─────────────────┐
@@ -26,6 +26,20 @@
                                                                                        │ │ - Espandi   │ │
                                                                                        │ │ - Riavvia   │ │
                                                                                        │ │   timer     │ │
+                                                                                       │ └─────────────┘ │
+                                                                                       │                 │
+                                                                                       │ ┌─────────────┐ │
+                                                                                       │ │ Duplicati   │ │
+                                                                                       │ │ - Rileva    │ │
+                                                                                       │ │ - Mostra 1.5s│ │
+                                                                                       │ │ - Non aggiunge│
+                                                                                       │ └─────────────┘ │
+                                                                                       │                 │
+                                                                                       │ ┌─────────────┐ │
+                                                                                       │ │ Mobile First│ │
+                                                                                       │ │ - Responsive│ │
+                                                                                       │ │ - Breakpoint│ │
+                                                                                       │ │ - Adaptive  │ │
                                                                                        │ └─────────────┘ │
                                                                                        └─────────────────┘
 
@@ -54,7 +68,64 @@
 7. NOTIFICATION riceve [message, type, show]
    │
    ▼
-8. Mostra notifica → Timer 1.5s → Collassa → Icona angolo
+8. NOTIFICATION verifica se è duplicato
+   │
+   ├──► SE DUPLICATO:
+   │    ├──► Mostra per 1.5s
+   │    └──► Non aggiunge alla lista
+   │
+   └──► SE NUOVO:
+        ├──► Aggiunge alla lista permanente
+        ├──► Mostra notifica → Timer 1.5s
+        └──► Collassa → Icona angolo
+
+┌─────────────────────────────────────────────────────────────────────────────────┐
+│                      GESTIONE NOTIFICHE DUPLICATE                              │
+└─────────────────────────────────────────────────────────────────────────────────┘
+
+┌─────────────────────────────────────────┐
+│ NOTIFICA ARRIVA                        │
+└──────────────┬──────────────────────────┘
+               │
+               ▼
+┌─────────────────────────────┐
+│ Verifica Messaggio Esistente │
+└──────────────┬──────────────┘
+               │
+       ┌───────┴───────┐
+       │               │
+       ▼               ▼
+┌──────────┐    ┌─────────────┐
+│ DUPLICATO│    │   NUOVO     │
+└────┬─────┘    └──────┬──────┘
+     │                 │
+     ▼                 ▼
+┌──────────────┐  ┌──────────────┐
+│ Mostra 1.5s  │  │ Aggiungi a   │
+│              │  │ lista        │
+│ Non aggiunge │  │ permanente   │
+│ alla lista   │  │              │
+│              │  │ Timer 1.5s   │
+│ Rimuovi dopo │  │ Collassa     │
+│ 1.5s         │  │              │
+└──────────────┘  └──────────────┘
+
+┌─────────────────────────────────────────────────────────────────────────────────┐
+│                              RESPONSIVE DESIGN                                 │
+└─────────────────────────────────────────────────────────────────────────────────┘
+
+┌─────────────────┐  ┌─────────────────┐  ┌─────────────────┐
+│     MOBILE      │  │     TABLET      │  │     DESKTOP     │
+│   < 768px       │  │   ≥ 768px       │  │   ≥ 1024px      │
+│                 │  │                 │  │                 │
+│ Full-width      │  │ Centrato        │  │ Max-width 50%   │
+│ Padding 16px    │  │ Max-width 600px │  │                 │
+│ Border-radius 8px│  │ Border-radius 12px│                 │
+│ Font 0.875rem   │  │ Font 0.9rem     │  │ Font 0.9rem     │
+│ Icone 18px      │  │ Icone 20px      │  │ Icone 20px      │
+│ Corner icon 44px│  │ Corner icon 50px│  │ Corner icon 50px│
+│ Word-wrap       │  │ Nowrap          │  │ Nowrap          │
+└─────────────────┘  └─────────────────┘  └─────────────────┘
 
 ┌─────────────────────────────────────────────────────────────────────────────────┐
 │                              TIPI DI NOTIFICA                                  │
@@ -114,17 +185,24 @@ VISIBILE ──────────► COLLASSATA ────────�
 │ deve contenere│  │ deve contenere│  │ una email  │  │ deve contenere│  │             │
 │ almeno 2    │  │ almeno 2    │  │ valida"     │  │ almeno 10   │  │             │
 │ caratteri"  │  │ caratteri"  │  │             │  │ caratteri"  │  │             │
+│             │  │             │  │             │  │             │  │             │
+│ Tooltip:    │  │ Tooltip:    │  │ Tooltip:    │  │ Tooltip:    │  │             │
+│ "Inserisci  │  │ "Inserisci  │  │ "Inserisci  │  │ "Scrivi     │  │             │
+│ il tuo nome"│  │ il tuo      │  │ un          │  │ minimo 10   │  │             │
+│             │  │ cognome"    │  │ indirizzo   │  │ caratteri"  │  │             │
+│             │  │             │  │ email valido"│  │             │  │             │
 └─────────────┘  └─────────────┘  └─────────────┘  └─────────────┘  └─────────────┘
 
 ┌─────────────────────────────────────────────────────────────────────────────────┐
 │                              ANIMAZIONI                                        │
 └─────────────────────────────────────────────────────────────────────────────────┘
 
-MOSTRA:     Fade In + Slide Down
-COLLASSA:   Slide Up + Fade Out  
-ICONA:      Scale + Fade In
-HOVER:      Scale Up + Shadow
-ESPANDI:    Slide Down + Fade In
+MOSTRA:         Fade In + Slide Down
+COLLASSA:       Slide Up + Fade Out  
+ICONA:          Scale + Fade In
+HOVER:          Scale Up + Shadow (mobile: attenuao)
+ESPANDI:        Slide Down + Fade In
+DUPLICATO:      Flash + Rimozione automatica
 
 ┌─────────────────────────────────────────────────────────────────────────────────┐
 │                              RESPONSABILITÀ                                    │
@@ -135,6 +213,7 @@ CONTACTFORM:
 - Gestione errori
 - Submit form
 - Emit eventi
+- Tooltip informativi
 
 CONTATTI:
 - Coordinamento
@@ -146,3 +225,25 @@ NOTIFICATION:
 - Animazioni
 - Auto-collapse
 - Hover effects
+- Gestione duplicati
+- Responsive design (mobile-first)
+- Transizioni fluide multi-dispositivo
+
+┌─────────────────────────────────────────────────────────────────────────────────┐
+│                              VERSIONE 2.0                                      │
+└─────────────────────────────────────────────────────────────────────────────────┘
+
+NUOVE FUNZIONALITÀ:
+✓ Gestione intelligente notifiche duplicate
+✓ Approccio mobile-first per responsive design
+✓ Tooltip informativi nei campi form
+✓ Floating labels con animazioni
+✓ Ottimizzazioni performance
+✓ Supporto multi-breakpoint (mobile/tablet/desktop)
+
+MIGLIORAMENTI:
+✓ CLS ottimizzato (Cumulative Layout Shift)
+✓ Word-break intelligente per testi lunghi
+✓ Icone responsive
+✓ Hover effects ottimizzati per touch
+✓ Border-radius adattivi per device

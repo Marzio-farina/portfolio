@@ -386,9 +386,8 @@ export class Notification implements OnDestroy, AfterViewInit {
     const visible = this.visibleNotifications();
     const collapsed = this.collapsedNotifications();
     
-    // Trova nuove notifiche che non sono già visibili o collassate
-    // E che non hanno lo stesso messaggio di notifiche esistenti
-    const newNotifications = currentNotifications.filter(
+    // Trova tutte le notifiche che arrivano ma non sono ancora state processate
+    const unprocessedNotifications = currentNotifications.filter(
       notification => !visible.some(v => v.id === notification.id) && 
                     !collapsed.some(c => c.id === notification.id) &&
                     !visible.some(v => v.message === notification.message) &&
@@ -397,11 +396,11 @@ export class Notification implements OnDestroy, AfterViewInit {
     
     
     // Solo se ci sono nuove notifiche, aggiungile a quelle visibili
-    if (newNotifications.length > 0) {
-      this.visibleNotifications.set([...visible, ...newNotifications]);
+    if (unprocessedNotifications.length > 0) {
+      this.visibleNotifications.set([...visible, ...unprocessedNotifications]);
       
       // Avvia timer SOLO per le nuove notifiche
-      newNotifications.forEach(notification => {
+      unprocessedNotifications.forEach(notification => {
         this.startNotificationTimer(notification.id);
       });
     }

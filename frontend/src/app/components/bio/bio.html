@@ -1,0 +1,34 @@
+<!-- Bio riquadro per mobile -->
+<div class="bio-card-mobile" (click)="openBioDialog()">
+  <div class="bio-arrow bio-arrow--top-left">
+    <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="4">
+      <path d="M3 3v18M3 3h18"/>
+    </svg>
+  </div>
+  <div class="bio-arrow bio-arrow--bottom-right">
+    <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="4">
+      <path d="M21 21H3M21 21V3"/>
+    </svg>
+  </div>
+  <div class="bio-read-more">Leggi</div>
+  <div class="bio-content" [innerHTML]="initialText() | nl2br"></div>
+</div>
+
+<!-- Bio Dialog -->
+@if (bioDialogOpen()) {
+  <div class="bio-dialog-overlay" (click)="closeBioDialog($event)">
+    <div class="bio-dialog" (click)="$event.stopPropagation()">
+      <button class="bio-dialog-close" (click)="closeBioDialog($event)">
+        <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <path d="M18 6L6 18M6 6l12 12"/>
+        </svg>
+      </button>
+      <div class="bio-dialog-content" [class.typing]="isMobileTyping()" [innerHTML]="mobileDialogText() | nl2br"></div>
+    </div>
+  </div>
+}
+
+<!-- Bio normale per desktop -->
+<div class="bio-desktop-container">
+  <p class="bio-desktop" [class.typing]="isTyping()" [innerHTML]="displayedText() | nl2br"></p>
+</div>

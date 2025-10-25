@@ -1,0 +1,86 @@
+[1mdiff --git a/frontend/src/app/components/notification/notification.ts b/frontend/src/app/components/notification/notification.ts[m
+[1mindex 0897d41..8fec903 100644[m
+[1m--- a/frontend/src/app/components/notification/notification.ts[m
+[1m+++ b/frontend/src/app/components/notification/notification.ts[m
+[36m@@ -386,26 +386,45 @@[m [mexport class Notification implements OnDestroy, AfterViewInit {[m
+     const visible = this.visibleNotifications();[m
+     const collapsed = this.collapsedNotifications();[m
+     [m
+[31m-    // Trova nuove notifiche che non sono già visibili o collassate[m
+[31m-    // E che non hanno lo stesso messaggio di notifiche esistenti[m
+[31m-    const newNotifications = currentNotifications.filter([m
+[32m+[m[32m    // Trova notifiche che non sono ancora state processate (non visibili né collassate)[m
+[32m+[m[32m    const unprocessedNotifications = currentNotifications.filter([m
+       notification => !visible.some(v => v.id === notification.id) && [m
+[31m-                    !collapsed.some(c => c.id === notification.id) &&[m
+[31m-                    !visible.some(v => v.message === notification.message) &&[m
+[31m-                    !collapsed.some(c => c.message === notification.message)[m
+[32m+[m[32m                    !collapsed.some(c => c.id === notification.id)[m
+     );[m
+     [m
+[32m+[m[32m    // Separa in nuove e duplicate[m
+[32m+[m[32m    const newNotifications: NotificationItem[] = [];[m
+[32m+[m[32m    const duplicateNotifications: NotificationItem[] = [];[m
+     [m
+[31m-    // Solo se ci sono nuove notifiche, aggiungile a quelle visibili[m
+[32m+[m[32m    unprocessedNotifications.forEach(notification => {[m
+[32m+[m[32m      // Verifica se esiste già una notifica con lo stesso messaggio[m
+[32m+[m[32m      const isDuplicate = visible.some(v => v.message === notification.message) ||[m
+[32m+[m[32m                         collapsed.some(c => c.message === notification.message);[m
+[32m+[m[41m      [m
+[32m+[m[32m      if (isDuplicate) {[m
+[32m+[m[32m        duplicateNotifications.push(notification);[m
+[32m+[m[32m      } else {[m
+[32m+[m[32m        newNotifications.push(notification);[m
+[32m+[m[32m      }[m
+[32m+[m[32m    });[m
+[32m+[m[41m    [m
+[32m+[m[32m    // Aggiungi solo le nuove notifiche (non duplicate) alla lista permanente[m
+     if (newNotifications.length > 0) {[m
+       this.visibleNotifications.set([...visible, ...newNotifications]);[m
+       [m
+[31m-      // Avvia timer SOLO per le nuove notifiche[m
+[32m+[m[32m      // Avvia timer SOLO per le nuove notifiche permanenti[m
+       newNotifications.forEach(notification => {[m
+         this.startNotificationTimer(notification.id);[m
+       });[m
+     }[m
+     [m
+[32m+[m[32m    // Gestisci notifiche duplicate: mostra per 1.5 secondi ma non aggiungere alla lista permanente[m
+[32m+[m[32m    if (duplicateNotifications.length > 0) {[m
+[32m+[m[32m      duplicateNotifications.forEach(notification => {[m
+[32m+[m[32m        this.showDuplicateTemporarily(notification.id, notification.message, notification.type);[m
+[32m+[m[32m      });[m
+[32m+[m[32m    }[m
+[32m+[m[41m    [m
+     // Rimuovi notifiche che non sono più nell'array principale[m
+     const toRemove = visible.filter(v => !currentNotifications.some(n => n.id === v.id));[m
+     if (toRemove.length > 0) {[m
+[36m@@ -436,6 +455,27 @@[m [mexport class Notification implements OnDestroy, AfterViewInit {[m
+     }[m
+   }[m
+ [m
+[32m+[m[32m  private showDuplicateTemporarily(notificationId: string, message: string, type: NotificationType) {[m
+[32m+[m[32m    // Aggiungi temporaneamente alla lista delle visibili[m
+[32m+[m[32m    const visible = this.visibleNotifications();[m
+[32m+[m[32m    const tempNotification: NotificationItem = {[m
+[32m+[m[32m      id: notificationId,[m
+[32m+[m[32m      message: message,[m
+[32m+[m[32m      type: type,[m
+[32m+[m[32m      timestamp: Date.now(),[m
+[32m+[m[32m      fieldId: ''[m
+[32m+[m[32m    };[m
+[32m+[m[41m    [m
+[32m+[m[32m    // Aggiungi temporaneamente[m
+[32m+[m[32m    this.visibleNotifications.set([...visible, tempNotification]);[m
+[32m+[m[41m    [m
+[32m+[m[32m    // Rimuovi dopo 1.5 secondi senza aggiungerla alle collassate[m
+[32m+[m[32m    window.setTimeout(() => {[m
+[32m+[m[32m      const currentVisible = this.visibleNotifications();[m
+[32m+[m[32m      this.visibleNotifications.set(currentVisible.filter(n => n.id !== notificationId));[m
+[32m+[m[32m    }, 1500);[m
+[32m+[m[32m  }[m
+[32m+[m
+   private startHoverTimer() {[m
+     this.clearHoverTimer();[m
+     this.hoverTimer = window.setTimeout(() => {[m

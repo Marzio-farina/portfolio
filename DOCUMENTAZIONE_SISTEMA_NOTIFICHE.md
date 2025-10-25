@@ -1,5 +1,7 @@
 # 📋 Documentazione Sistema di Notifiche
 
+**Versione**: 2.0 | **Ultimo Aggiornamento**: 25/10/2025
+
 ## 🎯 Panoramica del Sistema
 
 Il sistema di notifiche è composto da tre componenti principali che lavorano insieme per gestire la comunicazione con l'utente:
@@ -7,6 +9,12 @@ Il sistema di notifiche è composto da tre componenti principali che lavorano in
 1. **`Notification`** - Componente di visualizzazione delle notifiche
 2. **`ContactForm`** - Form di contatto che genera eventi di errore/successo
 3. **`Contatti`** - Pagina che coordina la comunicazione tra form e notifiche
+
+### 🆕 Novità v2.0
+- ✅ Gestione intelligente delle notifiche duplicate
+- ✅ Approccio mobile-first per design responsive
+- ✅ Tooltip informativi nei campi form
+- ✅ Ottimizzazioni CLS (Cumulative Layout Shift)
 
 ---
 
@@ -54,10 +62,14 @@ private collapseTimer?: number;        // Timer per auto-collapse
 2. **Animazioni**: Transizioni fluide per collasso ed espansione
 3. **Hover**: Hover sull'icona espande la notifica
 4. **Icone Dinamiche**: Icone diverse per ogni tipo di notifica
+5. **🆕 Gestione Duplicati**: Rileva e gestisce notifiche duplicate
+6. **🆕 Responsive Design**: Approccio mobile-first con breakpoint multipli
 
 #### **Ciclo di Vita**:
 ```
-Mostra Notifica → Timer 1.5s → Collassa → Icona Angolo → Hover → Espandi → Timer 1.5s → ...
+Notifica Arriva → Verifica Duplicato?
+                   ├─ SÌ: Mostra 1.5s → Rimuovi (non aggiunge alla lista)
+                   └─ NO: Aggiungi → Mostra → Timer 1.5s → Collassa → Icona Angolo → Hover → Espandi → ...
 ```
 
 ---
@@ -114,11 +126,13 @@ errorChange = output<string | undefined>();
 
 | Campo | Errore Required | Errore MinLength | Messaggio |
 |-------|----------------|------------------|-----------|
-| `name` | "Il nome è obbligatorio" | "Il nome deve contenere almeno 2 caratteri" | |
-| `surname` | "Il cognome è obbligatorio" | "Il cognome deve contenere almeno 2 caratteri" | |
-| `email` | "L'email è obbligatoria" | "Inserisci una email valida" | |
-| `message` | "Il messaggio è obbligatorio" | "Il messaggio deve contenere almeno 10 caratteri" | |
-| `consent` | "Devi acconsentire al trattamento dei dati" | - | |
+| Campo | Errore Required | Errore MinLength/Email | Tooltip |
+|-------|----------------|----------------------|---------|
+| `name` | "Il nome è obbligatorio" | "Il nome deve contenere almeno 2 caratteri" | "Inserisci il tuo nome" |
+| `surname` | "Il cognome è obbligatorio" | "Il cognome deve contenere almeno 2 caratteri" | "Inserisci il tuo cognome" |
+| `email` | "L'email è obbligatoria" | "Inserisci una email valida" | "Inserisci un indirizzo email valido" |
+| `message` | "Il messaggio è obbligatorio" | "Il messaggio deve contenere almeno 10 caratteri" | "Scrivi minimo 10 caratteri" |
+| `consent` | "Devi acconsentire al trattamento dei dati" | - | - |
 
 ---
 
@@ -164,9 +178,9 @@ onErrorChange(error: string | undefined) {
    onErrorChange() → showNotification = true → Notification si attiva
    ```
 
-3. **Notification mostra la notifica**:
+3. **Notification riceve e verifica**:
    ```
-   show() = true → Mostra messaggio → Timer 1.5s → Collassa → Icona angolo
+   show() = true → Verifica duplicato → Mostra messaggio → Timer 1.5s → Collassa → Icona angolo
    ```
 
 ### **Scenario 2: Submit con Errori**
@@ -198,6 +212,77 @@ onErrorChange(error: string | undefined) {
 
 ---
 
+## 🔄 Gestione Notifiche Duplicate
+
+### **Logica di Rilevamento**:
+
+Quando una nuova notifica arriva, il sistema verifica se un messaggio con lo stesso contenuto è già presente nella lista delle notifiche visibili o collassate.
+
+#### **Comportamento**:
+- **Se duplicato**: La notifica viene mostrata per 1.5 secondi ma **non viene aggiunta** alla lista permanente. Dopo 1.5s viene automaticamente rimossa senza lasciare traccia.
+- **Se nuovo**: La notifica viene aggiunta alla lista permanente e segue il normale ciclo di vita (mostra → collassa → icona angolo → hover → espandi).
+
+#### **Vantaggi**:
+✅ Evita la proliferazione di notifiche duplicate  
+✅ Fornisce comunque feedback visivo all'utente  
+✅ Mantiene la lista delle notifiche pulita e leggibile  
+✅ Migliora l'esperienza utente
+
+---
+
+## 📱 Responsive Design
+
+### **Approccio Mobile-First**
+
+Il sistema di notifiche adotta un approccio **mobile-first**, partendo da uno stile base ottimizzato per dispositivi mobili e progressivamente migliorando per schermi più grandi.
+
+#### **Breakpoint**:
+
+| Dispositivo | Breakpoint | Caratteristiche Principali |
+|-------------|-----------|---------------------------|
+| **Mobile** | `< 768px` | Full-width, font ridotto, word-wrap abilitato, padding compatto |
+| **Tablet** | `≥ 768px` | Centrato, max-width 600px, font medio, no-wrap |
+| **Desktop** | `≥ 1024px` | Max-width 50%, font standard, dimensioni icona standard |
+
+#### **Differenze Chiave**:
+
+##### **Mobile (< 768px)**
+```css
+- Position: fixed (top: 16px, left: 16px, right: 16px)
+- Max-width: 100%
+- Font-size: 0.875rem (14px)
+- Padding: 12px
+- Icone: 18px
+- Corner icon: 44px
+- Word-wrap: break-word
+- Border-radius: 8px
+```
+
+##### **Tablet (≥ 768px)**
+```css
+- Position: fixed (top: 24px, left: 50%, transform: translateX(-50%))
+- Max-width: 600px
+- Font-size: 0.9rem (14.4px)
+- Padding: 16px
+- Icone: 20px
+- Corner icon: 50px
+- Word-wrap: normal
+- Border-radius: 12px
+```
+
+##### **Desktop (≥ 1024px)**
+```css
+- Position: fixed (top: 24px, right: 24px)
+- Max-width: 50%
+- Font-size: 0.9rem (14.4px)
+- Padding: 16px
+- Icone: 20px
+- Corner icon: 50px
+- Word-wrap: normal
+```
+
+---
+
 ## 🎨 Stili e Animazioni
 
 ### **CSS Classes**:
@@ -225,8 +310,9 @@ onErrorChange(error: string | undefined) {
 1. **Mostra**: Fade in + slide down
 2. **Collassa**: Slide up + fade out
 3. **Icona Angolo**: Appare con scale + fade in
-4. **Hover**: Scale up + shadow
+4. **Hover**: Scale up + shadow (mobile: effetto attenuato)
 5. **Espandi**: Slide down + fade in
+6. **🆕 Duplicato**: Flash + rimozione automatica dopo 1.5s
 
 ---
 
@@ -238,17 +324,22 @@ onErrorChange(error: string | undefined) {
 4. **Accessibilità**: Supporto per screen reader e navigazione da tastiera
 5. **Temi**: Supporto per tema chiaro/scuro
 6. **Honeypot**: Protezione anti-spam integrata
+7. **🆕 Gestione Duplicati**: Sistema intelligente per evitare notifiche ridondanti
+8. **🆕 Mobile-First**: Design responsive ottimizzato per tutti i dispositivi
+9. **🆕 Tooltip Informativi**: Guidano l'utente nella compilazione del form
+10. **🆕 CLS Ottimizzato**: Cumulative Layout Shift ridotto per migliori metriche Web Vitals
 
 ---
 
-## 🔧 Possibili Miglioramenti
+## 🔧 Possibili Miglioramenti Future
 
-1. **Notifiche Multiple**: Supporto per più notifiche contemporanee
+1. **Notifiche Multiple**: Supporto per più notifiche contemporanee già implementato
 2. **Tipi Dinamici**: Diversi tipi di notifica per diversi errori
 3. **Notifiche di Successo**: Feedback positivo per invio riuscito
 4. **Persistenza**: Salvare notifiche in localStorage
-5. **Queue System**: Coda per notifiche multiple
+5. **Queue System**: Miglioramento del sistema di coda per notifiche multiple
 6. **Custom Duration**: Durata personalizzabile per tipo di notifica
+7. **Gestione Offline**: Notifiche offline per feedback persistente
 
 ---
 
@@ -314,4 +405,42 @@ graph TD
 
 ---
 
-*Documentazione generata per il sistema di notifiche del Portfolio - Versione 1.0*
+## 📝 Note Tecniche Aggiornate
+
+- **Angular Version**: 17+
+- **Reactive Forms**: Validazione reattiva
+- **Signals**: Gestione stato reattivo
+- **ViewChild**: Accesso diretto al DOM per animazioni
+- **requestAnimationFrame**: Animazioni smooth
+- **CSS Custom Properties**: Supporto temi
+- **TypeScript**: Tipizzazione forte per type safety
+- **🆕 Mobile-First CSS**: Breakpoint multipli (768px, 1024px)
+- **🆕 Media Queries**: `@media (min-width: 768px)` e `@media (min-width: 1024px)`
+- **🆕 Responsive Icons**: Dimensioni adattive per icona e corner icon
+- **🆕 Word Break**: Gestione intelligente degli a capo su mobile
+
+---
+
+## 🎯 Changelog v2.0
+
+### Aggiunto
+- Sistema di gestione notifiche duplicate
+- Approccio mobile-first per design responsive
+- Tooltip informativi nei campi form
+- Supporto multi-breakpoint (mobile/tablet/desktop)
+- Ottimizzazioni CLS per Web Vitals
+- Word-break intelligente per testi lunghi
+
+### Migliorato
+- Responsive design con breakpoint multipli
+- Icone adattive per diverse dimensioni schermo
+- Hover effects ottimizzati per touch devices
+- Border-radius adattivi per device
+- Performance generale del sistema
+
+### Rimozioni
+- Nessuna rimozione significativa
+
+---
+
+*Documentazione generata per il sistema di notifiche del Portfolio - Versione 2.0*
