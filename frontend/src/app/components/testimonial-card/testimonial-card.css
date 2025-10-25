@@ -12,7 +12,7 @@
     border-radius: 14px;
     cursor: pointer;
     transition: transform var(--transition-1), box-shadow var(--transition-1), background var(--transition-1), border-color var(--transition-1);
-    overflow: hidden;
+    overflow: visible;
     transform-style: preserve-3d;
     perspective: 1000px;
 }
@@ -23,6 +23,38 @@
     background: var(--bg-card);
     border-radius: inherit;
     z-index:-1;
+}
+
+/* Etichetta "visitatore" obliqua */
+.card::after {
+    content: "Visitatore";
+    position: absolute;
+    top: 20px;
+    right: -40px;
+    background: var(--accent-primary);
+    color: black;
+    padding: 4px 50px;
+    font-size: 0.75rem;
+    font-weight: 700;
+    letter-spacing: 0.5px;
+    text-transform: capitalize;
+    transform: rotate(45deg);
+    transform-origin: center center;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+    z-index: 10;
+    white-space: nowrap;
+    border: 1px solid var(--border-primary);
+    transition: border-color var(--transition-1);
+    /* Forma coda di rondine (swallowtail) agli estremi sinistro e destro solo */
+    clip-path: polygon(
+      0% 0%, 50% 10%, 100% 0%, /* bordo superiore ondulato */
+      100% 0%, 90% 50%, 100% 100%, /* bordo destro ondulato */
+      90% 100%, 50% 90%, 10% 100%, /* bordo inferiore ondulato */
+      0% 100%, 10% 50%, 0% 10% /* bordo sinistro ondulato */
+    );
+    display: flex;
+    align-items: center;
+    justify-content: center;
 }
 
 .description_card {
@@ -71,6 +103,10 @@
 /* ===== EFFETTO HOVER COME WHAT-I-DO-CARD ===== */
 /* Hover generale con effetto 3D e glow intensificato */
 .card:hover {
+  border-color: var(--accent-primary);
+}
+
+.card:hover::after {
   border-color: var(--accent-primary);
 }
 
