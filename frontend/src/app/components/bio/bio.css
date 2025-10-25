@@ -136,9 +136,9 @@
 
 /* Contenitore bio desktop che si ingrandisce fluidamente */
 .bio-desktop-container {
+  display: none;
   overflow: hidden;
   transition: min-height 0.3s ease-out;
-  min-height: 100px;
 }
 
 /* Bio desktop - nascosta su mobile */
@@ -373,6 +373,7 @@
   }
 
   .bio-desktop-container {
+    display: block;
     min-height: 80px;
   }
 

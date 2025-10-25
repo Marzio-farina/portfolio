@@ -1,5 +1,19 @@
 .dashboard__container {
-    padding: 0 40px;
+    display: grid;
+    grid-template-columns: 40px 1fr 40px;
     background: transparent;
     color: inherit;
+}
+
+.dashboard__container > * {
+    grid-column: 1;
+}
+
+/* Padding laterale per dispositivi grandi */
+@media (min-width: 768px) {
+    .dashboard__container {
+        grid-template-columns: 40px 1fr 40px;
+        gap: 0;
+        padding: 0;
+    }
 }
