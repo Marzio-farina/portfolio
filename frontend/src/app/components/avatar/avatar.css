@@ -2,7 +2,6 @@
   border: 1px solid var(--border-primary);
   border-radius: 16px;
   background: var(--bg-card);
-  margin: 20px;
   transition: border-color var(--transition-1), background var(--transition-1);
 }
 
@@ -38,10 +37,17 @@ aside.profile [data-theme="light"] .profile__avatar {
 /* Rimuovi margin sinistro in layout mobile */
 @media (max-width: 1249px) {
   .profile__avatar {
-    margin-left: 20px; /* Rimuove margin sinistro */
+    margin-left: 0; /* Rimuove margin sinistro */
     margin-top: 20px;
     margin-right: 20px;
     margin-bottom: 20px;
+  }
+}
+
+/* Rimuovi margin sinistro anche su schermi grandi */
+@media (min-width: 1250px) {
+  .profile__avatar {
+    margin-left: 0; /* Rimuove margin sinistro */
   }
 }
 

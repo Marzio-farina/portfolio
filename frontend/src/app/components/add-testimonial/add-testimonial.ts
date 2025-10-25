@@ -1,4 +1,4 @@
-import { Component, inject, signal, output } from '@angular/core';
+import { Component, inject, signal, output, ViewChild, ElementRef } from '@angular/core';
 import { FormBuilder, FormGroup, ReactiveFormsModule, Validators } from '@angular/forms';
 import { Router } from '@angular/router';
 import { TestimonialService } from '../../services/testimonial.service';
@@ -22,6 +22,8 @@ export class AddTestimonial {
   private fb = inject(FormBuilder);
   private router = inject(Router);
   private testimonialApi = inject(TestimonialService);
+
+  @ViewChild('avatarFileInput') avatarFileInputRef?: ElementRef<HTMLInputElement>;
 
   sending = signal(false);
   sent = signal(false);
@@ -48,11 +50,162 @@ export class AddTestimonial {
     avatar_url: ['']
   });
 
+  // Avatar di default disponibili
+  private readonly defaultAvatars = [
+    'assets/images/avatar-1.png',
+    'assets/images/avatar-2.png', 
+    'assets/images/avatar-3.png',
+    'assets/images/avatar-4.png'
+  ];
+
+  // URL dell'immagine caricata dall'utente
+  private uploadedAvatarUrl = signal<string | null>(null);
+
+  // Indice dell'avatar di default attualmente selezionato
+  private currentDefaultAvatarIndex = signal(0);
+
   constructor() {
     // Validazione in tempo reale per ogni campo
     this.form.get('author_name')?.valueChanges.subscribe(() => this.validateField('author_name'));
     this.form.get('text')?.valueChanges.subscribe(() => this.validateField('text'));
     this.form.get('rating')?.valueChanges.subscribe(() => this.validateField('rating'));
+    
+    // Imposta un avatar di default casuale
+    this.setRandomDefaultAvatar();
+  }
+
+  /**
+   * Ottiene l'URL dell'avatar da mostrare
+   * Priorità: immagine caricata > URL personalizzato > avatar di default corrente
+   */
+  getAvatarUrl(): string {
+    // Prima controlla se c'è un'immagine caricata
+    const uploadedUrl = this.uploadedAvatarUrl();
+    if (uploadedUrl) {
+      return uploadedUrl;
+    }
+    
+    // Poi controlla se c'è un URL personalizzato
+    const customUrl = this.form.get('avatar_url')?.value;
+    if (customUrl && customUrl.trim()) {
+      return customUrl;
+    }
+    
+    // Infine usa l'avatar di default corrente
+    const currentIndex = this.currentDefaultAvatarIndex();
+    return this.defaultAvatars[currentIndex];
+  }
+
+  /**
+   * Gestisce la selezione di un file immagine
+   */
+  onAvatarFileSelected(event: Event): void {
+    const input = event.target as HTMLInputElement;
+    const file = input.files?.[0];
+    
+    if (file) {
+      // Verifica che il file abbia un'estensione valida
+      const fileName = file.name.toLowerCase();
+      const allowedExtensions = ['.jpg', '.jpeg', '.png', '.gif', '.webp'];
+      const hasValidExtension = allowedExtensions.some(ext => fileName.endsWith(ext));
+      
+      if (!hasValidExtension) {
+        alert('Formato non supportato. Usa solo file JPG, PNG, GIF o WebP');
+        input.value = ''; // Reset del file input
+        return;
+      }
+      
+      // Tipi MIME accettati
+      const allowedTypes = ['image/jpeg', 'image/jpg', 'image/png', 'image/gif', 'image/webp'];
+      
+      // Verifica che sia un tipo di immagine valido
+      if (!allowedTypes.includes(file.type)) {
+        alert('Formato non supportato. Usa solo file JPG, PNG, GIF o WebP');
+        input.value = ''; // Reset del file input
+        return;
+      }
+      
+      // Verifica che il file sia effettivamente un'immagine
+      if (!file.type.startsWith('image/')) {
+        alert('Il file selezionato non è un\'immagine valida');
+        input.value = ''; // Reset del file input
+        return;
+      }
+      
+      // Verifica la dimensione del file (max 5MB)
+      if (file.size > 5 * 1024 * 1024) {
+        alert('Il file è troppo grande. Massimo 5MB');
+        input.value = ''; // Reset del file input
+        return;
+      }
+      
+      // Crea un URL temporaneo per l'anteprima
+      const reader = new FileReader();
+      reader.onload = (e) => {
+        const result = e.target?.result as string;
+        this.uploadedAvatarUrl.set(result);
+        
+        // Salva anche l'URL nel form per l'invio
+        this.form.get('avatar_url')?.setValue(result);
+      };
+      reader.readAsDataURL(file);
+    }
+  }
+
+  /**
+   * Naviga all'avatar di default precedente
+   */
+  previousDefaultAvatar(): void {
+    const currentIndex = this.currentDefaultAvatarIndex();
+    const newIndex = currentIndex > 0 ? currentIndex - 1 : this.defaultAvatars.length - 1;
+    this.currentDefaultAvatarIndex.set(newIndex);
+    
+    // Aggiorna il form con l'avatar selezionato
+    this.form.get('avatar_url')?.setValue('');
+    this.uploadedAvatarUrl.set(null);
+  }
+
+  /**
+   * Naviga all'avatar di default successivo
+   */
+  nextDefaultAvatar(): void {
+    const currentIndex = this.currentDefaultAvatarIndex();
+    const newIndex = currentIndex < this.defaultAvatars.length - 1 ? currentIndex + 1 : 0;
+    this.currentDefaultAvatarIndex.set(newIndex);
+    
+    // Aggiorna il form con l'avatar selezionato
+    this.form.get('avatar_url')?.setValue('');
+    this.uploadedAvatarUrl.set(null);
+  }
+
+  /**
+   * Controlla se si può navigare all'avatar precedente
+   */
+  canGoToPreviousAvatar(): boolean {
+    // Se c'è un'immagine caricata, non mostrare le frecce
+    if (this.uploadedAvatarUrl()) {
+      return false;
+    }
+    return true;
+  }
+
+  /**
+   * Controlla se si può navigare all'avatar successivo
+   */
+  canGoToNextAvatar(): boolean {
+    // Se c'è un'immagine caricata, non mostrare le frecce
+    if (this.uploadedAvatarUrl()) {
+      return false;
+    }
+    return true;
+  }
+
+  /**
+   * Imposta un avatar di default casuale
+   */
+  private setRandomDefaultAvatar(): void {
+    const randomIndex = Math.floor(Math.random() * this.defaultAvatars.length);
+    this.currentDefaultAvatarIndex.set(randomIndex);
   }
 
   submit() {

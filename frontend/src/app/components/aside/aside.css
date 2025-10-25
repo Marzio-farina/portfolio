@@ -349,11 +349,6 @@
     box-sizing: border-box; /* Include padding nella larghezza */
   }
   
-  .profile__avatar {
-    margin: 0 0 10px auto; /* Centra l'avatar */
-    display: block;
-  }
-  
   .profile__identity {
     align-items: center;
     text-align: center;

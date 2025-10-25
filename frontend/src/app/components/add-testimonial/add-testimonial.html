@@ -44,14 +44,35 @@
           </div>
         </label>
         <label class="field field--avatar">
-          <input type="url" formControlName="avatar_url" placeholder=" " (blur)="onFieldBlur('avatar_url')"/>
-          <span class="field-label">Avatar</span>
-          <svg class="field-icon" viewBox="0 0 24 24" aria-hidden="true" (mouseenter)="showTooltip('avatar')" (mouseleave)="hideTooltip('avatar')">
-            <path d="M11,18H13V16H11V18M12,2A10,10 0 0,0 2,12A10,10 0 0,0 12,22A10,10 0 0,0 22,12A10,10 0 0,0 12,2M12,4C16.41,4 20,7.59 20,12C20,16.41 16.41,20 12,20C7.59,20 4,16.41 4,12C4,7.59 7.59,4 12,4M12,6A4,4 0 0,0 8,10H10A2,2 0 0,1 12,8A2,2 0 0,1 14,10C14,12 11,11.75 11,15H13C13,12.75 16,12.5 16,10A4,4 0 0,0 12,6Z"/>
-          </svg>
-          <div class="field-tooltip" [class.show]="tooltipVisible === 'avatar'">
-            URL dell'immagine del tuo avatar
+          <div class="avatar-container">
+            <!-- Freccia sinistra -->
+            <button type="button" class="avatar-nav-btn avatar-nav-prev" (click)="previousDefaultAvatar()" [disabled]="!canGoToPreviousAvatar()">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <path d="M15 18l-6-6 6-6"/>
+              </svg>
+            </button>
+            
+            <!-- Avatar preview -->
+            <div class="avatar-preview" (click)="avatarFileInput.click()">
+              <img [src]="getAvatarUrl()" [alt]="'Avatar di ' + form.get('author_name')?.value" class="avatar-image"/>
+              <div class="avatar-overlay">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                  <path d="M14.5 4h-5L7 7H4a2 2 0 0 0-2 2v9a2 2 0 0 0 2 2h16a2 2 0 0 0 2-2V9a2 2 0 0 0-2-2h-3l-2.5-3z"/>
+                  <circle cx="12" cy="13" r="3"/>
+                </svg>
+              </div>
+            </div>
+            
+            <!-- Freccia destra -->
+            <button type="button" class="avatar-nav-btn avatar-nav-next" (click)="nextDefaultAvatar()" [disabled]="!canGoToNextAvatar()">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <path d="M9 18l6-6-6-6"/>
+              </svg>
+            </button>
           </div>
+          
+          <input type="file" accept=".jpg,.jpeg,.png,.gif,.webp" capture="user" (change)="onAvatarFileSelected($event)" class="avatar-file-input" #avatarFileInput/>
+          <input type="url" formControlName="avatar_url" (blur)="onFieldBlur('avatar_url')" class="avatar-url-input"/>
         </label>
       </div>
 
