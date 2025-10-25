@@ -350,7 +350,7 @@
   }
   
   .profile__avatar {
-    margin: 0 auto 10px auto; /* Centra l'avatar */
+    margin: 0 0 10px auto; /* Centra l'avatar */
     display: block;
   }
   

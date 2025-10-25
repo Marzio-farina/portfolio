@@ -2,7 +2,7 @@ import { Injectable } from '@angular/core';
 import {
   HttpEvent, HttpHandler, HttpInterceptor, HttpRequest
 } from '@angular/common/http';
-import { Observable, catchError, retry, throwError, timer, timeout, tap } from 'rxjs';
+import { Observable, catchError, retry, throwError, timer, timeout } from 'rxjs';
 import { environment } from '../../../environments/environment';
 
 const API_BASE = '';
@@ -33,12 +33,6 @@ export class ApiInterceptor implements HttpInterceptor {
     const requestTimeout = environment.production ? 5000 : 30000; // 30s in locale, 5s in produzione
 
     return next.handle(clone).pipe(
-      // Log timing in localhost
-      tap(() => {
-        if (!environment.production) {
-          console.log(`[API] ${clone.method} ${clone.url}`);
-        }
-      }),
       timeout(requestTimeout),
       retry({
         count: isGet ? 1 : 0,
@@ -47,14 +41,7 @@ export class ApiInterceptor implements HttpInterceptor {
       }),
       catchError((err: unknown) => {
         if (isAbort(err)) {
-          // Silenzia aborts; in prod non loggare
-          if (!environment.production) {
-            console.warn('[API] Request aborted', clone.url);
-          }
           return throwError(() => err);
-        }
-        if (!environment.production) {
-          console.error('[API] Request failed', clone.url, err);
         }
         return throwError(() => err);
       })

@@ -4,7 +4,7 @@
     flex-direction: row;
     align-items: start;
     gap: var(--gap);
-    padding: 5px 40px;
+    padding: 5px 40px 0 ;
     height: 145px;                 /* altezza fissa */
     box-sizing: border-box;
     background: var(--bg-card);
@@ -92,7 +92,7 @@
     word-break: normal;
     hyphens: none;
     transition: color var(--transition-1);
-}
+  }
 
 
 /* Virgolette decorative */

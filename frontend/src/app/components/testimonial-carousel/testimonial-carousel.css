@@ -1,0 +1,218 @@
+/* ===== Carosello Testimonianze ===== */
+/* Evita che la pagina si allarghi orizzontalmente */
+.testimonials {
+  overflow-x: clip; /* o overflow-x: hidden; se preferisci */
+}
+
+/* Wrapper neutro (utile se il contenitore genitore ha padding) */
+.testimonial-wrapper {
+  margin-inline: 0;
+  position: relative;
+}
+
+/* Traccia orizzontale scrollabile con snap */
+.testimonial-track {
+  display: flex;
+  gap: 24px;                 /* distanza tra slide */
+  overflow-x: auto;
+  overflow-y: hidden;
+  scroll-snap-type: x mandatory;
+  scroll-behavior: smooth;
+  width: 100%;
+  max-width: 100%;
+
+  /* "respiro" per lo snap senza usare padding che allargherebbe il layout */
+  scroll-padding-left: 24px;
+  scroll-padding-right: 24px;
+
+  /* scrollbar sottile (Firefox) */
+  scrollbar-width: thin;
+  scrollbar-color: var(--text-muted) transparent;
+}
+
+/* scrollbar sottile (WebKit) */
+.testimonial-track::-webkit-scrollbar {
+  height: 8px;
+}
+.testimonial-track::-webkit-scrollbar-track {
+  background: transparent;
+}
+.testimonial-track::-webkit-scrollbar-thumb {
+  background: var(--text-muted);
+  border-radius: 9999px;
+  transition: background var(--transition-1);
+}
+.testimonial-track::-webkit-scrollbar-thumb:hover {
+  background: var(--text-secondary);
+}
+
+/* Ogni slide occupa una frazione della viewport e non può "shrinkare" */
+.testimonial-slide {
+  flex: 0 0 auto;            /* non permettere shrink */
+  scroll-snap-align: start;
+  inline-size: min(36rem, 90%); /* larghezza base: max 36rem o 90% */
+  max-inline-size: 90vw;        /* non oltre il 90% della viewport */
+  margin: 10px 0 0 0;
+}
+
+/* Responsività della larghezza slide */
+@media (min-width: 640px) {
+  .testimonial-slide { 
+    inline-size: 70%; 
+  }
+}
+@media (min-width: 768px) {
+  .testimonial-slide { 
+    inline-size: 55%;
+  }
+}
+@media (min-width: 1024px) {
+  .testimonial-slide { 
+    inline-size: 45%;
+  }
+}
+@media (min-width: 1280px) {
+  .testimonial-slide { 
+    inline-size: 38%;
+  }
+}
+
+/* Strato contenitore per posizionare avatar "a cavallo" della card */
+.testimonial-card-wrap {
+  position: relative;
+}
+
+/* Badge avatar sovrapposto */
+.avatar-badge {
+  position: absolute;
+  inset-block-start: 0;   /* sopra la card */
+  inset-inline-start: 30px;   /* spostamento da sinistra */
+  border-radius: 16px;
+  background: none;
+  z-index: 1;
+  transition: background var(--transition-1);
+}
+
+/* ===== EFFETTO HOVER AVATAR-BADGE QUANDO SI FA HOVER SULLA TESTIMONIAL-CARD ===== */
+/* L'effetto hover per l'avatar è ora definito in avatar.css per maggiore specificità */
+
+/* Posizionamento avatar per schermi grandi (>1250px) */
+@media (min-width: 1250px) {
+  .avatar-badge {
+    inset-block-start: -28px;   /* 50% fuoriuscente dalla card */
+  }
+}
+
+/* Card della testimonianza */
+.testimonial-card {
+  padding: 24px 0; /* spazio a sinistra per l'avatar */
+  transition: all var(--transition-1);
+}
+
+/* ===== TESTIMONIALS HEADER ===== */
+.testimonials-header {
+  display: flex;
+  align-items: center;
+  gap: 2rem;
+  margin-top: 20px;
+}
+
+/* Pulsante aggiungi testimonial */
+.add-testimonial-btn {
+  width: 50px;
+  height: 50px;
+  border-radius: 50%;
+  border: 5px solid var(--accent-primary);
+  background: transparent;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  transition: all var(--transition-1);
+  flex-shrink: 0;
+  color: var(--accent-primary);
+}
+
+.add-testimonial-btn:hover {
+  transform: scale(1.05);
+  background: var(--bg-secondary);
+  box-shadow: none;
+}
+
+.add-testimonial-btn svg {
+  width: 32px;
+  height: 32px;
+}
+
+/* ===== STATI ===== */
+.state {
+  text-align: center;
+  padding: 2rem;
+  color: var(--text-secondary);
+  font-size: 1rem;
+}
+
+.state.loading {
+  color: var(--accent-primary);
+}
+
+.state.error {
+  color: var(--error-color, #ef4444);
+}
+
+.state.empty {
+  color: var(--text-muted);
+}
+
+/* ===== PULSANTI DI NAVIGAZIONE ===== */
+.carousel-nav-btn {
+  position: absolute;
+  top: 50%;
+  transform: translateY(-50%);
+  width: 48px;
+  height: 48px;
+  border-radius: 50%;
+  border: 2px solid var(--accent-primary);
+  background: var(--bg-card);
+  color: var(--accent-primary);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  transition: all var(--transition-1);
+  z-index: 10;
+  box-shadow: var(--shadow-2);
+}
+
+.carousel-nav-btn:hover:not(:disabled) {
+  background: var(--accent-primary);
+  color: var(--bg-card);
+  transform: translateY(-50%) scale(1.1);
+  box-shadow: var(--shadow-3);
+}
+
+.carousel-nav-btn:disabled {
+  opacity: 0.3;
+  cursor: not-allowed;
+  transform: translateY(-50%);
+}
+
+.carousel-nav-btn svg {
+  width: 20px;
+  height: 20px;
+}
+
+.carousel-nav-prev {
+  left: -24px;
+}
+
+.carousel-nav-next {
+  right: -24px;
+}
+
+/* Nascondi pulsanti su mobile */
+@media (max-width: 768px) {
+  .carousel-nav-btn {
+    display: none;
+  }
+}

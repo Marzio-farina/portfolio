@@ -75,7 +75,10 @@ Route::get('_diag', function () {
  * Main API routes group with stateless configuration
  * Removes session/cookie/CSRF middleware for API-only usage
  */
-Route::middleware(['api', 'throttle:300,1', 'db.connection'])
+// Throttle meno aggressivo in locale per sviluppo
+$throttleLimit = app()->environment('local') ? '1000,1' : '300,1';
+
+Route::middleware(['api', "throttle:{$throttleLimit}", 'db.connection'])
     ->withoutMiddleware([
         StartSession::class,
         AddQueuedCookiesToResponse::class,
@@ -101,7 +104,8 @@ Route::middleware(['api', 'throttle:300,1', 'db.connection'])
         // ====================================================================
         // Public Write Endpoints (with rate limiting)
         // ====================================================================
-        Route::middleware('throttle:20,1')->group(function () {
+        $writeThrottleLimit = app()->environment('local') ? '100,1' : '20,1';
+        Route::middleware("throttle:{$writeThrottleLimit}")->group(function () {
             Route::post('testimonials', [TestimonialController::class, 'store']);
         });
 

@@ -1,14 +1,11 @@
-import { Component, ElementRef, inject, signal, ViewChild } from '@angular/core';
+import { Component, inject, signal } from '@angular/core';
 import { toSignal } from '@angular/core/rxjs-interop';
-import { ActivatedRoute, Router } from '@angular/router';
+import { ActivatedRoute } from '@angular/router';
 import { map } from 'rxjs';
 
-import { Avatar } from '../../components/avatar/avatar';
-import { TestimonialCard } from '../../components/testimonial-card/testimonial-card';
 import { WhatIDoCard } from '../../components/what-i-do-card/what-i-do-card';
 import { Bio } from '../../components/bio/bio';
-import { Testimonial } from '../../core/models/testimonial';
-import { TestimonialService } from '../../services/testimonial.service';
+import { TestimonialCarousel } from '../../components/testimonial-carousel/testimonial-carousel';
 import { WhatIDoService } from '../../services/what-i-do.service';
 import { ProfileService, ProfileData } from '../../services/profile.service';
 
@@ -33,9 +30,8 @@ interface AboutCard {
   selector: 'app-about',
   imports: [
     WhatIDoCard,
-    Avatar,
-    TestimonialCard,
-    Bio
+    Bio,
+    TestimonialCarousel
   ],
   templateUrl: './about.html',
   styleUrl: './about.css'
@@ -46,24 +42,9 @@ export class About {
   // ========================================================================
 
   private readonly route = inject(ActivatedRoute);
-  private readonly router = inject(Router);
-  private readonly testimonialApi = inject(TestimonialService);
   private readonly whatIDoApi = inject(WhatIDoService);
   private readonly profileApi = inject(ProfileService);
 
-  // ========================================================================
-  // View References
-  // ========================================================================
-
-  /** Reference to carousel element for horizontal scrolling */
-  @ViewChild('carousel') private carouselRef?: ElementRef<HTMLElement>;
-
-  // ========================================================================
-  // Hover State Management
-  // ========================================================================
-
-  /** ID of the currently hovered testimonial */
-  private hoveredTestimonialIdSignal = signal<string | null>(null);
 
   // ========================================================================
   // Properties
@@ -80,46 +61,18 @@ export class About {
   loading = signal(true);
   errorMsg = signal<string | null>(null);
 
-  // Testimonials section
-  testimonials = signal<Testimonial[]>([]);
-  testimonialsLoading = signal(true);
-  testimonialsError = signal<string | null>(null);
-  page = signal(1);
-  perPage = signal(8);
-  lastPage = signal(1);
-
   // ========================================================================
   // Constructor
   // ========================================================================
 
   constructor() {
     this.loadWhatIDoData();
-    this.loadTestimonials();
   }
 
   // ========================================================================
   // Public Methods
   // ========================================================================
 
-  /**
-   * Navigate to next testimonials page
-   */
-  next(): void {
-    if (this.page() < this.lastPage()) {
-      this.page.set(this.page() + 1);
-      this.loadTestimonials();
-    }
-  }
-
-  /**
-   * Navigate to previous testimonials page
-   */
-  prev(): void {
-    if (this.page() > 1) {
-      this.page.set(this.page() - 1);
-      this.loadTestimonials();
-    }
-  }
 
   /**
    * Track function for ngFor optimization
@@ -130,21 +83,6 @@ export class About {
    */
   trackById = (_: number, card: AboutCard) => card.id;
 
-  /**
-   * Handle wheel event to enable horizontal scrolling
-   * Converts vertical scroll to horizontal scroll for carousel
-   * 
-   * @param event Wheel event
-   */
-  onWheelToHorizontal(event: WheelEvent): void {
-    const element = this.carouselRef?.nativeElement;
-    if (!element) return;
-
-    if (Math.abs(event.deltaY) > Math.abs(event.deltaX)) {
-      event.preventDefault?.();
-      element.scrollBy({ left: event.deltaY });
-    }
-  }
 
   // ========================================================================
   // Private Methods
@@ -172,57 +110,5 @@ export class About {
     });
   }
 
-  /**
-   * Load testimonials data from API
-   */
-  private loadTestimonials(): void {
-    this.testimonialsLoading.set(true);
-    this.testimonialApi.list$(this.page(), this.perPage()).subscribe({
-      next: response => {
-        this.testimonials.set(response.data ?? []);
-        this.lastPage.set(response.meta?.last_page ?? 1);
-        this.testimonialsLoading.set(false);
-      },
-      error: () => {
-        this.testimonialsError.set('Impossibile caricare le testimonianze.');
-        this.testimonialsLoading.set(false);
-      }
-    });
-  }
-
-
-
-
-  // ========================================================================
-  // Hover Event Handlers
-  // ========================================================================
-
-  /**
-   * Handle testimonial hover start
-   */
-  onTestimonialHoverStart(testimonialId: string): void {
-    this.hoveredTestimonialIdSignal.set(testimonialId);
-  }
-
-  /**
-   * Handle testimonial hover end
-   */
-  onTestimonialHoverEnd(): void {
-    this.hoveredTestimonialIdSignal.set(null);
-  }
-
-  /**
-   * Get the currently hovered testimonial ID for template
-   */
-  get hoveredTestimonialId() {
-    return this.hoveredTestimonialIdSignal();
-  }
-
-  /**
-   * Navigate to add testimonial page
-   */
-  openAddTestimonial(): void {
-    this.router.navigate(['/nuova-recensione']);
-  }
 
 }

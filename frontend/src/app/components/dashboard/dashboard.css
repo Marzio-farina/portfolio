@@ -1,6 +1,6 @@
 .dashboard__container {
     display: grid;
-    grid-template-columns: 15px 1fr 15px;  /* Spazio ridotto per mobile */
+    grid-template-columns: 40px 1fr 40px;
     background: transparent;
     color: inherit;
 }
