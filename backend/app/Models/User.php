@@ -112,4 +112,34 @@ class User extends Authenticatable
     {
         return $this->hasMany(SocialAccount::class);
     }
+
+    /**
+     * Link all testimonials from a visitor (identified by IP and/or User-Agent) to this user
+     * This is called when a visitor registers after leaving testimonials
+     *
+     * @param string|null $ipAddress The IP address of the visitor
+     * @param string|null $userAgent The User-Agent of the visitor
+     * @return int Number of testimonials linked
+     */
+    public function linkVisitorTestimonialsToUser(?string $ipAddress = null, ?string $userAgent = null): int
+    {
+        $query = Testimonial::whereNull('user_id');
+
+        // Match per IP e/o User-Agent
+        if ($ipAddress && $userAgent) {
+            // Se abbiamo entrambi, match più specifico
+            $query->where(function ($q) use ($ipAddress, $userAgent) {
+                $q->where('ip_address', $ipAddress)
+                  ->orWhere('user_agent', $userAgent);
+            });
+        } elseif ($ipAddress) {
+            // Match solo per IP
+            $query->where('ip_address', $ipAddress);
+        } elseif ($userAgent) {
+            // Match solo per User-Agent
+            $query->where('user_agent', $userAgent);
+        }
+
+        return $query->update(['user_id' => $this->id]);
+    }
 }

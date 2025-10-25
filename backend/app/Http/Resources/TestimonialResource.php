@@ -9,7 +9,7 @@ use Illuminate\Http\Resources\Json\JsonResource;
  * Testimonial Resource
  * 
  * Transforms testimonial model data for API responses.
- * Handles user relationship and provides consistent data structure.
+ * Handles both registered users and visitor testimonials.
  */
 class TestimonialResource extends JsonResource
 {
@@ -28,24 +28,42 @@ class TestimonialResource extends JsonResource
             'role' => $this->role_company,
             'company' => $this->company,
             'rating' => (int) $this->rating,
+            'isFromUser' => $this->isFromUser(),
+            'isFromVisitor' => $this->isFromVisitor(),
+            'avatar' => $this->getAvatar(),
+            'createdAt' => $this->created_at?->toISOString(),
         ];
     }
 
     /**
-     * Get author name from user relationship or fallback
+     * Get author name from user relationship or visitor data
+     * 
+     * @return string
+     */
+    private function getAuthorName(): string
+    {
+        // Se ha un utente registrato, usa i dati dell'utente
+        if ($this->isFromUser() && $this->user) {
+            return trim(($this->user->name ?? '') . ' ' . ($this->user->surname ?? ''));
+        }
+
+        // Altrimenti usa i dati del visitatore
+        return trim(($this->author_name ?? '') . ' ' . ($this->author_surname ?? ''));
+    }
+
+    /**
+     * Get avatar URL from user profile or visitor data
      * 
      * @return string|null
      */
-    private function getAuthorName(): ?string
+    private function getAvatar(): ?string
     {
-        if ($this->author) {
-            return $this->author;
+        // Se ha un utente registrato, usa l'avatar dell'utente
+        if ($this->isFromUser() && $this->user && $this->user->profile) {
+            return $this->user->profile->avatar_url;
         }
 
-        if ($this->user) {
-            return $this->user->name ?? null;
-        }
-
-        return null;
+        // Altrimenti usa l'avatar del visitatore (se presente)
+        return $this->avatar_url;
     }
 }

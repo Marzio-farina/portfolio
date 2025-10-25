@@ -14,15 +14,31 @@ return new class extends Migration
     {
         Schema::create('testimonials', function (Blueprint $table) {
             $table->bigIncrements('id');
-            $table->unsignedBigInteger('user_id');
-            $table->foreign('user_id')->references('id')->on('users')->cascadeOnDelete();
+            
+            // User ID nullable: se NULL, è un visitatore non registrato
+            $table->unsignedBigInteger('user_id')->nullable();
+            $table->foreign('user_id')->references('id')->on('users')->nullOnDelete();
 
-            $table->text('text');
-            $table->string('role_company', 150)->nullable();
-            $table->string('company', 150)->nullable();
-            $table->smallInteger('rating'); // 1..5
-
+            // Dati visitatore (utilizzati se user_id è NULL)
+            $table->string('author_name', 100)->nullable(); // Nome obbligatorio per visitatori
+            $table->string('author_surname', 100)->nullable(); // Cognome facoltativo
+            $table->string('avatar_url', 500)->nullable(); // Icona/immagine facoltativa
+            
+            // Dati testimonial
+            $table->text('text'); // Testo del commento (obbligatorio)
+            $table->string('role_company', 150)->nullable(); // Ruolo in azienda
+            $table->string('company', 150)->nullable(); // Azienda (facoltativa)
+            $table->smallInteger('rating'); // Valutazione 1-5 (obbligatoria)
+            
+            // Tracciamento visitatore per matching futuro
+            $table->string('ip_address', 45)->nullable(); // Indirizzo IP (IPv4 e IPv6)
+            $table->text('user_agent')->nullable(); // User-Agent del browser/dispositivo
+            
             $table->timestamps();
+            
+            // Indici per ricerche future
+            $table->index('ip_address');
+            $table->index('user_agent');
         });
 
         // CHECK constraint solo per PostgreSQL
