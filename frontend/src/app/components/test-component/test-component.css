@@ -29,6 +29,13 @@
   overflow: visible;
 }
 
+/* Prevenzione overflow globale per il carousel */
+.test-component .relative,
+.test-component .relative > div {
+  overflow-x: clip;
+  overflow-y: visible;
+}
+
 /* Importa gli stili della testimonial card */
 .card {
   position: relative;
@@ -59,7 +66,7 @@
   right: -35px;
   background: var(--accent-primary);
   color: black;
-  padding: 4px 40px;
+  padding: 4px 30px; /* Ridotto da 40px a 30px */
   font-size: 0.7rem;
   font-weight: 700;
   letter-spacing: 0.5px;
@@ -82,6 +89,8 @@
   justify-content: center;
   pointer-events: none;
   overflow: visible !important;
+  width: fit-content;
+  max-width: 150px; /* Limita la larghezza massima */
 }
 
 .card::before {
@@ -91,16 +100,16 @@
   background: var(--bg-card);
   border-radius: inherit;
   z-index: -1;
-  pointer-events: none;
 }
 
 /* Versione desktop con cartellino più grande */
 @media (min-width: 768px) {
   .carousel-slide::after {
     top: 20px;
-    right: -40px;
-    padding: 4px 50px;
+    right: -35px; /* Ridotto da -40px */
+    padding: 4px 35px; /* Ridotto da 50px */
     font-size: 0.75rem;
+    max-width: 160px; /* Limita la larghezza massima */
   }
 }
 
@@ -133,6 +142,23 @@
   margin-bottom: -4px;
 }
 
+/* Stelle personalizzate */
+.stars-rating {
+  display: flex;
+  gap: 0;
+  align-items: center;
+}
+
+.stars-rating .star {
+  font-size: 14px;
+  color: #d1d5db; /* Grigio chiaro per stelle non attive */
+  transition: color 0.2s ease;
+}
+
+.stars-rating .star.active {
+  color: #f59e0b; /* Arancione per stelle attive (amber-500) */
+}
+
 .description_card p {
   margin: 0;
   color: var(--text-secondary);
@@ -151,6 +177,17 @@
 }
 
 .card:hover {
+  border-color: var(--accent-primary);
+}
+
+/* L'effetto hover sull'avatar è gestito dal ::before */
+
+/* Quando si fa hover sull'avatar, attiva l'hover della card */
+.testimonial-card-wrap:hover .card {
+  border-color: var(--accent-primary);
+}
+
+.testimonial-avatar:hover ~ .card {
   border-color: var(--accent-primary);
 }
 
@@ -206,7 +243,7 @@
 
   .card {
     padding: 8px 6px 10px;
-    height: 175px;
+    height: 125px;
     max-width: 80%;
     width: 80%;
     overflow: hidden;
@@ -219,15 +256,10 @@
   .carousel-slide::after {
     display: flex !important;
     top: 8px;
-    right: -15px;
+    right: 20px;
     padding: 2px 18px;
     font-size: 0.5rem;
     transform: rotate(38deg);
-  }
-
-  /* Rimuovi il pseudo-elemento */
-  .card::before {
-    display: none;
   }
 
   .description_card {
@@ -281,7 +313,7 @@
   }
 
   .carousel-slide::after {
-    right: -35px;
+    right: -5px;
     padding: 3px 35px;
     font-size: 0.65rem;
   }
@@ -329,5 +361,278 @@
     right: -35px;
     padding: 4px 40px;
     font-size: 0.7rem;
+  }
+}
+
+/* ===== DIALOG STYLES ===== */
+
+.testimonial-dialog-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(0, 0, 0, 0.7);
+  backdrop-filter: blur(6px);
+  z-index: 9999;
+  display: flex;
+  align-items: flex-start;
+  justify-content: center;
+  padding: 15px;
+  padding-top: 5%;
+  animation: fadeIn 0.3s ease-out;
+}
+
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+.testimonial-dialog {
+  background: var(--bg-card);
+  border: 1px solid var(--border-primary);
+  border-radius: 12px;
+  padding: 24px;
+  width: 80vw;
+  position: relative;
+  box-shadow: var(--shadow-4);
+  animation: slideUp 0.3s ease-out;
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+}
+
+@keyframes slideUp {
+  from {
+    transform: translateY(20px);
+    opacity: 0;
+  }
+  to {
+    transform: translateY(0);
+    opacity: 1;
+  }
+}
+
+.testimonial-dialog-close {
+  position: absolute;
+  top: 10px;
+  right: 10px;
+  width: 36px;
+  height: 36px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border: none;
+  background: transparent;
+  color: var(--text-secondary);
+  cursor: pointer;
+  border-radius: 8px;
+  transition: all 0.3s ease;
+  z-index: 10;
+}
+
+.testimonial-dialog-close:hover {
+  background: var(--bg-secondary);
+  color: var(--accent-primary);
+  transform: scale(1.05);
+}
+
+.testimonial-dialog-close svg {
+  width: 20px;
+  height: 20px;
+}
+
+.testimonial-dialog-header {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  margin-bottom: 8px;
+}
+
+.testimonial-info {
+  flex: 1;
+}
+
+.testimonial-dialog-author {
+  margin: 0;
+  font-size: 1.25rem;
+  font-weight: 700;
+  color: var(--text-primary);
+}
+
+.testimonial-dialog-meta {
+  font-size: 0.875rem;
+  color: var(--text-secondary);
+  opacity: 0.8;
+}
+
+.testimonial-dialog-content-wrapper {
+  position: relative;
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+}
+
+.testimonial-quote-mark {
+  position: absolute;
+  left: 0;
+  top: -4px;
+  font-size: 2rem;
+  line-height: 1;
+  color: var(--accent-primary);
+  font-weight: 700;
+}
+
+.testimonial-dialog-content {
+  flex: 1;
+  overflow-y: auto;
+  color: var(--text-primary);
+  line-height: 1.6;
+  font-size: 0.95rem;
+  padding-right: 8px;
+  scroll-behavior: smooth;
+  word-wrap: break-word !important;
+  overflow-wrap: break-word !important;
+  hyphens: none !important;
+  word-break: break-word !important;
+  -webkit-hyphens: none !important;
+  -moz-hyphens: none !important;
+  white-space: normal !important;
+}
+
+/* Scrollbar per il contenuto del dialog */
+.testimonial-dialog-content::-webkit-scrollbar {
+  width: 6px;
+}
+
+.testimonial-dialog-content::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+.testimonial-dialog-content::-webkit-scrollbar-thumb {
+  background: var(--text-muted);
+  border-radius: 9999px;
+  transition: background var(--transition-1);
+}
+
+.testimonial-dialog-content::-webkit-scrollbar-thumb:hover {
+  background: var(--text-secondary);
+}
+
+/* Cursore lampeggiante */
+.testimonial-dialog-content.typing::after {
+  content: '|';
+  color: var(--accent-primary);
+  animation: blink 1s infinite;
+  font-weight: bold;
+  margin-left: 2px;
+}
+
+.testimonial-dialog-content:not(.typing)::after {
+  display: none;
+}
+
+@keyframes blink {
+  0%, 50% { opacity: 1; }
+  51%, 100% { opacity: 0; }
+}
+
+.testimonial-dialog-rating {
+  display: flex;
+  justify-content: center;
+  margin-top: 8px;
+}
+
+/* ===== AVATAR BADGE ===== */
+
+.testimonial-card-wrap {
+  position: relative;
+}
+
+/* Stile di default per l'avatar */
+.testimonial-avatar {
+  position: absolute;
+  top: -36px;   /* 50% fuoriuscente dalla card */
+  left: 56px;   /* spostamento da sinistra */
+  width: 72px;
+  height: 72px;
+  z-index: 1;
+  transition: filter var(--transition-1);
+  flex-shrink: 0;
+  border: none;
+  padding: 0;
+  background: transparent;
+}
+
+.testimonial-avatar::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  border-radius: 16px;
+  pointer-events: none;
+  opacity: 0;
+  transition: opacity var(--transition-1);
+}
+
+.testimonial-card-wrap:hover .testimonial-avatar::before {
+  opacity: 1;
+  box-shadow: 0 0 0 1px var(--accent-primary);
+}
+
+/* Hover effects rimossi perché l'avatar non ha bordo esterno */
+
+/* Responsive per schermi piccoli (1 card) */
+@media (max-width: 819px) {
+  .testimonial-avatar {
+    top: -30px;
+    left: 40px;
+    width: 60px !important;
+    height: 60px !important;
+  }
+  
+  .testimonial-avatar app-avatar figure,
+  .testimonial-avatar app-avatar figure img {
+    width: 60px !important;
+    height: 60px !important;
+  }
+}
+
+/* Responsive per schermi medi (2 card) */
+@media (min-width: 820px) and (max-width: 1249px) {
+  .testimonial-avatar {
+    top: -36px;
+    left: 52px;
+    width: 72px !important;
+    height: 72px !important;
+  }
+  
+  .testimonial-avatar app-avatar figure,
+  .testimonial-avatar app-avatar figure img {
+    width: 72px !important;
+    height: 72px !important;
+  }
+}
+
+/* Responsive per schermi grandi (3 card) */
+@media (min-width: 1250px) {
+  .testimonial-avatar {
+    top: -36px;
+    left: 20px;
+    width: 72px !important;
+    height: 72px !important;
+  }
+  
+  .testimonial-avatar app-avatar figure,
+  .testimonial-avatar app-avatar figure img {
+    width: 72px !important;
+    height: 72px !important;
   }
 }

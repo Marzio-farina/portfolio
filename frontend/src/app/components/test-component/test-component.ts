@@ -1,85 +1,55 @@
-import { Component, signal } from '@angular/core';
-
-export interface Testimonial {
-  id: number;
-  author: string;
-  text: string;
-  role?: string;
-  company?: string;
-  rating: number;
-  icon?: {
-    id: number;
-    img: string;
-    alt: string;
-  } | null;
-}
+import { Component, computed, inject, signal } from '@angular/core';
+import { Avatar } from '../avatar/avatar';
+import { TestimonialService } from '../../services/testimonial.service';
+import { Testimonial } from '../../core/models/testimonial';
 
 @Component({
   selector: 'app-test-component',
-  imports: [],
+  imports: [Avatar],
   templateUrl: './test-component.html',
   styleUrl: './test-component.css'
 })
 export class TestComponent {
+  private readonly testimonialApi = inject(TestimonialService);
+
   currentSlide = signal(0);
   
-  testimonials: Testimonial[] = [
-    {
-      id: 1,
-      author: 'Mario Rossi',
-      text: 'Questo è un testimonial molto lungo per verificare come funziona il layout del carosello con testo esteso. Voglio vedere se il contenuto viene gestito correttamente quando ci sono molte parole.',
-      role: 'CEO',
-      company: 'Tech Company',
-      rating: 5,
-      icon: {
-        id: 1,
-        img: 'https://ui-avatars.com/api/?name=Mario+Rossi&background=f97316&color=fff',
-        alt: 'Mario Rossi'
-      }
-    },
-    {
-      id: 2,
-      author: 'Giulia Verdi',
-      text: 'Ottimo servizio e grande professionalità. Sono molto soddisfatta del lavoro svolto e lo consiglio vivamente a tutti coloro che cercano qualità e affidabilità.',
-      role: 'Designer',
-      company: 'Creative Studio',
-      rating: 5,
-      icon: {
-        id: 2,
-        img: 'https://ui-avatars.com/api/?name=Giulia+Verdi&background=22c55e&color=fff',
-        alt: 'Giulia Verdi'
-      }
-    },
-    {
-      id: 3,
-      author: 'Luca Bianchi',
-      text: 'Esperienza fantastica! Il supporto è stato eccezionale e la qualità del prodotto è superiore alle aspettative. Non posso che raccomandare questo servizio.',
-      role: 'Developer',
-      company: 'Dev Agency',
-      rating: 4,
-      icon: {
-        id: 3,
-        img: 'https://ui-avatars.com/api/?name=Luca+Bianchi&background=a855f7&color=fff',
-        alt: 'Luca Bianchi'
-      }
-    },
-    {
-      id: 4,
-      author: 'Anna Neri',
-      text: 'Servizio impeccabile dal punto di vista tecnico e umano. Professionisti competenti e disponibili, sempre pronti a fornire supporto quando necessario.',
-      role: 'Product Manager',
-      company: 'Startup Inc',
-      rating: 5,
-      icon: {
-        id: 4,
-        img: 'https://ui-avatars.com/api/?name=Anna+Neri&background=ef4444&color=fff',
-        alt: 'Anna Neri'
-      }
-    }
-  ];
+  // Testimonials data from API
+  testimonials = signal<Testimonial[]>([]);
+  testimonialsLoading = signal(true);
+  testimonialsError = signal<string | null>(null);
+  
+  // Dialog state
+  dialogOpen = signal<boolean>(false);
+  displayedText = signal<string>('');
+  isTyping = signal<boolean>(false);
+  selectedTestimonial = signal<Testimonial | null>(null);
+  private typewriterInterval: any;
+  private initialText = '';
+
+  constructor() {
+    this.loadTestimonials();
+  }
 
   get slides() {
-    return this.testimonials;
+    return this.testimonials();
+  }
+
+  /**
+   * Load testimonials data from API
+   */
+  private loadTestimonials(): void {
+    this.testimonialsLoading.set(true);
+    this.testimonialApi.list$(1, 8).subscribe({
+      next: response => {
+        this.testimonials.set(response.data ?? []);
+        this.testimonialsLoading.set(false);
+      },
+      error: () => {
+        this.testimonialsError.set('Impossibile caricare le testimonianze.');
+        this.testimonialsLoading.set(false);
+      }
+    });
   }
 
   /**
@@ -119,8 +89,8 @@ export class TestComponent {
    */
   maxSlides(): number {
     const cardsVisible = this.cardsPerView();
-    // Se mostra 2 card, ci sono meno pagine
-    return Math.max(1, this.slides.length - cardsVisible + 1);
+    const slides = this.slides;
+    return Math.max(1, slides.length - cardsVisible + 1);
   }
 
   nextSlide(): void {
@@ -135,6 +105,120 @@ export class TestComponent {
     const prev = this.currentSlide() - 1;
     if (prev >= 0) {
       this.currentSlide.set(prev);
+    }
+  }
+
+  /**
+   * Open dialog with testimonial details
+   */
+  openDialog(testimonial: Testimonial): void {
+    this.dialogOpen.set(true);
+    this.selectedTestimonial.set(testimonial);
+    this.initialText = testimonial.text;
+    this.displayedText.set('');
+    this.startTypewriterEffect();
+  }
+
+  /**
+   * Close dialog
+   */
+  closeDialog(): void {
+    this.dialogOpen.set(false);
+    this.stopTypewriterEffect();
+    this.displayedText.set('');
+    this.selectedTestimonial.set(null);
+  }
+
+  /**
+   * Start typewriter effect
+   */
+  private startTypewriterEffect(): void {
+    const fullText = this.initialText;
+    let currentIndex = 0;
+    this.isTyping.set(true);
+
+    this.typewriterInterval = setInterval(() => {
+      if (currentIndex <= fullText.length) {
+        this.displayedText.set(fullText.slice(0, currentIndex));
+        currentIndex++;
+      } else {
+        this.stopTypewriterEffect();
+      }
+    }, 30);
+  }
+
+  /**
+   * Stop typewriter effect
+   */
+  private stopTypewriterEffect(): void {
+    if (this.typewriterInterval) {
+      clearInterval(this.typewriterInterval);
+      this.typewriterInterval = null;
+    }
+    this.isTyping.set(false);
+  }
+
+  /**
+   * Get avatar data for dialog
+   */
+  getAvatarData(testimonial: Testimonial) {
+    if (!testimonial.icon && !testimonial.avatar) return null;
+    
+    // Se c'è un'icona, usa quella
+    if (testimonial.icon) {
+      return {
+        id: testimonial.icon.id,
+        img: testimonial.icon.img,
+        alt: testimonial.icon.alt
+      };
+    }
+    
+    // Altrimenti usa l'avatar diretto se disponibile
+    if (testimonial.avatar) {
+      return {
+        id: 0,
+        img: testimonial.avatar,
+        alt: testimonial.author
+      };
+    }
+    
+    return null;
+  }
+
+  /**
+   * Handle mouse enter on card
+   */
+  onMouseEnter(): void {
+    // Puoi aggiungere effetti hover se necessario
+  }
+
+  /**
+   * Handle mouse leave on card
+   */
+  onMouseLeave(): void {
+    // Puoi aggiungere effetti hover se necessario
+  }
+
+  /**
+   * Convert vertical wheel scroll to horizontal carousel navigation
+   */
+  onWheelToHorizontal(event: WheelEvent): void {
+    // Previene lo scroll verticale di default
+    event.preventDefault();
+
+    // Converti il movimento verticale della rotellina in movimento orizzontale
+    const deltaY = event.deltaY;
+    
+    // Verifica che lo scroll sia principalmente verticale (non orizzontale)
+    if (Math.abs(deltaY) > Math.abs(event.deltaX)) {
+      // Determina la direzione
+      if (deltaY > 0) {
+        // Scorri verso il basso -> vai avanti nel carosello
+        this.nextSlide();
+      } else {
+        // Scorri verso l'alto -> vai indietro nel carosello
+        this.prevSlide();
+      }
     }
   }
 }

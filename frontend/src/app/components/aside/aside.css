@@ -12,6 +12,7 @@
   display: flex;
   align-items: center;
   flex-direction: row;
+  padding: 20px;
   /* gap: var(--space-6); */
   margin: 0;
   /* background-color: var(--eerie-black-2); */
@@ -28,6 +29,7 @@
   min-width: 0;
   color: var(--text-secondary);
   transition: color var(--transition-1);
+  margin-top: 15px;
 }
 
 .profile__name {
@@ -359,6 +361,7 @@
     text-align: center;
     width: 100%; /* Larghezza completa */
     max-width: 100%; /* Non supera mai il contenitore */
+    margin-top: 0;
   }
   
   .profile__name {
