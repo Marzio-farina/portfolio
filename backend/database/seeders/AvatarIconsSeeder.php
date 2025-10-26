@@ -11,35 +11,34 @@ class AvatarIconsSeeder extends Seeder
     /**
      * Run the database seeds.
      * 
-     * Crea gli avatar predefiniti senza il prefisso "storage/" nei percorsi.
-     * Il prefisso viene aggiunto dinamicamente nei Resource tramite getAbsoluteUrl()
-     * quando si costruisce l'URL completa per le risposte API.
+     * Crea gli avatar predefiniti con il percorso "storage/avatars/"
+     * che corrisponde al routing effettivo su Vercel.
      */
     public function run(): void
     {
         $avatarIcons = [
             [
-                'img' => 'avatars/avatar-1.png',
+                'img' => 'storage/avatars/avatar-1.png',
                 'alt' => 'Avatar 1',
                 'type' => 'default'
             ],
             [
-                'img' => 'avatars/avatar-2.png',
+                'img' => 'storage/avatars/avatar-2.png',
                 'alt' => 'Avatar 2',
                 'type' => 'default'
             ],
             [
-                'img' => 'avatars/avatar-3.png',
+                'img' => 'storage/avatars/avatar-3.png',
                 'alt' => 'Avatar 3',
                 'type' => 'default'
             ],
             [
-                'img' => 'avatars/avatar-4.png',
+                'img' => 'storage/avatars/avatar-4.png',
                 'alt' => 'Avatar 4',
                 'type' => 'default'
             ],
             [
-                'img' => 'avatars/avatar-5.png',
+                'img' => 'storage/avatars/avatar-5.png',
                 'alt' => 'Avatar 5',
                 'type' => 'default'
             ]
