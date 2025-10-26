@@ -1,3 +1,24 @@
+/* Applica padding responsive a tutti i sottocontenitori della pagina contatti */
+h2.article-title {
+  padding-left: clamp(0.25rem, 4vw, 2rem);
+  padding-right: clamp(0.25rem, 4vw, 2rem);
+  max-width: 100%;
+  box-sizing: border-box;
+  display: block;
+  position: relative;
+}
+
+/* Decorazione sotto il titolo */
+h2.article-title::after {
+  content: '';
+  position: absolute;
+  left: clamp(0.25rem, 4vw, 2rem);
+  width: 60px;
+  height: 4px;
+  background: var(--text-gradient-yellow);
+  border-radius: 2px;
+}
+
 .contacts {
   background: transparent;
   color: var(--text-primary);
@@ -8,11 +29,19 @@
 app-maps {
   display: block;
   margin-bottom: 2rem;
+  padding-left: clamp(0.25rem, 4vw, 2rem);
+  padding-right: clamp(0.25rem, 4vw, 2rem);
+  max-width: 100%;
+  box-sizing: border-box;
 }
 
 /* Spazio tra input e textarea */
 app-contact-form {
   display: block;
   margin-top: 1.5rem;
+  padding-left: clamp(0.25rem, 4vw, 2rem);
+  padding-right: clamp(0.25rem, 4vw, 2rem);
+  max-width: 100%;
+  box-sizing: border-box;
 }
 

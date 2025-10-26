@@ -1,5 +1,68 @@
+/* Stili per l'header con pulsante aggiungi testimonial */
+.testimonials-header {
+  display: flex;
+  align-items: center;
+  gap: 2rem;
+  margin-top: 20px;
+  margin-bottom: 2rem;
+}
+
+.sub_article-title {
+  font-size: 1.5rem;
+  font-weight: 700;
+  color: var(--text-primary);
+  margin: 0;
+  padding-left: clamp(0.25rem, 4vw, 2rem);
+}
+
+.add-testimonial-btn {
+  width: 50px;
+  height: 50px;
+  border-radius: 50%;
+  border: 5px solid var(--accent-primary);
+  background: transparent;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  transition: all var(--transition-1);
+  flex-shrink: 0;
+  color: var(--accent-primary);
+}
+
+.add-testimonial-btn:hover {
+  transform: scale(1.05);
+  background: var(--bg-secondary);
+  box-shadow: none;
+}
+
+.add-testimonial-btn svg {
+  width: 32px;
+  height: 32px;
+}
+
+/* ===== STATI ===== */
+.state {
+  text-align: center;
+  padding: 2rem;
+  color: var(--text-secondary);
+  font-size: 1rem;
+}
+
+.state.loading {
+  color: var(--accent-primary);
+}
+
+.state.error {
+  color: var(--error-color, #ef4444);
+}
+
+.state.empty {
+  color: var(--text-muted);
+}
+
 /* Stili gestiti da Tailwind CSS */
-.test-component {
+.testimonial-carousel-card {
   width: 100%;
   max-width: 100%;
   box-sizing: border-box;
@@ -10,13 +73,13 @@
 
 /* Riduci spazio su mobile */
 @media (max-width: 479px) {
-  .test-component {
+  .testimonial-carousel-card {
     margin-top: 1rem;
   }
 }
 
 /* Spazio laterale fluido che cresce con la larghezza dello schermo */
-.test-component > * {
+.testimonial-carousel-card > * {
   padding-left: clamp(0.25rem, 4vw, 2rem);
   padding-right: clamp(0.25rem, 4vw, 2rem);
   max-width: 100%;
@@ -30,8 +93,8 @@
 }
 
 /* Prevenzione overflow globale per il carousel */
-.test-component .relative,
-.test-component .relative > div {
+.testimonial-carousel-card .relative,
+.testimonial-carousel-card .relative > div {
   overflow-x: clip;
   overflow-y: visible;
 }
@@ -197,7 +260,7 @@
 
 /* Ottimizzazioni per iPhone SE e schermi piccoli (≤479px) */
 @media (max-width: 479px) {
-  .test-component {
+  .testimonial-carousel-card {
     padding-left: 0.25rem !important;
     padding-right: 0.25rem !important;
     width: 100% !important;
@@ -206,7 +269,7 @@
     overflow: visible !important;
   }
 
-  .test-component > * {
+  .testimonial-carousel-card > * {
     margin-left: 0 !important;
     margin-right: 0 !important;
     padding-left: 0.25rem !important;
@@ -214,7 +277,7 @@
     overflow: visible !important;
   }
 
-  .test-component .relative {
+  .testimonial-carousel-card .relative {
     margin: 0 !important;
     padding: 0 !important;
     width: 100% !important;
@@ -223,11 +286,11 @@
   }
   
   /* Forza overflow visible per i container del carosello */
-  .test-component .relative > div {
+  .testimonial-carousel-card .relative > div {
     overflow: visible !important;
   }
 
-  .test-component .relative > div:first-child {
+  .testimonial-carousel-card .relative > div:first-child {
     margin: 0 !important;
     padding: 0 !important;
     width: 100% !important;
@@ -235,7 +298,7 @@
     overflow: visible !important;
   }
 
-  .test-component .relative > div:first-child > div {
+  .testimonial-carousel-card .relative > div:first-child > div {
     width: 100% !important;
     max-width: 100% !important;
     overflow: visible !important;
@@ -636,3 +699,4 @@
     height: 72px !important;
   }
 }
+

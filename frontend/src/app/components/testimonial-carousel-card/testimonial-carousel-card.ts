@@ -1,16 +1,18 @@
 import { Component, computed, inject, signal } from '@angular/core';
+import { Router } from '@angular/router';
 import { Avatar } from '../avatar/avatar';
 import { TestimonialService } from '../../services/testimonial.service';
 import { Testimonial } from '../../core/models/testimonial';
 
 @Component({
-  selector: 'app-test-component',
+  selector: 'app-testimonial-carousel-card',
   imports: [Avatar],
-  templateUrl: './test-component.html',
-  styleUrl: './test-component.css'
+  templateUrl: './testimonial-carousel-card.html',
+  styleUrl: './testimonial-carousel-card.css'
 })
-export class TestComponent {
+export class TestimonialCarouselCard {
   private readonly testimonialApi = inject(TestimonialService);
+  private readonly router = inject(Router);
 
   currentSlide = signal(0);
   
@@ -221,4 +223,12 @@ export class TestComponent {
       }
     }
   }
+
+    /**
+   * Navigate to add testimonial page
+   */
+    openAddTestimonial(): void {
+        this.router.navigate(['/nuova-recensione']);
+    }
 }
+

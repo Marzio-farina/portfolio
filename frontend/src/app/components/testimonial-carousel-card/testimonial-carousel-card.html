@@ -1,19 +1,27 @@
-<div class="test-component w-full">
-  <h2 class="text-lg sm:text-3xl font-bold text-center mb-2 sm:mb-8 px-2 sm:px-0">Carosello Testimonial</h2>
-  
-  @if (testimonialsLoading()) {
-    <div class="text-center py-8">
-      <span class="loading loading-spinner loading-lg"></span>
-    </div>
-  }
-  
-  @else if (testimonialsError()) {
-    <div class="text-center py-8 text-red-500">
-      <p>{{ testimonialsError() }}</p>
-    </div>
-  }
-  
-  @else if (testimonials().length > 0) {
+<!-- Header con pulsante aggiungi testimonial -->
+<div class="testimonials-header">
+    <h3 class="sub_article-title">Testimonianze</h3>
+    <button class="add-testimonial-btn" (click)="openAddTestimonial()">
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round">
+            <line x1="12" y1="5" x2="12" y2="19"></line>
+            <line x1="5" y1="12" x2="19" y2="12"></line>
+        </svg>
+    </button>
+</div>
+
+<!-- Stati di caricamento -->
+@if (testimonialsLoading()) {
+  <div class="state loading">Caricamento…</div>
+}
+@if (!testimonialsLoading() && testimonialsError()) {
+  <div class="state error">{{ testimonialsError() }}</div>
+}
+@if (!testimonialsLoading() && !testimonialsError() && testimonials().length === 0) {
+  <div class="state empty">Nessuna testimonianza disponibile.</div>
+}
+
+<div class="testimonial-carousel-card w-full">
+  @if (!testimonialsLoading() && !testimonialsError() && testimonials().length > 0) {
     <div class="relative w-full">
       <div class="w-full h-auto overflow-visible relative" id="carousel-container">
         <div 
@@ -74,10 +82,6 @@
         </div>
       </div>
     </div>
-  } @else {
-    <div class="text-center py-8 text-gray-500">
-      <p>Nessuna testimonianza disponibile.</p>
-    </div>
   }
   
   @if (dialogOpen()) {
@@ -127,3 +131,4 @@
     </div>
   }
 </div>
+

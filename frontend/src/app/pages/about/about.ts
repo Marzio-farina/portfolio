@@ -8,7 +8,7 @@ import { Bio } from '../../components/bio/bio';
 import { TestimonialCarousel } from '../../components/testimonial-carousel/testimonial-carousel';
 import { WhatIDoService } from '../../services/what-i-do.service';
 import { ProfileService, ProfileData } from '../../services/profile.service';
-import { TestComponent } from '../../components/test-component/test-component';
+import { TestimonialCarouselCard } from '../../components/testimonial-carousel-card/testimonial-carousel-card';
 
 // ========================================================================
 // Interfaces
@@ -33,7 +33,7 @@ interface AboutCard {
     WhatIDoCard,
     Bio,
     TestimonialCarousel,
-    TestComponent
+    TestimonialCarouselCard
   ],
   templateUrl: './about.html',
   styleUrl: './about.css'
