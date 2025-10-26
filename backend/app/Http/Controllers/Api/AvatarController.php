@@ -44,55 +44,25 @@ class AvatarController extends Controller
             // Percorso di destinazione su Supabase S3
             $path = 'avatars/' . $filename;
             
-            // Determina se usare Supabase o storage locale
-            $supabaseUrl = env('SUPABASE_S3_URL') ?: env('SUPABASE_PUBLIC_URL');
-            $useSupabase = env('SUPABASE_S3_KEY') && $supabaseUrl;
+            // Salva il file su storage locale
+            $storedPath = $file->storeAs('avatars', $filename, 'public');
+            $this->optimizeImage($storedPath);
             
-            if ($useSupabase) {
-                // Ottimizza prima di caricare
-                $tempPath = sys_get_temp_dir() . '/' . $filename;
-                $image = Image::make($file);
-                $image->resize(200, 200, function ($constraint) {
-                    $constraint->aspectRatio();
-                    $constraint->upsize();
-                });
-                $image->save($tempPath, 85);
-                
-                // Carica su Supabase S3
-                Storage::disk('src')->put($path, file_get_contents($tempPath));
-                unlink($tempPath);
-                
-                // URL pubblico Supabase
-                $baseUrl = rtrim($supabaseUrl, '/');
-                $imgUrl = $baseUrl . '/' . $path;
-                
-                // Crea il record nella tabella icons con URL Supabase
-                $icon = Icon::create([
-                    'img' => $imgUrl,
-                    'alt' => $validated['alt_text'] ?? 'Avatar visitatore',
-                    'type' => 'user_uploaded'
-                ]);
-            } else {
-                // Fallback a storage locale per development
-                $storedPath = $file->storeAs('avatars', $filename, 'public');
-                $this->optimizeImage($storedPath);
-                
-                // Costruisci URL assoluto
-                $request = request();
-                $scheme = $request->header('x-forwarded-proto', $request->getScheme());
-                $host = $request->getHttpHost();
-                $baseUrl = rtrim($scheme . '://' . $host, '/');
-                
-                $imgUrl = 'storage/' . $storedPath;
-                $absoluteUrl = $baseUrl . '/' . $imgUrl;
-                
-                // Crea il record nella tabella icons
-                $icon = Icon::create([
-                    'img' => $absoluteUrl,
-                    'alt' => $validated['alt_text'] ?? 'Avatar visitatore',
-                    'type' => 'user_uploaded'
-                ]);
-            }
+            // Costruisci URL assoluto del backend
+            $request = request();
+            $scheme = $request->header('x-forwarded-proto', $request->getScheme());
+            $host = $request->getHttpHost();
+            $baseUrl = rtrim($scheme . '://' . $host, '/');
+            
+            $imgUrl = 'storage/' . $storedPath;
+            $absoluteUrl = $baseUrl . '/api/' . $imgUrl;
+            
+            // Crea il record nella tabella icons con URL backend
+            $icon = Icon::create([
+                'img' => $absoluteUrl,
+                'alt' => $validated['alt_text'] ?? 'Avatar visitatore',
+                'type' => 'user_uploaded'
+            ]);
             
             return response()->json([
                 'success' => true,
