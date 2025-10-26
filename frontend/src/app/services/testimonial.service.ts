@@ -17,7 +17,12 @@ export class TestimonialService {
   // usa SEMPRE apiUrl('testimonials'), niente stringhe hard-coded tipo '/testimonials'
   list$(page = 1, perPage = 8): Observable<Paginated<Testimonial>> {
     const url = apiUrl('testimonials');
-    return this.http.get<Paginated<Testimonial>>(url, { params: { page, per_page: perPage }});
+    
+    // Aggiungi sempre un timestamp per evitare problemi di cache con ETag
+    // Questo fa sì che ogni richiesta appaia diversa al browser
+    const params: any = { page, per_page: perPage, _t: Date.now() };
+    
+    return this.http.get<Paginated<Testimonial>>(url, { params });
   }
 
   create$(data: any): Observable<Testimonial> {
@@ -30,14 +35,26 @@ export class TestimonialService {
       // Aggiungi tutti i campi del form
       Object.keys(data).forEach(key => {
         if (data[key] !== null && data[key] !== undefined) {
-          formData.append(key, data[key]);
+          // Se è un file, aggiungilo direttamente
+          if (data[key] instanceof File) {
+            formData.append(key, data[key]);
+          } else {
+            formData.append(key, String(data[key]));
+          }
         }
       });
       
       return this.http.post<Testimonial>(url, formData);
     }
     
-    // Altrimenti invia come JSON normale
-    return this.http.post<Testimonial>(url, data);
+    // Altrimenti invia come JSON normale (pulisci i campi null/undefined)
+    const cleanedData: any = {};
+    Object.keys(data).forEach(key => {
+      if (data[key] !== null && data[key] !== undefined) {
+        cleanedData[key] = data[key];
+      }
+    });
+    
+    return this.http.post<Testimonial>(url, cleanedData);
   }
 }

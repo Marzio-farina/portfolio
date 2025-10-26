@@ -32,7 +32,6 @@ interface AboutCard {
   imports: [
     WhatIDoCard,
     Bio,
-    TestimonialCarousel,
     TestimonialCarouselCard
   ],
   templateUrl: './about.html',

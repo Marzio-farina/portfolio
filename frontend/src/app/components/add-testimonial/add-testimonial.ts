@@ -51,7 +51,8 @@ export class AddTestimonial {
     company: [''],
     rating: [3, [Validators.required, Validators.min(1), Validators.max(5)]],
     avatar_url: [''],
-    avatar_file: [null as File | null] // Campo per il file caricato
+    avatar_file: [null as File | null], // Campo per il file caricato
+    icon_id: [null as number | null] // Campo per l'ID dell'icona selezionata
   });
 
   // Avatar di default disponibili (caricati dal backend)
@@ -155,8 +156,9 @@ export class AddTestimonial {
         
         // Salva il file nel form per l'invio
         this.form.get('avatar_file')?.setValue(file);
-        // Pulisci l'avatar_url quando si carica un file
+        // Pulisci l'avatar_url e icon_id quando si carica un file
         this.form.get('avatar_url')?.setValue('');
+        this.form.get('icon_id')?.setValue(null);
       };
       reader.readAsDataURL(file);
     }
@@ -169,6 +171,7 @@ export class AddTestimonial {
     const currentIndex = this.currentDefaultAvatarIndex();
     const newIndex = currentIndex > 0 ? currentIndex - 1 : this.defaultAvatars.length - 1;
     this.currentDefaultAvatarIndex.set(newIndex);
+    this.updateIconId();
     
     // Aggiorna il form con l'avatar selezionato
     this.form.get('avatar_url')?.setValue('');
@@ -183,6 +186,7 @@ export class AddTestimonial {
     const currentIndex = this.currentDefaultAvatarIndex();
     const newIndex = currentIndex < this.defaultAvatars.length - 1 ? currentIndex + 1 : 0;
     this.currentDefaultAvatarIndex.set(newIndex);
+    this.updateIconId();
     
     // Aggiorna il form con l'avatar selezionato
     this.form.get('avatar_url')?.setValue('');
@@ -221,12 +225,24 @@ export class AddTestimonial {
     if (this.defaultAvatars.length > 0) {
       const randomIndex = Math.floor(Math.random() * this.defaultAvatars.length);
       this.currentDefaultAvatarIndex.set(randomIndex);
+      this.updateIconId();
     } else {
       this.currentDefaultAvatarIndex.set(0);
     }
     // Pulisci i campi avatar quando si imposta un avatar di default
     this.form.get('avatar_url')?.setValue('');
     this.form.get('avatar_file')?.setValue(null);
+  }
+
+  /**
+   * Aggiorna l'icon_id nel form basandosi sull'avatar attualmente selezionato
+   */
+  private updateIconId(): void {
+    const currentIndex = this.currentDefaultAvatarIndex();
+    if (this.defaultAvatars.length > 0 && currentIndex < this.defaultAvatars.length) {
+      const selectedAvatar = this.defaultAvatars[currentIndex];
+      this.form.get('icon_id')?.setValue(selectedAvatar.id);
+    }
   }
 
   submit() {
