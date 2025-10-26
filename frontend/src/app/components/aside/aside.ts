@@ -86,6 +86,17 @@ export class Aside {
     (this.profile()?.socials ?? []).filter((s: SocialLink) => !!s.url)
   );
 
+  mainAvatarData = computed(() => {
+    const p = this.profile();
+    if (!p || !p.avatar_url) return null;
+
+    return {
+      id: 0,
+      img: this.normalizeAvatarUrl(p.avatar_url),
+      alt: this.fullName() || 'Avatar'
+    };
+  });
+
   constructor(@Inject(PLATFORM_ID) platformId: Object) {
     this.isBrowser = isPlatformBrowser(platformId);
 
@@ -136,20 +147,6 @@ export class Aside {
 
   getThemeIcon() {
     return this.theme.isDark() ? 'moon' : 'sun';
-  }
-
-  /**
-   * Ottiene i dati avatar dal profilo principale
-   */
-  getMainAvatarData() {
-    const p = this.profile();
-    if (!p || !p.avatar_url) return null;
-
-    return {
-      id: 0,
-      img: this.normalizeAvatarUrl(p.avatar_url),
-      alt: this.fullName() || 'Avatar'
-    };
   }
 
   /**

@@ -1,4 +1,4 @@
-import { Component, input, OnInit } from '@angular/core';
+import { Component, input, OnInit, computed, effect, signal } from '@angular/core';
 import { AvatarService } from '../../services/avatar.service';
 
 export interface AvatarData {
@@ -19,28 +19,39 @@ export class Avatar implements OnInit {
   highlighted = input<boolean>(false);
   avatarData = input<AvatarData | null>(null);
   
-  avatars: AvatarData[] = [];
-  selectedAvatar?: AvatarData;
+  private avatars = signal<AvatarData[]>([]);
+  private selectedId = 1;
   
-  selectedId = 1;
-
-  constructor(private avatarService: AvatarService) {}
-
-  ngOnInit(): void {
-    // Se viene passato un avatar specifico, usalo
-    if (this.avatarData()) {
-      this.selectedAvatar = this.avatarData()!;
-      return;
+  selectedAvatar = computed(() => {
+    // Se avatarData è passato, usalo
+    const data = this.avatarData();
+    if (data) {
+      return data;
     }
     
-    // Altrimenti carica gli avatar di default
-    this.avatarService.getAvatars().subscribe((data: AvatarData[]) => {
-      this.avatars = data;
-      this.selectAvatar(this.selectedId);
+    // Altrimenti ritorna il primo avatar dalla lista caricata
+    const avatarsList = this.avatars();
+    if (avatarsList.length > 0) {
+      return avatarsList.find(a => a.id === this.selectedId) || avatarsList[1];
+    }
+    
+    return null;
+  });
+
+  constructor(private avatarService: AvatarService) {
+    // Effect: carica gli avatar di default se non è passato avatarData
+    effect(() => {
+      const data = this.avatarData();
+      // Se avatarData non è passato, carica gli avatar di default
+      if (!data) {
+        this.avatarService.getAvatars().subscribe((avatars: AvatarData[]) => {
+          this.avatars.set(avatars);
+        });
+      }
     });
   }
 
-  selectAvatar(id: number): void {
-    this.selectedAvatar = this.avatars.find(a => a.id === id);
+  ngOnInit(): void {
+    // Non fare niente qui - l'effect si occupa di tutto
   }
 }

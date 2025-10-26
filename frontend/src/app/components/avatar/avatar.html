@@ -1,8 +1,8 @@
 <figure class="profile__avatar" [class.highlighted]="highlighted()">
-    @if (selectedAvatar) {
+    @if (selectedAvatar()) {
         <img 
-            [src]="selectedAvatar.img"
-            [alt]="selectedAvatar.alt"
+            [src]="selectedAvatar()!.img"
+            [alt]="selectedAvatar()!.alt"
             [width]="width()"
         >
     }
