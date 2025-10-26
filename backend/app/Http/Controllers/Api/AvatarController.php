@@ -49,19 +49,13 @@ class AvatarController extends Controller
             $storedPath = $file->storeAs('avatars', $filename, 'public');
             $this->optimizeImage($storedPath);
             
-            // Costruisci URL assoluto servito da Laravel
-            $request = request();
-            $scheme = $request->header('x-forwarded-proto', $request->getScheme());
-            $host = $request->getHttpHost();
-            $baseUrl = rtrim($scheme . '://' . $host, '/');
+            // Salva solo il path relativo nel database (senza "storage/")
+            // sarà aggiunto quando si costruisce l'URL nella risposta API
+            $imgPath = $storedPath; // e.g. "avatars/avatar_123.jpg"
             
-            // URL senza /api/ perché Laravel serve direttamente da /storage/
-            $imgUrl = 'storage/' . $storedPath;
-            $absoluteUrl = $baseUrl . '/' . $imgUrl;
-            
-            // Crea il record nella tabella icons con URL backend
+            // Crea il record nella tabella icons con path relativo
             $icon = Icon::create([
-                'img' => $absoluteUrl,
+                'img' => $imgPath,
                 'alt' => $validated['alt_text'] ?? 'Avatar visitatore',
                 'type' => 'user_uploaded'
             ]);
@@ -137,9 +131,12 @@ class AvatarController extends Controller
         try {
             $icon = Icon::findOrFail($id);
             
-            // Rimuovi il file se esiste
-            if ($icon->img && str_starts_with($icon->img, 'storage/')) {
-                $filePath = str_replace('storage/', '', $icon->img);
+            // Rimuovi il file se esiste (gestisce sia path con "storage/" che senza)
+            if ($icon->img) {
+                $filePath = str_starts_with($icon->img, 'storage/') 
+                    ? str_replace('storage/', '', $icon->img) 
+                    : $icon->img;
+                
                 if (Storage::disk('public')->exists($filePath)) {
                     Storage::disk('public')->delete($filePath);
                 }

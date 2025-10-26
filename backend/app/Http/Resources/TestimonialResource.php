@@ -125,20 +125,20 @@ class TestimonialResource extends JsonResource
             $host = $request->getHttpHost();
             $baseUrl = rtrim($scheme . '://' . $host, '/');
             
-            // Se il path inizia con storage/, rimuovi il prefisso
-            if (str_starts_with($path, 'storage/')) {
-                $cleanPath = ltrim($path, '/');
-                return $baseUrl . '/' . $cleanPath;
-            }
+            // Rimuovi il prefisso "storage/" se presente (legacy)
+            $cleanPath = str_starts_with($path, 'storage/') 
+                ? ltrim(substr($path, 8), '/') // rimuovi "storage/"
+                : ltrim($path, '/');
             
-            // Altrimenti usa come è
-            $cleanPath = ltrim($path, '/');
-            return $baseUrl . '/' . $cleanPath;
+            // Costruisci l'URL con il prefisso "storage/"
+            return $baseUrl . '/storage/' . $cleanPath;
         } catch (\Exception $e) {
             // Fallback: usa APP_URL da .env
             $appUrl = env('APP_URL', 'https://api.marziofarina.it');
-            $cleanPath = ltrim($path, '/');
-            return rtrim($appUrl, '/') . '/' . $cleanPath;
+            $cleanPath = str_starts_with($path, 'storage/') 
+                ? ltrim(substr($path, 8), '/') 
+                : ltrim($path, '/');
+            return rtrim($appUrl, '/') . '/storage/' . $cleanPath;
         }
     }
 }
