@@ -45,7 +45,8 @@ class AvatarController extends Controller
             $path = 'avatars/' . $filename;
             
             // Determina se usare Supabase o storage locale
-            $useSupabase = env('SUPABASE_S3_KEY') && env('SUPABASE_S3_URL');
+            $supabaseUrl = env('SUPABASE_S3_URL') ?: env('SUPABASE_PUBLIC_URL');
+            $useSupabase = env('SUPABASE_S3_KEY') && $supabaseUrl;
             
             if ($useSupabase) {
                 // Ottimizza prima di caricare
@@ -62,7 +63,8 @@ class AvatarController extends Controller
                 unlink($tempPath);
                 
                 // URL pubblico Supabase
-                $imgUrl = rtrim(env('SUPABASE_S3_URL'), '/') . '/' . $path;
+                $baseUrl = rtrim($supabaseUrl, '/');
+                $imgUrl = $baseUrl . '/' . $path;
                 
                 // Crea il record nella tabella icons con URL Supabase
                 $icon = Icon::create([

@@ -13,8 +13,18 @@ class UploadAvatarsToSupabase extends Command
 
     public function handle()
     {
-        if (!env('SUPABASE_S3_KEY') || !env('SUPABASE_S3_URL')) {
-            $this->error('Supabase S3 non configurato. Controlla le variabili SUPABASE_S3_KEY e SUPABASE_S3_URL in .env');
+        $this->info('Controllo configurazione Supabase...');
+        $this->info('SUPABASE_S3_KEY: ' . (env('SUPABASE_S3_KEY') ? 'Configurato' : 'MANCANTE'));
+        
+        // Usa SUPABASE_S3_URL o SUPABASE_PUBLIC_URL come fallback
+        $supabaseUrl = env('SUPABASE_S3_URL') ?: env('SUPABASE_PUBLIC_URL');
+        $this->info('SUPABASE URL: ' . ($supabaseUrl ? 'Configurato' : 'MANCANTE'));
+        
+        if (!env('SUPABASE_S3_KEY') || !$supabaseUrl) {
+            $this->error('Supabase S3 non configurato.');
+            $this->info('Variabili richieste in .env:');
+            $this->info('  - SUPABASE_S3_KEY');
+            $this->info('  - SUPABASE_S3_URL (o SUPABASE_PUBLIC_URL)');
             return 1;
         }
 
@@ -49,7 +59,8 @@ class UploadAvatarsToSupabase extends Command
                 Storage::disk('src')->put($supabasePath, file_get_contents($localPath));
                 
                 // Costruisci URL pubblico Supabase
-                $supabaseUrl = rtrim(env('SUPABASE_S3_URL'), '/') . '/' . $supabasePath;
+                $baseUrl = rtrim(env('SUPABASE_S3_URL') ?: env('SUPABASE_PUBLIC_URL'), '/');
+                $supabaseUrl = $baseUrl . '/' . $supabasePath;
                 
                 // Aggiorna il database con l'URL Supabase
                 $icon = Icon::where('img', 'like', "%$avatar")->first();

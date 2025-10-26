@@ -69,7 +69,7 @@ return [
             'endpoint'                => env('SUPABASE_S3_ENDPOINT'),
             'use_path_style_endpoint' => true,   // obbligatorio per Supabase
             'throw'                   => true,
-            'url'                     => env('SUPABASE_S3_URL'), // URL pubblico Supabase
+            'url'                     => env('SUPABASE_S3_URL') ?: env('SUPABASE_PUBLIC_URL'), // URL pubblico Supabase
         ],
         
         'glide' => [ // Cache locale per le derivate
