@@ -33,6 +33,7 @@ class DatabaseSeeder extends Seeder
             WhatIDoSeeder::class,
             UserProfileAndSocialSeeder::class,
             AttestatiSeeder::class,
+            SeedDefaultAvatarsSeeder::class,
         ]);
     }
 }

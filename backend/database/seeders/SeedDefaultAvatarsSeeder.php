@@ -1,17 +1,19 @@
 <?php
 
-use Illuminate\Database\Migrations\Migration;
+namespace Database\Seeders;
+
+use Illuminate\Database\Seeder;
 use Illuminate\Support\Facades\DB;
 
-return new class extends Migration
+class SeedDefaultAvatarsSeeder extends Seeder
 {
     /**
-     * Run the migrations.
+     * Run the database seeds.
      * 
      * Inserisce i 5 avatar di default nella tabella icons.
-     * Usa INSERT OR IGNORE per evitare duplicati.
+     * Usare: php artisan db:seed --class=SeedDefaultAvatarsSeeder
      */
-    public function up(): void
+    public function run(): void
     {
         $avatars = [
             [
@@ -51,24 +53,31 @@ return new class extends Migration
             ],
         ];
 
-        foreach ($avatars as $avatar) {
-            // Usa firstOrCreate per evitare duplicati
-            DB::table('icons')->updateOrInsert(
-                ['img' => $avatar['img']],
-                $avatar
-            );
-        }
-    }
+        $inserted = 0;
+        $updated = 0;
 
-    /**
-     * Reverse the migrations.
-     */
-    public function down(): void
-    {
-        // Rimuovi solo gli avatar di default
-        DB::table('icons')
-            ->where('type', 'default')
-            ->where('img', 'like', 'storage/avatars/avatar-%.png')
-            ->delete();
+        foreach ($avatars as $avatar) {
+            try {
+                $result = DB::table('icons')->updateOrInsert(
+                    ['img' => $avatar['img']],
+                    $avatar
+                );
+                
+                // Verifica se è stato inserito
+                $exists = DB::table('icons')->where('img', $avatar['img'])->first();
+                if ($exists) {
+                    $updated++;
+                    $this->command->info("✓ {$avatar['img']} - OK");
+                } else {
+                    $this->command->error("✗ {$avatar['img']} - FAILED");
+                }
+            } catch (\Exception $e) {
+                $this->command->error("✗ Errore per {$avatar['img']}: {$e->getMessage()}");
+            }
+        }
+
+        // Verifica finale
+        $totalIcons = DB::table('icons')->where('type', 'default')->where('img', 'like', 'storage/avatars%')->count();
+        $this->command->info("✅ Total avatar inseriti: $totalIcons");
     }
-};
+}
