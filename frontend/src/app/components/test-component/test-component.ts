@@ -83,10 +83,24 @@ export class TestComponent {
   }
 
   /**
+   * Numero di card visibili in base alla larghezza dello schermo
+   */
+  cardsPerView(): number {
+    // Extra Large (≥1250px): 3 card
+    // Tablet/Desktop (≥820px): 2 card
+    // Mobile (<820px): 1 card
+    if (window.innerWidth >= 1250) return 3;
+    if (window.innerWidth >= 820) return 2;
+    return 1;
+  }
+
+  /**
    * Calcola la posizione di traslazione per mostrare lo slide corrente
    */
   getTransform(): string {
-    return `translateX(-${this.currentSlide() * 100}%)`;
+    const cardsVisible = this.cardsPerView();
+    const translatePercent = 100 / cardsVisible;
+    return `translateX(-${this.currentSlide() * translatePercent}%)`;
   }
 
   /**
@@ -100,13 +114,27 @@ export class TestComponent {
     this.currentSlide.set(index);
   }
 
+  /**
+   * Calcola il numero massimo di slide/pagine considerando le card visibili
+   */
+  maxSlides(): number {
+    const cardsVisible = this.cardsPerView();
+    // Se mostra 2 card, ci sono meno pagine
+    return Math.max(1, this.slides.length - cardsVisible + 1);
+  }
+
   nextSlide(): void {
-    const next = (this.currentSlide() + 1) % this.slides.length;
-    this.currentSlide.set(next);
+    const max = this.maxSlides();
+    const next = this.currentSlide() + 1;
+    if (next < max) {
+      this.currentSlide.set(next);
+    }
   }
 
   prevSlide(): void {
-    const prev = (this.currentSlide() - 1 + this.slides.length) % this.slides.length;
-    this.currentSlide.set(prev);
+    const prev = this.currentSlide() - 1;
+    if (prev >= 0) {
+      this.currentSlide.set(prev);
+    }
   }
 }
