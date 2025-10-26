@@ -1,2 +1,8 @@
 *
 !.gitignore
+!avatars/
+!avatars/*.png
+!avatars/*.jpg
+!avatars/*.jpeg
+!avatars/*.gif
+!avatars/*.webp
