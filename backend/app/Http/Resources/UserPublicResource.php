@@ -21,11 +21,52 @@ class UserPublicResource extends JsonResource
             'bio'         => $this->profile->bio ?? null,
             'phone'       => $this->profile->phone ?? null,
             'location'    => $this->profile->location ?? null,
-            'avatar_url'  => $this->profile->avatar_url ?? null,
+            'avatar_url'  => $this->getAbsoluteUrl($this->profile->avatar_url ?? null),
             'date_of_birth'      => $dob,                  // ISO per logica
             'date_of_birth_it'   => $dob_it,               // formattata per UI
             'age'         => $dob ? $this->date_of_birth->age : null,
             'socials'     => SocialLinkResource::collection($this->whenLoaded('socialAccounts')),
         ];
+    }
+
+    /**
+     * Convert relative path to absolute URL
+     * 
+     * @param string|null $path
+     * @return string|null
+     */
+    private function getAbsoluteUrl(?string $path): ?string
+    {
+        if (!$path) {
+            return null;
+        }
+
+        // Se è già un URL assoluto, restituiscilo così com'è
+        if (str_starts_with($path, 'http://') || str_starts_with($path, 'https://')) {
+            return $path;
+        }
+
+        try {
+            // Costruisci l'URL base dalla richiesta corrente
+            $request = request();
+            $scheme = $request->header('x-forwarded-proto', $request->getScheme());
+            $host = $request->getHttpHost();
+            $baseUrl = rtrim($scheme . '://' . $host, '/');
+
+            // Se il path inizia con storage/, aggiungi /api/
+            if (str_starts_with($path, 'storage/')) {
+                $cleanPath = ltrim($path, '/');
+                return $baseUrl . '/api/' . $cleanPath;
+            }
+
+            // Altrimenti usa come è con /api/
+            $cleanPath = ltrim($path, '/');
+            return $baseUrl . '/api/' . $cleanPath;
+        } catch (\Exception $e) {
+            // Fallback: usa APP_URL da .env
+            $appUrl = env('APP_URL', 'https://api.marziofarina.it');
+            $cleanPath = ltrim($path, '/');
+            return rtrim($appUrl, '/') . '/api/' . $cleanPath;
+        }
     }
 }
