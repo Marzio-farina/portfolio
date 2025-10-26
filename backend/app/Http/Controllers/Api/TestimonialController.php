@@ -192,21 +192,28 @@ class TestimonialController extends Controller
             return $path;
         }
         
-        // Costruisci l'URL base dalla richiesta corrente
-        $request = request();
-        $scheme = $request->header('x-forwarded-proto', $request->getScheme());
-        $host = $request->getHttpHost();
-        $baseUrl = rtrim($scheme . '://' . $host, '/');
-        
-        // Se il path inizia con storage/, rimuovi il prefisso
-        if (str_starts_with($path, 'storage/')) {
+        try {
+            // Costruisci l'URL base dalla richiesta corrente
+            $request = request();
+            $scheme = $request->header('x-forwarded-proto', $request->getScheme());
+            $host = $request->getHttpHost();
+            $baseUrl = rtrim($scheme . '://' . $host, '/');
+            
+            // Se il path inizia con storage/, rimuovi il prefisso
+            if (str_starts_with($path, 'storage/')) {
+                $cleanPath = ltrim($path, '/');
+                return $baseUrl . '/' . $cleanPath;
+            }
+            
+            // Altrimenti usa come è
             $cleanPath = ltrim($path, '/');
             return $baseUrl . '/' . $cleanPath;
+        } catch (\Exception $e) {
+            // Fallback: usa APP_URL da .env
+            $appUrl = env('APP_URL', 'https://api.marziofarina.it');
+            $cleanPath = ltrim($path, '/');
+            return rtrim($appUrl, '/') . '/' . $cleanPath;
         }
-        
-        // Altrimenti usa come è
-        $cleanPath = ltrim($path, '/');
-        return $baseUrl . '/' . $cleanPath;
     }
 
     /**
