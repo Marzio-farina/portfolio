@@ -1,0 +1,235 @@
+/* Riduci spazio su mobile */
+@media (max-width: 479px) {
+  .testimonial-carousel-card {
+    margin-top: 1rem;
+  }
+}
+
+/* Versione desktop con cartellino più grande */
+@media (min-width: 768px) {
+  .carousel-slide::after {
+    top: 20px;
+    right: -35px; /* Ridotto da -40px */
+    padding: 4px 35px; /* Ridotto da 50px */
+    font-size: 0.75rem;
+    max-width: 160px; /* Limita la larghezza massima */
+  }
+}
+
+/* Ottimizzazioni per iPhone SE e schermi piccoli (≤479px) */
+@media (max-width: 479px) {
+  .testimonial-carousel-card {
+    padding-left: 0.25rem !important;
+    padding-right: 0.25rem !important;
+    width: 100% !important;
+    max-width: 100% !important;
+    margin: 0 !important;
+    overflow: visible !important;
+  }
+
+  .testimonial-carousel-card > * {
+    margin-left: 0 !important;
+    margin-right: 0 !important;
+    padding-left: 0.25rem !important;
+    padding-right: 0.25rem !important;
+    overflow: visible !important;
+  }
+
+  .testimonial-carousel-card .relative {
+    margin: 0 !important;
+    padding: 0 !important;
+    width: 100% !important;
+    max-width: 100% !important;
+    overflow: visible !important;
+  }
+  
+  /* Forza overflow visible per i container del carosello */
+  .testimonial-carousel-card .relative > div {
+    overflow: visible !important;
+  }
+
+  .testimonial-carousel-card .relative > div:first-child {
+    margin: 0 !important;
+    padding: 0 !important;
+    width: 100% !important;
+    max-width: 100vw !important;
+    overflow: visible !important;
+  }
+
+  .testimonial-carousel-card .relative > div:first-child > div {
+    width: 100% !important;
+    max-width: 100% !important;
+    overflow: visible !important;
+  }
+
+  .card {
+    padding: 8px 6px 10px;
+    height: 125px;
+    max-width: 80%;
+    width: 80%;
+    overflow: hidden;
+    gap: 4px;
+    margin: 0 auto;
+    border-radius: 8px;
+  }
+
+  /* Cartellino molto piccolo su schermi piccoli */
+  .carousel-slide::after {
+    display: flex !important;
+    top: 8px;
+    right: 20px;
+    padding: 2px 18px;
+    font-size: 0.5rem;
+    transform: rotate(38deg);
+  }
+
+  .description_card {
+    gap: 4px;
+    width: 100%;
+    max-width: 100%;
+    overflow: hidden;
+  }
+
+  .description_card h4 {
+    font-size: 0.75rem;
+    line-height: 1.1;
+    margin-bottom: 2px;
+    word-break: break-word;
+    overflow-wrap: break-word;
+    padding: 0 4px;
+  }
+
+  .description_card p {
+    font-size: 0.65rem;
+    line-height: 1.2;
+    display: -webkit-box;
+    -webkit-line-clamp: 3;
+    line-clamp: 3;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    max-width: 100%;
+    overflow-wrap: break-word;
+    padding: 0 4px;
+  }
+
+  .rating-container {
+    margin-top: -2px;
+    margin-bottom: -2px;
+  }
+
+  .rating-container .rating {
+    transform: scale(0.65);
+    transform-origin: center;
+  }
+}
+
+/* Ottimizzazioni per schermi medi (480px - 700px) */
+@media (min-width: 480px) and (max-width: 700px) {
+  .card {
+    padding: 8px 15px 10px;
+    width: 88%;
+    max-width: 88%;
+    margin: 0 auto;
+  }
+
+  .carousel-slide::after {
+    right: -5px;
+    padding: 3px 35px;
+    font-size: 0.65rem;
+  }
+
+  .description_card h4 {
+    font-size: 0.95rem;
+  }
+
+  .description_card p {
+    font-size: 0.8rem;
+  }
+}
+
+/* Ottimizzazioni per tablet (701px - 767px) */
+@media (min-width: 701px) and (max-width: 767px) {
+  .card {
+    padding: 5px 20px 0;
+    width: 92%;
+    max-width: 92%;
+    margin: 0 auto;
+  }
+
+  .carousel-slide::after {
+    right: -30px;
+    padding: 3px 35px;
+    font-size: 0.65rem;
+  }
+
+  .description_card h4 {
+    font-size: 1rem;
+  }
+
+  .description_card p {
+    font-size: 0.85rem;
+  }
+}
+
+/* Ottimizzazioni per tablet grandi (768px - 1023px) */
+@media (min-width: 768px) and (max-width: 1023px) {
+  .card {
+    padding: 5px 30px 0;
+  }
+
+  .carousel-slide::after {
+    right: -35px;
+    padding: 4px 40px;
+    font-size: 0.7rem;
+  }
+}
+
+/* Responsive per schermi piccoli (1 card) */
+@media (max-width: 819px) {
+  .testimonial-avatar {
+    top: -30px;
+    left: 40px;
+    width: 60px !important;
+    height: 60px !important;
+  }
+  
+  .testimonial-avatar app-avatar figure,
+  .testimonial-avatar app-avatar figure img {
+    width: 60px !important;
+    height: 60px !important;
+  }
+}
+
+/* Responsive per schermi medi (2 card) */
+@media (min-width: 820px) and (max-width: 1249px) {
+  .testimonial-avatar {
+    top: -36px;
+    left: 52px;
+    width: 72px !important;
+    height: 72px !important;
+  }
+  
+  .testimonial-avatar app-avatar figure,
+  .testimonial-avatar app-avatar figure img {
+    width: 72px !important;
+    height: 72px !important;
+  }
+}
+
+/* Responsive per schermi grandi (3 card) */
+@media (min-width: 1250px) {
+  .testimonial-avatar {
+    top: -36px;
+    left: 20px;
+    width: 72px !important;
+    height: 72px !important;
+  }
+  
+  .testimonial-avatar app-avatar figure,
+  .testimonial-avatar app-avatar figure img {
+    width: 72px !important;
+    height: 72px !important;
+  }
+}
+

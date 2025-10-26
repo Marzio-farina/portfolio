@@ -114,7 +114,7 @@ export class Bio implements OnDestroy {
     this.isTyping.set(true);
 
     let currentIndex = 0;
-    const typingSpeed = 8; // Velocità 8ms tra ogni carattere
+    const typingSpeed = 1; // Velocità 1ms tra ogni carattere
 
     this.typewriterInterval = window.setInterval(() => {
       if (currentIndex < bioText.length) {

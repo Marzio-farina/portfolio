@@ -8,7 +8,7 @@ import { Testimonial } from '../../core/models/testimonial';
   selector: 'app-testimonial-carousel-card',
   imports: [Avatar],
   templateUrl: './testimonial-carousel-card.html',
-  styleUrl: './testimonial-carousel-card.css'
+  styleUrls: ['./testimonial-carousel-card.css', './testimonial-carousel-card.responsive.css']
 })
 export class TestimonialCarouselCard {
   private readonly testimonialApi = inject(TestimonialService);
