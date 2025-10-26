@@ -44,7 +44,7 @@ export class TimelineItem implements OnInit, OnDestroy {
     
     let currentIndex = 0;
     const allText = `${titleText} ${yearsText} ${descriptionText}`;
-    const typingSpeed = 4; // Velocità molto veloce ma visibile: 4ms tra ogni carattere
+    const typingSpeed = 8; // Velocità 8ms tra ogni carattere
     
     this.typewriterInterval = window.setInterval(() => {
       if (currentIndex < allText.length) {
