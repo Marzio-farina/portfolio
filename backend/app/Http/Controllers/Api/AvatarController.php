@@ -41,28 +41,56 @@ class AvatarController extends Controller
             // Genera nome file unico
             $filename = 'avatar_' . Str::uuid() . '.' . $file->getClientOriginalExtension();
             
-            // Percorso di destinazione
+            // Percorso di destinazione su Supabase S3
             $path = 'avatars/' . $filename;
             
-            // Salva il file originale
-            $storedPath = $file->storeAs('avatars', $filename, 'public');
+            // Determina se usare Supabase o storage locale
+            $useSupabase = env('SUPABASE_S3_KEY') && env('SUPABASE_S3_URL');
             
-            // Ottimizza l'immagine se necessario
-            $this->optimizeImage($storedPath);
-            
-            // Crea il record nella tabella icons
-            $icon = Icon::create([
-                'img' => 'storage/' . $storedPath,
-                'alt' => $validated['alt_text'] ?? 'Avatar visitatore',
-                'type' => 'user_uploaded'
-            ]);
-            
-            // Costruisci URL assoluto
-            $request = request();
-            $scheme = $request->header('x-forwarded-proto', $request->getScheme());
-            $host = $request->getHttpHost();
-            $baseUrl = rtrim($scheme . '://' . $host, '/');
-            $absoluteUrl = $baseUrl . '/' . ltrim($icon->img, '/');
+            if ($useSupabase) {
+                // Ottimizza prima di caricare
+                $tempPath = sys_get_temp_dir() . '/' . $filename;
+                $image = Image::make($file);
+                $image->resize(200, 200, function ($constraint) {
+                    $constraint->aspectRatio();
+                    $constraint->upsize();
+                });
+                $image->save($tempPath, 85);
+                
+                // Carica su Supabase S3
+                Storage::disk('src')->put($path, file_get_contents($tempPath));
+                unlink($tempPath);
+                
+                // URL pubblico Supabase
+                $imgUrl = rtrim(env('SUPABASE_S3_URL'), '/') . '/' . $path;
+                
+                // Crea il record nella tabella icons con URL Supabase
+                $icon = Icon::create([
+                    'img' => $imgUrl,
+                    'alt' => $validated['alt_text'] ?? 'Avatar visitatore',
+                    'type' => 'user_uploaded'
+                ]);
+            } else {
+                // Fallback a storage locale per development
+                $storedPath = $file->storeAs('avatars', $filename, 'public');
+                $this->optimizeImage($storedPath);
+                
+                // Costruisci URL assoluto
+                $request = request();
+                $scheme = $request->header('x-forwarded-proto', $request->getScheme());
+                $host = $request->getHttpHost();
+                $baseUrl = rtrim($scheme . '://' . $host, '/');
+                
+                $imgUrl = 'storage/' . $storedPath;
+                $absoluteUrl = $baseUrl . '/' . $imgUrl;
+                
+                // Crea il record nella tabella icons
+                $icon = Icon::create([
+                    'img' => $absoluteUrl,
+                    'alt' => $validated['alt_text'] ?? 'Avatar visitatore',
+                    'type' => 'user_uploaded'
+                ]);
+            }
             
             return response()->json([
                 'success' => true,
@@ -70,7 +98,6 @@ class AvatarController extends Controller
                     'id' => $icon->id,
                     'img' => $icon->img,
                     'alt' => $icon->alt,
-                    'url' => $absoluteUrl
                 ],
                 'message' => 'Avatar caricato con successo'
             ], 201);

@@ -113,7 +113,7 @@ class TestimonialResource extends JsonResource
      */
     private function getAbsoluteUrl(string $path): string
     {
-        // Se è già un URL assoluto, restituiscilo così com'è
+        // Se è già un URL assoluto (Supabase o altro CDN), restituiscilo così com'è
         if (str_starts_with($path, 'http://') || str_starts_with($path, 'https://')) {
             return $path;
         }
