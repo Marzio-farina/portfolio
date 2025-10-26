@@ -15,33 +15,28 @@ class AvatarIconsSeeder extends Seeder
     {
         $avatarIcons = [
             [
-                'img' => 'storage/avatars/avatar-1.png',
+                'img' => 'avatars/avatar-1.png',
                 'alt' => 'Avatar 1',
                 'type' => 'default'
             ],
             [
-                'img' => 'storage/avatars/avatar-2.png',
+                'img' => 'avatars/avatar-2.png',
                 'alt' => 'Avatar 2',
                 'type' => 'default'
             ],
             [
-                'img' => 'storage/avatars/avatar-3.png',
+                'img' => 'avatars/avatar-3.png',
                 'alt' => 'Avatar 3',
                 'type' => 'default'
             ],
             [
-                'img' => 'storage/avatars/avatar-4.png',
+                'img' => 'avatars/avatar-4.png',
                 'alt' => 'Avatar 4',
                 'type' => 'default'
             ],
             [
-                'img' => 'storage/avatars/avatar-5.png',
+                'img' => 'avatars/avatar-5.png',
                 'alt' => 'Avatar 5',
-                'type' => 'default'
-            ],
-            [
-                'img' => 'storage/avatars/avatar-Cmg-cR76.png',
-                'alt' => 'Avatar Personalizzato',
                 'type' => 'default'
             ]
         ];
