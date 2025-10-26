@@ -15,9 +15,9 @@ class ImageProxyController extends Controller
         abort_if(str_contains($path, '..'), 400, 'Invalid path');
         $path = urldecode($path);
 
-        // Leggi l’originale dal disk 'src' (Supabase S3-compat)
-        abort_unless(Storage::disk('src')->exists($path), 404, 'Image not found');
-        $stream = Storage::disk('src')->readStream($path);
+        // Leggi l'originale dal disk 'public' (storage locale)
+        abort_unless(Storage::disk('public')->exists($path), 404, 'Image not found');
+        $stream = Storage::disk('public')->readStream($path);
         abort_if($stream === false, 500, 'Unable to read source');
 
         // MIME dal file extension

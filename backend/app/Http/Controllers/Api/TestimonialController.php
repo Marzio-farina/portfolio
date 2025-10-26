@@ -8,6 +8,7 @@ use App\Models\Testimonial;
 use App\Models\Icon;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Str;
 use Intervention\Image\Facades\Image;
@@ -252,7 +253,7 @@ class TestimonialController extends Controller
                 Storage::disk('public')->delete($storedPath);
             }
             
-            \Log::error('Avatar upload failed in testimonial', [
+            Log::error('Avatar upload failed in testimonial', [
                 'error' => $e->getMessage(),
                 'author' => $authorName
             ]);

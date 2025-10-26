@@ -1,18 +1,16 @@
 import { Component, computed, inject, signal } from '@angular/core';
-import { Router } from '@angular/router';
 import { Avatar } from '../avatar/avatar';
 import { TestimonialService } from '../../services/testimonial.service';
 import { Testimonial } from '../../core/models/testimonial';
 
 @Component({
-  selector: 'app-testimonial-carousel-card',
+  selector: 'app-test-component',
   imports: [Avatar],
-  templateUrl: './testimonial-carousel-card.html',
-  styleUrls: ['./testimonial-carousel-card.css', './testimonial-carousel-card.responsive.css']
+  templateUrl: './test-component.html',
+  styleUrl: './test-component.css'
 })
-export class TestimonialCarouselCard {
+export class TestComponent {
   private readonly testimonialApi = inject(TestimonialService);
-  private readonly router = inject(Router);
 
   currentSlide = signal(0);
   
@@ -170,7 +168,7 @@ export class TestimonialCarouselCard {
     if (testimonial.icon) {
       return {
         id: testimonial.icon.id,
-        img: this.normalizeAvatarUrl(testimonial.icon.img),
+        img: testimonial.icon.img,
         alt: testimonial.icon.alt
       };
     }
@@ -179,45 +177,12 @@ export class TestimonialCarouselCard {
     if (testimonial.avatar) {
       return {
         id: 0,
-        img: this.normalizeAvatarUrl(testimonial.avatar),
+        img: testimonial.avatar,
         alt: testimonial.author
       };
     }
     
     return null;
-  }
-
-  /**
-   * Normalizza gli URL degli avatar per usare il backend
-   */
-  private normalizeAvatarUrl(url: string): string {
-    if (!url) return url;
-    
-    // Se è già un URL assoluto (https:// o http://), lo mantiene così com'è
-    if (url.startsWith('http://') || url.startsWith('https://')) {
-      return url;
-    }
-    
-    // Se inizia con storage/, costruisce l'URL del backend SENZA /api/
-    if (url.startsWith('storage/')) {
-      const apiUrl = this.getApiBaseUrl();
-      return `${apiUrl}/${url}`;
-    }
-    
-    // Se è relativo, aggiunge il path al backend
-    const apiUrl = this.getApiBaseUrl();
-    return `${apiUrl}/${url}`;
-  }
-
-  /**
-   * Ottiene l'URL base dell'API
-   */
-  private getApiBaseUrl(): string {
-    // In produzione usa l'API reale, in locale usa localhost
-    if (window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1') {
-      return 'http://localhost:8000';
-    }
-    return 'https://api.marziofarina.it';
   }
 
   /**
@@ -256,12 +221,4 @@ export class TestimonialCarouselCard {
       }
     }
   }
-
-    /**
-   * Navigate to add testimonial page
-   */
-    openAddTestimonial(): void {
-        this.router.navigate(['/nuova-recensione']);
-    }
 }
-

@@ -6,6 +6,7 @@ use App\Http\Controllers\Controller;
 use App\Models\Icon;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Str;
 use Intervention\Image\Facades\Image;
@@ -41,21 +42,22 @@ class AvatarController extends Controller
             // Genera nome file unico
             $filename = 'avatar_' . Str::uuid() . '.' . $file->getClientOriginalExtension();
             
-            // Percorso di destinazione su Supabase S3
+            // Percorso di destinazione per storage locale
             $path = 'avatars/' . $filename;
             
             // Salva il file su storage locale
             $storedPath = $file->storeAs('avatars', $filename, 'public');
             $this->optimizeImage($storedPath);
             
-            // Costruisci URL assoluto del backend
+            // Costruisci URL assoluto servito da Laravel
             $request = request();
             $scheme = $request->header('x-forwarded-proto', $request->getScheme());
             $host = $request->getHttpHost();
             $baseUrl = rtrim($scheme . '://' . $host, '/');
             
+            // URL senza /api/ perché Laravel serve direttamente da /storage/
             $imgUrl = 'storage/' . $storedPath;
-            $absoluteUrl = $baseUrl . '/api/' . $imgUrl;
+            $absoluteUrl = $baseUrl . '/' . $imgUrl;
             
             // Crea il record nella tabella icons con URL backend
             $icon = Icon::create([
@@ -115,7 +117,7 @@ class AvatarController extends Controller
             
         } catch (\Exception $e) {
             // Se l'ottimizzazione fallisce, continua comunque
-            \Log::warning('Image optimization failed', [
+            Log::warning('Image optimization failed', [
                 'path' => $path,
                 'error' => $e->getMessage()
             ]);
