@@ -15,6 +15,13 @@ class SeedDefaultAvatarsSeeder extends Seeder
      */
     public function run(): void
     {
+        // Prima pulisci i record vecchi degli avatar per evitare conflitti
+        DB::table('icons')
+            ->where('img', 'like', 'storage/avatars/%')
+            ->delete();
+        
+        $this->command->info("🗑️  Vecchi avatar puliti");
+
         $avatars = [
             [
                 'img' => 'storage/avatars/avatar-1.png',
@@ -54,30 +61,22 @@ class SeedDefaultAvatarsSeeder extends Seeder
         ];
 
         $inserted = 0;
-        $updated = 0;
 
         foreach ($avatars as $avatar) {
             try {
-                $result = DB::table('icons')->updateOrInsert(
-                    ['img' => $avatar['img']],
-                    $avatar
-                );
-                
-                // Verifica se è stato inserito
-                $exists = DB::table('icons')->where('img', $avatar['img'])->first();
-                if ($exists) {
-                    $updated++;
-                    $this->command->info("✓ {$avatar['img']} - OK");
-                } else {
-                    $this->command->error("✗ {$avatar['img']} - FAILED");
-                }
+                DB::table('icons')->insert($avatar);
+                $inserted++;
+                $this->command->info("✓ {$avatar['img']} - INSERITO");
             } catch (\Exception $e) {
                 $this->command->error("✗ Errore per {$avatar['img']}: {$e->getMessage()}");
             }
         }
 
         // Verifica finale
-        $totalIcons = DB::table('icons')->where('type', 'default')->where('img', 'like', 'storage/avatars%')->count();
+        $totalIcons = DB::table('icons')
+            ->where('type', 'default')
+            ->where('img', 'like', 'storage/avatars%')
+            ->count();
         $this->command->info("✅ Total avatar inseriti: $totalIcons");
     }
 }
