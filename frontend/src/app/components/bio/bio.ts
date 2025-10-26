@@ -114,7 +114,7 @@ export class Bio implements OnDestroy {
     this.isTyping.set(true);
 
     let currentIndex = 0;
-    const typingSpeed = 1.25; // Velocità 4x più veloce: 1.25ms tra ogni carattere
+    const typingSpeed = 4; // Velocità simile a curriculum: 4ms tra ogni carattere
 
     this.typewriterInterval = window.setInterval(() => {
       if (currentIndex < bioText.length) {
@@ -139,7 +139,7 @@ export class Bio implements OnDestroy {
     this.isMobileTyping.set(true);
 
     let currentIndex = 0;
-    const typingSpeed = 15; // Velocità per mobile
+    const typingSpeed = 4; // Velocità simile a curriculum: 4ms tra ogni carattere
 
     this.mobileTypewriterInterval = window.setInterval(() => {
       if (currentIndex < bioText.length) {
