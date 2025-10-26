@@ -137,4 +137,51 @@ export class Aside {
   getThemeIcon() {
     return this.theme.isDark() ? 'moon' : 'sun';
   }
+
+  /**
+   * Ottiene i dati avatar dal profilo principale
+   */
+  getMainAvatarData() {
+    const p = this.profile();
+    if (!p || !p.avatar_url) return null;
+
+    return {
+      id: 0,
+      img: this.normalizeAvatarUrl(p.avatar_url),
+      alt: this.fullName() || 'Avatar'
+    };
+  }
+
+  /**
+   * Normalizza gli URL degli avatar per usare il backend
+   */
+  private normalizeAvatarUrl(url: string): string {
+    if (!url) return url;
+    
+    // Se è già un URL assoluto (https:// o http://), lo mantiene così com'è
+    if (url.startsWith('http://') || url.startsWith('https://')) {
+      return url;
+    }
+    
+    // Se inizia con storage/, costruisce l'URL del backend SENZA /api/
+    if (url.startsWith('storage/')) {
+      const apiUrl = this.getApiBaseUrl();
+      return `${apiUrl}/${url}`;
+    }
+    
+    // Se è relativo, aggiunge il path al backend
+    const apiUrl = this.getApiBaseUrl();
+    return `${apiUrl}/${url}`;
+  }
+
+  /**
+   * Ottiene l'URL base dell'API
+   */
+  private getApiBaseUrl(): string {
+    // In produzione usa l'API reale, in locale usa localhost
+    if (window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1') {
+      return 'http://localhost:8000';
+    }
+    return 'https://api.marziofarina.it';
+  }
 }
