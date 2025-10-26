@@ -1,6 +1,6 @@
 {
   "version": 2,
-  "buildCommand": "php copy-storage-to-public.php",
+  "buildCommand": "node copy-storage.js",
   "functions": {
     "api/index.php": { "runtime": "vercel-php@0.7.4" }
   },
