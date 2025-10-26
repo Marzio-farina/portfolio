@@ -1,6 +1,6 @@
 <aside class="profile">
   <div class="profile__header">
-    <app-avatar [avatarData]="getMainAvatarData()"></app-avatar>
+    <app-avatar [avatarData]="getMainAvatarData()" [width]="120"></app-avatar>
     <div class="profile__identity">
       <h1 class="profile__name" [title]="fullName() || '—'">{{ fullName() || '—' }}</h1>
       <p class="profile__role">Full Stack Developer</p>
