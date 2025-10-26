@@ -5,7 +5,6 @@ import { map } from 'rxjs';
 
 import { WhatIDoCard } from '../../components/what-i-do-card/what-i-do-card';
 import { Bio } from '../../components/bio/bio';
-import { TestimonialCarousel } from '../../components/testimonial-carousel/testimonial-carousel';
 import { WhatIDoService } from '../../services/what-i-do.service';
 import { ProfileService, ProfileData } from '../../services/profile.service';
 import { TestimonialCarouselCard } from '../../components/testimonial-carousel-card/testimonial-carousel-card';
