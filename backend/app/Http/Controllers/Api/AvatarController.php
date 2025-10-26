@@ -57,13 +57,20 @@ class AvatarController extends Controller
                 'type' => 'user_uploaded'
             ]);
             
+            // Costruisci URL assoluto
+            $request = request();
+            $scheme = $request->header('x-forwarded-proto', $request->getScheme());
+            $host = $request->getHttpHost();
+            $baseUrl = rtrim($scheme . '://' . $host, '/');
+            $absoluteUrl = $baseUrl . '/' . ltrim($icon->img, '/');
+            
             return response()->json([
                 'success' => true,
                 'icon' => [
                     'id' => $icon->id,
                     'img' => $icon->img,
                     'alt' => $icon->alt,
-                    'url' => asset($icon->img)
+                    'url' => $absoluteUrl
                 ],
                 'message' => 'Avatar caricato con successo'
             ], 201);
