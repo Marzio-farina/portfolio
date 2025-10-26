@@ -170,7 +170,7 @@ export class TestimonialCarouselCard {
     if (testimonial.icon) {
       return {
         id: testimonial.icon.id,
-        img: testimonial.icon.img,
+        img: this.normalizeAvatarUrl(testimonial.icon.img),
         alt: testimonial.icon.alt
       };
     }
@@ -179,12 +179,45 @@ export class TestimonialCarouselCard {
     if (testimonial.avatar) {
       return {
         id: 0,
-        img: testimonial.avatar,
+        img: this.normalizeAvatarUrl(testimonial.avatar),
         alt: testimonial.author
       };
     }
     
     return null;
+  }
+
+  /**
+   * Normalizza gli URL degli avatar per usare il backend
+   */
+  private normalizeAvatarUrl(url: string): string {
+    if (!url) return url;
+    
+    // Se è già un URL assoluto (Supabase o altro), lo mantiene
+    if (url.startsWith('http://') || url.startsWith('https://')) {
+      return url;
+    }
+    
+    // Se inizia con storage/, costruisce l'URL del backend
+    if (url.startsWith('storage/')) {
+      const apiUrl = this.getApiBaseUrl();
+      return `${apiUrl}/api/${url}`;
+    }
+    
+    // Se è relativo, aggiunge /api/
+    const apiUrl = this.getApiBaseUrl();
+    return `${apiUrl}/api/${url}`;
+  }
+
+  /**
+   * Ottiene l'URL base dell'API
+   */
+  private getApiBaseUrl(): string {
+    // In produzione usa l'API reale, in locale usa localhost
+    if (window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1') {
+      return 'http://localhost:8000';
+    }
+    return 'https://api.marziofarina.it';
   }
 
   /**
