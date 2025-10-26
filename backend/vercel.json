@@ -1,10 +1,13 @@
 {
   "version": 2,
+  "buildCommand": "php copy-storage-to-public.php",
   "functions": {
     "api/index.php": { "runtime": "vercel-php@0.7.4" }
   },
   "routes": [
     { "src": "/build/(.*)", "dest": "/public/build/$1" },
+    { "src": "/(.*?)\\.(jpg|jpeg|png|gif|svg|webp|ico|css|js|woff|woff2|ttf|eot)$", "dest": "/public/$1.$2", "headers": { "cache-control": "public, max-age=31536000, immutable" } },
+    { "src": "/avatars/(.*?\\.(?:jpg|jpeg|png|gif|webp))", "dest": "/public/storage/avatars/$1", "headers": { "cache-control": "public, max-age=31536000, immutable" } },
     { "src": "/storage/(.*)", "dest": "/public/storage/$1" },
     { "src": "/(.*)", "dest": "/api/index.php" }
   ],

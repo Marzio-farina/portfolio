@@ -99,24 +99,6 @@ Route::middleware(['api', "throttle:{$throttleLimit}", 'db.connection'])
             Route::get('testimonials/default-avatars', [TestimonialController::class, 'getDefaultAvatars']); // Solo avatar predefiniti
             Route::get('projects', [ProjectController::class, 'index']);
             Route::get('cv', [CvController::class, 'index']);
-            
-            // Rotte per servire le immagini di storage
-            Route::get('storage/{path}', function (Request $request, string $path) {
-                // Sicurezza: previeni path traversal
-                $path = str_replace('..', '', $path);
-                $cleanPath = urldecode($path);
-                
-                // Tenta di trovare il file in storage/app/public
-                $storagePath = storage_path('app/public/' . $cleanPath);
-                
-                if (!file_exists($storagePath) || !is_file($storagePath)) {
-                    abort(404, 'File not found');
-                }
-                
-                return response()->file($storagePath, [
-                    'Content-Type' => mime_content_type($storagePath),
-                ]);
-            })->where('path', '.*');
             Route::get('what-i-do', [WhatIDoController::class, 'index']);
             Route::get('attestati', [AttestatiController::class, 'index']);
             Route::get('users/{user}/public-profile', [UserPublicController::class, 'show']);

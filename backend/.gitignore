@@ -16,6 +16,12 @@
 /public/build
 /public/hot
 /public/storage
+!/public/storage/avatars
+!/public/storage/**/*.png
+!/public/storage/**/*.jpg
+!/public/storage/**/*.jpeg
+!/public/storage/**/*.gif
+!/public/storage/**/*.webp
 /storage/*.key
 /storage/pail
 /vendor

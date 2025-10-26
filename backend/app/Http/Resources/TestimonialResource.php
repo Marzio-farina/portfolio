@@ -108,6 +108,10 @@ class TestimonialResource extends JsonResource
     /**
      * Convert relative path to absolute URL
      * 
+     * Database path: avatars/avatar-1.png
+     * API returns: /avatars/avatar-1.png
+     * Vercel maps: /avatars/* -> /public/storage/avatars/*
+     * 
      * @param string $path
      * @return string
      */
@@ -130,15 +134,15 @@ class TestimonialResource extends JsonResource
                 ? ltrim(substr($path, 8), '/') // rimuovi "storage/"
                 : ltrim($path, '/');
             
-            // Costruisci l'URL con il prefisso "storage/"
-            return $baseUrl . '/storage/' . $cleanPath;
+            // Ritorna il path senza /storage/ (Vercel mapperà /avatars/* a /public/storage/avatars/*)
+            return $baseUrl . '/' . $cleanPath;
         } catch (\Exception $e) {
             // Fallback: usa APP_URL da .env
             $appUrl = env('APP_URL', 'https://api.marziofarina.it');
             $cleanPath = str_starts_with($path, 'storage/') 
                 ? ltrim(substr($path, 8), '/') 
                 : ltrim($path, '/');
-            return rtrim($appUrl, '/') . '/storage/' . $cleanPath;
+            return rtrim($appUrl, '/') . '/' . $cleanPath;
         }
     }
 }

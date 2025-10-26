@@ -10,6 +10,10 @@ class AvatarIconsSeeder extends Seeder
 {
     /**
      * Run the database seeds.
+     * 
+     * Crea gli avatar predefiniti senza il prefisso "storage/" nei percorsi.
+     * Il prefisso viene aggiunto dinamicamente nei Resource tramite getAbsoluteUrl()
+     * quando si costruisce l'URL completa per le risposte API.
      */
     public function run(): void
     {

@@ -4,6 +4,17 @@
 
 Il sistema permette ai visitatori di caricare avatar personalizzati quando creano un testimonial. Gli avatar vengono salvati nella cartella `public/storage/avatars/` e vengono automaticamente ottimizzati e registrati nella tabella `icons`.
 
+## 🔄 Flusso URL Aggiornato (v2.0)
+
+```
+Database:     avatars/avatar-1.png
+API Response: /avatars/avatar-1.png
+Localhost:    http://localhost:8000/avatars/avatar-1.png
+Production:   https://api.marziofarina.it/avatars/avatar-1.png
+```
+
+**Nota**: Il prefisso `/storage/` è stato rimosso per semplificare il routing in Vercel.
+
 ## 🚀 Endpoint Disponibili
 
 ### 1. Upload Avatar Standalone
@@ -22,9 +33,8 @@ Fields:
   "success": true,
   "icon": {
     "id": 123,
-    "img": "storage/avatars/avatar_uuid.jpg",
-    "alt": "Avatar visitatore",
-    "url": "http://localhost:8000/storage/avatars/avatar_uuid.jpg"
+    "img": "avatars/avatar_uuid.jpg",
+    "alt": "Avatar visitatore"
   },
   "message": "Avatar caricato con successo"
 }
@@ -47,7 +57,25 @@ Fields:
 - company: string (optional)
 ```
 
-### 3. Eliminazione Avatar (Solo Autenticati)
+### 3. Ottenere Avatar Predefiniti
+```http
+GET /api/testimonials/default-avatars
+```
+
+**Risposta:**
+```json
+{
+  "avatars": [
+    {
+      "id": 9,
+      "img": "http://localhost:8000/avatars/avatar-1.png",
+      "alt": "Avatar 1"
+    }
+  ]
+}
+```
+
+### 4. Eliminazione Avatar (Solo Autenticati)
 ```http
 DELETE /api/avatars/{id}
 Authorization: Bearer {token}
@@ -68,9 +96,10 @@ Authorization: Bearer {token}
 - **Cleanup automatico**: Rimozione file in caso di errore
 
 ### Storage
-- **Percorso**: `storage/app/public/avatars/`
-- **URL pubblico**: `public/storage/avatars/`
-- **Link simbolico**: Configurato automaticamente con `php artisan storage:link`
+- **Percorso database**: `avatars/avatar-1.png` (senza prefisso storage/)
+- **Percorso fisico**: `storage/app/public/avatars/`
+- **URL pubblico (localhost)**: `http://localhost:8000/avatars/`
+- **URL pubblico (produzione)**: `https://api.marziofarina.it/avatars/`
 
 ## 📝 Esempi di Utilizzo
 
@@ -131,15 +160,35 @@ Il sistema gestisce le icone con la seguente priorità:
 2. **avatar_file** - File caricato dall'utente
 3. **avatar_url** - URL esterno fornito
 
+## 🧪 Test Sistema Avatar
+
+### Eseguire Test in Localhost
+```bash
+php artisan app:test-avatar-system
+```
+
+### Eseguire Test Simulando Produzione
+```bash
+php artisan app:test-avatar-system --production
+```
+
+**Output Test**:
+- ✅ Verifica integrità database
+- ✅ Controlla file fisici
+- ✅ Valida URL paths
+- ✅ Testa endpoint API
+- ✅ Verifica relazioni database
+
+Per un report dettagliato: vedi `backend/TEST_REPORT_AVATAR_SYSTEM.md`
+
 ## 🛠️ Manutenzione
 
 ### Pulizia File Orfani
 ```bash
-# Trova file senza record nella tabella icons
 php artisan tinker
 >>> $orphanFiles = Storage::disk('public')->files('avatars');
 >>> foreach($orphanFiles as $file) {
->>>   $path = 'storage/' . $file;
+>>>   $path = $file;
 >>>   if(!Icon::where('img', $path)->exists()) {
 >>>     echo "Orphan: " . $file . "\n";
 >>>   }
@@ -159,10 +208,9 @@ WHERE t.id IS NULL AND u.id IS NULL;
 
 ### Errori Comuni
 
-1. **"Storage link not found"**
-   ```bash
-   php artisan storage:link
-   ```
+1. **"404 on avatar URL in production"**
+   - Eseguire: `php copy-storage-to-public.php` durante il build
+   - Verificare `vercel.json` con routing `/avatars/* → /public/storage/avatars/*`
 
 2. **"File too large"**
    - Verifica limite PHP: `upload_max_filesize` e `post_max_size`

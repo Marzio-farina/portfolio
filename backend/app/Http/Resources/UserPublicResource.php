@@ -21,7 +21,7 @@ class UserPublicResource extends JsonResource
             'bio'         => $this->profile->bio ?? null,
             'phone'       => $this->profile->phone ?? null,
             'location'    => $this->profile->location ?? null,
-            'avatar_url'  => $this->profile->avatar_url ?? null,
+            'avatar_url'  => $this->getAbsoluteUrl($this->profile->avatar_url ?? null),
             'date_of_birth'      => $dob,                  // ISO per logica
             'date_of_birth_it'   => $dob_it,               // formattata per UI
             'age'         => $dob ? $this->date_of_birth->age : null,
@@ -31,6 +31,10 @@ class UserPublicResource extends JsonResource
 
     /**
      * Convert relative path to absolute URL
+     * 
+     * Database path: avatars/avatar-1.png
+     * API returns: /avatars/avatar-1.png
+     * Vercel maps: /avatars/* -> /public/storage/avatars/*
      * 
      * @param string|null $path
      * @return string|null
@@ -53,20 +57,20 @@ class UserPublicResource extends JsonResource
             $host = $request->getHttpHost();
             $baseUrl = rtrim($scheme . '://' . $host, '/');
 
-            // Se il path inizia con storage/, aggiungi /api/
-            if (str_starts_with($path, 'storage/')) {
-                $cleanPath = ltrim($path, '/');
-                return $baseUrl . '/api/' . $cleanPath;
-            }
+            // Rimuovi il prefisso "storage/" se presente
+            $cleanPath = str_starts_with($path, 'storage/') 
+                ? ltrim(substr($path, 8), '/') // rimuovi "storage/"
+                : ltrim($path, '/');
 
-            // Altrimenti usa come è con /api/
-            $cleanPath = ltrim($path, '/');
-            return $baseUrl . '/api/' . $cleanPath;
+            // Ritorna il path senza /storage/ (Vercel mapperà /avatars/* a /public/storage/avatars/*)
+            return $baseUrl . '/' . $cleanPath;
         } catch (\Exception $e) {
             // Fallback: usa APP_URL da .env
             $appUrl = env('APP_URL', 'https://api.marziofarina.it');
-            $cleanPath = ltrim($path, '/');
-            return rtrim($appUrl, '/') . '/api/' . $cleanPath;
+            $cleanPath = str_starts_with($path, 'storage/') 
+                ? ltrim(substr($path, 8), '/') 
+                : ltrim($path, '/');
+            return rtrim($appUrl, '/') . '/' . $cleanPath;
         }
     }
 }
