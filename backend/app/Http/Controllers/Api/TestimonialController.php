@@ -192,18 +192,21 @@ class TestimonialController extends Controller
             return $path;
         }
         
-        // Se inizia con storage/, rimuovi il prefisso e usa asset()
+        // Costruisci l'URL base dalla richiesta corrente
+        $request = request();
+        $scheme = $request->header('x-forwarded-proto', $request->getScheme());
+        $host = $request->getHttpHost();
+        $baseUrl = rtrim($scheme . '://' . $host, '/');
+        
+        // Se il path inizia con storage/, rimuovi il prefisso
         if (str_starts_with($path, 'storage/')) {
-            return asset($path);
+            $cleanPath = ltrim($path, '/');
+            return $baseUrl . '/' . $cleanPath;
         }
         
-        // Se inizia con icons/, usa asset()
-        if (str_starts_with($path, 'icons/')) {
-            return asset($path);
-        }
-        
-        // Per altri percorsi, usa asset()
-        return asset($path);
+        // Altrimenti usa come è
+        $cleanPath = ltrim($path, '/');
+        return $baseUrl . '/' . $cleanPath;
     }
 
     /**
