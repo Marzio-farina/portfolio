@@ -17,8 +17,12 @@ export interface PublicProfileDto {
   name: string;
   surname: string | null;
   email: string;
+  title: string | null;
+  headline: string | null;
+  bio: string | null;
   phone: string | null;
   location: string | null;
+  avatar_url: string | null;
 
   // date
   date_of_birth: string | null;     // "YYYY-MM-DD"
