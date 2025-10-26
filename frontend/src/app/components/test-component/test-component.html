@@ -1,0 +1,72 @@
+<div class="test-component w-full max-w-4xl mx-auto">
+  <h2 class="text-lg sm:text-3xl font-bold text-center mb-2 sm:mb-8 px-2 sm:px-0">Carosello Testimonial</h2>
+  
+  <!-- Carousel Container -->
+  <div class="relative w-full">
+    <!-- Slides Container -->
+    <div class="w-full h-auto min-h-[180px] sm:min-h-[300px] rounded-lg overflow-visible relative max-w-full">
+      <div 
+        class="flex transition-transform duration-500 ease-in-out w-full"
+        [style.transform]="getTransform()"
+        style="width: 100%; max-width: 100%; overflow: visible;"
+      >
+        @for (testimonial of testimonials; track testimonial.id; let i = $index) {
+          <div class="min-w-full flex justify-center items-start px-0.5 sm:px-2">
+            <!-- Card Testimonial -->
+            <div class="card">
+              <div class="description_card">
+                <h4>{{ testimonial.author }}</h4>
+                @if (testimonial.rating) {
+                  <div class="rating-container">
+                    <div class="rating rating-sm">
+                      <input type="radio" class="mask mask-star-2 bg-amber-400" [checked]="testimonial.rating >= 1" />
+                      <input type="radio" class="mask mask-star-2 bg-amber-400" [checked]="testimonial.rating >= 2" />
+                      <input type="radio" class="mask mask-star-2 bg-amber-400" [checked]="testimonial.rating >= 3" />
+                      <input type="radio" class="mask mask-star-2 bg-amber-400" [checked]="testimonial.rating >= 4" />
+                      <input type="radio" class="mask mask-star-2 bg-amber-400" [checked]="testimonial.rating >= 5" />
+                    </div>
+                  </div>
+                }
+                <p>{{ testimonial.text }}</p>
+              </div>
+            </div>
+          </div>
+        }
+      </div>
+    </div>
+
+    <!-- Navigation Arrows -->
+    <div class="absolute flex justify-between transform -translate-y-1/2 left-0 right-0 sm:left-5 sm:right-5 top-1/2 px-1 sm:px-0">
+      <button 
+        class="btn btn-sm sm:btn-md btn-circle glass text-xs sm:text-base z-10"
+        (click)="prevSlide()"
+      >
+        ❮
+      </button>
+      <button 
+        class="btn btn-sm sm:btn-md btn-circle glass text-xs sm:text-base z-10"
+        (click)="nextSlide()"
+      >
+        ❯
+      </button>
+    </div>
+
+    <!-- Slide Indicators -->
+    <div class="flex justify-center w-full py-2 gap-1 sm:gap-2">
+      @for (slide of slides; track slide.id; let i = $index) {
+        <button 
+          class="btn btn-xs sm:btn-sm text-xs sm:text-sm"
+          [class.btn-active]="currentSlide() === i"
+          (click)="goToSlide(i)"
+        >
+          {{ i + 1 }}
+        </button>
+      }
+    </div>
+  </div>
+
+  <!-- Slide Info -->
+  <div class="text-center mt-2 sm:mt-4">
+    <p class="text-xs sm:text-sm text-gray-600">Slide {{ currentSlide() + 1 }} di {{ slides.length }}</p>
+  </div>
+</div>

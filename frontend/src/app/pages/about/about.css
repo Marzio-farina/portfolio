@@ -6,6 +6,8 @@
     line-height: 1.1;
     margin-bottom: 1.5rem;
     position: relative;
+    padding-left: clamp(0.25rem, 4vw, 2rem);
+    padding-right: clamp(0.25rem, 4vw, 2rem);
 }
 
 /* ===== Ottimizzazione iPhone SE (375px) ===== */
@@ -50,7 +52,7 @@
     content: '';
     position: absolute;
     bottom: -8px;
-    left: 0;
+    left: clamp(0.25rem, 4vw, 2rem);
     width: 60px;
     height: 4px;
     background: var(--text-gradient-yellow);
@@ -63,6 +65,8 @@
     line-height: 1.2;
     margin-bottom: 1.5rem;
     margin-top: 2rem;
+    padding-left: clamp(0.25rem, 4vw, 2rem);
+    padding-right: clamp(0.25rem, 4vw, 2rem);
 }
 
 /* ===== Card basic ===== */
@@ -76,11 +80,38 @@
     width: 100%; /* Assicura che non fuoriesca dal contenitore */
     max-width: 100%; /* Previene overflow */
     box-sizing: border-box; /* Include padding e border nella larghezza */
+    padding-left: clamp(0.25rem, 4vw, 2rem);
+    padding-right: clamp(0.25rem, 4vw, 2rem);
 }
 
 @media (min-width: 1024px) {
     .sub_article-card {
         grid-template-columns: 1fr 1fr;
         gap: 20px 25px;
+    }
+}
+
+/* ===== Testimonials Section ===== */
+section.testimonials {
+    width: 100%;
+    max-width: 100%;
+    margin: 0;
+    padding: 0;
+}
+
+/* iPhone SE - rimuovi padding e margini dalla sezione testimonials */
+@media (max-width: 479px) {
+    section.testimonials {
+        margin: 0 !important;
+        padding: 0 !important;
+        width: 100% !important;
+        max-width: 100% !important;
+    }
+
+    section.testimonials > * {
+        margin-left: 0 !important;
+        margin-right: 0 !important;
+        padding-left: 0 !important;
+        padding-right: 0 !important;
     }
 }

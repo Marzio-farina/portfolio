@@ -1,0 +1,302 @@
+/* Stili gestiti da Tailwind CSS */
+.test-component {
+  width: 100%;
+  max-width: 100%;
+  box-sizing: border-box;
+  margin: 0 auto;
+}
+
+/* Spazio laterale fluido che cresce con la larghezza dello schermo */
+.test-component > * {
+  padding-left: clamp(0.25rem, 4vw, 2rem);
+  padding-right: clamp(0.25rem, 4vw, 2rem);
+  max-width: 100%;
+  box-sizing: border-box;
+}
+
+/* Importa gli stili della testimonial card */
+.card {
+  position: relative;
+  display: flex;
+  flex-direction: row;
+  align-items: start;
+  gap: var(--gap);
+  padding: 5px 40px 0;
+  height: 145px;
+  box-sizing: border-box;
+  background: var(--bg-card);
+  border: 1px solid var(--border-primary);
+  border-radius: 14px;
+  cursor: pointer;
+  transition: transform var(--transition-1), box-shadow var(--transition-1), background var(--transition-1), border-color var(--transition-1);
+  overflow: visible !important;
+  transform-style: preserve-3d;
+  perspective: 1000px;
+  width: 100%;
+  max-width: 100%;
+}
+
+.card::before {
+  content: "";
+  position: absolute;
+  inset: 1px;
+  background: var(--bg-card);
+  border-radius: inherit;
+  z-index: -1;
+}
+
+.card::after {
+  content: "Visitatore";
+  position: absolute;
+  top: 18px;
+  right: -35px;
+  background: var(--accent-primary);
+  color: black;
+  padding: 4px 40px;
+  font-size: 0.7rem;
+  font-weight: 700;
+  letter-spacing: 0.5px;
+  text-transform: capitalize;
+  transform: rotate(45deg);
+  transform-origin: center center;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+  z-index: 10;
+  white-space: nowrap;
+  border: 1px solid var(--border-primary);
+  transition: border-color var(--transition-1);
+  clip-path: polygon(
+    0% 0%, 50% 10%, 100% 0%,
+    100% 0%, 90% 50%, 100% 100%,
+    90% 100%, 50% 90%, 10% 100%,
+    0% 100%, 10% 50%, 0% 10%
+  );
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+/* Versione desktop con cartellino più grande */
+@media (min-width: 768px) {
+  .card::after {
+    top: 20px;
+    right: -40px;
+    padding: 4px 50px;
+    font-size: 0.75rem;
+  }
+}
+
+.description_card {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  gap: var(--gap);
+  flex: 1;
+  min-width: 0;
+}
+
+.description_card h4 {
+  margin: 0;
+  color: var(--text-primary);
+  font-size: var(--fs-2);
+  font-weight: 700;
+  text-transform: capitalize;
+  text-align: center;
+  transition: color var(--transition-1);
+}
+
+.rating-container {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  margin-top: -4px;
+  margin-bottom: -4px;
+}
+
+.description_card p {
+  margin: 0;
+  color: var(--text-secondary);
+  font-size: var(--fs-5);
+  line-height: 1.6;
+  word-break: break-word;
+  overflow-wrap: break-word;
+  hyphens: auto;
+  transition: color var(--transition-1);
+}
+
+.card:hover {
+  border-color: var(--accent-primary);
+}
+
+.card:hover::after {
+  border-color: var(--accent-primary);
+}
+
+/* Ottimizzazioni per iPhone SE e schermi piccoli (≤479px) */
+@media (max-width: 479px) {
+  .test-component {
+    padding-left: 0.25rem !important;
+    padding-right: 0.25rem !important;
+    width: 100% !important;
+    max-width: 100% !important;
+    margin: 0 !important;
+    overflow: visible !important;
+  }
+
+  .test-component > * {
+    margin-left: 0 !important;
+    margin-right: 0 !important;
+    padding-left: 0.25rem !important;
+    padding-right: 0.25rem !important;
+    overflow: visible !important;
+  }
+
+  .test-component .relative {
+    margin: 0 !important;
+    padding: 0 !important;
+    width: 100% !important;
+    max-width: 100% !important;
+    overflow: visible !important;
+  }
+
+  .test-component .relative > div:first-child {
+    margin: 0 !important;
+    padding: 0 !important;
+    width: 100% !important;
+    max-width: 100vw !important;
+    overflow: visible !important;
+  }
+
+  .test-component .relative > div:first-child > div {
+    width: 100% !important;
+    max-width: 100% !important;
+    overflow: visible !important;
+  }
+
+  .card {
+    padding: 8px 6px 10px;
+    height: auto;
+    min-height: 120px;
+    max-width: 80%;
+    width: 80%;
+    overflow: hidden;
+    gap: 4px;
+    margin: 0 auto;
+    border-radius: 8px;
+  }
+
+  /* Cartellino molto piccolo su schermi piccoli */
+  .card::after {
+    display: flex !important;
+    top: 8px;
+    right: -15px;
+    padding: 2px 18px;
+    font-size: 0.5rem;
+    transform: rotate(38deg);
+  }
+
+  /* Rimuovi il pseudo-elemento */
+  .card::before {
+    display: none;
+  }
+
+  .description_card {
+    gap: 4px;
+    width: 100%;
+    max-width: 100%;
+    overflow: hidden;
+  }
+
+  .description_card h4 {
+    font-size: 0.75rem;
+    line-height: 1.1;
+    margin-bottom: 2px;
+    word-break: break-word;
+    overflow-wrap: break-word;
+    padding: 0 4px;
+  }
+
+  .description_card p {
+    font-size: 0.65rem;
+    line-height: 1.2;
+    display: -webkit-box;
+    -webkit-line-clamp: 3;
+    line-clamp: 3;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    max-width: 100%;
+    overflow-wrap: break-word;
+    padding: 0 4px;
+  }
+
+  .rating-container {
+    margin-top: -2px;
+    margin-bottom: -2px;
+  }
+
+  .rating-container .rating {
+    transform: scale(0.65);
+    transform-origin: center;
+  }
+}
+
+/* Ottimizzazioni per schermi medi (480px - 700px) */
+@media (min-width: 480px) and (max-width: 700px) {
+  .card {
+    padding: 8px 15px 10px;
+    width: 88%;
+    max-width: 88%;
+    margin: 0 auto;
+  }
+
+  .card::after {
+    right: -30px;
+    padding: 3px 30px;
+    font-size: 0.6rem;
+  }
+
+  .description_card h4 {
+    font-size: 0.95rem;
+  }
+
+  .description_card p {
+    font-size: 0.8rem;
+  }
+}
+
+/* Ottimizzazioni per tablet (701px - 767px) */
+@media (min-width: 701px) and (max-width: 767px) {
+  .card {
+    padding: 5px 20px 0;
+    width: 92%;
+    max-width: 92%;
+    margin: 0 auto;
+  }
+
+  .card::after {
+    right: -30px;
+    padding: 3px 35px;
+    font-size: 0.65rem;
+  }
+
+  .description_card h4 {
+    font-size: 1rem;
+  }
+
+  .description_card p {
+    font-size: 0.85rem;
+  }
+}
+
+/* Ottimizzazioni per tablet grandi (768px - 1023px) */
+@media (min-width: 768px) and (max-width: 1023px) {
+  .card {
+    padding: 5px 30px 0;
+  }
+
+  .card::after {
+    right: -35px;
+    padding: 4px 40px;
+    font-size: 0.7rem;
+  }
+}

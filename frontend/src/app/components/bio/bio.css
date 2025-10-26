@@ -5,7 +5,7 @@
   background: var(--bg-card);
   border: 1px solid var(--border-primary);
   border-radius: 14px;
-  padding: 20px;
+  padding: clamp(12px, 3vw, 20px);
   margin: 20px 0;
   height: 200px;
   transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
@@ -13,6 +13,9 @@
   transform-style: preserve-3d;
   perspective: 1000px;
   cursor: pointer;
+  margin-left: clamp(0.25rem, 4vw, 2rem);
+  margin-right: clamp(0.25rem, 4vw, 2rem);
+  box-sizing: border-box;
 }
 
 .bio-arrow {
@@ -63,8 +66,8 @@
   -ms-hyphens: none !important;
 }
 
-/* Puntini di sospensione per bio mobile card */
-.bio-content::after {
+/* Puntini di sospensione per bio mobile card - RIMOSSO */
+/* .bio-content::after {
   content: '...';
   position: absolute;
   bottom: 0;
@@ -72,7 +75,7 @@
   background: var(--bg-card);
   padding-left: 20px;
   color: var(--text-primary);
-}
+} */
 
 /* Scritta "Leggi" al centro quando contratto */
 .bio-read-more {
@@ -139,6 +142,9 @@
   display: none;
   overflow: hidden;
   transition: min-height 0.3s ease-out;
+  padding-left: clamp(0.25rem, 4vw, 2rem);
+  padding-right: clamp(0.25rem, 4vw, 2rem);
+  box-sizing: border-box;
 }
 
 /* Bio desktop - nascosta su mobile */
@@ -312,6 +318,19 @@
   background: var(--text-secondary);
 }
 
+/* ===== MEDIA QUERIES - DISPOSITIVI PICCOLI ===== */
+
+/* iPhone SE e schermi piccoli (≤479px) */
+@media (max-width: 479px) {
+  .bio-card-mobile {
+    margin-left: 0.25rem !important;
+    margin-right: 0.25rem !important;
+    padding: 0.75rem !important; /* 12px su iPhone SE */
+    height: auto !important;
+    min-height: 150px;
+  }
+}
+
 /* ===== MEDIA QUERIES - TABLET E PIÙ GRANDI ===== */
 
 /* Tablet (768px) */
@@ -321,10 +340,6 @@
   }
   
   .bio-desktop {
-    display: none;
-  }
-
-  .bio-content::after {
     display: none;
   }
 
