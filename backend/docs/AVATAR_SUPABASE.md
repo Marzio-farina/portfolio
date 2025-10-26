@@ -14,6 +14,8 @@ SUPABASE_S3_REGION=us-east-1
 SUPABASE_S3_BUCKET=src
 SUPABASE_S3_ENDPOINT=https://your-project.supabase.co/storage/v1/s3
 SUPABASE_S3_URL=https://your-project.supabase.co/storage/v1/object/public/src
+# Oppure usa SUPABASE_PUBLIC_URL se già esistente
+# SUPABASE_PUBLIC_URL=https://your-project.supabase.co/storage/v1/object/public/src
 ```
 
 ### 2. Carica gli avatar esistenti su Supabase
