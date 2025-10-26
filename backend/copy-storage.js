@@ -3,10 +3,15 @@
 /**
  * Script per copiare storage/app/public in public/storage
  * Eseguito durante il build di Vercel (Node.js disponibile)
+ * Usa ES modules (compatibile con package.json "type": "module")
  */
 
-const fs = require('fs');
-const path = require('path');
+import fs from 'fs';
+import path from 'path';
+import { fileURLToPath } from 'url';
+
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
 
 const sourceDir = path.join(__dirname, 'storage', 'app', 'public');
 const targetDir = path.join(__dirname, 'public', 'storage');
@@ -40,7 +45,7 @@ try {
     process.exit(0);
   }
 
-  console.log('í³‹ Copiando file da storage/app/public a public/storage...');
+  console.log('ðŸ“‹ Copiando file da storage/app/public a public/storage...');
   copyDir(sourceDir, targetDir);
   console.log('âœ… Copia completata!');
 } catch (error) {
