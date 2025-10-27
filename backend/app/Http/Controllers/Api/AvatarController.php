@@ -7,6 +7,7 @@ use App\Models\Icon;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Log;
+use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Str;
 use Intervention\Image\Facades\Image;
@@ -59,6 +60,23 @@ class AvatarController extends Controller
                 $baseUrl = rtrim(config('filesystems.disks.src.url') ?: env('SUPABASE_PUBLIC_URL'), '/');
                 $imgPath = $baseUrl . '/' . $relativePath; // assoluto per il CDN
                 $storedPath = $relativePath; // per eventuale cleanup
+
+                // Trigger asincrono della Edge Function (se configurata)
+                try {
+                    $fnUrl = config('services.supabase.resize_function_url');
+                    $fnKey = config('services.supabase.function_auth_key');
+                    $bucket = config('services.supabase.bucket');
+                    if ($fnUrl && $fnKey) {
+                        Http::withHeaders(['Authorization' => 'Bearer ' . $fnKey])
+                            ->timeout(3)
+                            ->post($fnUrl, [
+                                'bucket_id' => $bucket,
+                                'name' => $relativePath,
+                            ]);
+                    }
+                } catch (\Throwable $e) {
+                    Log::warning('Resize function trigger failed (avatar): ' . $e->getMessage());
+                }
             } else {
                 // LOCALE: salva su disco pubblico e servi via /storage
                 $storedPath = $file->storeAs('avatars', $filename, 'public');

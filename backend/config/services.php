@@ -35,4 +35,13 @@ return [
         ],
     ],
 
+    'supabase' => [
+        // URL della Edge Function per il resize (es. https://<project>.functions.supabase.co/resize-avatar)
+        'resize_function_url' => env('SUPABASE_RESIZE_FUNCTION_URL'),
+        // Chiave per invocare la funzione (puoi usare ANON KEY o una chiave dedicata)
+        'function_auth_key' => env('SUPABASE_FUNCTION_AUTH_KEY', env('SUPABASE_ANON_KEY')),
+        // Bucket storage usato per gli avatar
+        'bucket' => env('SUPABASE_S3_BUCKET', 'src'),
+    ],
+
 ];
