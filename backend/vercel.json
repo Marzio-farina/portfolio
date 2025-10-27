@@ -1,6 +1,6 @@
 {
   "version": 2,
-  "buildCommand": "node copy-storage.js",
+  "buildCommand": "node copy-storage.js && echo 'Build completed'",
   "functions": {
     "api/index.php": { "runtime": "vercel-php@0.7.4" }
   },
