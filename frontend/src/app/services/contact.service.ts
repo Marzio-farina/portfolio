@@ -1,6 +1,7 @@
 import { Injectable, inject } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
 import { environment } from '../../environments/environment';
+import { apiUrl } from '../core/api/api-url';
 import { Observable } from 'rxjs';
 
 export interface ContactPayload {
@@ -19,9 +20,7 @@ export class ContactService {
   private baseUrl = environment.API_BASE_URL;
 
   send(payload: ContactPayload): Observable<{ ok: boolean; id?: string }> {
-    return this.http.post<{ ok: boolean; id?: string }>(
-      `${this.baseUrl}/api/contact`,
-      payload
-    );
+    const url = apiUrl('contact');
+    return this.http.post<{ ok: boolean; id?: string }>(url, payload);
   }
 }
