@@ -139,18 +139,20 @@ class TestimonialController extends Controller
     public function getIcons(): JsonResponse
     {
         $icons = Icon::select('id', 'img', 'alt')
+            ->whereNotNull('img')
             ->orderBy('id')
             ->get()
             ->map(function ($icon) {
                 return [
                     'id' => $icon->id,
-                    'img' => $this->getAbsoluteUrl($icon->img),
+                    'img' => $icon->img ? $this->getAbsoluteUrl($icon->img) : null,
                     'alt' => $icon->alt
                 ];
-            });
+            })
+            ->filter(fn($icon) => $icon['img'] !== null);
 
         return response()->json([
-            'icons' => $icons
+            'icons' => $icons->values()
         ], 200);
     }
 
@@ -165,18 +167,20 @@ class TestimonialController extends Controller
     {
         $icons = Icon::select('id', 'img', 'alt')
             ->where('type', 'default')
+            ->whereNotNull('img')
             ->orderBy('id')
             ->get()
             ->map(function ($icon) {
                 return [
                     'id' => $icon->id,
-                    'img' => $this->getAbsoluteUrl($icon->img),
+                    'img' => $icon->img ? $this->getAbsoluteUrl($icon->img) : null,
                     'alt' => $icon->alt
                 ];
-            });
+            })
+            ->filter(fn($icon) => $icon['img'] !== null);
 
         return response()->json([
-            'avatars' => $icons
+            'avatars' => $icons->values()
         ], 200);
     }
 
@@ -187,11 +191,15 @@ class TestimonialController extends Controller
      * API returns: /storage/avatars/avatar-1.png
      * Production URL: https://api.marziofarina.it/storage/avatars/avatar-1.png
      * 
-     * @param string $path
-     * @return string
+     * @param string|null $path
+     * @return string|null
      */
-    private function getAbsoluteUrl(string $path): string
+    private function getAbsoluteUrl(?string $path): ?string
     {
+        if (!$path) {
+            return null;
+        }
+        
         // Se è già un URL assoluto, restituiscilo così com'è
         if (str_starts_with($path, 'http://') || str_starts_with($path, 'https://')) {
             return $path;
