@@ -102,11 +102,6 @@ export class Aside {
   // Stato autenticazione per mostrare icona matita
   isAuthed = computed(() => !!this.auth.token());
 
-  // Hint lampeggio icona matita post-login
-  hintActive = signal(false);
-  private wasAuthed = false;
-  private hintTimer: any = null;
-
   constructor(@Inject(PLATFORM_ID) platformId: Object) {
     this.isBrowser = isPlatformBrowser(platformId);
 
@@ -143,20 +138,6 @@ export class Aside {
   // Click su icona matita avatar
   onEditAvatar() {
     // Qui potrai aprire una modale di upload avatar
-  }
-
-  // Effetti reattivi
-  ngOnInit() {
-    effect(() => {
-      const authed = this.isAuthed();
-      if (authed && !this.wasAuthed) {
-        this.hintActive.set(true);
-        if (this.hintTimer) clearTimeout(this.hintTimer);
-        this.hintTimer = setTimeout(() => this.hintActive.set(false), 5000);
-        this.dr.onDestroy(() => this.hintTimer && clearTimeout(this.hintTimer));
-      }
-      this.wasAuthed = authed;
-    });
   }
 
   // per scegliere l'icona in base al provider
