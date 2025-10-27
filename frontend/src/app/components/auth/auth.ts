@@ -106,7 +106,7 @@ export class Auth {
     ).subscribe({
       next: (res) => {
         const registeredEmail = res.user?.email || '';
-        this.success.set(`Account creato per ${res.user?.name || 'utente'} (${registeredEmail}). Ora puoi accedere.`);
+        this.success.set(`Registrazione completata: accesso effettuato come ${res.user?.name || 'utente'} (${registeredEmail}).`);
 
         // Pulisci campi registrazione e stato UI
         this.registerForm.reset({ name: '', email: '', password: '', confirm: '', terms: false });
@@ -115,12 +115,8 @@ export class Auth {
         this.notifications.set([]);
         this.tooltipVisible.set(null);
         this.showRegPass.set(false);
-
-        // Passa al tab login e precompila l'email
-        this.mode.set('login');
-        this.loginForm.patchValue({ email: registeredEmail, password: '' });
-        this.loginForm.markAsPristine();
-        this.loginForm.markAsUntouched();
+        // L'utente è già autenticato (token impostato da AuthService.register)
+        // La modale verrà chiusa automaticamente da App quando authed == true
       },
       error: (err) => this.error.set(this.humanizeError(err)),
     });
