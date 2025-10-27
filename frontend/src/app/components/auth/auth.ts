@@ -142,9 +142,10 @@ export class Auth {
 
   // Mapping errori API -> messaggi UI
   private humanizeError(err: any): string {
-    const status = err?.status ?? err?.error?.status;
-    const msg = err?.error?.message || err?.message || '';
-    const errors = err?.error?.errors;
+    const status = err?.status ?? err?.error?.status ?? err?.originalError?.status;
+    const payload = err?.payload || err?.error || err?.originalError?.error;
+    const msg = payload?.message || err?.message || '';
+    const errors = payload?.errors;
     if (status === 422 && errors?.email) return 'Email già registrata.';
     if (status === 409) return 'Email già registrata.';
     if (/email.+(exists|taken)/i.test(msg)) return 'Email già registrata.';

@@ -52,8 +52,9 @@ export class ErrorHandlerInterceptor implements HttpInterceptor {
           errorMessage = `Errore server (${error.status}).`;
         }
         const customError = new Error(errorMessage) as any;
-        customError.originalError = error;
+        customError.originalError = error; // HttpErrorResponse completo
         customError.status = error.status;
+        customError.payload = error.error; // body JSON del server (es. { message, errors })
         return throwError(() => customError);
       })
     );
