@@ -11,9 +11,13 @@ import { Observable, timeout } from 'rxjs';
 export class TimeoutInterceptor implements HttpInterceptor {
   
   intercept(req: HttpRequest<any>, next: HttpHandler): Observable<HttpEvent<any>> {
-    // Timeout di 10 secondi per tutte le richieste
-    return next.handle(req).pipe(
-      timeout(10000)
-    );
+    // Evita doppio timeout: lasciamo gestire il timeout principale all'ApiInterceptor.
+    // Per sicurezza, applichiamo un timeout molto ampio solo come guardrail,
+    // e disabilitiamo su endpoint sensibili come /api/contact.
+    const isContact = /\/contact(\?|$)/.test(req.url);
+    if (isContact) {
+      return next.handle(req); // nessun timeout aggiuntivo sul form contatti
+    }
+    return next.handle(req).pipe(timeout(60000)); // 60s guardrail
   }
 }

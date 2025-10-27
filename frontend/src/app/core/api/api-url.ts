@@ -1,18 +1,12 @@
 import { environment } from '../../../environments/environment';
 
-// Normalizza la base (niente slash finale)
-const RAW = (environment.API_BASE_URL || '').replace(/\/+$/, '');
-
-// Se la base NON finisce con /api, aggiungilo; altrimenti lascia così
-const BASE = /\/api$/i.test(RAW) ? RAW : `${RAW}/api`;
+// Usa esattamente la base fornita dalle environment (senza slash finale)
+const BASE = (environment.API_BASE_URL || '').replace(/\/+$/, '');
 
 /**
- * Passa path senza slash iniziale o con (indifferente).
- * Esempi:
- *  - apiUrl('ping') => https://.../api/ping
- *  - apiUrl('/testimonials') => https://.../api/testimonials
+ * Costruisce l'URL partendo dalla base configurata; non aggiunge /api automaticamente.
  */
-export function apiUrl(pathAfterApi: string): string {
-  const p = pathAfterApi.replace(/^\/+/, ''); // toglie eventuale '/' iniziale
+export function apiUrl(path: string): string {
+  const p = path.replace(/^\/+/, '');
   return `${BASE}/${p}`;
 }
