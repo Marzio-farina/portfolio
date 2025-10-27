@@ -50,6 +50,7 @@ export class Auth {
   showRegPass = signal(false);
   // Notifiche multiple (stile add-testimonial)
   notifications = signal<{ id: string; message: string; type: NotificationType; timestamp: number; fieldId: string; }[]>([]);
+  tooltipVisible = signal<string | null>(null);
   
   // Forms
   loginForm: FormGroup = this.fb.group({
@@ -182,6 +183,10 @@ export class Auth {
         return { message: 'Compila correttamente il campo.', type: 'info' };
     }
   }
+
+  // Tooltip
+  showTooltip(key: string) { this.tooltipVisible.set(key); }
+  hideTooltip(key: string) { if (this.tooltipVisible() === key) this.tooltipVisible.set(null); }
 
   private addNotification(fieldId: string, message: string, type: NotificationType) {
     const now = Date.now();

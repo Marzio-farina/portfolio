@@ -58,6 +58,7 @@ form {
 .field {
     display: grid;
     gap: .3rem;
+    position: relative; /* per icone/question mark e tooltip */
 }
 
 /* Consenso privacy (ricreato pulito) */
@@ -71,6 +72,51 @@ form {
 .consent__text { flex: 1 1 auto; line-height: 1.35; color: var(--text-secondary); }
 .consent__text a { color: var(--accent-primary); text-decoration: underline; font-weight: 600; }
 .consent__text a:hover { color: var(--error-color); font-weight: 700; }
+
+/* ===== Icona tooltip e suggerimenti per i campi (replica stile contact-form) ===== */
+.field-icon {
+  position: absolute;
+  top: 30px;
+  right: 6px;
+  width: 16px;
+  height: 16px;
+  fill: var(--text-secondary);
+  stroke: var(--text-secondary);
+  opacity: .6;
+  transition: opacity var(--transition-1), transform var(--transition-1), fill var(--transition-1), stroke var(--transition-1);
+  pointer-events: auto;
+  cursor: pointer;
+}
+.field-icon:hover {
+  opacity: 1;
+  transform: scale(1.1);
+  fill: var(--accent-primary);
+  stroke: var(--accent-primary);
+}
+.field:focus-within .field-icon {
+  opacity: 1;
+  stroke: var(--accent-primary);
+  fill: var(--accent-primary);
+}
+
+.field-tooltip {
+  position: absolute;
+  top: 55px;
+  right: 28px;
+  transform: translateY(-100%);
+  background: var(--bg-card);
+  color: var(--text-primary);
+  border: 1px solid var(--border-primary);
+  border-radius: .6rem;
+  padding: .4rem .55rem;
+  font-size: .7rem !important;
+  box-shadow: var(--shadow-1);
+  white-space: nowrap;
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity var(--transition-1), transform var(--transition-1);
+}
+.field-tooltip.show { opacity: 1; transform: translateY(-105%); }
 
 .field.checkbox label{
     flex:1 1 0;
@@ -114,7 +160,7 @@ input:focus {
 
 .eye {
     position: absolute;
-    right: .35rem;
+    right: 24px;
     top: 2.05rem;
     border: none;
     background: transparent;
