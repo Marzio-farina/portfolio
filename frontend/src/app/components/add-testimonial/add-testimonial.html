@@ -76,7 +76,20 @@
         </label>
       </div>
 
-      <div class="row hidden-mobile">
+      <!-- Row con pulsante "Ulteriori informazioni?" -->
+      <div class="row row-toggle-additional">
+        <div class="toggle-additional-container">
+          <label class="toggle-additional-label">Ulteriori informazioni ?</label>
+          <button type="button" class="toggle-additional-btn" (click)="toggleAdditionalFields()">
+            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round">
+              <line x1="12" y1="5" x2="12" y2="19"></line>
+              <line x1="5" y1="12" x2="19" y2="12"></line>
+            </svg>
+          </button>
+        </div>
+      </div>
+
+      <div class="row hidden-mobile" [class.show-on-mobile]="showAdditionalFields()">
         <label class="field">
           <input type="text" formControlName="company" placeholder=" " (blur)="onFieldBlur('company')"/>
           <span class="field-label">Azienda (opzionale)</span>

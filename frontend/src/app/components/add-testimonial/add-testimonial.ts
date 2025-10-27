@@ -22,7 +22,9 @@ export interface NotificationItem {
   styleUrls: [
     './add-testimonial.css',
     './add-testimonial.avatar.css',
-    './add-testimonial.rating.css'
+    './add-testimonial.rating.css',
+    './add-testimonial.tooltip.css',
+    './add-testimonial.buttons.css'
   ]
 })
 export class AddTestimonial {
@@ -45,6 +47,9 @@ export class AddTestimonial {
   // Gestione notifiche multiple
   notifications = signal<NotificationItem[]>([]);
   showMultipleNotifications = false;
+
+  // Gestione campi aggiuntivi (per mobile/tablet)
+  showAdditionalFields = signal(false);
 
   // Output per comunicare con il componente padre (per le notifiche) - non usato in questo caso
   errorChange = output<{message: string, type: 'error' | 'warning' | 'info' | 'success', fieldId: string, action: 'add' | 'remove'} | undefined>();
@@ -404,6 +409,11 @@ export class AddTestimonial {
   // Navigazione indietro
   goBack() {
     this.router.navigate(['/about']);
+  }
+
+  // Gestione toggle campi aggiuntivi
+  toggleAdditionalFields(): void {
+    this.showAdditionalFields.set(!this.showAdditionalFields());
   }
 
   // Gestione notifiche

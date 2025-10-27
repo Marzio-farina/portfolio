@@ -165,72 +165,6 @@
   display: none;
 }
 
-/* icona informativa */
-.field-icon {
-  position: absolute;
-  top: 6px;
-  right: 6px;
-  width: 16px;
-  height: 16px;
-  fill: var(--text-secondary);
-  stroke: var(--text-secondary);
-  opacity: 0.6;
-  transition: opacity var(--transition-1), transform var(--transition-1), fill var(--transition-1), stroke var(--transition-1);
-  pointer-events: auto;
-  cursor: pointer;
-}
-
-.field-icon:hover {
-  opacity: 1;
-  transform: scale(1.1);
-  fill: var(--accent-primary);
-  stroke: var(--accent-primary);
-}
-
-.field:focus-within .field-icon {
-  opacity: 1;
-  stroke: var(--accent-primary);
-  fill: var(--accent-primary);
-}
-
-/* popup tooltip */
-.field-tooltip {
-  position: absolute;
-  top: -8px;
-  right: 24px;
-  background: var(--bg-card);
-  border: 1px solid var(--border-primary);
-  border-radius: var(--radius-lg, 8px);
-  padding: 8px 12px;
-  font-size: 0.85rem;
-  color: var(--text-primary);
-  white-space: nowrap;
-  box-shadow: var(--shadow-2);
-  z-index: 1000;
-  opacity: 0;
-  transform: translateY(4px);
-  transition: opacity var(--transition-1), transform var(--transition-1);
-  pointer-events: none;
-}
-
-.field-tooltip::after {
-  content: '';
-  position: absolute;
-  top: 50%;
-  right: -6px;
-  transform: translateY(-50%);
-  width: 0;
-  height: 0;
-  border-left: 6px solid var(--border-primary);
-  border-top: 6px solid transparent;
-  border-bottom: 6px solid transparent;
-}
-
-.field-tooltip.show {
-  opacity: 1;
-  transform: translateY(0);
-}
-
 /* focus styling */
 .field:focus-within {
   border-color: var(--accent-primary);
@@ -279,70 +213,69 @@
   font-size: 0.9rem;
 }
 
-/* pulsante */
-.actions {
-  display: grid;
-  grid-template-columns: 2fr 2fr;
-  gap: 12px;
-  margin-top: 24px;
-}
-
-.btn {
-  display: inline-flex;
-  align-items: center;
-  gap: 10px;
-  padding: 14px 22px;
-  border: 0;
-  border-radius: 999px;
-  font-weight: 600;
-  cursor: pointer;
-  transition: transform var(--transition-1), box-shadow var(--transition-1), background var(--transition-1), border-color var(--transition-1);
-  justify-content: center;
-}
-
-.btn-primary {
-  background: var(--accent-primary);
-  color: var(--text-inverse);
-}
-
-.btn-secondary {
-  background: transparent;
-  color: var(--text-primary);
-  border: 2px solid var(--border-primary);
-}
-
-.btn:hover:not(:disabled) {
-  transform: translateY(-1px);
-  box-shadow: var(--shadow-2);
-}
-
-.btn-secondary:hover:not(:disabled) {
-  border-color: var(--accent-primary);
-  background: var(--accent-primary-alpha);
-}
-
-.btn:active:not(:disabled) {
-  transform: translateY(0);
-}
-
-.btn:disabled {
-  opacity: 0.6;
-  cursor: not-allowed;
-}
-
-.btn .icon {
-  width: 18px;
-  height: 18px;
-  fill: currentColor;
-  transform: translateY(-1px);
-}
-
 /* Arrotondamenti */
 .add-testimonial,
 .form,
 .field,
 .btn {
   backdrop-filter: saturate(110%);
+}
+
+/* ============== TOGGLE FIELDS (Campi Aggiuntivi) ============== */
+
+.toggle-additional-container {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  width: 100%;
+}
+
+.toggle-additional-label {
+  font-size: 0.95rem;
+  color: var(--text-secondary);
+  margin: 0;
+  cursor: default;
+}
+
+.toggle-additional-btn {
+  width: 40px;
+  height: 40px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: transparent;
+  border: 2px solid var(--border-primary);
+  border-radius: 50%;
+  cursor: pointer;
+  transition: all var(--transition-1);
+  flex-shrink: 0;
+  color: var(--accent-primary);
+}
+
+.toggle-additional-btn:hover {
+  transform: scale(1.05);
+  background: var(--bg-secondary);
+  border-color: var(--accent-primary);
+}
+
+.toggle-additional-btn svg {
+  width: 20px;
+  height: 20px;
+}
+
+/* Nascondi il toggle su desktop (sempre mostrati) */
+@media (min-width: 721px) {
+  .row-toggle-additional {
+    display: none !important;
+  }
+}
+
+/* Mostra i campi aggiuntivi su mobile quando il toggle è attivo */
+@media (max-width: 720px) {
+  .row.show-on-mobile {
+    display: contents !important;
+  }
 }
 
 /* ============== TABLET RESPONSIVE (640px - 720px) ============== */
@@ -365,22 +298,29 @@
     grid-row: 2;
   }
 
+  /* Row toggle "Ulteriori informazioni" - occupa tutte le 3 colonne */
+  .row-toggle-additional {
+    display: block !important; /* Override display: contents */
+    grid-column: 1 / -1;
+    grid-row: 3;
+  }
+
   /* Nasconde la riga con Azienda e Ruolo */
   .row.hidden-mobile {
     display: none !important;
   }
 
-  /* Textarea: larghezza completa, riga 3 */
+  /* Textarea: larghezza completa, riga 4 (dopo toggle) */
   .field--textarea {
     grid-column: 1 / -1;
-    grid-row: 3;
+    grid-row: 4;
     margin-top: 0;
   }
 
-  /* Rating: label e button affiancati orizzontalmente, riga 4 */
+  /* Rating: label e button affiancati orizzontalmente, riga 5 */
   .rating-container {
     grid-column: 1 / -1;
-    grid-row: 4;
+    grid-row: 5;
     display: flex;
     flex-direction: row;
     align-items: center;
@@ -401,10 +341,10 @@
     flex-wrap: nowrap;
   }
 
-  /* Actions: pulsanti affiancati, riga 5 */
+  /* Actions: pulsanti affiancati, riga 6 */
   .actions {
     grid-column: 1 / -1;
-    grid-row: 5;
+    grid-row: 6;
     display: grid;
     grid-template-columns: 1fr 1fr;
     gap: 12px;
@@ -426,6 +366,12 @@
 
   .form {
     grid-template-columns: 1fr;
+  }
+
+  /* Row toggle "Ulteriori informazioni" - occupa tutta la larghezza */
+  .row-toggle-additional {
+    display: block !important; /* Override display: contents */
+    grid-column: 1 / -1;
   }
 
   .field--textarea {

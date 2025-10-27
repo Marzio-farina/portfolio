@@ -1,0 +1,65 @@
+/* icona informativa */
+.field-icon {
+  position: absolute;
+  top: 6px;
+  right: 6px;
+  width: 16px;
+  height: 16px;
+  fill: var(--text-secondary);
+  stroke: var(--text-secondary);
+  opacity: 0.6;
+  transition: opacity var(--transition-1), transform var(--transition-1), fill var(--transition-1), stroke var(--transition-1);
+  pointer-events: auto;
+  cursor: pointer;
+}
+
+.field-icon:hover {
+  opacity: 1;
+  transform: scale(1.1);
+  fill: var(--accent-primary);
+  stroke: var(--accent-primary);
+}
+
+.field:focus-within .field-icon {
+  opacity: 1;
+  stroke: var(--accent-primary);
+  fill: var(--accent-primary);
+}
+
+/* popup tooltip */
+.field-tooltip {
+  position: absolute;
+  top: -8px;
+  right: 24px;
+  background: var(--bg-card);
+  border: 1px solid var(--border-primary);
+  border-radius: var(--radius-lg, 8px);
+  padding: 8px 12px;
+  font-size: 0.85rem;
+  color: var(--text-primary);
+  white-space: nowrap;
+  box-shadow: var(--shadow-2);
+  z-index: 1000;
+  opacity: 0;
+  transform: translateY(4px);
+  transition: opacity var(--transition-1), transform var(--transition-1);
+  pointer-events: none;
+}
+
+.field-tooltip::after {
+  content: '';
+  position: absolute;
+  top: 50%;
+  right: -6px;
+  transform: translateY(-50%);
+  width: 0;
+  height: 0;
+  border-left: 6px solid var(--border-primary);
+  border-top: 6px solid transparent;
+  border-bottom: 6px solid transparent;
+}
+
+.field-tooltip.show {
+  opacity: 1;
+  transform: translateY(0);
+}
