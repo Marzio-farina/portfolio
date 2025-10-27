@@ -51,4 +51,4 @@ Route::get('/avatars/{filename}', function ($filename) {
             'Cache-Control' => 'public, max-age=31536000, immutable', // 1 year cache
             'Content-Type' => mime_content_type($file)
         ]);
-})->where('filename', '[a-zA-Z0-9._-]+');
+})->where('filename', '[a-zA-Z0-9._@-]+');

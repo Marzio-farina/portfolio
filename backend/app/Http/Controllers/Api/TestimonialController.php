@@ -245,9 +245,9 @@ class TestimonialController extends Controller
             // Ottimizza l'immagine
             $this->optimizeAvatarImage($storedPath);
             
-            // Crea il record nella tabella icons (senza prefisso "storage/")
+            // Crea il record nella tabella icons con prefisso "storage/"
             $icon = Icon::create([
-                'img' => $storedPath, // e.g. "avatars/testimonial_avatar_123.jpg"
+                'img' => 'storage/' . ltrim($storedPath, '/'), // e.g. "storage/avatars/testimonial_avatar_123.jpg"
                 'alt' => $authorName . ' - Avatar',
                 'type' => 'user_uploaded'
             ]);

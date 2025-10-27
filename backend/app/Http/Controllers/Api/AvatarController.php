@@ -49,9 +49,9 @@ class AvatarController extends Controller
             $storedPath = $file->storeAs('avatars', $filename, 'public');
             $this->optimizeImage($storedPath);
             
-            // Salva solo il path relativo nel database (senza "storage/")
-            // sarà aggiunto quando si costruisce l'URL nella risposta API
-            $imgPath = $storedPath; // e.g. "avatars/avatar_123.jpg"
+            // Salva nel database con prefisso "storage/" per coerenza con routing/CDN
+            // Esempio risultante: "storage/avatars/avatar_123.jpg"
+            $imgPath = 'storage/' . ltrim($storedPath, '/');
             
             // Crea il record nella tabella icons con path relativo
             $icon = Icon::create([
