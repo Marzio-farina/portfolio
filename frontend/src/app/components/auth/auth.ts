@@ -118,7 +118,11 @@ export class Auth {
         // L'utente è già autenticato (token impostato da AuthService.register)
         // La modale verrà chiusa automaticamente da App quando authed == true
       },
-      error: (err) => this.error.set(this.humanizeError(err)),
+      error: (err) => {
+        const message = this.humanizeError(err);
+        this.error.set(message);
+        this.notifications.update(list => [...list, { id: `global-${Date.now()}`, message, type: 'error', timestamp: Date.now(), fieldId: 'global' }]);
+      },
     });
   }
 
@@ -138,12 +142,14 @@ export class Auth {
 
   // Mapping errori API -> messaggi UI
   private humanizeError(err: any): string {
-    const msg = err?.error?.message || err?.message;
-    if (!msg) return 'Si è verificato un errore. Riprova.';
-    // esempi di normalizzazione
+    const status = err?.status ?? err?.error?.status;
+    const msg = err?.error?.message || err?.message || '';
+    const errors = err?.error?.errors;
+    if (status === 422 && errors?.email) return 'Email già registrata.';
+    if (status === 409) return 'Email già registrata.';
+    if (/email.+(exists|taken)/i.test(msg)) return 'Email già registrata.';
     if (/invalid credentials|401/i.test(msg)) return 'Credenziali non valide.';
-    if (/email.+exists|409/i.test(msg)) return 'Email già registrata.';
-    return msg;
+    return msg || 'Si è verificato un errore. Riprova.';
   }
 
   // ===== Notifiche stile stack =====

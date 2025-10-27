@@ -5,6 +5,8 @@ use App\Http\Middleware\HttpCache;
 use App\Http\Middleware\DatabaseConnectionMiddleware;
 use Illuminate\Foundation\Application;
 use Illuminate\Foundation\Configuration\Exceptions;
+use Illuminate\Validation\ValidationException;
+use Illuminate\Database\QueryException;
 use Illuminate\Foundation\Configuration\Middleware;
 use Illuminate\Http\Middleware\HandleCors;
 
@@ -36,6 +38,24 @@ return Application::configure(basePath: dirname(__DIR__))
                     'ok'    => false,
                     'error' => $e->getMessage() ?: \Symfony\Component\HttpFoundation\Response::$statusTexts[$e->getStatusCode()] ?? 'Error',
                 ], $e->getStatusCode(), $e->getHeaders(), JSON_UNESCAPED_UNICODE);
+            }
+            // ValidationException -> 422 con dettagli
+            if ($e instanceof ValidationException) {
+                return new \Illuminate\Http\JsonResponse([
+                    'ok'     => false,
+                    'message'=> 'Validation failed',
+                    'errors' => $e->errors(),
+                ], 422, [], JSON_UNESCAPED_UNICODE);
+            }
+            // Unique/email già esistente: prova a mappare su 409
+            if ($e instanceof QueryException) {
+                $msg = $e->getMessage();
+                if (stripos($msg, 'unique') !== false || stripos($msg, 'users_email') !== false) {
+                    return new \Illuminate\Http\JsonResponse([
+                        'ok'     => false,
+                        'message'=> 'Email già registrata',
+                    ], 409, [], JSON_UNESCAPED_UNICODE);
+                }
             }
             // NotFound generiche
             if ($e instanceof \Symfony\Component\Routing\Exception\RouteNotFoundException) {
