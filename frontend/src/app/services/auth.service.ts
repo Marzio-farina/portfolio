@@ -135,7 +135,13 @@ export class AuthService {
    * @returns Observable of user profile after successful registration
    */
   register(dto: RegisterDto): Observable<PublicProfile> {
-    return this.http.post<AuthResponse>(apiUrl('/register'), dto).pipe(
+    // Sanitizza: invia solo i campi permessi, ignora eventuali extra (es. role_id)
+    const payload: RegisterDto = {
+      name: dto.name,
+      email: dto.email,
+      password: dto.password,
+    };
+    return this.http.post<AuthResponse>(apiUrl('/register'), payload).pipe(
       switchMap(response => {
         this.setToken(response.token);
         this.refreshMe();
