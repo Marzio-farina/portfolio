@@ -237,27 +237,53 @@ class TestimonialController extends Controller
     {
         try {
             // Genera nome file unico
-            $filename = 'testimonial_avatar_' . Str::uuid() . '.' . $file->getClientOriginalExtension();
-            
-            // Salva il file
-            $storedPath = $file->storeAs('avatars', $filename, 'public');
-            
-            // Ottimizza l'immagine
-            $this->optimizeAvatarImage($storedPath);
-            
-            // Crea il record nella tabella icons con prefisso "storage/"
-            $icon = Icon::create([
-                'img' => 'storage/' . ltrim($storedPath, '/'), // e.g. "storage/avatars/testimonial_avatar_123.jpg"
-                'alt' => $authorName . ' - Avatar',
-                'type' => 'user_uploaded'
-            ]);
+            $extension = $file->getClientOriginalExtension();
+            $filename = 'testimonial_avatar_' . Str::uuid() . '.' . $extension;
+            $relativePath = 'avatars/' . $filename;
+
+            if (app()->environment('production')) {
+                // PRODUZIONE: salva su S3 (Supabase) dopo ottimizzazione in memoria
+                $image = Image::make($file->getRealPath());
+                $image->resize(150, 150, function ($constraint) {
+                    $constraint->aspectRatio();
+                    $constraint->upsize();
+                });
+                $binary = (string) $image->encode($extension, 85);
+                Storage::disk('src')->put($relativePath, $binary);
+
+                $baseUrl = rtrim(config('filesystems.disks.src.url') ?: env('SUPABASE_PUBLIC_URL'), '/');
+                $publicUrl = $baseUrl . '/' . $relativePath; // assoluto
+
+                $icon = Icon::create([
+                    'img' => $publicUrl,
+                    'alt' => $authorName . ' - Avatar',
+                    'type' => 'user_uploaded'
+                ]);
+            } else {
+                // LOCALE: salva su disco pubblico
+                $storedPath = $file->storeAs('avatars', $filename, 'public');
+                $this->optimizeAvatarImage($storedPath);
+                $icon = Icon::create([
+                    'img' => 'storage/' . ltrim($storedPath, '/'),
+                    'alt' => $authorName . ' - Avatar',
+                    'type' => 'user_uploaded'
+                ]);
+            }
             
             return $icon->id;
             
         } catch (\Exception $e) {
             // Se c'è un errore, rimuovi il file caricato
-            if (isset($storedPath) && Storage::disk('public')->exists($storedPath)) {
-                Storage::disk('public')->delete($storedPath);
+            if (isset($relativePath)) {
+                try {
+                    if (app()->environment('production')) {
+                        Storage::disk('src')->delete($relativePath);
+                    } else if (isset($storedPath) && Storage::disk('public')->exists($storedPath)) {
+                        Storage::disk('public')->delete($storedPath);
+                    }
+                } catch (\Throwable $cleanupError) {
+                    // best-effort
+                }
             }
             
             Log::error('Avatar upload failed in testimonial', [

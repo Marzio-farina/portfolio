@@ -38,20 +38,34 @@ class AvatarController extends Controller
 
         try {
             $file = $request->file('avatar');
-            
+
             // Genera nome file unico
-            $filename = 'avatar_' . Str::uuid() . '.' . $file->getClientOriginalExtension();
-            
-            // Percorso di destinazione per storage locale
-            $path = 'avatars/' . $filename;
-            
-            // Salva il file su storage locale
-            $storedPath = $file->storeAs('avatars', $filename, 'public');
-            $this->optimizeImage($storedPath);
-            
-            // Salva nel database con prefisso "storage/" per coerenza con routing/CDN
-            // Esempio risultante: "storage/avatars/avatar_123.jpg"
-            $imgPath = 'storage/' . ltrim($storedPath, '/');
+            $extension = $file->getClientOriginalExtension();
+            $filename = 'avatar_' . Str::uuid() . '.' . $extension;
+            $relativePath = 'avatars/' . $filename;
+
+            if (app()->environment('production')) {
+                // PRODUZIONE: salva su storage S3 (Supabase) usando il disco 'src'
+                // Ottimizza in memoria e poi fai il put binario
+                $image = Image::make($file->getRealPath());
+                $image->resize(200, 200, function ($constraint) {
+                    $constraint->aspectRatio();
+                    $constraint->upsize();
+                });
+                $binary = (string) $image->encode($extension, 85);
+
+                Storage::disk('src')->put($relativePath, $binary);
+
+                // URL pubblico dal disco 'src'
+                $baseUrl = rtrim(config('filesystems.disks.src.url') ?: env('SUPABASE_PUBLIC_URL'), '/');
+                $imgPath = $baseUrl . '/' . $relativePath; // assoluto per il CDN
+                $storedPath = $relativePath; // per eventuale cleanup
+            } else {
+                // LOCALE: salva su disco pubblico e servi via /storage
+                $storedPath = $file->storeAs('avatars', $filename, 'public');
+                $this->optimizeImage($storedPath);
+                $imgPath = 'storage/' . ltrim($storedPath, '/');
+            }
             
             // Crea il record nella tabella icons con path relativo
             $icon = Icon::create([
@@ -71,9 +85,17 @@ class AvatarController extends Controller
             ], 201);
             
         } catch (\Exception $e) {
-            // Se c'è un errore, rimuovi il file caricato
-            if (isset($storedPath) && Storage::disk('public')->exists($storedPath)) {
-                Storage::disk('public')->delete($storedPath);
+            // Se c'è un errore, prova a rimuovere l'eventuale file caricato
+            if (isset($storedPath)) {
+                try {
+                    if (app()->environment('production')) {
+                        Storage::disk('src')->delete($storedPath);
+                    } else if (Storage::disk('public')->exists($storedPath)) {
+                        Storage::disk('public')->delete($storedPath);
+                    }
+                } catch (\Throwable $cleanupError) {
+                    // best-effort
+                }
             }
             
             return response()->json([
@@ -133,12 +155,21 @@ class AvatarController extends Controller
             
             // Rimuovi il file se esiste (gestisce sia path con "storage/" che senza)
             if ($icon->img) {
-                $filePath = str_starts_with($icon->img, 'storage/') 
-                    ? str_replace('storage/', '', $icon->img) 
-                    : $icon->img;
-                
-                if (Storage::disk('public')->exists($filePath)) {
-                    Storage::disk('public')->delete($filePath);
+                // Se è URL assoluto (cloud), elimina sul disco 'src'
+                if (str_starts_with($icon->img, 'http://') || str_starts_with($icon->img, 'https://')) {
+                    $baseUrl = rtrim(config('filesystems.disks.src.url') ?: env('SUPABASE_PUBLIC_URL'), '/');
+                    $relative = ltrim(str_replace($baseUrl, '', $icon->img), '/');
+                    if ($relative) {
+                        Storage::disk('src')->delete($relative);
+                    }
+                } else {
+                    // Locale: gestisci path con/ senza prefisso storage/
+                    $filePath = str_starts_with($icon->img, 'storage/') 
+                        ? str_replace('storage/', '', $icon->img) 
+                        : $icon->img;
+                    if (Storage::disk('public')->exists($filePath)) {
+                        Storage::disk('public')->delete($filePath);
+                    }
                 }
             }
             
