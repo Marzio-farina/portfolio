@@ -1,4 +1,4 @@
-import { Component, inject, signal, output, ViewChild, ElementRef } from '@angular/core';
+import { Component, inject, signal, output, ViewChild, ElementRef, HostListener } from '@angular/core';
 import { FormBuilder, FormGroup, ReactiveFormsModule, Validators } from '@angular/forms';
 import { Router } from '@angular/router';
 import { TestimonialService } from '../../services/testimonial.service';
@@ -462,9 +462,24 @@ export class AddTestimonial {
     this.showFieldsPopup.set(!this.showFieldsPopup());
   }
   
-  // Chiudi popup
+  // Chiudi popup e applica i cambiamenti
   closeFieldsPopup(): void {
+    // Se almeno un campo è selezionato, mostra la row
+    const hasAnyField = this.optionalFields().some(f => f.visible);
+    this.showAdditionalFields.set(hasAnyField);
     this.showFieldsPopup.set(false);
+  }
+  
+  // Chiudi popup quando si clicca fuori
+  @HostListener('document:click', ['$event'])
+  onDocumentClick(event: Event): void {
+    if (this.showFieldsPopup()) {
+      const target = event.target as HTMLElement;
+      // Chiudi se il click è fuori dal popup e dal bottone
+      if (!target.closest('.fields-popup') && !target.closest('.toggle-additional-btn')) {
+        this.closeFieldsPopup();
+      }
+    }
   }
   
   // Toggle visibilità di un singolo campo nel popup
@@ -474,13 +489,6 @@ export class AddTestimonial {
         field.id === fieldId ? { ...field, visible: !field.visible } : field
       )
     );
-  }
-  
-  // Gestione toggle campi aggiuntivi originale (quando si chiude il popup applica i cambiamenti)
-  applyAdditionalFieldsToggle(): void {
-    // Se almeno un campo è selezionato, mostra la row
-    const hasAnyField = this.optionalFields().some(f => f.visible);
-    this.showAdditionalFields.set(hasAnyField);
   }
 
   // Gestione notifiche
