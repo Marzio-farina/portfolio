@@ -82,8 +82,13 @@ export class App {
    */
   private setupAuthenticationEffect(): void {
     effect(() => {
-      if (this.auth.isAuthenticated()) {
+      const authed = this.auth.isAuthenticated();
+      if (authed) {
         this.idle.start();
+        // Chiudi automaticamente la modale login quando autenticato
+        if (this.isLoginOpen()) {
+          this.isLoginOpen.set(false);
+        }
       } else {
         this.idle.stop();
       }
