@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use App\Http\Requests\LoginRequest;
 use App\Http\Requests\RegisterRequest;
 use App\Http\Requests\UpdateProfileRequest;
+use App\Models\Role;
 use App\Models\User;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Support\Facades\Hash;
@@ -26,6 +27,22 @@ class AuthController extends Controller
      */
     public function register(RegisterRequest $request): JsonResponse
     {
+        // Resolve default role when not provided (fallback to 'Guest')
+        $roleId = $request->role_id;
+        if (!$roleId) {
+            $roleId = Role::where('title', 'Guest')->value('id');
+            if (!$roleId) {
+                // as last resort, pick first role or create Guest
+                $first = Role::query()->value('id');
+                if ($first) {
+                    $roleId = $first;
+                } else {
+                    $guest = Role::create(['title' => 'Guest']);
+                    $roleId = $guest->id;
+                }
+            }
+        }
+
         // Create new user with hashed password
         $user = User::create([
             'name' => $request->name,
@@ -33,7 +50,7 @@ class AuthController extends Controller
             'date_of_birth' => $request->date_of_birth,
             'email' => $request->email,
             'password' => Hash::make($request->password),
-            'role_id' => $request->role_id,
+            'role_id' => $roleId,
             'icon_id' => $request->icon_id,
         ]);
 
