@@ -18,8 +18,8 @@
 }
 
 .tab {
-    flex: 1;
-    padding: .6rem 1rem;
+    flex: 0 0 auto;            /* non allargare a tutta la riga */
+    padding: .5rem .8rem;      /* meno larga */
     border: none;
     background: transparent;
     border-radius: 999px;
@@ -33,6 +33,14 @@
     background: var(--accent-primary);
     color: var(--text-inverse);
     box-shadow: var(--shadow-1);
+}
+
+/* Contenitore tab: distanzia dal contenuto sottostante */
+.tabs {
+    display: flex;
+    gap: .5rem;
+    justify-content: center; /* centrati orizzontalmente */
+    margin-bottom: 1rem; /* spazio tra tabs e form */
 }
 
 h2 {
@@ -52,31 +60,17 @@ form {
     gap: .3rem;
 }
 
-.field.checkbox{
-  display: block;          /* blocco unico, niente grid qui */
-  margin-bottom: .25rem;
-}
-
-.checkbox-row{
+/* Consenso privacy (ricreato pulito) */
+.consent { margin: .5rem 0 0; }
+.consent__row {
   display: flex;
   align-items: flex-start;
   gap: .6rem;
-  cursor: pointer;
 }
-
-.checkbox-row input[type="checkbox"]{
-  margin-top: .2rem;       /* allinea col testo */
-  flex: 0 0 auto;
-}
-
-.checkbox-row span{
-  display: block;
-  flex: 1 1 auto;
-  line-height: 1.35;
-  color: var(--text-secondary);
-  word-break: break-word;  /* evita overflow */
-  transition: color var(--transition-1);
-}
+.consent__row input[type="checkbox"] { margin-top: .2rem; flex: 0 0 auto; }
+.consent__text { flex: 1 1 auto; line-height: 1.35; color: var(--text-secondary); }
+.consent__text a { color: var(--accent-primary); text-decoration: underline; font-weight: 600; }
+.consent__text a:hover { color: var(--error-color); font-weight: 700; }
 
 .field.checkbox label{
     flex:1 1 0;
@@ -160,6 +154,22 @@ input:focus {
     font-size: .9rem;
     color: var(--text-muted);
     transition: color var(--transition-1);
+    display: flex;
+    justify-content: space-between; /* elementi ai bordi con massima distanza */
+    align-items: center;
+    gap: .5rem;
+}
+
+.hint a {
+    color: var(--accent-primary); /* colore principale in base al tema */
+    text-decoration: none;
+    font-weight: 600;
+    transition: color var(--transition-1), font-weight var(--transition-1);
+}
+
+.hint a:hover {
+    color: var(--error-color, #ef4444); /* rosso su hover */
+    font-weight: 700; /* grassetto su hover */
 }
 
 .error-banner {

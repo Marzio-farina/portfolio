@@ -177,7 +177,8 @@
 
 .mf-modal__content {
   position: relative;
-  width: min(560px, 92vw);
+  width: 335px;            /* larghezza fissa richiesta */
+  max-width: 92vw;         /* prevenzione overflow su viewport stretti */
   max-height: 88vh;
   overflow: auto;
   border: 1px solid var(--border-primary);
@@ -189,14 +190,15 @@
 
 .mf-modal__close {
   position: absolute;
-  top: 8px;
-  right: 10px;
+  top: 0;
+  right: 5px;
   background: transparent;
   color: var(--text-secondary);
   border: none;
-  font-size: 1.25rem;
+  font-size: 2.5rem; /* 4x più grande rispetto a 1.25rem */
   line-height: 1;
   cursor: pointer;
+  z-index: 2;
 }
 /* .floating-nav a:hover { opacity: 1; } */
 /* .floating-nav .is-active {

@@ -92,11 +92,14 @@
         required (blur)="onFieldBlur('register.confirm')" />
     </div>
 
-    <div class="field checkbox">
-        <input type="checkbox" id="reg-terms" formControlName="terms" (blur)="onFieldBlur('register.terms')" />
-        <label for="reg-terms">
-            Accetto i <a href="#" (click)="$event.preventDefault()">termini</a> e l'informativa privacy
-        </label>
+    <div class="consent">
+      <label class="consent__row">
+        <input type="checkbox" formControlName="terms" (blur)="onFieldBlur('register.terms')" />
+        <span class="consent__text">
+          Acconsento al trattamento dei dati per essere ricontattato. 
+          <a href="#" (click)="$event.preventDefault()">Informativa Privacy</a>
+        </span>
+      </label>
     </div>
 
     <button class="primary" type="submit" [disabled]="registerForm.invalid || loading()">
