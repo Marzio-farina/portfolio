@@ -490,6 +490,12 @@ export class AddTestimonial {
       )
     );
   }
+  
+  // Verifica se un campo specifico è visibile
+  isFieldVisible(fieldId: string): boolean {
+    const field = this.optionalFields().find(f => f.id === fieldId);
+    return field ? field.visible : false;
+  }
 
   // Gestione notifiche
   private onErrorChange(errorData: {message: string, type: NotificationType, fieldId: string, action: 'add' | 'remove'} | undefined) {
