@@ -46,15 +46,24 @@ class AvatarController extends Controller
 
             if (app()->environment('production')) {
                 // PRODUZIONE: salva su storage S3 (Supabase) usando il disco 'src'
-                // Ottimizza in memoria e poi fai il put binario
-                $image = Image::make($file->getRealPath());
-                $image->resize(200, 200, function ($constraint) {
-                    $constraint->aspectRatio();
-                    $constraint->upsize();
-                });
-                $binary = (string) $image->encode($extension, 85);
+                // Tenta ottimizzazione; in caso di errore salva l'originale
+                $binary = file_get_contents($file->getRealPath());
+                try {
+                    $image = Image::make($file->getRealPath());
+                    $image->resize(200, 200, function ($constraint) {
+                        $constraint->aspectRatio();
+                        $constraint->upsize();
+                    });
+                    $binary = (string) $image->encode($extension, 85);
+                } catch (\Throwable $e) {
+                    // fallback: usa l'originale senza bloccare l'upload
+                    Log::warning('Avatar optimization skipped (prod fallback).', ['error' => $e->getMessage()]);
+                }
 
-                Storage::disk('src')->put($relativePath, $binary);
+                $ok = Storage::disk('src')->put($relativePath, $binary);
+                if (!$ok) {
+                    throw new \RuntimeException('Failed writing avatar to src disk');
+                }
 
                 // URL pubblico dal disco 'src'
                 $baseUrl = rtrim(config('filesystems.disks.src.url') ?: env('SUPABASE_PUBLIC_URL'), '/');

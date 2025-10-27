@@ -248,14 +248,22 @@ class TestimonialController extends Controller
             $relativePath = 'avatars/' . $filename;
 
             if (app()->environment('production')) {
-                // PRODUZIONE: salva su S3 (Supabase) dopo ottimizzazione in memoria
-                $image = Image::make($file->getRealPath());
-                $image->resize(150, 150, function ($constraint) {
-                    $constraint->aspectRatio();
-                    $constraint->upsize();
-                });
-                $binary = (string) $image->encode($extension, 85);
-                Storage::disk('src')->put($relativePath, $binary);
+                // PRODUZIONE: salva su S3 (Supabase). Se l'ottimizzazione fallisce, salva l'originale.
+                $binary = file_get_contents($file->getRealPath());
+                try {
+                    $image = Image::make($file->getRealPath());
+                    $image->resize(150, 150, function ($constraint) {
+                        $constraint->aspectRatio();
+                        $constraint->upsize();
+                    });
+                    $binary = (string) $image->encode($extension, 85);
+                } catch (\Throwable $e) {
+                    Log::warning('Testimonial avatar optimization skipped (prod fallback).', ['error' => $e->getMessage()]);
+                }
+                $ok = Storage::disk('src')->put($relativePath, $binary);
+                if (!$ok) {
+                    throw new \RuntimeException('Failed writing testimonial avatar to src disk');
+                }
 
                 $baseUrl = rtrim(config('filesystems.disks.src.url') ?: env('SUPABASE_PUBLIC_URL'), '/');
                 $publicUrl = $baseUrl . '/' . $relativePath; // assoluto
