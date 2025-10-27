@@ -34,16 +34,16 @@ class RouteServiceProvider extends ServiceProvider
         $apiDomain = env('API_DOMAIN');
 
         if (!empty($apiDomain)) {
-            // Produzione: API solo sul sottodominio, nessun prefisso
+            // Produzione: API sul sottodominio, nessun prefisso
             $apiGroup = $apiGroup->domain($apiDomain);
         } else {
-            // Locale: nessun dominio -> aggiungo prefisso /api per continuare a usare /api/...
-            $apiGroup = $apiGroup->prefix('api');
+            // Locale: nessun prefisso /api, esponi direttamente /projects, /testimonials, ...
+            // (se vuoi reintrodurre il prefisso, imposta API_DOMAIN oppure gestisci un FLAG dedicato)
         }
 
         $apiGroup->group(base_path('routes/api.php'));
 
-        // ✅ Registra le rotte API
+        // ✅ Registra le rotte WEB
         Route::middleware('web')->group(base_path('routes/web.php'));
     }
 }
