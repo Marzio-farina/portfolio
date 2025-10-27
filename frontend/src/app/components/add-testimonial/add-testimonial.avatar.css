@@ -1,0 +1,123 @@
+/* Field Avatar (span su 2 righe) */
+.field--avatar {
+  grid-column: 3;
+  grid-row: 1 / 3;
+  padding: 12px 14px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+}
+
+/* Container per avatar e frecce */
+.avatar-container {
+  display: flex;
+  align-items: center;
+  position: relative;
+}
+
+/* Preview dell'avatar */
+.avatar-preview {
+  position: relative;
+  width: 80px;
+  height: 80px;
+  border-radius: 50%;
+  overflow: hidden;
+  cursor: pointer;
+  transition: transform var(--transition-1), box-shadow var(--transition-1);
+}
+
+.avatar-preview:hover {
+  transform: scale(1.05);
+  box-shadow: var(--shadow-2);
+}
+
+.avatar-image {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  border-radius: 50%;
+}
+
+.avatar-overlay {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(0, 0, 0, 0.5);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  opacity: 0;
+  transition: opacity var(--transition-1);
+  border-radius: 50%;
+}
+
+.avatar-preview:hover .avatar-overlay {
+  opacity: 1;
+}
+
+.avatar-overlay svg {
+  width: 24px;
+  height: 24px;
+  color: white;
+}
+
+/* Pulsanti di navigazione avatar */
+.avatar-nav-btn {
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  border: 2px solid var(--accent-primary);
+  background: var(--bg-card);
+  color: var(--accent-primary);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  transition: all var(--transition-1);
+  box-shadow: var(--shadow-1);
+  flex-shrink: 0;
+}
+
+.avatar-nav-btn:hover:not(:disabled) {
+  background: var(--accent-primary);
+  color: var(--bg-card);
+  transform: scale(1.1);
+  box-shadow: var(--shadow-2);
+}
+
+.avatar-nav-btn:disabled {
+  opacity: 0.3;
+  cursor: not-allowed;
+  transform: none;
+}
+
+.avatar-nav-btn svg {
+  width: 16px;
+  height: 16px;
+}
+
+/* Input file nascosto */
+.avatar-file-input {
+  position: absolute;
+  opacity: 0;
+  pointer-events: none;
+}
+
+/* Input URL nascosto */
+.avatar-url-input {
+  position: absolute;
+  opacity: 0;
+  pointer-events: none;
+}
+
+/* ============== TABLET RESPONSIVE ============== */
+@media (min-width: 640px) and (max-width: 720px) {
+  /* Avatar: colonna 3, righe 1-2 */
+  .field--avatar {
+    grid-column: 3;
+    grid-row: 1 / 3;
+  }
+}

@@ -19,7 +19,11 @@ export interface NotificationItem {
   selector: 'app-add-testimonial',
   imports: [ReactiveFormsModule, Notification, NgClass],
   templateUrl: './add-testimonial.html',
-  styleUrl: './add-testimonial.css'
+  styleUrls: [
+    './add-testimonial.css',
+    './add-testimonial.avatar.css',
+    './add-testimonial.rating.css'
+  ]
 })
 export class AddTestimonial {
   private fb = inject(FormBuilder);
