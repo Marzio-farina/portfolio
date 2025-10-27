@@ -102,7 +102,7 @@ export class ProjectService {
    */
   private extractTechnologiesString(dto: ProjectDto): string {
     return (dto.technologies ?? [])
-      .map(tech => tech.name ?? '')
+      .map(tech => (tech as any).title ?? tech.name ?? '')
       .filter(Boolean)
       .join(', ');
   }
