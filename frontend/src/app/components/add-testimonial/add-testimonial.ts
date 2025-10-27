@@ -24,7 +24,8 @@ export interface NotificationItem {
     './add-testimonial.avatar.css',
     './add-testimonial.rating.css',
     './add-testimonial.tooltip.css',
-    './add-testimonial.buttons.css'
+    './add-testimonial.buttons.css',
+    './add-testimonial.responsive.css'
   ]
 })
 export class AddTestimonial {

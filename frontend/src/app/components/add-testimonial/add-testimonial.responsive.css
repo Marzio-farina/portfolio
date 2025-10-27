@@ -1,0 +1,207 @@
+/* Nascondi il toggle su desktop (sempre mostrati) */
+@media (min-width: 721px) {
+  .row-toggle-additional {
+    display: none !important;
+  }
+}
+
+/* Mostra i campi aggiuntivi su mobile quando il toggle è attivo */
+@media (max-width: 720px) {
+  .row.show-on-mobile {
+    display: contents !important;
+  }
+  
+  /* Mostra i campi individuali quando hanno la classe field-visible, anche se hanno hidden-mobile */
+  .hidden-mobile.field-visible {
+    display: flex !important;
+  }
+}
+
+/* ============== TABLET RESPONSIVE (640px - 720px) ============== */
+
+@media (min-width: 640px) and (max-width: 720px) {
+  .hidden-mobile {
+    display: none !important;
+  }
+  
+  /* Su tablet, Cognome e Avatar sono sempre visibili nonostante hidden-mobile */
+  .field--surname.hidden-mobile,
+  .field--avatar.hidden-mobile {
+    display: flex !important;
+  }
+  
+  .form {
+    grid-template-columns: 1fr 1fr 1fr;
+    gap: 16px;
+  }
+
+  /* Nome: occupa 2/3, riga 1 */
+  .field--name {
+    grid-column: 1 / 3;
+    grid-row: 1;
+  }
+
+  /* Cognome: sotto Nome, riga 2 */
+  .field--surname {
+    grid-column: 1 / 3;
+    grid-row: 2;
+  }
+  
+  /* Avatar: terza colonna (circa 1/3), righe 1-2 */
+  .field--avatar {
+    grid-column: 3 / 4;
+    grid-row: 1 / 3;
+  }
+
+  /* Azienda: riga 3, colonne 1-2 (50% della riga) */
+  .field--company.hidden-mobile.field-visible {
+    display: flex !important;
+    grid-column: 1 / 2;
+    grid-row: 3;
+  }
+
+  /* Ruolo: riga 3, colonne 2-4 (50% della riga) */
+  .field--role.hidden-mobile.field-visible {
+    display: flex !important;
+    grid-column: 2 / 3;
+    grid-row: 3;
+  }
+
+  /* Row toggle "Ulteriori informazioni" - occupa tutte le colonne */
+  .row-toggle-additional {
+    display: block !important; /* Override display: contents */
+    grid-column: 1 / -1;
+    grid-row: 4;
+  }
+
+  /* Textarea: larghezza completa, riga 5 (dopo toggle) */
+  .field--textarea {
+    grid-column: 1 / -1;
+    grid-row: 5;
+  }
+
+  /* Rating: label e button affiancati orizzontalmente, riga 6 */
+  .rating-container {
+    grid-column: 1 / -1;
+    grid-row: 6;
+    display: flex;
+    flex-direction: row;
+    align-items: center;
+    gap: 12px;
+    justify-content: flex-start;
+    margin-top: 0;
+  }
+
+  .rating-label {
+    white-space: nowrap;
+    flex-shrink: 0;
+  }
+
+  .rating-input {
+    display: flex;
+    flex-direction: row;
+    gap: 8px;
+    flex-wrap: nowrap;
+  }
+
+  /* Actions: pulsanti affiancati, riga 7 */
+  .actions {
+    grid-column: 1 / -1;
+    grid-row: 7;
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 12px;
+    margin-top: 16px;
+  }
+
+  .btn {
+    width: 100%;
+    padding: 12px 18px;
+  }
+}
+
+/* ============== MOBILE RESPONSIVE (< 640px) ============== */
+
+@media (max-width: 640px) {
+  .hidden-mobile {
+    display: none !important;
+  }
+
+  .form {
+    grid-template-columns: repeat(3, 1fr);
+  }
+
+  /* Nome: sempre visibile, riga 1, 3 colonne */
+  .field--name {
+    grid-column: 1 / -1;
+    grid-row: 1;
+  }
+
+  /* Cognome: riga 2 (se visible), 3 colonne */
+  .field--surname.hidden-mobile.field-visible {
+    grid-column: 1 / -1;
+    grid-row: 2;
+  }
+
+  /* Azienda: dopo Cognome (se visible), 3 colonne */
+  .field--company.hidden-mobile.field-visible {
+    grid-column: 1 / -1;
+    grid-row: 3;
+  }
+
+  /* Ruolo: dopo Azienda (se visible), 3 colonne */
+  .field--role.hidden-mobile.field-visible {
+    grid-column: 1 / -1;
+    grid-row: 4;
+  }
+
+  /* Avatar: larghezza 2/3, dopo Ruolo */
+  .field--avatar.hidden-mobile.field-visible {
+    grid-column: 1 / 3;
+    grid-row: 5;
+  }
+
+  /* Se Azienda non è visible, Ruolo va in riga 3 */
+  .field--company:not(.field-visible) ~ .field--role.hidden-mobile.field-visible {
+    grid-row: 3;
+  }
+
+  /* Se né Azienda né Ruolo sono visible, Avatar va in riga 3 */
+  .field--company:not(.field-visible) ~ .field--role:not(.field-visible) ~ .field--avatar.hidden-mobile.field-visible {
+    grid-row: 3;
+  }
+
+  /* Row toggle "Ulteriori informazioni" - dopo Avatar */
+  .row-toggle-additional {
+    display: block !important; /* Override display: contents */
+    grid-column: 1 / -1;
+    grid-row: 6;
+  }
+
+  .field--textarea {
+    grid-column: 1 / -1;
+    grid-row: 7;
+  }
+
+  .rating-container {
+    grid-column: 1 / -1;
+    grid-row: 8;
+    flex-direction: row;
+    align-items: center;
+    gap: 12px;
+    flex-wrap: wrap;
+  }
+
+  .rating-input {
+    flex-wrap: wrap;
+  }
+
+  .actions {
+    grid-column: 1 / -1;
+    grid-row: 9;
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 12px;
+    margin-top: 16px;
+  }
+}
