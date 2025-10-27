@@ -15,7 +15,7 @@ Questa policy stabilisce in modo definitivo come vengono gestite e servite le im
   - Gli asset sono serviti via `/storage/avatars/...` (symlink `public/storage`).
 - Produzione (Vercel):
   - File scritti su storage esterno S3‑compatibile (Supabase) usando il disk `src` definito in `config/filesystems.php`.
-  - L’immagine è ottimizzata in memoria e poi inviata al bucket; nel DB si salva l’URL pubblico ASSOLUTO, es. `https://<public-url>/avatars/avatar_<uuid>.png`.
+  - L’immagine è ottimizzata in memoria e poi inviata al bucket; se l’ottimizzazione fallisce, salviamo l’ORIGINALE (fallback). Nel DB si salva l’URL pubblico ASSOLUTO, es. `https://<public-url>/avatars/avatar_<uuid>.png`.
   - Il filesystem di Vercel è read‑only a runtime: non si scrive su `public/` o `storage/` durante le richieste.
 
 ## Flusso di upload
@@ -25,7 +25,7 @@ Questa policy stabilisce in modo definitivo come vengono gestite e servite le im
    - Avatar standalone: max 200×200, qualità 85.
    - Avatar testimonial: max 150×150, qualità 85.
 4) Scrittura:
-   - Prod: `Storage::disk('src')->put('avatars/<file>', <binary>)` e salvataggio URL assoluto nel DB.
+   - Prod: `Storage::disk('src')->put('avatars/<file>', <binary>)` e salvataggio URL assoluto nel DB. Se ottimizzazione fallisce → usa il binario originale.
    - Dev: `Storage::disk('public')->storeAs('avatars', <file>)` e salvataggio `storage/avatars/<file>` nel DB.
 
 ## Endpoint coinvolti (immutabili)
@@ -38,6 +38,10 @@ Questa policy stabilisce in modo definitivo come vengono gestite e servite le im
   - In produzione: URL assoluto pubblico (es. Supabase) → va mostrato “as is”.
   - In locale: path relativo con prefisso `storage/` → il client o le API lo risolvono in `http://localhost:8000/storage/...`.
 - Compatibilità: se nei dati legacy appare `avatars/...`, le API normalizzano a `storage/avatars/...` quando costruiscono l’URL.
+
+## Error handling
+- Se il client invia `avatar_file` ma l’upload fallisce (es. storage non raggiungibile), l’API risponde `422` e NON crea il testimonial. Evita record con `icon_id` NULL quando l’intento era caricare l’avatar.
+- Log arricchiti con dettagli su configurazione `SUPABASE_*` per diagnosi.
 
 ## Frontend: consumo degli avatar
 - Usare SEMPRE l’URL restituito dalle API.
@@ -58,7 +62,7 @@ Database (produzione): configurare `DB_CONNECTION` e variabili `DB_*` valide. In
 
 ## Routing e statici
 - `vercel.json` mappa `/storage/avatars/*` → `/public/storage/avatars/*` per gli avatar di default e altri asset bundlati.
-- Route fallback Laravel `/avatars/{filename}` è disponibile e consente `@` nel nome, ma non viene usata per i file utente in produzione (che hanno URL assoluto su CDN/S3).
+- La route fallback `/avatars/{filename}` è stata rimossa: gli upload utente in produzione sono URL assoluti (CDN/S3).
 
 ## Migrazioni e compatibilità
 - Migration presente per aggiungere il prefisso `storage/` ai record legacy che avevano `avatars/...`.
@@ -67,9 +71,10 @@ Database (produzione): configurare `DB_CONNECTION` e variabili `DB_*` valide. In
   - `UPDATE icons SET img = NULL WHERE img IN ('storage', 'storage/');`
 
 ## Troubleshooting
-- 404 su `/avatars/<file>` in produzione → i file utente sono su CDN: usare l’URL assoluto da `icons.img`.
+- 404 su `/avatars/<file>` in produzione → la route è stata rimossa; i file utente sono su CDN: usare l’URL assoluto da `icons.img`.
 - 500 su API → verificare connessione DB in produzione (variabili `DB_*`).
 - Immagine non visibile → verificare che `icons.img` non sia `storage/` o vuoto; in prod controllare che l’oggetto esista nel bucket `avatars/`.
+- Verifica storage: `php artisan app:check-storage-src` (test scrittura/lettura/cleanup su disco `src`).
 
 ## Cose da NON fare
 - Non scrivere file su `public/` o `storage/` in produzione durante le richieste.
