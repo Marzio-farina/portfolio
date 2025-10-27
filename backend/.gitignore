@@ -15,13 +15,14 @@
 /node_modules
 /public/build
 /public/hot
-/public/storage
 !/public/storage/avatars
+!/public/storage/attestati
 !/public/storage/**/*.png
 !/public/storage/**/*.jpg
 !/public/storage/**/*.jpeg
 !/public/storage/**/*.gif
 !/public/storage/**/*.webp
+/public/storage
 /storage/*.key
 /storage/pail
 /vendor
