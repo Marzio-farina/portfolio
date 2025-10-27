@@ -105,9 +105,22 @@ export class Auth {
       finalize(() => this.loading.set(false))
     ).subscribe({
       next: (res) => {
-        this.success.set(`Account creato per ${res.user?.name || 'utente'} (${res.user?.email || 'email'}). Ora puoi accedere.`);
+        const registeredEmail = res.user?.email || '';
+        this.success.set(`Account creato per ${res.user?.name || 'utente'} (${registeredEmail}). Ora puoi accedere.`);
+
+        // Pulisci campi registrazione e stato UI
+        this.registerForm.reset({ name: '', email: '', password: '', confirm: '', terms: false });
+        this.registerForm.markAsPristine();
+        this.registerForm.markAsUntouched();
+        this.notifications.set([]);
+        this.tooltipVisible.set(null);
+        this.showRegPass.set(false);
+
+        // Passa al tab login e precompila l'email
         this.mode.set('login');
-        this.loginForm.patchValue({ email: res.user?.email || '', password: '' });
+        this.loginForm.patchValue({ email: registeredEmail, password: '' });
+        this.loginForm.markAsPristine();
+        this.loginForm.markAsUntouched();
       },
       error: (err) => this.error.set(this.humanizeError(err)),
     });
