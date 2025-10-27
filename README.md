@@ -121,6 +121,17 @@ portfolio/
 - **GitHub** - Version control
 - **Supabase** - Database cloud
 
+### Ridimensionamento avatar (Supabase Edge Function)
+
+In produzione gli avatar caricati vengono salvati come originali su Supabase dentro `avatars/original/`. Una Edge Function su Supabase (gratuito) crea in asincrono una variante 70×70 in `avatars/70x70/` e aggiorna il record in `icons.img` alla nuova URL.
+
+Esempio funzione: `supabase/edge-functions/resize-avatar/index.ts` (Deno + ImageScript).
+
+Setup (riassunto):
+- Imposta variabili su Supabase Functions: `SUPABASE_URL`, `SUPABASE_SERVICE_ROLE_KEY`, `BUCKET=src`.
+- Crea un webhook Storage sul bucket `src` con prefix `avatars/original/` → funzione `resize-avatar`.
+- Bucket pubblico (oppure usa URL firmate e adatta la funzione).
+
 ## 📚 Documentazione
 
 - 📖 **[Documentazione Completa](DOCUMENTATION.md)** - Guida dettagliata per sviluppatori

@@ -42,24 +42,14 @@ class AvatarController extends Controller
             // Genera nome file unico
             $extension = $file->getClientOriginalExtension();
             $filename = 'avatar_' . Str::uuid() . '.' . $extension;
-            $relativePath = 'avatars/' . $filename;
+            // In produzione salviamo sempre l'originale sotto avatars/original/
+            $relativePath = app()->environment('production')
+                ? ('avatars/original/' . $filename)
+                : ('avatars/' . $filename);
 
             if (app()->environment('production')) {
-                // PRODUZIONE: salva su storage S3 (Supabase) usando il disco 'src'
-                // Tenta ottimizzazione; in caso di errore salva l'originale
+                // PRODUZIONE: salva l'ORIGINALE su Supabase; il resize 70x70 lo fa una Edge Function
                 $binary = file_get_contents($file->getRealPath());
-                try {
-                    $image = Image::make($file->getRealPath());
-                    $image->resize(200, 200, function ($constraint) {
-                        $constraint->aspectRatio();
-                        $constraint->upsize();
-                    });
-                    $binary = (string) $image->encode($extension, 85);
-                } catch (\Throwable $e) {
-                    // fallback: usa l'originale senza bloccare l'upload
-                    Log::warning('Avatar optimization skipped (prod fallback).', ['error' => $e->getMessage()]);
-                }
-
                 $ok = Storage::disk('src')->put($relativePath, $binary);
                 if (!$ok) {
                     throw new \RuntimeException('Failed writing avatar to src disk');
