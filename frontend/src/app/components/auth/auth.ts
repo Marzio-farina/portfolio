@@ -1,7 +1,9 @@
 import { Component, inject, signal } from '@angular/core';
 import { AbstractControl, FormBuilder, FormGroup, ReactiveFormsModule, ValidationErrors, Validators } from '@angular/forms';
 import { AuthService, LoginDto, RegisterDto } from '../../services/auth.service';
+import { Notification as NotificationCmp, NotificationType } from '../notification/notification';
 import { finalize } from 'rxjs';
+import { Notification } from '../notification/notification';
 
 /**
  * Standalone Auth component: Accedi / Registrati
@@ -31,7 +33,7 @@ function strongPassword() {
 
 @Component({
   selector: 'app-auth',
-  imports: [ReactiveFormsModule],
+  imports: [ReactiveFormsModule, NotificationCmp],
   templateUrl: './auth.html',
   styleUrl: './auth.css'
 })
@@ -46,6 +48,8 @@ export class Auth {
   success = signal<string | null>(null);
   showLoginPass = signal(false);
   showRegPass = signal(false);
+  // Notifiche multiple (stile add-testimonial)
+  notifications = signal<{ id: string; message: string; type: NotificationType; timestamp: number; fieldId: string; }[]>([]);
   
   // Forms
   loginForm: FormGroup = this.fb.group({
@@ -76,7 +80,7 @@ export class Auth {
   // Actions
   submitLogin() {
     this.error.set(null); this.success.set(null);
-    if (this.loginForm.invalid) { this.loginForm.markAllAsTouched(); return; }
+    if (this.loginForm.invalid) { this.loginForm.markAllAsTouched(); this.showValidationErrors('login'); return; }
     this.loading.set(true);
 
     const dto = this.loginForm.value as LoginDto;
@@ -92,7 +96,7 @@ export class Auth {
 
   submitRegister() {
     this.error.set(null); this.success.set(null);
-    if (this.registerForm.invalid) { this.registerForm.markAllAsTouched(); return; }
+    if (this.registerForm.invalid) { this.registerForm.markAllAsTouched(); this.showValidationErrors('register'); return; }
     this.loading.set(true);
 
     const { name, email, password } = this.registerForm.value as RegisterDto & { confirm: string; terms: boolean };
@@ -130,5 +134,84 @@ export class Auth {
     if (/invalid credentials|401/i.test(msg)) return 'Credenziali non valide.';
     if (/email.+exists|409/i.test(msg)) return 'Email già registrata.';
     return msg;
+  }
+
+  // ===== Notifiche stile stack =====
+  onFieldBlur(fieldKey: string) {
+    const ctrl = this.getControlByKey(fieldKey);
+    if (!ctrl) return;
+    ctrl.markAsTouched();
+    if (ctrl.invalid) {
+      const { message, type } = this.fieldErrorMessage(fieldKey);
+      this.addNotification(fieldKey, message, type);
+    } else {
+      this.removeNotification(fieldKey);
+    }
+  }
+
+  private getControlByKey(key: string) {
+    switch (key) {
+      case 'login.email': return this.loginForm.get('email');
+      case 'login.password': return this.loginForm.get('password');
+      case 'register.name': return this.registerForm.get('name');
+      case 'register.email': return this.registerForm.get('email');
+      case 'register.password': return this.registerForm.get('password');
+      case 'register.confirm': return this.registerForm.get('confirm');
+      case 'register.terms': return this.registerForm.get('terms');
+      default: return null;
+    }
+  }
+
+  private fieldErrorMessage(key: string): { message: string; type: NotificationType } {
+    switch (key) {
+      case 'login.email':
+        return { message: "L'email per il login non valida.", type: 'error' };
+      case 'register.email':
+        return { message: "L'email per la registrazione non valida.", type: 'error' };
+      case 'login.password':
+        return { message: 'La password è obbligatoria.', type: 'error' };
+      case 'register.name':
+        return { message: 'Il nome è obbligatorio (min 2 caratteri).', type: 'warning' };
+      case 'register.password':
+        return { message: 'Inserisci: 8+ car. con maiuscole, minuscole e numeri.', type: 'warning' };
+      case 'register.confirm':
+        return { message: 'Le password non coincidono.', type: 'error' };
+      case 'register.terms':
+        return { message: 'Devi accettare i termini.', type: 'error' };
+      default:
+        return { message: 'Compila correttamente il campo.', type: 'info' };
+    }
+  }
+
+  private addNotification(fieldId: string, message: string, type: NotificationType) {
+    const now = Date.now();
+    this.notifications.update(list => {
+      const filtered = list.filter(n => n.fieldId !== fieldId);
+      return [...filtered, { id: `${fieldId}-${now}`, message, type, timestamp: now, fieldId }];
+    });
+  }
+
+  private removeNotification(fieldId: string) {
+    this.notifications.update(list => list.filter(n => n.fieldId !== fieldId));
+  }
+
+  private showValidationErrors(scope: 'login' | 'register') {
+    if (scope === 'login') {
+      if (this.loginForm.get('email')?.invalid) this.addNotification('login.email', "L'email è obbligatoria o non valida.", 'error');
+      if (this.loginForm.get('password')?.invalid) this.addNotification('login.password', 'La password è obbligatoria.', 'error');
+    } else {
+      if (this.registerForm.get('name')?.invalid) this.addNotification('register.name', 'Il nome è obbligatorio (min 2 caratteri).', 'warning');
+      if (this.registerForm.get('email')?.invalid) this.addNotification('register.email', "L'email è obbligatoria o non valida.", 'error');
+      if (this.registerForm.get('password')?.errors?.['weakPassword'] || this.registerForm.get('password')?.errors?.['required']) this.addNotification('register.password', 'Password debole: 8+ caratteri con maiuscole, minuscole e numeri.', 'warning');
+      if (this.registerForm.errors?.['fieldMismatch']) this.addNotification('register.confirm', 'Le password non coincidono.', 'error');
+      if (this.registerForm.get('terms')?.invalid) this.addNotification('register.terms', 'Devi accettare i termini.', 'error');
+    }
+  }
+
+  getMostSevereNotification() {
+    const list = this.notifications();
+    if (!list.length) return null;
+    const order: NotificationType[] = ['error', 'warning', 'info', 'success'];
+    return [...list].sort((a, b) => order.indexOf(a.type) - order.indexOf(b.type))[0];
   }
 }
