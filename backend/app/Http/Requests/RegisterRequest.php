@@ -12,7 +12,6 @@ class RegisterRequest extends FormRequest {
       'date_of_birth' => ['nullable','date'],
       'email' => ['required','email','max:100','unique:users,email'],
       'password' => ['required','string','min:8'],
-      'role_id' => ['nullable','exists:roles,id'],
       'icon_id' => ['nullable','exists:icons,id'],
     ];
   }

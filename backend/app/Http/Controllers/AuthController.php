@@ -27,20 +27,12 @@ class AuthController extends Controller
      */
     public function register(RegisterRequest $request): JsonResponse
     {
-        // Resolve default role when not provided (fallback to 'Guest')
-        $roleId = $request->role_id;
+        // Force role to 'Guest' for any new registration (ignore client-provided role)
+        $roleId = Role::where('title', 'Guest')->value('id');
         if (!$roleId) {
-            $roleId = Role::where('title', 'Guest')->value('id');
-            if (!$roleId) {
-                // as last resort, pick first role or create Guest
-                $first = Role::query()->value('id');
-                if ($first) {
-                    $roleId = $first;
-                } else {
-                    $guest = Role::create(['title' => 'Guest']);
-                    $roleId = $guest->id;
-                }
-            }
+            // Create Guest role if missing
+            $guest = Role::create(['title' => 'Guest']);
+            $roleId = $guest->id;
         }
 
         // Create new user with hashed password
