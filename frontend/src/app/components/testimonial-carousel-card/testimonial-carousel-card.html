@@ -39,7 +39,7 @@
                 <app-avatar class="testimonial-avatar" [width]="72" [avatarData]="getAvatarData(testimonial)"></app-avatar>
                 <div class="card" (mouseenter)="onMouseEnter()" (mouseleave)="onMouseLeave()">
                   <div class="description_card" (click)="openDialog(testimonial)">
-                    <h4>{{ testimonial.author }}</h4>
+                    <h4>{{ truncateAuthor(testimonial.author) }}</h4>
                     @if (testimonial.rating) {
                       <div class="rating-container">
                         <div class="stars-rating">

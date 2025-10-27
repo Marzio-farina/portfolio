@@ -94,9 +94,11 @@
     font-size: 0.75rem;
     line-height: 1.1;
     margin-bottom: 2px;
-    word-break: break-word;
-    overflow-wrap: break-word;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
     padding: 0 4px;
+    max-width: 100%;
   }
 
   .description_card p {
@@ -141,6 +143,10 @@
 
   .description_card h4 {
     font-size: 0.95rem;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    max-width: 100%;
   }
 
   .description_card p {
@@ -165,6 +171,10 @@
 
   .description_card h4 {
     font-size: 1rem;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    max-width: 100%;
   }
 
   .description_card p {

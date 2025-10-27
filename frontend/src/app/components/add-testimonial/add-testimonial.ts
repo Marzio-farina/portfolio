@@ -50,6 +50,17 @@ export class AddTestimonial {
 
   // Gestione campi aggiuntivi (per mobile/tablet)
   showAdditionalFields = signal(false);
+  
+  // Gestione popup campi opzionali
+  showFieldsPopup = signal(false);
+  
+  // Campi opzionali disponibili (solo per il popup, la visibilità è gestita da showAdditionalFields)
+  optionalFields = signal([
+    { id: 'author_surname', label: 'Cognome', visible: false },
+    { id: 'company', label: 'Azienda', visible: false },
+    { id: 'role_company', label: 'Ruolo', visible: false },
+    { id: 'avatar', label: 'Avatar', visible: false }
+  ]);
 
   // Output per comunicare con il componente padre (per le notifiche) - non usato in questo caso
   errorChange = output<{message: string, type: 'error' | 'warning' | 'info' | 'success', fieldId: string, action: 'add' | 'remove'} | undefined>();
@@ -411,9 +422,65 @@ export class AddTestimonial {
     this.router.navigate(['/about']);
   }
 
-  // Gestione toggle campi aggiuntivi
+  // Ottiene i campi nascosti in base alla larghezza dello schermo
+  private getHiddenFields(): string[] {
+    if (typeof window === 'undefined') return [];
+    
+    const width = window.innerWidth;
+    
+    // Desktop (>720px): tutti i campi sono visibili, nessuno nascosto
+    if (width > 720) {
+      return [];
+    }
+    
+    // Tablet (640-720px): Cognome e Avatar sono sempre visibili
+    if (width >= 640 && width <= 720) {
+      return ['company', 'role_company'];
+    }
+    
+    // Mobile (<640px): Nome è sempre visibile, tutti gli altri nascosti
+    if (width < 640) {
+      return ['author_surname', 'company', 'role_company', 'avatar'];
+    }
+    
+    return [];
+  }
+  
+  // Ottiene i campi opzionali filtrati in base al dispositivo
+  getVisibleOptionalFields() {
+    const hiddenFields = this.getHiddenFields();
+    return this.optionalFields().filter(field => hiddenFields.includes(field.id));
+  }
+  
+  // Verifica se ci sono campi nascosti da mostrare nel popup
+  hasHiddenFields(): boolean {
+    return this.getVisibleOptionalFields().length > 0;
+  }
+  
+  // Gestione toggle campi aggiuntivi - apre popup
   toggleAdditionalFields(): void {
-    this.showAdditionalFields.set(!this.showAdditionalFields());
+    this.showFieldsPopup.set(!this.showFieldsPopup());
+  }
+  
+  // Chiudi popup
+  closeFieldsPopup(): void {
+    this.showFieldsPopup.set(false);
+  }
+  
+  // Toggle visibilità di un singolo campo nel popup
+  toggleFieldVisibility(fieldId: string): void {
+    this.optionalFields.update(fields => 
+      fields.map(field => 
+        field.id === fieldId ? { ...field, visible: !field.visible } : field
+      )
+    );
+  }
+  
+  // Gestione toggle campi aggiuntivi originale (quando si chiude il popup applica i cambiamenti)
+  applyAdditionalFieldsToggle(): void {
+    // Se almeno un campo è selezionato, mostra la row
+    const hasAnyField = this.optionalFields().some(f => f.visible);
+    this.showAdditionalFields.set(hasAnyField);
   }
 
   // Gestione notifiche

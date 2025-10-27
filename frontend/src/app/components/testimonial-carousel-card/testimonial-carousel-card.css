@@ -177,6 +177,10 @@
   text-transform: capitalize;
   text-align: center;
   transition: color var(--transition-1);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  max-width: 100%;
 }
 
 .rating-container {

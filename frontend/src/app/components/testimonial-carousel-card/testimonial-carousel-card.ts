@@ -87,6 +87,14 @@ export class TestimonialCarouselCard {
   }
 
   /**
+   * Tronca il nome dell'autore a massimo 10 caratteri con ellipsis
+   */
+  truncateAuthor(author: string, maxLength: number = 10): string {
+    if (!author || author.length <= maxLength) return author;
+    return author.slice(0, maxLength) + '…';
+  }
+
+  /**
    * Calcola il numero massimo di slide/pagine considerando le card visibili
    */
   maxSlides(): number {
