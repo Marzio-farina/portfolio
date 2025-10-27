@@ -77,20 +77,29 @@ class TestimonialResource extends JsonResource
     {
         // Se ha icon_id specifico (nuovo sistema)
         if ($this->icon_id && $this->icon) {
-            return [
-                'id' => $this->icon->id,
-                'img' => $this->getAbsoluteUrl($this->icon->img),
-                'alt' => $this->icon->alt ?? $this->getAuthorName()
-            ];
+            $img = $this->icon->img;
+            if ($this->isValidImagePath($img)) {
+                return [
+                    'id' => $this->icon->id,
+                    'img' => $this->getAbsoluteUrl($img),
+                    'alt' => $this->icon->alt ?? $this->getAuthorName()
+                ];
+            }
+            // Se il path è invalido, non restituire l'icona per evitare URL monchi
+            return null;
         }
         
         // Se è un utente registrato, usa la sua icona
         if ($this->isFromUser() && $this->user && $this->user->icon) {
-            return [
-                'id' => $this->user->icon->id,
-                'img' => $this->getAbsoluteUrl($this->user->icon->img),
-                'alt' => $this->user->icon->alt ?? $this->getAuthorName()
-            ];
+            $img = $this->user->icon->img;
+            if ($this->isValidImagePath($img)) {
+                return [
+                    'id' => $this->user->icon->id,
+                    'img' => $this->getAbsoluteUrl($img),
+                    'alt' => $this->user->icon->alt ?? $this->getAuthorName()
+                ];
+            }
+            return null;
         }
         
         // Fallback al vecchio sistema (deprecato)
@@ -103,6 +112,23 @@ class TestimonialResource extends JsonResource
         }
         
         return null;
+    }
+
+    /**
+     * Verifica che il path immagine sia valido e punti a un file
+     */
+    private function isValidImagePath(?string $path): bool
+    {
+        if (!$path) return false;
+        // URL assoluto: consideralo valido
+        if (str_starts_with($path, 'http://') || str_starts_with($path, 'https://')) {
+            return true;
+        }
+        // Evita path monchi come "storage/" o "storage"
+        $clean = trim($path);
+        if ($clean === 'storage' || $clean === 'storage/') return false;
+        // Deve contenere un nome file con estensione immagine
+        return (bool) preg_match('/\.(?:jpg|jpeg|png|gif|webp)$/i', $clean);
     }
 
     /**

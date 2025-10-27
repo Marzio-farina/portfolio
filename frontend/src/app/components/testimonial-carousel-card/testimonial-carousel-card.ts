@@ -176,23 +176,40 @@ export class TestimonialCarouselCard {
     
     // Se c'è un'icona, usa quella
     if (testimonial.icon) {
+      const url = this.normalizeAvatarUrl(testimonial.icon.img);
+      if (!this.isValidImageUrl(url)) return null;
       return {
         id: testimonial.icon.id,
-        img: this.normalizeAvatarUrl(testimonial.icon.img),
+        img: url,
         alt: testimonial.icon.alt
       };
     }
     
     // Altrimenti usa l'avatar diretto se disponibile
     if (testimonial.avatar) {
+      const url = this.normalizeAvatarUrl(testimonial.avatar);
+      if (!this.isValidImageUrl(url)) return null;
       return {
         id: 0,
-        img: this.normalizeAvatarUrl(testimonial.avatar),
+        img: url,
         alt: testimonial.author
       };
     }
     
     return null;
+  }
+
+  /**
+   * Verifica che l'URL punti ragionevolmente a un file immagine
+   */
+  private isValidImageUrl(url: string | null | undefined): boolean {
+    if (!url) return false;
+    const trimmed = url.trim();
+    if (!trimmed) return false;
+    // Evita URL monchi come .../storage/ o .../storage
+    if (/\/storage\/?$/.test(trimmed)) return false;
+    // Deve terminare con un'estensione immagine
+    return /\.(jpg|jpeg|png|gif|webp)(\?.*)?$/i.test(trimmed);
   }
 
   /**
