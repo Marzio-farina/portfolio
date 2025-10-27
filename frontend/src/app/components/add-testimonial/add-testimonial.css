@@ -129,7 +129,6 @@
 
 /* Textarea (larghezza completa) */
 .field--textarea {
-  margin-top: 16px;
   padding: 14px;
   grid-column: 1 / -1;
 }
@@ -226,7 +225,7 @@
 .toggle-additional-container {
   display: flex;
   align-items: center;
-  justify-content: space-between;
+  justify-content: end;
   gap: 16px;
   width: 100%;
 }
@@ -276,7 +275,6 @@
   position: absolute;
   top: calc(100% + 8px);
   right: 0;
-  transform: translateX(calc(40px - 100%));
   background: var(--bg-card);
   border: 1px solid var(--border-primary);
   border-radius: var(--radius-xl, 14px);
@@ -383,7 +381,6 @@
   .field--textarea {
     grid-column: 1 / -1;
     grid-row: 4;
-    margin-top: 0;
   }
 
   /* Rating: label e button affiancati orizzontalmente, riga 5 */
@@ -445,7 +442,6 @@
 
   .field--textarea {
     grid-column: 1 / -1;
-    margin-top: 16px;
   }
 
   .rating-container {
