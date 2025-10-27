@@ -26,11 +26,11 @@
 </main>
 
 @if (isLoginOpen()) {
-  <div class="modal-backdrop" (click)="closeLogin()"></div>
-  <div class="modal" role="dialog" aria-modal="true" aria-label="Accedi">
-    <div class="modal__content" (click)="$event.stopPropagation()">
-      <button class="modal__close" (click)="closeLogin()" aria-label="Chiudi">×</button>
-      <app-accedi></app-accedi>
+  <div class="mf-modal-backdrop" (click)="closeLogin()"></div>
+  <div class="mf-modal" role="dialog" aria-modal="true" aria-label="Accedi">
+    <div class="mf-modal__content" (click)="$event.stopPropagation()">
+      <button class="mf-modal__close" (click)="closeLogin()" aria-label="Chiudi">×</button>
+      <app-auth></app-auth>
     </div>
   </div>
 }

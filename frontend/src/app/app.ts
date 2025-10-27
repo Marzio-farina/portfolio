@@ -5,7 +5,7 @@ import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { Aside } from './components/aside/aside';
 import { Dashboard } from './components/dashboard/dashboard';
 import { Navbar } from './components/navbar/navbar';
-import { Accedi } from './pages/accedi/accedi';
+import { Auth } from './components/auth/auth';
 import { AuthService } from './services/auth.service';
 import { IdleService } from './services/idle.service';
 import { ThemeService } from './services/theme.service';
@@ -18,7 +18,7 @@ import { ThemeService } from './services/theme.service';
  */
 @Component({
   selector: 'app-root',
-  imports: [Aside, Navbar, Dashboard, Accedi],
+  imports: [Aside, Navbar, Dashboard, Auth],
   templateUrl: './app.html',
   styleUrl: './app.css'
 })
