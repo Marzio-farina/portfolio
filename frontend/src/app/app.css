@@ -168,8 +168,10 @@
 .mf-modal {
   position: fixed;
   inset: 0;
-  display: grid;
-  place-items: center;
+  display: flex;
+  justify-content: center;   /* centra orizzontalmente */
+  align-items: flex-start;    /* allinea in alto */
+  padding-top: 20vh;           /* distanza dal bordo superiore: 30% */
   z-index: 1201;
 }
 
