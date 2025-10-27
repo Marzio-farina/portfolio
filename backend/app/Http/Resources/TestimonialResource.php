@@ -149,6 +149,10 @@ class TestimonialResource extends JsonResource
         }
         
         try {
+            // Normalizza eventuali vecchi path "avatars/..." a "storage/avatars/..."
+            if (str_starts_with($path, 'avatars/')) {
+                $path = 'storage/' . $path;
+            }
             // Costruisci l'URL base dalla richiesta corrente
             $request = request();
             $scheme = $request->header('x-forwarded-proto', $request->getScheme());
