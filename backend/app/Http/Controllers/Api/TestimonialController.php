@@ -89,8 +89,14 @@ class TestimonialController extends Controller
             // Usa l'icona specificata
             $iconId = $validated['icon_id'];
         } elseif ($request->hasFile('avatar_file')) {
-            // Gestisce upload file locale
+            // Gestisce upload file locale / cloud
             $iconId = $this->handleAvatarUpload($request->file('avatar_file'), $validated['author_name']);
+            if ($iconId === null) {
+                return response()->json([
+                    'ok' => false,
+                    'message' => 'Caricamento avatar non riuscito. Verifica connessione e riprova.',
+                ], 422, [], JSON_UNESCAPED_UNICODE);
+            }
         } elseif (!empty($validated['avatar_url'])) {
             // Cerca se esiste già un'icona con questa URL
             $existingIcon = Icon::where('img', $validated['avatar_url'])->first();
@@ -288,7 +294,11 @@ class TestimonialController extends Controller
             
             Log::error('Avatar upload failed in testimonial', [
                 'error' => $e->getMessage(),
-                'author' => $authorName
+                'author' => $authorName,
+                'env' => app()->environment(),
+                'has_src_url' => (bool) (config('filesystems.disks.src.url') ?: env('SUPABASE_PUBLIC_URL')),
+                'has_endpoint' => (bool) env('SUPABASE_S3_ENDPOINT'),
+                'has_bucket' => (bool) env('SUPABASE_S3_BUCKET'),
             ]);
             
             return null;
