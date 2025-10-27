@@ -40,7 +40,7 @@ export class ProjectService {
     }).pipe(
       map(response => ({
         ...response,
-        data: (response.data ?? []).map(this.dtoToProgetto)
+        data: (response.data ?? []).map(dto => this.dtoToProgetto(dto))
       }))
     );
   }
