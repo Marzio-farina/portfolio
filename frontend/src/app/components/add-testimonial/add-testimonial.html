@@ -23,7 +23,7 @@
   } @else {
     <form class="form" (ngSubmit)="submit()" [formGroup]="form" novalidate>
       <div class="row">
-        <label class="field">
+        <label class="field field--name">
           <input type="text" formControlName="author_name" placeholder=" " required (blur)="onFieldBlur('author_name')"/>
           <span class="field-label">Nome</span>
           <svg class="field-icon" viewBox="0 0 24 24" aria-hidden="true" (mouseenter)="showTooltip('name')" (mouseleave)="hideTooltip('name')">
@@ -33,7 +33,7 @@
             Inserisci il tuo nome
           </div>
         </label>
-        <label class="field">
+        <label class="field field--surname hidden-mobile">
           <input type="text" formControlName="author_surname" placeholder=" " (blur)="onFieldBlur('author_surname')"/>
           <span class="field-label">Cognome (opzionale)</span>
           <svg class="field-icon" viewBox="0 0 24 24" aria-hidden="true" (mouseenter)="showTooltip('surname')" (mouseleave)="hideTooltip('surname')">
@@ -43,7 +43,7 @@
             Inserisci il tuo cognome
           </div>
         </label>
-        <label class="field field--avatar">
+        <label class="field field--avatar hidden-mobile">
           <div class="avatar-container">
             <!-- Freccia sinistra -->
             <button type="button" class="avatar-nav-btn avatar-nav-prev" (click)="previousDefaultAvatar()" [disabled]="!canGoToPreviousAvatar()">
@@ -76,7 +76,7 @@
         </label>
       </div>
 
-      <div class="row">
+      <div class="row hidden-mobile">
         <label class="field">
           <input type="text" formControlName="company" placeholder=" " (blur)="onFieldBlur('company')"/>
           <span class="field-label">Azienda (opzionale)</span>
@@ -114,15 +114,35 @@
         <span class="rating-label">Valutazione</span>
         <div class="rating-input">
           <input type="radio" name="rating" [value]="1" formControlName="rating" id="rating-1"/>
-          <label for="rating-1">1</label>
+          <label for="rating-1" (mouseenter)="hoverRating.set(1)" (mouseleave)="hoverRating.set(0)" [ngClass]="{'star-filled': (hoverRating() > 0 ? hoverRating() >= 1 : (form.get('rating')?.value ?? 0) >= 1), 'star-hover': hoverRating() > 0 && hoverRating() >= 1, 'star-dimmed': hoverRating() > 0 && (form.get('rating')?.value ?? 0) > hoverRating() && 1 > hoverRating() && (form.get('rating')?.value ?? 0) >= 1}">
+            <svg class="star" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
+              <polygon points="12 2 15.09 10.26 24 10.35 17.82 16.54 20.91 24 12 18.81 3.09 24 6.18 16.54 0 10.35 8.91 10.26 12 2"></polygon>
+            </svg>
+          </label>
           <input type="radio" name="rating" [value]="2" formControlName="rating" id="rating-2"/>
-          <label for="rating-2">2</label>
+          <label for="rating-2" (mouseenter)="hoverRating.set(2)" (mouseleave)="hoverRating.set(0)" [ngClass]="{'star-filled': (hoverRating() > 0 ? hoverRating() >= 2 : (form.get('rating')?.value ?? 0) >= 2), 'star-hover': hoverRating() > 0 && hoverRating() >= 2, 'star-dimmed': hoverRating() > 0 && (form.get('rating')?.value ?? 0) > hoverRating() && 2 > hoverRating() && (form.get('rating')?.value ?? 0) >= 2}">
+            <svg class="star" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
+              <polygon points="12 2 15.09 10.26 24 10.35 17.82 16.54 20.91 24 12 18.81 3.09 24 6.18 16.54 0 10.35 8.91 10.26 12 2"></polygon>
+            </svg>
+          </label>
           <input type="radio" name="rating" [value]="3" formControlName="rating" id="rating-3"/>
-          <label for="rating-3">3</label>
+          <label for="rating-3" (mouseenter)="hoverRating.set(3)" (mouseleave)="hoverRating.set(0)" [ngClass]="{'star-filled': (hoverRating() > 0 ? hoverRating() >= 3 : (form.get('rating')?.value ?? 0) >= 3), 'star-hover': hoverRating() > 0 && hoverRating() >= 3, 'star-dimmed': hoverRating() > 0 && (form.get('rating')?.value ?? 0) > hoverRating() && 3 > hoverRating() && (form.get('rating')?.value ?? 0) >= 3}">
+            <svg class="star" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
+              <polygon points="12 2 15.09 10.26 24 10.35 17.82 16.54 20.91 24 12 18.81 3.09 24 6.18 16.54 0 10.35 8.91 10.26 12 2"></polygon>
+            </svg>
+          </label>
           <input type="radio" name="rating" [value]="4" formControlName="rating" id="rating-4"/>
-          <label for="rating-4">4</label>
+          <label for="rating-4" (mouseenter)="hoverRating.set(4)" (mouseleave)="hoverRating.set(0)" [ngClass]="{'star-filled': (hoverRating() > 0 ? hoverRating() >= 4 : (form.get('rating')?.value ?? 0) >= 4), 'star-hover': hoverRating() > 0 && hoverRating() >= 4, 'star-dimmed': hoverRating() > 0 && (form.get('rating')?.value ?? 0) > hoverRating() && 4 > hoverRating() && (form.get('rating')?.value ?? 0) >= 4}">
+            <svg class="star" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
+              <polygon points="12 2 15.09 10.26 24 10.35 17.82 16.54 20.91 24 12 18.81 3.09 24 6.18 16.54 0 10.35 8.91 10.26 12 2"></polygon>
+            </svg>
+          </label>
           <input type="radio" name="rating" [value]="5" formControlName="rating" id="rating-5"/>
-          <label for="rating-5">5</label>
+          <label for="rating-5" (mouseenter)="hoverRating.set(5)" (mouseleave)="hoverRating.set(0)" [ngClass]="{'star-filled': (hoverRating() > 0 ? hoverRating() >= 5 : (form.get('rating')?.value ?? 0) >= 5), 'star-hover': hoverRating() > 0 && hoverRating() >= 5, 'star-dimmed': hoverRating() > 0 && (form.get('rating')?.value ?? 0) > hoverRating() && 5 > hoverRating() && (form.get('rating')?.value ?? 0) >= 5}">
+            <svg class="star" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
+              <polygon points="12 2 15.09 10.26 24 10.35 17.82 16.54 20.91 24 12 18.81 3.09 24 6.18 16.54 0 10.35 8.91 10.26 12 2"></polygon>
+            </svg>
+          </label>
         </div>
       </div>
 

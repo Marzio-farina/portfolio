@@ -79,12 +79,6 @@
   display: contents;
 }
 
-@media (max-width: 720px) {
-  .form {
-    grid-template-columns: 1fr;
-  }
-}
-
 /* campi */
 .field {
   display: block;
@@ -292,24 +286,70 @@
   justify-content: center;
   width: 40px;
   height: 40px;
-  border: 2px solid var(--border-primary);
-  border-radius: 8px;
-  background: var(--bg-card);
+  border: none;
+  border-radius: 0;
+  background: transparent;
   color: var(--text-secondary);
   font-weight: 600;
   cursor: pointer;
   transition: all var(--transition-1);
+  padding: 0;
 }
 
-.rating-input input[type="radio"]:checked + label {
-  background: var(--accent-primary);
-  border-color: var(--accent-primary);
-  color: var(--text-inverse);
+.rating-input label .star {
+  width: 40px;
+  height: 40px;
+  stroke: var(--text-secondary);
+  fill: none;
+  transition: all var(--transition-1);
 }
 
-.rating-input label:hover {
-  border-color: var(--accent-primary);
-  background: var(--accent-primary-alpha);
+.rating-input input[type="radio"]:checked + label .star {
+  fill: var(--accent-primary);
+  stroke: var(--accent-primary);
+}
+
+.rating-input label:hover .star {
+  stroke: var(--accent-primary);
+  transform: scale(1.1);
+}
+
+/* Stelle riempite (piene - colore principale intenso) */
+.rating-input label.star-filled .star {
+  fill: var(--accent-primary);
+  stroke: var(--accent-primary);
+}
+
+/* Stelle scure (colore principale scuro/dimmed) - HA PRIORITA' SU STAR-FILLED */
+.rating-input label.star-dimmed .star {
+  fill: rgba(0, 0, 0, 0.1);
+  stroke: var(--text-secondary);
+  opacity: 0.5;
+}
+
+.rating-input label.star-filled.star-dimmed .star {
+  fill: rgba(0, 0, 0, 0.1);
+  stroke: var(--text-secondary);
+  opacity: 0.5;
+}
+
+.rating-input label.star-filled:hover .star,
+.rating-input label.star-dimmed:hover .star {
+  transform: scale(1.1);
+}
+
+/* Stelle hover (simulazione - colore chiaro) */
+.rating-input label.star-hover .star {
+  fill: rgba(var(--accent-primary-rgb, 255, 193, 7), 0.4);
+  stroke: var(--accent-primary);
+  opacity: 0.8;
+}
+
+/* star-hover ha priorità su star-filled quando in hover */
+.rating-input label.star-hover.star-filled .star {
+  fill: rgba(var(--accent-primary-rgb, 255, 193, 7), 0.4);
+  stroke: var(--accent-primary);
+  opacity: 0.8;
 }
 
 /* icona informativa */
@@ -490,4 +530,188 @@
 .field,
 .btn {
   backdrop-filter: saturate(110%);
+}
+
+/* ============== TABLET RESPONSIVE (640px - 720px) ============== */
+
+@media (min-width: 640px) and (max-width: 720px) {
+  .form {
+    grid-template-columns: 1fr 1fr 1fr;
+    gap: 16px;
+  }
+
+  /* Nome: colonna 1, riga 1 */
+  .field--name {
+    grid-column: 1 / 3;
+    grid-row: 1;
+  }
+
+  /* Cognome: colonna 1, riga 2 */
+  .field--surname {
+    grid-column: 1 / 3;
+    grid-row: 2;
+  }
+
+  /* Avatar: colonna 3, righe 1-2 */
+  .field--avatar {
+    grid-column: 3;
+    grid-row: 1 / 3;
+  }
+
+  /* Nasconde la riga con Azienda e Ruolo */
+  .row.hidden-mobile {
+    display: none !important;
+  }
+
+  /* Textarea: larghezza completa, riga 3 */
+  .field--textarea {
+    grid-column: 1 / -1;
+    grid-row: 3;
+    margin-top: 0;
+  }
+
+  /* Rating: label e button affiancati orizzontalmente, riga 4 */
+  .rating-container {
+    grid-column: 1 / -1;
+    grid-row: 4;
+    display: flex;
+    flex-direction: row;
+    align-items: center;
+    gap: 12px;
+    justify-content: flex-start;
+    margin-top: 0;
+  }
+
+  .rating-label {
+    white-space: nowrap;
+    flex-shrink: 0;
+  }
+
+  .rating-input {
+    display: flex;
+    flex-direction: row;
+    gap: 8px;
+    flex-wrap: nowrap;
+  }
+
+  /* Actions: pulsanti affiancati, riga 5 */
+  .actions {
+    grid-column: 1 / -1;
+    grid-row: 5;
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 12px;
+    margin-top: 16px;
+  }
+
+  .btn {
+    width: 100%;
+    padding: 12px 18px;
+  }
+}
+
+/* ============== MOBILE RESPONSIVE (< 640px) ============== */
+
+@media (max-width: 640px) {
+  .hidden-mobile {
+    display: none !important;
+  }
+
+  .form {
+    grid-template-columns: 1fr;
+  }
+
+  .field--textarea {
+    grid-column: 1 / -1;
+    margin-top: 16px;
+  }
+
+  .rating-container {
+    grid-column: 1 / -1;
+    flex-direction: row;
+    align-items: center;
+    gap: 12px;
+    flex-wrap: wrap;
+  }
+
+  .rating-input {
+    flex-wrap: wrap;
+  }
+
+.rating-input label {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 40px;
+  height: 40px;
+  border: none;
+  border-radius: 0;
+  background: transparent;
+  color: var(--text-secondary);
+  font-weight: 600;
+  cursor: pointer;
+  transition: all var(--transition-1);
+  padding: 0;
+}
+
+.rating-input label .star {
+  width: 40px;
+  height: 40px;
+  stroke: var(--text-secondary);
+  fill: none;
+  transition: all var(--transition-1);
+}
+
+.rating-input input[type="radio"]:checked + label .star {
+  fill: var(--accent-primary);
+  stroke: var(--accent-primary);
+}
+
+.rating-input label:hover .star {
+  stroke: var(--accent-primary);
+  transform: scale(1.1);
+}
+}
+
+/* Stelle riempite (piene - colore principale intenso) */
+.rating-input label.star-filled .star {
+  fill: var(--accent-primary);
+  stroke: var(--accent-primary);
+}
+
+/* Stelle scure (colore principale scuro/dimmed) - HA PRIORITA' SU STAR-FILLED */
+.rating-input label.star-dimmed .star {
+  fill: rgba(0, 0, 0, 0.1);
+  stroke: var(--text-secondary);
+  opacity: 0.5;
+}
+
+.rating-input label.star-filled.star-dimmed .star {
+  fill: rgba(0, 0, 0, 0.1);
+  stroke: var(--text-secondary);
+  opacity: 0.5;
+}
+
+/* Hover effect */
+.rating-input label:hover .star {
+  stroke: var(--accent-primary);
+}
+
+.rating-input label.star-filled:hover .star,
+.rating-input label.star-dimmed:hover .star {
+  transform: scale(1.1);
+}
+
+/* Stelle hover (simulazione - colore chiaro) */
+.rating-input label.star-hover .star {
+  fill: rgba(var(--accent-primary-rgb, 255, 193, 7), 0.4);
+  stroke: var(--accent-primary);
+  opacity: 0.8;
+}
+
+/* star-hover ha priorità su star-filled quando in hover */
+.rating-input label.star-hover.star-filled .star {
+  fill: rgba(var(--accent-primary-rgb, 255, 193, 7), 0.4);
+  stroke: var(--accent-primary);
+  opacity: 0.8;
 }

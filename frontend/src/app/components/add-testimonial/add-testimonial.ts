@@ -5,6 +5,7 @@ import { TestimonialService } from '../../services/testimonial.service';
 import { DefaultAvatarService } from '../../services/default-avatar.service';
 import { AvatarData } from '../avatar/avatar';
 import { Notification, NotificationType } from '../../components/notification/notification';
+import { NgClass } from '@angular/common';
 
 export interface NotificationItem {
   id: string;
@@ -16,7 +17,7 @@ export interface NotificationItem {
 
 @Component({
   selector: 'app-add-testimonial',
-  imports: [ReactiveFormsModule, Notification],
+  imports: [ReactiveFormsModule, Notification, NgClass],
   templateUrl: './add-testimonial.html',
   styleUrl: './add-testimonial.css'
 })
@@ -33,6 +34,8 @@ export class AddTestimonial {
   error = signal<string | undefined>(undefined);
   
   // Gestione tooltip
+  // Gestione hover rating
+  hoverRating = signal<number>(0);
   tooltipVisible: string | null = null;
 
   // Gestione notifiche multiple

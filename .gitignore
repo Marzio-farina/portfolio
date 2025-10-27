@@ -1,0 +1,93 @@
+# ============================================================================
+# Documentation (Personal/Local)
+# ============================================================================
+# Esclude i file di documentazione personali, mantiene solo README.md principale
+COMPONENTS_DOCUMENTATION.md
+MISSING_DOCUMENTATION.md
+DOCUMENTATION_AVATAR_SYSTEM.md
+COMPLETE_DOCUMENTATION.md
+ARCHITETTURA_SISTEMA_NOTIFICHE.txt
+BUGFIX_SUMMARY.md
+CURSOR_PLAYBOOK.md
+DOCUMENTATION.md
+DOCUMENTAZIONE_SISTEMA_NOTIFICHE.md
+PROMPT_TEMPLATES.md
+REFACTORING_SUMMARY.md
+TECHNICAL_DOCS.md
+TEST_REPORT_AVATAR_SYSTEM.md
+AVATAR_FIX_SUMMARY.md
+AVATAR_UPLOAD_SYSTEM.md
+
+# ============================================================================
+# Obsidian Vault
+# ============================================================================
+# Esclude la cartella completa di Obsidian
+.obsidian/
+
+# ============================================================================
+# Frontend (Angular)
+# ============================================================================
+frontend/node_modules/
+frontend/dist/
+frontend/.angular/
+frontend/.env
+frontend/.env.local
+frontend/.env.*.local
+frontend/npm-debug.log
+frontend/.DS_Store
+frontend/Thumbs.db
+
+# ============================================================================
+# Backend (Laravel)
+# ============================================================================
+backend/vendor/
+backend/.env
+backend/.env.local
+backend/.env.*.local
+backend/storage/logs/*
+backend/storage/app/public/avatars/*
+!backend/storage/app/public/.gitkeep
+!backend/storage/logs/.gitkeep
+backend/.DS_Store
+backend/Thumbs.db
+backend/phpunit.xml
+backend/node_modules/
+backend/npm-debug.log
+
+# ============================================================================
+# IDE & Editor
+# ============================================================================
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+.DS_Store
+Thumbs.db
+*.sublime-workspace
+*.sublime-project
+
+# ============================================================================
+# OS
+# ============================================================================
+.DS_Store
+Thumbs.db
+.AppleDouble
+.LSOverride
+*.log
+.env.local
+
+# ============================================================================
+# Build Output
+# ============================================================================
+dist/
+build/
+.cache/
+
+# ============================================================================
+# Local Development
+# ============================================================================
+.env.local
+.env.*.local
+*.local
+.tern-port
