@@ -351,12 +351,18 @@
     display: none !important;
   }
   
+  /* Su tablet, Cognome e Avatar sono sempre visibili nonostante hidden-mobile */
+  .field--surname.hidden-mobile,
+  .field--avatar.hidden-mobile {
+    display: flex !important;
+  }
+  
   .form {
     grid-template-columns: 1fr 1fr 1fr;
     gap: 16px;
   }
 
-  /* Nome e Cognome: occupano le prime 2 colonne (circa 2/3), riga 1 */
+  /* Nome: occupa 2/3, riga 1 */
   .field--name {
     grid-column: 1 / 3;
     grid-row: 1;
