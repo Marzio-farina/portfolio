@@ -1,4 +1,4 @@
-import { Component, DestroyRef, effect, inject, signal } from '@angular/core';
+import { Component, DestroyRef, computed, effect, inject, signal } from '@angular/core';
 import { Router } from '@angular/router';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 
@@ -42,6 +42,7 @@ export class App {
 
   // Modal login
   isLoginOpen = signal(false);
+  isAuthed = computed(() => !!this.auth.token());
 
   // ========================================================================
   // Constructor
@@ -119,4 +120,14 @@ export class App {
   // Apertura/chiusura popup login
   openLogin(): void { this.isLoginOpen.set(true); }
   closeLogin(): void { this.isLoginOpen.set(false); }
+
+  // Click sul pulsante in alto a destra: Accedi/Logout dinamico
+  onAuthButtonClick(): void {
+    if (this.isAuthed()) {
+      this.auth.logout();
+      this.isLoginOpen.set(false);
+    } else {
+      this.openLogin();
+    }
+  }
 }

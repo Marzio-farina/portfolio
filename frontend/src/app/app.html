@@ -11,10 +11,10 @@
       <!-- Login button (in alto a destra), stile simile al toggle tema dell'aside -->
       <button
         class="btn btn-sm dashboard__login"
-        (click)="openLogin()"
-        title="Accedi"
-        aria-label="Accedi">
-        <span class="dashboard__login-label">Accedi</span>
+        (click)="onAuthButtonClick()"
+        [title]="isAuthed() ? 'Logout' : 'Accedi'"
+        [attr.aria-label]="isAuthed() ? 'Logout' : 'Accedi'">
+        <span class="dashboard__login-label">{{ isAuthed() ? 'Logout' : 'Accedi' }}</span>
       </button>
       <div class="dashboard__nav">
         <app-navbar class="floating-nav floating-nav--inline"></app-navbar>

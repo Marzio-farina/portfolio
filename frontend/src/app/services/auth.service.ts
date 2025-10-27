@@ -165,6 +165,17 @@ export class AuthService {
    * Clears token and refreshes profile to public state
    */
   logout(): void {
+    // Prova a revocare il token lato server (fire-and-forget)
+    try {
+      if (this.isAuthenticated()) {
+        this.http.post(apiUrl('/logout'), {}).subscribe({
+          complete: () => {},
+          error: () => {}
+        });
+      }
+    } catch {}
+
+    // Pulisci comunque lo stato locale
     this.setToken(null);
     this.refreshMe();
   }
