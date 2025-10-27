@@ -7,6 +7,7 @@ import { Avatar } from "../avatar/avatar";
 import { AboutProfileService, PublicProfileDto, SocialLink } from '../../services/about-profile.service'
 import { makeLoadable } from '../../core/utils/loadable-signal';
 import { ThemeService } from '../../services/theme.service';
+import { AuthService } from '../../services/auth.service';
 
 @Component({
   selector: 'app-aside',
@@ -46,6 +47,7 @@ export class Aside {
   private readonly svc = inject(AboutProfileService);
   private readonly dr  = inject(DestroyRef);
   readonly theme = inject(ThemeService);
+  private readonly auth = inject(AuthService);
 
   // loadable (data/loading/error + reload)
   private readonly load = makeLoadable<PublicProfileDto>(() => this.svc.get$(), this.dr);
@@ -97,6 +99,9 @@ export class Aside {
     };
   });
 
+  // Stato autenticazione per mostrare icona matita
+  isAuthed = computed(() => !!this.auth.token());
+
   constructor(@Inject(PLATFORM_ID) platformId: Object) {
     this.isBrowser = isPlatformBrowser(platformId);
 
@@ -128,6 +133,11 @@ export class Aside {
 
   toggleContacts() {
     if (this.viewMode() !== 'large') this.expanded.update(v => !v);
+  }
+
+  // Click su icona matita avatar
+  onEditAvatar() {
+    // Qui potrai aprire una modale di upload avatar
   }
 
   // per scegliere l'icona in base al provider

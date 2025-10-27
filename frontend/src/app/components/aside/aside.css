@@ -22,6 +22,33 @@
   /* box-shadow: var(--shadow-1); */
 }
 
+/* Overlay icona matita sull'avatar quando autenticato */
+.avatar-wrap { position: relative; display: inline-block; }
+.avatar-edit {
+  position: absolute;
+  top: 6px;
+  right: 6px;
+  width: 28px;
+  height: 28px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 50%;
+  border: 1px solid var(--border-primary);
+  background: var(--bg-card);
+  color: var(--accent-primary);
+  box-shadow: var(--shadow-1);
+  cursor: pointer;
+  transition: transform var(--transition-1), background var(--transition-1), color var(--transition-1), border-color var(--transition-1);
+}
+.avatar-edit:hover {
+  transform: scale(1.05);
+  background: var(--accent-primary);
+  color: var(--text-inverse);
+  border-color: var(--accent-primary);
+}
+.avatar-edit svg { width: 14px; height: 14px; fill: currentColor; }
+
 .profile__identity {
   display: flex;
   flex-direction: column;
