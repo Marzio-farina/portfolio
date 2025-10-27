@@ -6,8 +6,8 @@
   },
   "routes": [
     { "src": "/build/(.*)", "dest": "/public/build/$1" },
-    { "src": "/storage/attestati/(.*)", "dest": "/public/storage/attestati/$1", "headers": { "cache-control": "public, max-age=86400, must-revalidate" } },
-    { "src": "/storage/avatars/(.*)", "dest": "/public/storage/avatars/$1", "headers": { "cache-control": "public, max-age=86400, must-revalidate" } },
+    { "src": "/storage/attestati/(.*)", "dest": "/public/storage/attestati/$1", "headers": { "cache-control": "public, max-age=3600" } },
+    { "src": "/storage/avatars/(.*)", "dest": "/public/storage/avatars/$1", "headers": { "cache-control": "public, max-age=3600" } },
     { "src": "/storage/(.*)", "dest": "/public/storage/$1" },
     { "src": "/(.*?)\\.(jpg|jpeg|png|gif|svg|webp|ico|css|js|woff|woff2|ttf|eot)$", "dest": "/public/$1.$2", "headers": { "cache-control": "public, max-age=31536000, immutable" } },
     { "src": "/(.*)", "dest": "/api/index.php" }
