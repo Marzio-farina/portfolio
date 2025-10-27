@@ -5,6 +5,7 @@ import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { Aside } from './components/aside/aside';
 import { Dashboard } from './components/dashboard/dashboard';
 import { Navbar } from './components/navbar/navbar';
+import { Accedi } from './pages/accedi/accedi';
 import { AuthService } from './services/auth.service';
 import { IdleService } from './services/idle.service';
 import { ThemeService } from './services/theme.service';
@@ -17,7 +18,7 @@ import { ThemeService } from './services/theme.service';
  */
 @Component({
   selector: 'app-root',
-  imports: [Aside, Navbar, Dashboard],
+  imports: [Aside, Navbar, Dashboard, Accedi],
   templateUrl: './app.html',
   styleUrl: './app.css'
 })
@@ -38,6 +39,9 @@ export class App {
   private readonly theme = inject(ThemeService);
   private readonly router = inject(Router);
   private readonly destroyRef = inject(DestroyRef);
+
+  // Modal login
+  isLoginOpen = signal(false);
 
   // ========================================================================
   // Constructor
@@ -104,11 +108,10 @@ export class App {
    */
   private handleIdleTimeout(): void {
     this.auth.logout();
-    this.router.navigateByUrl('/accedi');
+    this.isLoginOpen.set(true);
   }
 
-  // Naviga alla pagina di login dal bottone in alto a destra
-  navigateToLogin(): void {
-    this.router.navigateByUrl('/accedi');
-  }
+  // Apertura/chiusura popup login
+  openLogin(): void { this.isLoginOpen.set(true); }
+  closeLogin(): void { this.isLoginOpen.set(false); }
 }

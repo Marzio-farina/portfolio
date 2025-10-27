@@ -10,14 +10,11 @@
     <div class="dashboard__card">
       <!-- Login button (in alto a destra), stile simile al toggle tema dell'aside -->
       <button
-        class="btn btn-sm profile__toggle dashboard__login"
-        (click)="navigateToLogin()"
+        class="btn btn-sm dashboard__login"
+        (click)="openLogin()"
         title="Accedi"
         aria-label="Accedi">
-        <svg xmlns="http://www.w3.org/2000/svg" class="icon-16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true">
-          <path d="M10 2a5 5 0 110 10 5 5 0 010-10z"/>
-          <path d="M2 22c0-4.418 4.03-8 9-8s9 3.582 9 8"/>
-        </svg>
+        <span class="dashboard__login-label">Accedi</span>
       </button>
       <div class="dashboard__nav">
         <app-navbar class="floating-nav floating-nav--inline"></app-navbar>
@@ -27,3 +24,13 @@
     </div>
   </section>
 </main>
+
+@if (isLoginOpen()) {
+  <div class="modal-backdrop" (click)="closeLogin()"></div>
+  <div class="modal" role="dialog" aria-modal="true" aria-label="Accedi">
+    <div class="modal__content" (click)="$event.stopPropagation()">
+      <button class="modal__close" (click)="closeLogin()" aria-label="Chiudi">×</button>
+      <app-accedi></app-accedi>
+    </div>
+  </div>
+}
