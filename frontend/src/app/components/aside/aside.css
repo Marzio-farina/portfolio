@@ -49,6 +49,25 @@
 }
 .avatar-edit svg { width: 14px; height: 14px; fill: currentColor; }
 
+/* Lampeggio hover per 5s dopo il login */
+@keyframes avatarEditPulse {
+  0%, 100% {
+    transform: scale(1);
+    background: var(--bg-card);
+    color: var(--accent-primary);
+    border-color: var(--border-primary);
+  }
+  50% {
+    transform: scale(1.08);
+    background: var(--accent-primary);
+    color: var(--text-inverse);
+    border-color: var(--accent-primary);
+  }
+}
+.avatar-edit.hint {
+  animation: avatarEditPulse 1s ease-in-out infinite;
+}
+
 .profile__identity {
   display: flex;
   flex-direction: column;
