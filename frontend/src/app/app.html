@@ -8,6 +8,17 @@
   <!-- CONTENUTO -->
   <section class="dashboard">
     <div class="dashboard__card">
+      <!-- Login button (in alto a destra), stile simile al toggle tema dell'aside -->
+      <button
+        class="btn btn-sm profile__toggle dashboard__login"
+        (click)="navigateToLogin()"
+        title="Accedi"
+        aria-label="Accedi">
+        <svg xmlns="http://www.w3.org/2000/svg" class="icon-16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true">
+          <path d="M10 2a5 5 0 110 10 5 5 0 010-10z"/>
+          <path d="M2 22c0-4.418 4.03-8 9-8s9 3.582 9 8"/>
+        </svg>
+      </button>
       <div class="dashboard__nav">
         <app-navbar class="floating-nav floating-nav--inline"></app-navbar>
       </div>

@@ -106,4 +106,9 @@ export class App {
     this.auth.logout();
     this.router.navigateByUrl('/accedi');
   }
+
+  // Naviga alla pagina di login dal bottone in alto a destra
+  navigateToLogin(): void {
+    this.router.navigateByUrl('/accedi');
+  }
 }
