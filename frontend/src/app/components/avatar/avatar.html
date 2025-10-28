@@ -1,4 +1,4 @@
-<figure class="profile__avatar" [class.highlighted]="highlighted()">
+<figure class="profile__avatar" [class.highlighted]="highlighted()" [style.width.px]="width()" [style.height.px]="width()">
     @if (selectedAvatar()) {
         <img 
             [src]="selectedAvatar()!.img"

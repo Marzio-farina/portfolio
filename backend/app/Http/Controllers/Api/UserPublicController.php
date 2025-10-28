@@ -41,6 +41,7 @@ class UserPublicController extends Controller
                 $user = $query
                 ->with([
                     'profile:id,user_id,title,headline,bio,phone,location,avatar_url',
+                    'icon:id,img,alt',
                     'socialAccounts' => fn($q) => $q
                         ->select(['id','user_id','provider','handle','url'])
                         ->orderBy('provider'),
@@ -87,6 +88,7 @@ class UserPublicController extends Controller
             $data = Cache::remember($cacheKey, now()->addSeconds(60), function () use ($user, $request) {
                 $user->load([
                     'profile:id,user_id,title,headline,bio,phone,location,avatar_url',
+                    'icon:id,img,alt',
                     'socialAccounts' => fn($q) => $q->select(['id','user_id','provider','handle','url'])->orderBy('provider'),
                 ]);
 

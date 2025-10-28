@@ -20,6 +20,7 @@ class UpdateProfileRequest extends FormRequest
             'phone'      => ['nullable','string','max:20'],
             'location'   => ['nullable','string','max:100'],
             'avatar_url' => ['nullable','url','max:500'],
+            'icon_id'    => ['nullable','integer','exists:icons,id'],
         ];
     }
 }

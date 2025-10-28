@@ -1,4 +1,4 @@
-import { Component, inject, signal, output, ViewChild, ElementRef, HostListener } from '@angular/core';
+import { Component, inject, signal, output, ViewChild, ElementRef, HostListener, ChangeDetectionStrategy } from '@angular/core';
 import { FormBuilder, FormGroup, ReactiveFormsModule, Validators } from '@angular/forms';
 import { Router } from '@angular/router';
 import { TestimonialService } from '../../services/testimonial.service';
@@ -27,7 +27,8 @@ export interface NotificationItem {
     './add-testimonial.tooltip.css',
     './add-testimonial.buttons.css',
     './add-testimonial.responsive.css'
-  ]
+  ],
+  changeDetection: ChangeDetectionStrategy.OnPush
 })
 export class AddTestimonial {
   private fb = inject(FormBuilder);

@@ -101,9 +101,11 @@ Route::middleware(['api', "throttle:{$throttleLimit}", 'db.connection'])
             Route::get('cv', [CvController::class, 'index']);
             Route::get('what-i-do', [WhatIDoController::class, 'index']);
             Route::get('attestati', [AttestatiController::class, 'index']);
-            Route::get('users/{user}/public-profile', [UserPublicController::class, 'show']);
-            Route::get('public-profile', [UserPublicController::class, 'me']);
         });
+
+        // Profilo pubblico NON in cache, per riflettere subito le modifiche
+        Route::get('users/{user}/public-profile', [UserPublicController::class, 'show']);
+        Route::get('public-profile', [UserPublicController::class, 'me']);
 
         // ====================================================================
         // Public Write Endpoints (with rate limiting)

@@ -5,7 +5,7 @@
   .profile__edit {
     top: 0;
     right: 0;
-    bottom: auto;
+    bottom: auto !important; /* sovrascrive la regola base (bottom:0) */
     border-radius: 0 20px 0 20px; /* smussa l'angolo in alto a destra */
     width: 90px; /* meno largo su desktop large */
   }

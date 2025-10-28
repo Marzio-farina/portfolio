@@ -11,6 +11,16 @@ class UserPublicResource extends JsonResource
         $dob = $this->date_of_birth ? $this->date_of_birth->format('Y-m-d') : null;
         $dob_it = $this->date_of_birth ? $this->date_of_birth->format('d/m/Y') : null;
 
+        // Priorità aside: icona utente (users.icon_id) -> URL profilo -> default
+        $rawAvatar = null;
+        if ($this->relationLoaded('icon') && $this->icon && !empty($this->icon->img)) {
+            $rawAvatar = $this->icon->img;
+        } elseif (!empty($this->profile->avatar_url ?? null)) {
+            $rawAvatar = $this->profile->avatar_url;
+        } else {
+            $rawAvatar = 'storage/avatars/default-avatar.png';
+        }
+
         return [
             'id'          => $this->id,
             'name'        => $this->name,
@@ -21,7 +31,7 @@ class UserPublicResource extends JsonResource
             'bio'         => $this->profile->bio ?? null,
             'phone'       => $this->profile->phone ?? null,
             'location'    => $this->profile->location ?? null,
-            'avatar_url'  => $this->getAbsoluteUrl($this->profile->avatar_url ?? null),
+            'avatar_url'  => $this->getAbsoluteUrl($rawAvatar),
             'date_of_birth'      => $dob,                  // ISO per logica
             'date_of_birth_it'   => $dob_it,               // formattata per UI
             'age'         => $dob ? $this->date_of_birth->age : null,

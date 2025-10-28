@@ -1,4 +1,4 @@
-import { Component, input, OnInit, computed, effect, signal } from '@angular/core';
+import { Component, input, OnInit, computed, effect, signal, ChangeDetectionStrategy } from '@angular/core';
 import { AvatarService } from '../../services/avatar.service';
 
 export interface AvatarData {
@@ -11,7 +11,8 @@ export interface AvatarData {
   selector: 'app-avatar',
   imports: [],
   templateUrl: './avatar.html',
-  styleUrl: './avatar.css'
+  styleUrl: './avatar.css',
+  changeDetection: ChangeDetectionStrategy.OnPush
 })
 export class Avatar implements OnInit {
 

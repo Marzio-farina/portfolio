@@ -142,7 +142,34 @@ class AuthController extends Controller
             $profile = $user->profile()->create([]);
         }
 
-        $profile->fill($request->validated());
+        $data = $request->validated();
+        // Gestione avatar_url (profilo) e icon_id (utente)
+        // - Se arriva avatar_url non nullo: azzera l'icon_id
+        // - Se arriva icon_id non nullo: azzera l'avatar_url del profilo
+
+        if (array_key_exists('avatar_url', $data)) {
+            // Aggiorna URL avatar sul profilo
+            $profile->avatar_url = $data['avatar_url'];
+            if (!empty($data['avatar_url'])) {
+                // Se stai impostando un URL, rimuovi l'icona
+                $user->icon_id = null;
+                $user->save();
+            }
+            unset($data['avatar_url']);
+        }
+
+        if (array_key_exists('icon_id', $data)) {
+            $user->icon_id = $data['icon_id'];
+            $user->save();
+            if (!empty($data['icon_id'])) {
+                // Se selezioni un'icona, rimuovi l'avatar_url custom
+                $profile->avatar_url = null;
+            }
+            unset($data['icon_id']);
+        }
+
+        // Campi profilo rimanenti
+        $profile->fill($data);
         $profile->save();
 
         // Invalida le chiavi cache usate dal profilo pubblico

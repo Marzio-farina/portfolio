@@ -23,9 +23,10 @@ class DatabaseSeeder extends Seeder
 
         $this->call([
             RoleSeeder::class,
-            IconSeeder::class,
             CategorySeeder::class,
             TechnologySeeder::class,
+            // Seed degli avatar di default PRIMA degli utenti
+            SeedDefaultAvatarsSeeder::class,
             UserSeeder::class,
             ProjectSeeder::class,
             CurriculumSeeder::class,
@@ -33,7 +34,6 @@ class DatabaseSeeder extends Seeder
             WhatIDoSeeder::class,
             UserProfileAndSocialSeeder::class,
             AttestatiSeeder::class,
-            SeedDefaultAvatarsSeeder::class,
         ]);
     }
 }

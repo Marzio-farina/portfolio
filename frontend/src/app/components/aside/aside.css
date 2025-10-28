@@ -23,7 +23,11 @@
 }
 
 /* Overlay icona matita sull'avatar quando autenticato */
-.avatar-wrap { position: relative; display: inline-block; }
+.avatar-wrap {
+  position: relative;
+  display: inline-block;
+}
+
 .avatar-edit {
   position: absolute;
   top: 6px;

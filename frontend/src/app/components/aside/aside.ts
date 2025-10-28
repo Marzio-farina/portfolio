@@ -1,19 +1,23 @@
-import { Component, DestroyRef, Inject, PLATFORM_ID, computed, effect, inject, signal } from '@angular/core';
+import { Component, DestroyRef, Inject, PLATFORM_ID, computed, effect, inject, signal, ChangeDetectionStrategy } from '@angular/core';
 import { isPlatformBrowser } from '@angular/common';
 import { toSignal } from '@angular/core/rxjs-interop';
-import { fromEvent, map, startWith } from 'rxjs';
+import { fromEvent, map, startWith, switchMap, of } from 'rxjs';
 import { trigger, transition, style, animate } from '@angular/animations';
 import { Avatar } from "../avatar/avatar";
+import { AvatarEditor, AvatarSelection } from '../avatar-editor/avatar-editor';
 import { AboutProfileService, PublicProfileDto, SocialLink } from '../../services/about-profile.service'
 import { makeLoadable } from '../../core/utils/loadable-signal';
 import { ThemeService } from '../../services/theme.service';
 import { AuthService } from '../../services/auth.service';
+import { HttpClient } from '@angular/common/http';
+import { apiUrl } from '../../core/api/api-url';
 
 @Component({
   selector: 'app-aside',
   standalone: true,
   templateUrl: './aside.html',
   styleUrls: ['./aside.css', './aside.responsive.css'],
+  changeDetection: ChangeDetectionStrategy.OnPush,
   animations: [
     trigger('expandCollapse', [
       // quando appare
@@ -28,7 +32,7 @@ import { AuthService } from '../../services/auth.service';
       ]),
     ]),
   ],
-  imports: [Avatar],
+  imports: [Avatar, AvatarEditor],
 })
 export class Aside {
   private readonly LARGE_MIN = 1250;
@@ -42,15 +46,19 @@ export class Aside {
   readonly showContacts;
   readonly showButton;
   readonly isSmall;
+  readonly editMode = signal(false);
+  private pendingAvatarSel = signal<AvatarSelection | null>(null);
+  private saveTimer: any = null;
 
    // === DATI PROFILO (API) ===
   private readonly svc = inject(AboutProfileService);
   private readonly dr  = inject(DestroyRef);
   readonly theme = inject(ThemeService);
   private readonly auth = inject(AuthService);
+  private readonly http = inject(HttpClient);
 
   // loadable (data/loading/error + reload)
-  private readonly load = makeLoadable<PublicProfileDto>(() => this.svc.get$(), this.dr);
+  private readonly load = makeLoadable<PublicProfileDto>(() => this.getProfile$(), this.dr);
 
   profile  = this.load.data;      // Signal<PublicProfileDto | null>
   loading  = this.load.loading;   // Signal<boolean>
@@ -129,6 +137,32 @@ export class Aside {
     this.showContacts = computed(() => this.viewMode() === 'large' || this.expanded());
     this.showButton   = computed(() => this.viewMode() !== 'large');
     this.isSmall      = computed(() => this.viewMode() === 'small');
+
+    // Salvataggio su chiusura/refresh pagina
+    if (this.isBrowser) {
+      const beforeUnloadHandler = (e: BeforeUnloadEvent) => {
+        this.flushPendingSelection(true);
+      };
+      window.addEventListener('beforeunload', beforeUnloadHandler);
+      this.dr.onDestroy(() => window.removeEventListener('beforeunload', beforeUnloadHandler));
+    }
+  }
+
+  private getProfile$() {
+    const token = this.auth.token();
+    if (!token) {
+      // Utente non loggato: profilo pubblico di default
+      return this.svc.get$();
+    }
+    // Utente loggato: prendi il suo id da /me e poi il public-profile specifico
+    const headers = { Authorization: `Bearer ${token}` } as any;
+    return this.http.get<{id:number}>(apiUrl('me'), { headers }).pipe(
+      switchMap((u) => {
+        const uid = u?.id;
+        if (!uid) return this.svc.get$();
+        return this.http.get<PublicProfileDto>(apiUrl(`users/${uid}/public-profile`));
+      })
+    );
   }
 
   toggleContacts() {
@@ -138,6 +172,103 @@ export class Aside {
   // Click su icona matita avatar
   onEditAvatar() {
     // Qui potrai aprire una modale di upload avatar
+  }
+
+  // Toggle modalità modifica
+  toggleEditMode() {
+    const wasEditing = this.editMode();
+    this.editMode.set(!wasEditing);
+    // Se stiamo uscendo dalla modalità modifica e c'è una selezione, salvala ora
+    if (wasEditing) {
+      const sel = this.pendingAvatarSel();
+      if (sel) {
+        this.saveAvatarSelection(sel);
+        this.pendingAvatarSel.set(null);
+      }
+    }
+  }
+
+  // Handler cambio avatar dall'editor
+  onAvatarEditorChange(sel: AvatarSelection) {
+    // Non fare chiamate API ad ogni click: memorizza e salva solo all'uscita da Modifica
+    this.pendingAvatarSel.set(sel);
+    this.scheduleAutoSave();
+  }
+
+  private scheduleAutoSave() {
+    if (!this.isBrowser) return;
+    if (this.saveTimer) clearTimeout(this.saveTimer);
+    this.saveTimer = setTimeout(() => {
+      const sel = this.pendingAvatarSel();
+      if (sel) this.saveAvatarSelection(sel);
+      this.pendingAvatarSel.set(null);
+      this.saveTimer = null;
+    }, 5000);
+  }
+
+  private updateProfileAvatar(url: string | null, iconId?: number | null) {
+    const token = this.auth.token();
+    const headers = token ? { Authorization: `Bearer ${token}` } as any : {};
+    const body: any = {};
+    if (typeof iconId !== 'undefined') body.icon_id = iconId;
+    if (typeof url !== 'undefined') body.avatar_url = url;
+    this.http.put(apiUrl('profile'), body, { headers })
+      .subscribe(() => {
+        // ricarica i dati dell'aside
+        this.reload();
+      });
+  }
+
+  private saveAvatarSelection(sel: AvatarSelection) {
+    // Priorità: file caricato -> upload, poi salva URL; altrimenti salva URL/Icona default
+    if (sel.file) {
+      const form = new FormData();
+      form.append('avatar', sel.file);
+      // this.http.post<{icon:{id:number,img:string,alt:string}}>(apiUrl('avatars/upload'), form).subscribe({
+      this.http.post<{icon:{id:number,img:string,alt:string}}>(apiUrl('avatars/upload'), form)
+        .subscribe((res) => {
+          const id = res?.icon?.id;
+          if (typeof id === 'number') this.updateProfileAvatar(null, id);
+        });
+      return;
+    }
+    // Icona di default selezionata: salva icon_id e pulisci avatar_url
+    if (typeof sel.iconId === 'number') {
+      this.updateProfileAvatar(null, sel.iconId);
+      return;
+    }
+    // Fallback URL
+    const url = sel.url ?? null;
+    if (url) {
+      this.updateProfileAvatar(url, null);
+    }
+  }
+
+  private flushPendingSelection(keepalive: boolean) {
+    const sel = this.pendingAvatarSel();
+    if (!sel) return;
+    // Caricamenti file non gestibili affidabilmente su unload: salva solo icon_id/url
+    if (keepalive) {
+      const token = this.auth.token();
+      const headers: any = { 'Content-Type': 'application/json' };
+      if (token) headers['Authorization'] = `Bearer ${token}`;
+      const body: any = {};
+      if (typeof sel.iconId === 'number') body.icon_id = sel.iconId;
+      else if (sel.url) body.avatar_url = sel.url;
+      if (Object.keys(body).length > 0) {
+        try {
+          fetch(apiUrl('profile'), {
+            method: 'PUT',
+            headers,
+            body: JSON.stringify(body),
+            keepalive: true,
+          });
+        } catch {}
+      }
+    } else {
+      this.saveAvatarSelection(sel);
+    }
+    this.pendingAvatarSel.set(null);
   }
 
   // per scegliere l'icona in base al provider

@@ -1,14 +1,18 @@
 <aside class="profile">
   <div class="profile__header">
     <div class="avatar-wrap">
-      <app-avatar [avatarData]="mainAvatarData()" [width]="120"></app-avatar>
-      <!-- @if (isAuthed()) {
-        <button class="avatar-edit" (click)="onEditAvatar()" title="Modifica avatar" aria-label="Modifica avatar">
-          <svg viewBox="0 0 24 24" aria-hidden="true">
-            <path d="M3 17.25V21h3.75L17.81 9.94l-3.75-3.75L3 17.25zM21.41 6.34a1.25 1.25 0 0 0 0-1.77l-2.98-2.98a1.25 1.25 0 0 0-1.77 0l-1.83 1.83 3.75 3.75 1.83-1.83z"/>
-          </svg>
-        </button>
-      } -->
+      @if (!editMode()) {
+        <app-avatar [avatarData]="mainAvatarData()" [width]="120"></app-avatar>
+      } @else {
+        <app-avatar-editor
+          [context]="'aside'"
+          [editing]="editMode()"
+          [width]="100"
+          [height]="100"
+          [initialUrl]="mainAvatarData()?.img || null"
+          (avatarChange)="onAvatarEditorChange($event)">
+        </app-avatar-editor>
+      }
     </div>
     <div class="profile__identity">
       <h1 class="profile__name" [title]="fullName() || '—'">{{ fullName() || '—' }}</h1>
@@ -20,12 +24,13 @@
       <button
         class="btn btn-sm profile__edit"
         [class.profile__edit--offset]="showContacts()"
-        title="Modifica"
-        aria-label="Modifica">
+        (click)="toggleEditMode()"
+        [title]="editMode() ? 'Fine' : 'Modifica'"
+        [attr.aria-label]="editMode() ? 'Fine' : 'Modifica'">
         <svg class="profile__edit-icon" viewBox="0 0 24 24" aria-hidden="true">
           <path d="M3 17.25V21h3.75L17.81 9.94l-3.75-3.75L3 17.25zM21.41 6.34a1.25 1.25 0 0 0 0-1.77l-2.98-2.98a1.25 1.25 0 0 0-1.77 0l-1.83 1.83 3.75 3.75 1.83-1.83z"/>
         </svg>
-        <span class="profile__edit-label">Modifica</span>
+        <span class="profile__edit-label">{{ editMode() ? 'Fine' : 'Modifica' }}</span>
       </button>
     }
 
