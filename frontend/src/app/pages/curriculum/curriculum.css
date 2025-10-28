@@ -12,15 +12,21 @@ h2.article-title {
   box-sizing: border-box;
   display: block;
   position: relative;
+  /* Variabili condivise per posizionare fab e menu */
+  --cv-right: clamp(45%, 18vw, 70%);
+  --cv-top: -66px;
+  --cv-fab-size: 124px;
+  --cv-menu-distance: 80px; /* raggio menu radiale */
+  --cv-center-offset-y: 0px; /* fine tuning verticale del centro */
 }
 
 /* Pulsante circolare Curriculum - visibile su tutti i dispositivi */
 .cv-fab {
   position: absolute;
-  top: -36px;
-  right: clamp(45%, 18vw, 70%);
-  width: 64px;
-  height: 64px;
+  top: var(--cv-top);
+  right: var(--cv-right);
+  width: var(--cv-fab-size);
+  height: var(--cv-fab-size);
   border-radius: 100%;
   clip-path: ellipse(50% 50% at 50% 100%);
   -webkit-clip-path: ellipse(50% 50% at 50% 100%);
@@ -50,24 +56,66 @@ h2.article-title {
   stroke-width: 2;
 }
 
+/* Menu radiale intorno al bottone */
+.cv-menu {  
+  position: absolute;
+  right: calc(var(--cv-right) + (var(--cv-fab-size) / 2) - var(--cv-menu-distance));
+  /* Centro del cerchio = centro della FAB (+ eventuale offset fine tuning) */
+  top: calc(var(--cv-top) + (var(--cv-fab-size) / 2) - var(--cv-menu-distance) + var(--cv-center-offset-y));
+  width: calc(var(--cv-menu-distance) * 2);
+  height: calc(var(--cv-menu-distance) * 2);
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  pointer-events: none;
+  --cv-items: 3;
+  --cv-start: 20deg; /* inizio arco (verso basso-sinistra) */
+  --cv-step: 70deg;   /* distanza angolare tra item per 3 bottoni => 210,270,330 */
+  z-index: 2;
+}
+.cv-menu li {
+  position: absolute;
+  left: 50%;
+  top: 50%;
+  transform-origin: center;
+  transition: transform .4s cubic-bezier(.2,.8,.2,1), opacity .25s ease;
+  transition-delay: calc(60ms * var(--i));
+  opacity: 0;
+}
+.cv-menu li { transform: translate(0) scale(0.6); }
+.cv-menu.is-open { pointer-events: auto; }
+.cv-menu.is-open li {
+  opacity: 1;
+  transform: rotate(calc(var(--cv-start) + var(--cv-step) * var(--i))) translate(var(--r, var(--cv-menu-distance))) rotate(calc(-1 * (var(--cv-start) + var(--cv-step) * var(--i)))) scale(1);
+}
+.cv-menu__item {
+  width: 44px;
+  height: 44px;
+  border-radius: 50%;
+  border: 1px solid var(--border-primary);
+  background: var(--bg-card);
+  color: var(--text-primary);
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  box-shadow: var(--shadow-1);
+  transition: transform var(--transition-1), border-color var(--transition-1), color var(--transition-1), background var(--transition-1);
+  cursor: pointer;
+}
+.cv-menu__item:hover { transform: translateY(-1px) scale(1.03); border-color: var(--accent-primary); color: var(--accent-primary); }
+.cv-menu__item svg { width: 20px; height: 20px; stroke: currentColor; fill: none; stroke-width: 2; }
+
 /* Tablet/desktop medi (580px–1249px): sposta più a sinistra */
 @media (min-width: 580px) and (max-width: 1249px) {
-  .cv-fab {
-    right: clamp(45%, 18vw, 70%);
-    top: -44px;
-    width: 72px;
-    height: 72px;
-  }
+  h2.article-title { --cv-right: clamp(45%, 18vw, 70%); --cv-top: -44px; --cv-fab-size: 72px; --cv-menu-distance: 92px; }
+  /* size della fab gestita via variabili */
   .cv-fab svg { width: 28px; height: 28px; transform: translateY(5px); }
 }
 
 /* Mobile (<580px): lungo il bordo destro, più in basso e ruotato */
 @media (max-width: 579px) {
+  h2.article-title { --cv-right: -10px; --cv-top: 55px; --cv-fab-size: 56px; --cv-menu-distance: 76px; }
   .cv-fab {
-    right: -10px;
-    top: 55px;
-    width: 56px;
-    height: 56px;
     transform: rotate(90deg);
   }
   .cv-fab:hover { transform: rotate(90deg) translateY(-1px) scale(1.03); }

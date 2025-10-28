@@ -27,6 +27,7 @@ export class Curriculum {
   experience = signal<TimelineItem[]>([]);
   loading = signal(true);
   errorMsg = signal<string | null>(null);
+  cvMenuOpen = signal(false);
 
   constructor() {
     this.cv.get$().subscribe({
