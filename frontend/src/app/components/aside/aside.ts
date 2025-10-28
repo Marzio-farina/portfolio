@@ -13,7 +13,7 @@ import { AuthService } from '../../services/auth.service';
   selector: 'app-aside',
   standalone: true,
   templateUrl: './aside.html',
-  styleUrl: './aside.css',
+  styleUrls: ['./aside.css', './aside.responsive.css'],
   animations: [
     trigger('expandCollapse', [
       // quando appare
