@@ -18,21 +18,30 @@ export class ParticlesBgComponent implements OnInit, OnDestroy {
   private height = 0;
   private lineColor = '#333333';
   private dotColor = '#222';
+  private lastLineColor = '';
+  private lastDotColor = '';
+  private mo: MutationObserver | null = null;
 
   private readonly theme = inject(ThemeService);
 
+  // Reagisce ai cambiamenti del segnale del tema (economico: nessun polling)
+  private readonly colorEffect = effect(() => {
+    const _mode = this.theme.effectiveTheme();
+    this.updateColorsFromCss();
+  });
+
   ngOnInit(): void {
     this.setup();
-    effect(() => {
-      // Reagisce ai cambiamenti del segnale del tema effettivo
-      const mode = this.theme.effectiveTheme();
-      this.updateColorsFromCss();
-    });
+    this.updateColorsFromCss();
+    // Fallback: osserva cambi dell'attributo data-theme sul root
+    this.mo = new MutationObserver(() => this.updateColorsFromCss());
+    this.mo.observe(document.documentElement, { attributes: true, attributeFilter: ['data-theme'] });
     window.addEventListener('resize', this.onResize);
   }
 
   ngOnDestroy(): void {
     cancelAnimationFrame(this.animationId);
+    if (this.mo) { this.mo.disconnect(); this.mo = null; }
     window.removeEventListener('resize', this.onResize);
   }
 
@@ -69,8 +78,6 @@ export class ParticlesBgComponent implements OnInit, OnDestroy {
 
   private loop = () => {
     this.animationId = requestAnimationFrame(this.loop);
-    // Aggiorna i colori ad ogni frame per reagire istantaneamente al cambio tema
-    this.updateColorsFromCss();
     this.ctx.clearRect(0, 0, this.width, this.height);
 
     // disegna linee
@@ -111,13 +118,10 @@ export class ParticlesBgComponent implements OnInit, OnDestroy {
   private updateColorsFromCss(): void {
     const line = this.readVarColorToRgb('--particles-line');
     const dot = this.readVarColorToRgb('--particles-dot');
-    this.lineColor = line || '#333333';
-    this.dotColor = dot || '#222222';
-  }
-
-  private readCssVar(varName: string): string {
-    const styles = getComputedStyle(document.documentElement);
-    return styles.getPropertyValue(varName).trim();
+    const newLine = line || '#333333';
+    const newDot  = dot  || '#222222';
+    if (newLine !== this.lastLineColor) { this.lineColor = newLine; this.lastLineColor = newLine; }
+    if (newDot  !== this.lastDotColor)  { this.dotColor  = newDot;  this.lastDotColor  = newDot; }
   }
 
   private readVarColorToRgb(varName: string): string {

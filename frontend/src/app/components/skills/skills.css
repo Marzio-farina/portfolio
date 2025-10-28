@@ -4,29 +4,37 @@
   transition: background-color var(--transition-1), color var(--transition-1);
 }
 
-.skills__header {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: 12px;
-  margin: 20px 0 12px;
+.skills__header { display: flex; align-items: center; justify-content: space-between; gap: 12px; margin: 20px 0 12px; padding: 0 clamp(0.25rem, 4vw, 2rem); }
+.skills__title { margin: 0; font-size: 1.4rem; font-weight: 800; letter-spacing: -0.02em; color: var(--text-primary); }
+
+.icons-grid {
+  display: grid;
+  grid-template-columns: repeat(5, minmax(0, 1fr));
+  gap: clamp(18px, 3vw, 36px);
   padding: 0 clamp(0.25rem, 4vw, 2rem);
 }
 
-.skills__title {
-  margin: 0;
-  font-size: 1.4rem;
-  font-weight: 800;
-  letter-spacing: -0.02em;
-  color: var(--text-primary);
+@media (max-width: 1024px) {
+  .icons-grid { grid-template-columns: repeat(4, minmax(0, 1fr)); }
+}
+@media (max-width: 768px) {
+  .icons-grid { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+}
+@media (max-width: 520px) {
+  .icons-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
 }
 
-.skills-radar { display: grid; place-items: center; padding: 0 clamp(0.25rem, 4vw, 2rem) 20px; }
-.radar { width: min(640px, 100%); height: auto; overflow: visible; }
+.skill { display: grid; place-items: center; }
+.skill__avatar {
+  width: clamp(82px, 12vw, 140px);
+  height: clamp(82px, 12vw, 140px);
+  border-radius: 50%;
+  background: #fff; /* cerchio bianco come nel mock */
+  box-shadow: 0 8px 24px rgba(0,0,0,.12), 0 2px 8px rgba(0,0,0,.06);
+  display: grid;
+  place-items: center;
+  overflow: hidden;
+}
+.skill__avatar img { width: 70%; height: 70%; object-fit: contain; display: block; }
 
-.grid-circle { fill: none; stroke: var(--border-primary); opacity: .6; stroke-width: 1; }
-.axis { stroke: color-mix(in oklab, var(--border-primary) 70%, transparent); stroke-width: 1; }
-.radar-area { fill: url(#radarFill); }
-.radar-outline { fill: none; stroke: var(--accent-primary); stroke-width: 2; }
-.vertex { fill: var(--accent-primary); }
-.label { font-size: 10px; fill: var(--text-secondary); font-weight: 700; opacity: .9; }
+.skill__avatar:hover { transform: translateY(-2px); box-shadow: 0 12px 28px rgba(0,0,0,.16), 0 4px 12px rgba(0,0,0,.08); transition: transform .2s ease, box-shadow .2s ease; }

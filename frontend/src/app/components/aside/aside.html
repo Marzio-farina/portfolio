@@ -177,7 +177,7 @@
 
           <!-- LOCATION -->
           @if (locationTxt()) {
-            <li class="contact">
+            <li class="contact" role="button" tabindex="0" (click)="goToContacts()">
               <div class="contact__icon">
                 <svg class="icon-20 mute" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true">
                   <path d="M12 21s-6-5.686-6-10a6 6 0 1 1 12 0c0 4.314-6 10-6 10z"/>

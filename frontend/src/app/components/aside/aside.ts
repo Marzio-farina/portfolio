@@ -11,6 +11,7 @@ import { ThemeService } from '../../services/theme.service';
 import { AuthService } from '../../services/auth.service';
 import { HttpClient } from '@angular/common/http';
 import { apiUrl } from '../../core/api/api-url';
+import { Router } from '@angular/router';
 
 @Component({
   selector: 'app-aside',
@@ -56,6 +57,7 @@ export class Aside {
   readonly theme = inject(ThemeService);
   private readonly auth = inject(AuthService);
   private readonly http = inject(HttpClient);
+  private readonly router = inject(Router);
 
   // loadable (data/loading/error + reload)
   private readonly load = makeLoadable<PublicProfileDto>(() => this.getProfile$(), this.dr);
@@ -167,6 +169,11 @@ export class Aside {
 
   toggleContacts() {
     if (this.viewMode() !== 'large') this.expanded.update(v => !v);
+  }
+
+  // Naviga alla pagina Contatti nella section
+  goToContacts() {
+    this.router.navigate(['/contatti']);
   }
 
   // Click su icona matita avatar
