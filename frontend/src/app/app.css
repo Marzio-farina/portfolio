@@ -73,17 +73,42 @@
   background: var(--bg-card);
   color: var(--accent-primary);
   /* Solo angolo alto-destro smussato (come la card, 20px); gli altri vivi */
-  border-radius: 0 20px 0 0;
+  border-radius: 0 20px 0 20px;
   box-shadow: var(--shadow-1);
   transition: all var(--transition-1);
   width: 110px;
   height: 40px;
+  z-index: 2; /* come profile__edit per rendere visibile l'overlay ::before */
 }
 
 .dashboard__login:hover {
-  background: var(--accent-primary);
-  color: var(--text-inverse);
-  transform: scale(1.05);
+  background: linear-gradient(
+    to bottom right,
+    hsl(45, 100%, 71%) 0%,
+    hsla(36, 100%, 69%, 1) 50%
+  );
+  color: var(--accent-primary);
+  cursor: pointer;
+}
+
+/* Overlay come per i toggle/modifica dell'aside */
+.dashboard__login::before {
+  content: "";
+  position: absolute;
+  inset: 1px;
+  border-radius: inherit;
+  transition: 0.25s ease;
+  z-index: -1;
+}
+
+.dashboard__login:hover::before,
+.dashboard__login:focus::before {
+  background: linear-gradient(
+      135deg,
+      hsla(45, 100%, 71%, 0.251) 0%,
+      hsla(35, 100%, 68%, 0) 59.86%
+    ),
+    var(--eerie-black-2);
 }
 
 .dashboard__login .caret {
@@ -96,6 +121,14 @@
 .dashboard__login-label {
   font-weight: 700;
   letter-spacing: .2px;
+}
+
+/* Mantieni i bordi arrotondati della section anche sotto 480px */
+@media (max-width: 479px) {
+  .dashboard__card {
+    border-radius: 20px !important;
+    overflow: clip; /* mantiene il clipping degli angoli */
+  }
 }
 
 /* Barra nav flottante in basso al centro */
