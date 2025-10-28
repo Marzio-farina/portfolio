@@ -33,3 +33,54 @@ app-skills {
   box-sizing: border-box;
   display: block;
 }
+
+/* ===== Skeleton CV (loading) ===== */
+.resume-skeleton {
+  padding-left: clamp(0.25rem, 4vw, 2rem);
+  padding-right: clamp(0.25rem, 4vw, 2rem);
+}
+.resume-skeleton .section-header {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin: 20px 0 10px;
+}
+.resume-skeleton .section-header .icon {
+  width: 40px;
+  height: 40px;
+  border-radius: 999px;
+}
+.resume-skeleton .timeline {
+  position: relative;
+  margin: 10px 0 20px 0;
+  /* forza impilamento verticale: niente colonne o flex */
+  display: block;
+  column-count: 1 !important;
+}
+.resume-skeleton .timeline::before {
+  content: '';
+  position: absolute;
+  left: 9px;
+  top: 0;
+  bottom: 0;
+  width: 2px;
+  background: var(--border-primary);
+}
+.resume-skeleton .item {
+  position: relative;
+  padding-left: 24px;
+  margin-bottom: 16px;
+  display: block;
+  break-inside: avoid;
+  width: 100%;
+}
+.resume-skeleton .item .dot {
+  position: absolute;
+  left: 5px;
+  top: 8px;
+  width: 10px;
+  height: 10px;
+  border-radius: 999px;
+  background: var(--accent-primary);
+}
+.resume-skeleton .item .content > .skeleton { margin-bottom: 6px; }

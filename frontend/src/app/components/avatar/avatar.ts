@@ -22,6 +22,7 @@ export class Avatar implements OnInit {
   
   private avatars = signal<AvatarData[]>([]);
   private selectedId = 1;
+  imageLoaded = signal(false);
   
   selectedAvatar = computed(() => {
     // Se avatarData è passato, usalo
@@ -49,10 +50,16 @@ export class Avatar implements OnInit {
           this.avatars.set(avatars);
         });
       }
+      // ogni volta che cambia la sorgente avatar, resetta lo skeleton
+      this.imageLoaded.set(false);
     });
   }
 
   ngOnInit(): void {
     // Non fare niente qui - l'effect si occupa di tutto
+  }
+
+  onImgLoad() {
+    this.imageLoaded.set(true);
   }
 }

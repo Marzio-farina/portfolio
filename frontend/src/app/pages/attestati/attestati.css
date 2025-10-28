@@ -33,6 +33,21 @@ h2.article-title::after {
   box-sizing: border-box;
 }
 
+/* Skeleton cards: replica stile e hover delle card reali */
+.skeleton-card {
+  border: 1px solid var(--border-primary);
+  border-radius: var(--radius-2xl);
+  padding: 16px;
+  background: var(--bg-card);
+  box-shadow: var(--shadow-1);
+  transition: all var(--transition-1);
+}
+.skeleton-card:hover {
+  border-color: var(--accent-primary);
+  box-shadow: var(--shadow-2);
+  transform: translateY(-2px);
+}
+
 /* stato errore/coerenza */
 .state.error {
   color: var(--error-color);

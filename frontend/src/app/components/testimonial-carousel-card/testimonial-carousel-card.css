@@ -244,6 +244,15 @@
   border-color: var(--accent-primary);
 }
 
+/* ===== Skeleton placeholders ===== */
+.skel-avatar { position: absolute; top: -36px; left: 16px; width: 72px; height: 72px; border-radius: 16px; z-index: 20; }
+.skel-card { cursor: default; }
+.skel-title { height: 18px; width: 40%; border-radius: 8px; margin: 0 auto 8px; }
+.skel-line { height: 12px; width: 100%; border-radius: 8px; margin: 4px 0; }
+.skel-line.short { width: 70%; }
+.skel-dots { display: flex; gap: 12px; justify-content: center; margin-top: 8px; }
+.skel-dots .dot { width: 20px; height: 20px; border-radius: 50%; }
+
 /* ===== DIALOG STYLES ===== */
 
 .testimonial-dialog-overlay {

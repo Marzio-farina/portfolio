@@ -22,6 +22,19 @@
   border: none;
   border-radius: var(--radius-2xl);
   transition: filter var(--transition-1);
+  position: relative;
+  z-index: 0;
+}
+
+/* Scheletro centrato sopra la mappa finché non è caricata */
+.map-skeleton {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  border-radius: var(--radius-2xl);
+  pointer-events: none;
+  z-index: 1;
 }
 
 /* Filtri per tema scuro */

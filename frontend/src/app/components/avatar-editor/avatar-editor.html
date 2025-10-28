@@ -11,8 +11,11 @@
 
   <div class="avatar-preview-wrap">
     <div class="avatar-preview" (click)="triggerFile()" role="button" aria-label="Seleziona immagine">
+      @if (!imageLoaded()) {
+        <div class="skeleton avatar-skeleton" aria-hidden="true"></div>
+      }
       @if (currentAvatarUrl) {
-        <img [src]="currentAvatarUrl" alt="" class="avatar-image"/>
+        <img [src]="currentAvatarUrl" alt="" class="avatar-image" (load)="onImgLoad()"/>
       }
       <div class="avatar-overlay">
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">

@@ -1,4 +1,37 @@
 <aside class="profile">
+  @if (loading()) {
+    <div class="aside-skeleton">
+      <!-- corner placeholders for small/medium layout -->
+      <div class="toggle-left-skel skeleton" aria-hidden="true"></div>
+      <div class="toggle-right-skel skeleton" aria-hidden="true"></div>
+      <div class="edit-right-skel skeleton" aria-hidden="true"></div>
+      <div class="aside-skel-header">
+        <div class="avatar-skel skeleton"></div>
+        <div class="name-skel skeleton"></div>
+        <div class="role-skel skeleton"></div>
+      </div>
+
+      @if (viewMode() === 'large') {
+        <div class="aside-skel-contacts">
+          @for (i of [0,1,2,3]; track i) {
+            <div class="contact-skel">
+              <div class="icon-skel skeleton" aria-hidden="true"></div>
+              <div class="lines">
+                <div class="skeleton h-4 w-40"></div>
+                <div class="skeleton h-4 w-56"></div>
+              </div>
+            </div>
+          }
+        </div>
+
+        <div class="aside-skel-socials">
+          @for (i of [0,1,2,3]; track i) {
+            <div class="social-skel skeleton" aria-hidden="true"></div>
+          }
+        </div>
+      }
+    </div>
+  } @else {
   <div class="profile__header">
     <div class="avatar-wrap">
       @if (!editMode()) {
@@ -224,5 +257,6 @@
         </ul>
       }
     </div>
+  }
   }
 </aside>

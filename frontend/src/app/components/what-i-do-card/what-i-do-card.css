@@ -226,6 +226,12 @@
     z-index: 1;                    /* Sopra i pattern di sfondo */
 }
 
+/* ===== Skeleton layout ===== */
+.skel-icon { width: 48px; height: 48px; border-radius: 12px; flex-shrink: 0; }
+.skel-title { height: 20px; width: 50%; border-radius: 8px; margin-bottom: 12px; }
+.skel-line { height: 14px; width: 100%; border-radius: 8px; margin-bottom: 8px; }
+.skel-line.short { width: 70%; }
+
 .description_card h4 {
     margin: 0 0 12px 0;
     color: var(--text-primary);

@@ -1,9 +1,13 @@
 <figure class="profile__avatar" [class.highlighted]="highlighted()" [style.width.px]="width()" [style.height.px]="width()">
+    @if (!imageLoaded()) {
+        <div class="skeleton avatar-skeleton" aria-hidden="true"></div>
+    }
     @if (selectedAvatar()) {
         <img 
             [src]="selectedAvatar()!.img"
             [alt]="selectedAvatar()!.alt"
             [width]="width()"
+            (load)="onImgLoad()"
         >
     }
 </figure>

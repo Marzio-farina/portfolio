@@ -63,3 +63,27 @@ aside.profile [data-theme="light"] .profile__avatar {
   object-fit: cover;
   border-radius: inherit;
 }
+
+/* Skeleton circolare per l'avatar (adattato al contenitore) */
+.avatar-skeleton {
+  position: absolute;
+  inset: 0;
+  border-radius: inherit; /* replica la forma finale dell'immagine */
+  background: var(--bg-card);
+  opacity: .85;
+}
+
+/* Adattamento tema per resa più naturale */
+:host-context([data-theme="dark"]) .avatar-skeleton,
+[data-theme="dark"] .avatar-skeleton { background: color-mix(in oklab, var(--bg-card) 88%, white 12%); }
+:host-context([data-theme="light"]) .avatar-skeleton,
+:not([data-theme]) .avatar-skeleton { background: color-mix(in oklab, var(--bg-card) 90%, black 10%); }
+
+/* Desktop ≥1250px: stesso look della grafica finale nell'aside */
+@media (min-width: 1250px) {
+  aside.profile .profile__avatar .avatar-skeleton {
+    border-radius: inherit;
+    background: var(--bg-card);
+    opacity: .9;
+  }
+}

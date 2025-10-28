@@ -1,4 +1,4 @@
-import { Component } from '@angular/core';
+import { Component, signal } from '@angular/core';
 import { CommonModule } from '@angular/common';
 
 @Component({
@@ -8,6 +8,10 @@ import { CommonModule } from '@angular/common';
   styleUrl: './maps.css'
 })
 export class Maps {
-  // Componente semplificato per mappa statica
-  // Non serve logica complessa per iframe Google Maps
+  // Stato di caricamento della mappa
+  loaded = signal(false);
+
+  onMapLoad() {
+    this.loaded.set(true);
+  }
 }

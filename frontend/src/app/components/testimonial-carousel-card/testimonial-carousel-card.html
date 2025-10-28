@@ -11,7 +11,31 @@
 
 <!-- Stati di caricamento -->
 @if (testimonialsLoading()) {
-  <div class="state loading">Caricamento…</div>
+  <div class="testimonial-carousel-card w-full">
+    <div class="relative w-full">
+      <div class="w-full h-auto overflow-visible relative" id="carousel-container">
+        <div class="flex" style="width: 100%; max-width: 100%; overflow: visible;">
+          @for (i of [0,1,2]; track i) {
+            <div class="carousel-slide px-0.5 sm:px-2" [style.min-width.%]="(100 / cardsPerView())">
+              <div class="testimonial-card-wrap">
+                <div class="skel-avatar skeleton"></div>
+                <div class="card skel-card">
+                  <div class="description_card">
+                    <div class="skeleton skel-title"></div>
+                    <div class="skeleton skel-line"></div>
+                    <div class="skeleton skel-line short"></div>
+                    <div class="skel-dots">
+                      @for (d of [0,1,2,3,4]; track d) { <div class="skeleton dot"></div> }
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          }
+        </div>
+      </div>
+    </div>
+  </div>
 }
 @if (!testimonialsLoading() && testimonialsError()) {
   <div class="state error">{{ testimonialsError() }}</div>

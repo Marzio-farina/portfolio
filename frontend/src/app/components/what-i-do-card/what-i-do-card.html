@@ -1,9 +1,18 @@
 <div class="card">
-  <svg class="icon" aria-hidden="true">
-    <use [attr.href]="'assets/icons.svg#' + icon()"></use>
-  </svg>
-  <div class="description_card">
-    <h4>{{ title() }}</h4>
-    <p>{{ displayText() }}</p>
-  </div>
+  @if (loading()) {
+    <div class="skel-icon skeleton" aria-hidden="true"></div>
+    <div class="description_card">
+      <div class="skeleton skel-title"></div>
+      <div class="skeleton skel-line"></div>
+      <div class="skeleton skel-line short"></div>
+    </div>
+  } @else {
+    <svg class="icon" aria-hidden="true">
+      <use [attr.href]="'assets/icons.svg#' + icon()"></use>
+    </svg>
+    <div class="description_card">
+      <h4>{{ title() }}</h4>
+      <p>{{ displayText() }}</p>
+    </div>
+  }
 </div>

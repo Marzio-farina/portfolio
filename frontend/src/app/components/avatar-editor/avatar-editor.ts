@@ -61,6 +61,7 @@ export class AvatarEditor {
   private currentIndex = signal(0);
   uploadedUrl = signal<string | null>(null);
   private preferDefault = signal(false);
+  imageLoaded = signal(false);
   get canNavigate(): boolean { return !this.uploadedUrl() && this.defaultAvatars.length > 1; }
 
   constructor() {
@@ -81,6 +82,7 @@ export class AvatarEditor {
       this.defaultAvatars = baseDefaults;
       const idx = baseDefaults.findIndex(a => a.img.endsWith('default-avatar.png'));
       this.currentIndex.set(idx >= 0 ? idx : 0);
+      this.imageLoaded.set(false);
       cdr.markForCheck();
     }
 
@@ -95,6 +97,7 @@ export class AvatarEditor {
           this.currentIndex.set(0);
         }
       }
+      this.imageLoaded.set(false);
       cdr.markForCheck();
     });
   }
@@ -139,6 +142,7 @@ export class AvatarEditor {
     const reader = new FileReader();
     reader.onload = e => {
       const url = (e.target?.result as string) || null;
+      this.imageLoaded.set(false);
       this.uploadedUrl.set(url);
       this.avatarChange.emit({ file, url, iconId: null });
     };
@@ -152,6 +156,7 @@ export class AvatarEditor {
     const next = idx > 0 ? idx - 1 : this.defaultAvatars.length - 1;
     this.currentIndex.set(next);
     this.preferDefault.set(true);
+    this.imageLoaded.set(false);
     const iconId = this.defaultAvatars[this.currentIndex()].id;
     this.avatarChange.emit({ iconId, url: this.currentAvatarUrl, file: null });
   }
@@ -163,6 +168,7 @@ export class AvatarEditor {
     const next = idx < this.defaultAvatars.length - 1 ? idx + 1 : 0;
     this.currentIndex.set(next);
     this.preferDefault.set(true);
+    this.imageLoaded.set(false);
     const iconId = this.defaultAvatars[this.currentIndex()].id;
     this.avatarChange.emit({ iconId, url: this.currentAvatarUrl, file: null });
   }
@@ -174,6 +180,7 @@ export class AvatarEditor {
       this.fileInputRef.nativeElement.value = '';
     }
     this.preferDefault.set(true);
+    this.imageLoaded.set(false);
     // Emette l'avatar di default corrente
     const current = this.defaultAvatars[this.currentIndex()] as AvatarData | undefined;
     if (current) {
@@ -181,6 +188,10 @@ export class AvatarEditor {
     } else {
       this.avatarChange.emit({ iconId: null, url: null, file: null });
     }
+  }
+
+  onImgLoad(): void {
+    this.imageLoaded.set(true);
   }
 }
 

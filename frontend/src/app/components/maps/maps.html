@@ -1,4 +1,7 @@
 <figure class="map-embed">
+  @if (!loaded()) {
+    <div class="skeleton map-skeleton" aria-hidden="true"></div>
+  }
   <iframe 
     src="https://www.google.com/maps?q=San%20Valentino%20Torio%2C%20Italia&hl=it&z=13&output=embed"
     width="100%" 
@@ -7,6 +10,7 @@
     allowfullscreen="" 
     loading="lazy" 
     referrerpolicy="no-referrer-when-downgrade"
-    title="Mappa di San Valentino Torio">
+    title="Mappa di San Valentino Torio"
+    (load)="onMapLoad()">
   </iframe>
 </figure>

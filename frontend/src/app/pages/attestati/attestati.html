@@ -1,7 +1,18 @@
 <h2 class="article-title">{{ title() }}</h2>
 
 @if (loading()) {
-  <div>Caricamento...</div>
+  <div class="certificates">
+    @for (i of [0,1,2,3,4,5]; track i) {
+      <div class="attestato-card skeleton-card">
+        <div class="skeleton cover" style="height:160px;"></div>
+        <div class="meta" style="gap:8px; margin-top:12px;">
+          <div class="skeleton h-4 w-1/2"></div>
+          <div class="skeleton h-4 w-full"></div>
+          <div class="skeleton h-4 w-3/4"></div>
+        </div>
+      </div>
+    }
+  </div>
 }
 
 @if (!loading() && errorMsg()) {

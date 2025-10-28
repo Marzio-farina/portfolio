@@ -11,6 +11,7 @@ export class WhatIDoCard implements AfterViewInit, OnDestroy {
   description = input<string>('');
   icon = input<string>('');
   clampChars = input<number>(65);               // limite caratteri preview
+  loading = input<boolean>(false);              // mostra skeleton durante caricamento
 
   // overlay on/off
   overlayOpen = signal(false);

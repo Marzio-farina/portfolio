@@ -29,6 +29,30 @@
   object-fit: cover;
   border-radius: 50%;
 }
+
+/* Skeleton circolare sovrapposto finché l'immagine non è caricata */
+.avatar-skeleton {
+  position: absolute;
+  inset: 0;
+  border-radius: 50%;
+  pointer-events: none;
+  z-index: 1;
+  /* Colore adattivo in base al tema, simile al background della card */
+  background: var(--bg-card) !important;
+  opacity: .85;
+}
+
+/* Tema dark: schiarisci leggermente per evidenziare l'effetto shimmer senza stacco eccessivo */
+:host-context([data-theme="dark"]) .avatar-skeleton,
+[data-theme="dark"] .avatar-skeleton {
+  background: color-mix(in oklab, var(--bg-card) 88%, white 12%) !important;
+}
+
+/* Tema light: scurisci leggermente per un contrasto morbido */
+:host-context([data-theme="light"]) .avatar-skeleton,
+:not([data-theme]) .avatar-skeleton {
+  background: color-mix(in oklab, var(--bg-card) 90%, black 10%) !important;
+}
 .avatar-overlay {
   position: absolute;
   top: 0; left: 0; right: 0; bottom: 0;

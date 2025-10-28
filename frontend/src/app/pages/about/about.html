@@ -7,9 +7,6 @@
     <h3 class="sub_article-title">Cosa sto facendo</h3>
 
     <!-- stati -->
-    @if (loading()) {
-        <div class="state loading">Caricamento…</div>
-    }
     @if (!loading() && errorMsg()) {
         <div class="state error">{{ errorMsg() }}</div>
     }
@@ -17,12 +14,21 @@
         <div class="state empty">Nessuna card disponibile.</div>
     }
 
+    @if (loading()) {
+        <div class="sub_article-card">
+            @for (i of [0,1,2,3,4,5]; track i) {
+                <app-what-i-do-card [title]="''" [description]="''" [icon]="''" [loading]="true"></app-what-i-do-card>
+            }
+        </div>
+    }
+
     <div class="sub_article-card">
         @for (c of cards(); track c.id) {
             <app-what-i-do-card
                 [title]="c.title"
                 [description]="c.description"
-                [icon]="c.icon ?? ''">
+                [icon]="c.icon ?? ''"
+                [loading]="loading()">
             </app-what-i-do-card>
         }
     </div>
