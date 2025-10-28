@@ -14,6 +14,48 @@ h2.article-title {
   position: relative;
 }
 
+/* Pulsante circolare Curriculum - visibile solo su schermi >= 1250px */
+.cv-fab { display: none; }
+
+@media (min-width: 1250px) {
+  h2.article-title { position: relative; }
+  .cv-fab {
+    position: absolute;
+    top: -50px; /* vicino al bordo superiore del componente */
+    right: clamp(450px, 24vw, 700px); /* sposta molto più a sinistra */
+    width: 86px;
+    height: 86px;
+    border-radius: 100%;
+    /* Mostra solo la metà inferiore del cerchio (effetto mezza luna) */
+    clip-path: ellipse(50% 50% at 50% 100%);
+    -webkit-clip-path: ellipse(50% 50% at 50% 100%);
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    background: var(--bg-card);
+    border: 3px solid var(--border-primary);
+    color: var(--text-primary);
+    box-shadow: var(--shadow-1);
+    transition: transform var(--transition-1), box-shadow var(--transition-1), background var(--transition-1), border-color var(--transition-1);
+    cursor: pointer;
+    z-index: 5;
+  }
+  .cv-fab:hover {
+    transform: translateY(-1px) scale(1.03);
+    box-shadow: var(--shadow-3);
+    border-color: var(--accent-primary);
+  }
+  .cv-fab svg {
+    width: 32px;
+    height: 32px;
+    /* Sposta l'icona verso il basso per allinearla alla mezza luna */
+    transform: translateY(6px);
+    stroke: currentColor;
+    fill: none;
+    stroke-width: 2;
+  }
+}
+
 /* Decorazione sotto il titolo */
 h2.article-title::after {
   content: '';
