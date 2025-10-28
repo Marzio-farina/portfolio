@@ -3,3 +3,30 @@
   color: var(--text-primary);
   transition: background-color var(--transition-1), color var(--transition-1);
 }
+
+.skills__header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  margin: 20px 0 12px;
+  padding: 0 clamp(0.25rem, 4vw, 2rem);
+}
+
+.skills__title {
+  margin: 0;
+  font-size: 1.4rem;
+  font-weight: 800;
+  letter-spacing: -0.02em;
+  color: var(--text-primary);
+}
+
+.skills-radar { display: grid; place-items: center; padding: 0 clamp(0.25rem, 4vw, 2rem) 20px; }
+.radar { width: min(640px, 100%); height: auto; overflow: visible; }
+
+.grid-circle { fill: none; stroke: var(--border-primary); opacity: .6; stroke-width: 1; }
+.axis { stroke: color-mix(in oklab, var(--border-primary) 70%, transparent); stroke-width: 1; }
+.radar-area { fill: url(#radarFill); }
+.radar-outline { fill: none; stroke: var(--accent-primary); stroke-width: 2; }
+.vertex { fill: var(--accent-primary); }
+.label { font-size: 10px; fill: var(--text-secondary); font-weight: 700; opacity: .9; }

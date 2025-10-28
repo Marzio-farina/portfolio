@@ -1,0 +1,18 @@
+.particles-bg {
+  position: fixed;
+  inset: 0;
+  z-index: 0; /* sotto i contenuti principali */
+  pointer-events: none; /* non interferisce con i click */
+}
+
+.particles-bg canvas {
+  width: 100% !important;
+  height: 100% !important;
+  display: block;
+}
+
+/* Variabili tema dedicate (fallback sicuri) */
+:root { --particles-line: #333333; --particles-dot: #222222; }
+:root[data-theme="dark"] { --particles-line: var(--accent-primary); --particles-dot: var(--accent-primary); }
+
+

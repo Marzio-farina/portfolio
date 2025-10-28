@@ -1,1 +1,47 @@
-<p>skills works!</p>
+<section class="skills" aria-labelledby="skills-title">
+  <header class="skills__header">
+    <h3 id="skills-title" class="skills__title">Competenze</h3>
+  </header>
+
+  <div class="skills-radar">
+    <svg class="radar" [attr.viewBox]="'0 0 420 420'" role="img" aria-label="Diagramma radar delle competenze">
+      <defs>
+        <radialGradient id="radarGlow" cx="50%" cy="50%" r="60%">
+          <stop offset="0%" stop-color="var(--accent-primary)" stop-opacity="0.08" />
+          <stop offset="100%" stop-color="var(--accent-primary)" stop-opacity="0" />
+        </radialGradient>
+        <linearGradient id="radarFill" x1="0" x2="0" y1="0" y2="1">
+          <stop offset="0%" stop-color="var(--accent-primary)" stop-opacity="0.35" />
+          <stop offset="100%" stop-color="var(--accent-primary)" stop-opacity="0.15" />
+        </linearGradient>
+      </defs>
+
+      <!-- alone -->
+      <circle cx="210" cy="210" r="180" fill="url(#radarGlow)" />
+
+      <!-- griglia circolare -->
+      @for (r of gridRadii(); track r) {
+        <circle cx="210" cy="210" [attr.r]="r" class="grid-circle" />
+      }
+
+      <!-- assi -->
+      @for (i of axes(); track i) {
+        <line x1="210" y1="210" [attr.x2]="points()[i].x" [attr.y2]="points()[i].y" class="axis" />
+      }
+
+      <!-- poligono -->
+      <polygon class="radar-area" [attr.points]="polygonPoints()"></polygon>
+      <polyline class="radar-outline" [attr.points]="polygonPoints()"></polyline>
+
+      <!-- vertici -->
+      @for (p of points(); track p.x) {
+        <circle class="vertex" [attr.cx]="p.x" [attr.cy]="p.y" r="3.5" />
+      }
+
+      <!-- etichette -->
+      @for (l of labelPositions(); track l.text) {
+        <text class="label" [attr.x]="l.x" [attr.y]="l.y" [attr.text-anchor]="l.anchor">{{ l.text }}</text>
+      }
+    </svg>
+  </div>
+</section>

@@ -9,6 +9,7 @@ import { Auth } from './components/auth/auth';
 import { AuthService } from './services/auth.service';
 import { IdleService } from './services/idle.service';
 import { ThemeService } from './services/theme.service';
+import { ParticlesBgComponent } from './components/particles-bg/particles-bg';
 
 /**
  * Main Application Component
@@ -18,7 +19,7 @@ import { ThemeService } from './services/theme.service';
  */
 @Component({
   selector: 'app-root',
-  imports: [Aside, Navbar, Dashboard, Auth],
+  imports: [Aside, Navbar, Dashboard, Auth, ParticlesBgComponent],
   templateUrl: './app.html',
   styleUrl: './app.css'
 })
