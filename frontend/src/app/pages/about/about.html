@@ -1,3 +1,7 @@
+@if (toastNotifications().length > 0) {
+  <app-notification [showMultiple]="true" [notifications]="toastNotifications()"></app-notification>
+}
+
 <h2 class="article-title">{{ title() }}</h2>
 
 <!-- Bio component -->

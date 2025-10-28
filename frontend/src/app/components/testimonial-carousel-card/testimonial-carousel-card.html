@@ -66,10 +66,12 @@
                     <h4>{{ truncateAuthor(testimonial.author) }}</h4>
                     @if (testimonial.rating) {
                       <div class="rating-container">
-                        <div class="stars-rating">
-                          <!-- @for (star of [1, 2, 3, 4, 5]; track star) {
-                            <span class="star" [class.active]="star <= testimonial.rating">★</span>
-                          } -->
+                        <div class="rating rating-sm" [attr.aria-label]="'Valutazione ' + testimonial.rating + ' su 5'">
+                          <input type="radio" class="mask mask-star-2 bg-amber-400" [name]="'rating-' + testimonial.id" [checked]="testimonial.rating === 1" disabled />
+                          <input type="radio" class="mask mask-star-2 bg-amber-400" [name]="'rating-' + testimonial.id" [checked]="testimonial.rating === 2" disabled />
+                          <input type="radio" class="mask mask-star-2 bg-amber-400" [name]="'rating-' + testimonial.id" [checked]="testimonial.rating === 3" disabled />
+                          <input type="radio" class="mask mask-star-2 bg-amber-400" [name]="'rating-' + testimonial.id" [checked]="testimonial.rating === 4" disabled />
+                          <input type="radio" class="mask mask-star-2 bg-amber-400" [name]="'rating-' + testimonial.id" [checked]="testimonial.rating === 5" disabled />
                         </div>
                       </div>
                     }
@@ -144,10 +146,12 @@
 
         @if (selectedTestimonial() && selectedTestimonial()!.rating) {
           <div class="testimonial-dialog-rating">
-            <div class="stars-rating">
-              @for (star of [1, 2, 3, 4, 5]; track star) {
-                <span class="star" [class.active]="star <= selectedTestimonial()!.rating">★</span>
-              }
+            <div class="rating rating-sm" [attr.aria-label]="'Valutazione ' + selectedTestimonial()!.rating + ' su 5'">
+              <input type="radio" class="mask mask-star-2 bg-amber-400" [name]="'rating-dialog-' + selectedTestimonial()!.id" [checked]="selectedTestimonial()!.rating === 1" disabled />
+              <input type="radio" class="mask mask-star-2 bg-amber-400" [name]="'rating-dialog-' + selectedTestimonial()!.id" [checked]="selectedTestimonial()!.rating === 2" disabled />
+              <input type="radio" class="mask mask-star-2 bg-amber-400" [name]="'rating-dialog-' + selectedTestimonial()!.id" [checked]="selectedTestimonial()!.rating === 3" disabled />
+              <input type="radio" class="mask mask-star-2 bg-amber-400" [name]="'rating-dialog-' + selectedTestimonial()!.id" [checked]="selectedTestimonial()!.rating === 4" disabled />
+              <input type="radio" class="mask mask-star-2 bg-amber-400" [name]="'rating-dialog-' + selectedTestimonial()!.id" [checked]="selectedTestimonial()!.rating === 5" disabled />
             </div>
           </div>
         }

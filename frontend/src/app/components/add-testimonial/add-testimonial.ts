@@ -318,11 +318,8 @@ export class AddTestimonial {
         
         // Emetti notifica di successo
         this.onSuccessChange('Recensione inviata con successo!');
-        
-        // Dopo 2 secondi torna alla pagina about
-        setTimeout(() => {
-          this.router.navigate(['/about']);
-        }, 2000);
+        // Naviga alla pagina about passando notifica via navigation state
+        this.router.navigate(['/about'], { state: { toast: { message: 'Recensione inviata con successo!', type: 'success' } } });
       },
       error: (err: any) => {
         console.error('[add-testimonial] error', err);

@@ -1,8 +1,12 @@
-<figure class="profile__avatar" [class.highlighted]="highlighted()" [style.width.px]="width()" [style.height.px]="width()">
-    <img 
-        [src]="selectedAvatar()!.img"
-        [alt]="selectedAvatar()!.alt"
-        [width]="width()"
-        (load)="onImgLoad()"
-    >
-</figure>
+@if (selectedAvatar()) {
+  <figure class="profile__avatar" [class.highlighted]="highlighted()" [style.width.px]="width()" [style.height.px]="width()">
+      <img 
+          [src]="selectedAvatar()!.img"
+          [alt]="selectedAvatar()!.alt"
+          [width]="width()"
+          (load)="onImgLoad()"
+      >
+  </figure>
+} @else {
+  <figure class="profile__avatar skeleton" [style.width.px]="width()" [style.height.px]="width()"></figure>
+}

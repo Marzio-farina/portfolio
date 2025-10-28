@@ -8,6 +8,7 @@ import { Bio } from '../../components/bio/bio';
 import { WhatIDoService } from '../../services/what-i-do.service';
 import { ProfileService, ProfileData } from '../../services/profile.service';
 import { TestimonialCarouselCard } from '../../components/testimonial-carousel-card/testimonial-carousel-card';
+import { Notification, NotificationItem } from '../../components/notification/notification';
 
 // ========================================================================
 // Interfaces
@@ -31,7 +32,8 @@ interface AboutCard {
   imports: [
     WhatIDoCard,
     Bio,
-    TestimonialCarouselCard
+    TestimonialCarouselCard,
+    Notification
   ],
   templateUrl: './about.html',
   styleUrl: './about.css'
@@ -60,6 +62,8 @@ export class About {
   cards = signal<AboutCard[]>([]);
   loading = signal(true);
   errorMsg = signal<string | null>(null);
+  toastMessage = signal<string | null>(null);
+  toastNotifications = signal<NotificationItem[]>([]);
 
   // ========================================================================
   // Constructor
@@ -67,6 +71,21 @@ export class About {
 
   constructor() {
     this.loadWhatIDoData();
+    const state = window.history.state as any;
+    if (state && state.toast && state.toast.message) {
+      // nota: alimenta sia il messaggio singolo che la pila multiple
+      const msg = String(state.toast.message);
+      this.toastMessage.set(msg);
+      const item: NotificationItem = {
+        id: `nav-${Date.now()}`,
+        message: msg,
+        type: state.toast.type ?? 'success',
+        timestamp: Date.now(),
+        fieldId: 'success'
+      };
+      this.toastNotifications.set([item]);
+      history.replaceState({}, document.title);
+    }
   }
 
   // ========================================================================

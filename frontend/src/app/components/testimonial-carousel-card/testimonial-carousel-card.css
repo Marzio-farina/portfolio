@@ -93,13 +93,16 @@
 }
 
 /* Importa gli stili della testimonial card */
+.testimonial-carousel-card { --card-inset-x: 40px; --card-inset-top: 5px; }
+
 .card {
   position: relative;
   display: flex;
   flex-direction: row;
   align-items: start;
   gap: var(--gap);
-  padding: 5px 40px 0;
+  /* niente padding/margin: il contenuto è inset assoluto */
+  padding: 0;
   height: 125px;
   box-sizing: border-box;
   background: var(--bg-card);
@@ -159,7 +162,12 @@
 }
 
 .description_card {
-  position: relative;
+  /* Replica il vecchio padding orizzontale senza usare padding/margin */
+  position: absolute;
+  left: var(--card-inset-x);
+  right: var(--card-inset-x);
+  top: var(--card-inset-top);
+  bottom: 0;
   display: flex;
   flex-direction: column;
   gap: var(--gap);
