@@ -1,0 +1,44 @@
+<div class="avatar-container">
+  @if (!uploadedUrl()) {
+    <button type="button" class="avatar-nav-btn avatar-nav-prev" (click)="previous()" [disabled]="!canNavigate">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+        <path d="M15 18l-6-6 6-6"/>
+      </svg>
+    </button>
+  } @else {
+    <span class="avatar-nav-spacer" aria-hidden="true"></span>
+  }
+
+  <div class="avatar-preview-wrap">
+    <div class="avatar-preview" (click)="triggerFile()" role="button" aria-label="Seleziona immagine">
+      <img [src]="currentAvatarUrl" alt="Anteprima avatar" class="avatar-image"/>
+      <div class="avatar-overlay">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <path d="M14.5 4h-5L7 7H4a2 2 0 0 0-2 2v9a2 2 0 0 0 2 2h16a2 2 0 0 0 2-2V9a2 2 0 0 0-2-2h-3l-2.5-3z"/>
+          <circle cx="12" cy="13" r="3"/>
+        </svg>
+      </div>
+    </div>
+    @if (uploadedUrl()) {
+      <button type="button" class="avatar-remove" (click)="$event.stopPropagation(); clearUploaded()" aria-label="Rimuovi immagine caricata">
+        <svg viewBox="0 0 24 24" aria-hidden="true">
+          <path d="M18 6L6 18M6 6l12 12"/>
+        </svg>
+      </button>
+    }
+  </div>
+
+  @if (!uploadedUrl()) {
+    <button type="button" class="avatar-nav-btn avatar-nav-next" (click)="next()" [disabled]="!canNavigate">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+        <path d="M9 18l6-6-6-6"/>
+      </svg>
+    </button>
+  } @else {
+    <span class="avatar-nav-spacer" aria-hidden="true"></span>
+  }
+
+  <input #fileInput type="file" accept="image/*" style="display:none" (change)="onFileSelected($event)" />
+</div>
+
+

@@ -5,6 +5,7 @@ import { TestimonialService } from '../../services/testimonial.service';
 import { DefaultAvatarService } from '../../services/default-avatar.service';
 import { AvatarData } from '../avatar/avatar';
 import { Notification, NotificationType } from '../../components/notification/notification';
+import { AvatarEditor, AvatarSelection } from '../avatar-editor/avatar-editor';
 import { NgClass } from '@angular/common';
 
 export interface NotificationItem {
@@ -17,7 +18,7 @@ export interface NotificationItem {
 
 @Component({
   selector: 'app-add-testimonial',
-  imports: [ReactiveFormsModule, Notification, NgClass],
+  imports: [ReactiveFormsModule, Notification, NgClass, AvatarEditor],
   templateUrl: './add-testimonial.html',
   styleUrls: [
     './add-testimonial.css',
@@ -216,6 +217,35 @@ export class AddTestimonial {
     this.form.get('avatar_url')?.setValue('');
     this.form.get('avatar_file')?.setValue(null);
     this.uploadedAvatarUrl.set(null);
+  }
+
+  // Handler per il componente avatar-editor
+  onAvatarChange(selection: AvatarSelection): void {
+    // Se arriva un file, priorità al file
+    if (selection.file) {
+      this.uploadedAvatarUrl.set(selection.url ?? null);
+      this.form.get('avatar_file')?.setValue(selection.file);
+      this.form.get('avatar_url')?.setValue('');
+      this.form.get('icon_id')?.setValue(null);
+      return;
+    }
+
+    // Se selezionata un'icona di default
+    if (typeof selection.iconId === 'number') {
+      this.uploadedAvatarUrl.set(null);
+      this.form.get('avatar_file')?.setValue(null);
+      this.form.get('avatar_url')?.setValue('');
+      this.form.get('icon_id')?.setValue(selection.iconId);
+      return;
+    }
+
+    // Se passa solo un URL (fallback)
+    if (selection.url) {
+      this.uploadedAvatarUrl.set(selection.url);
+      this.form.get('avatar_file')?.setValue(null);
+      this.form.get('icon_id')?.setValue(null);
+      this.form.get('avatar_url')?.setValue(selection.url);
+    }
   }
 
   /**

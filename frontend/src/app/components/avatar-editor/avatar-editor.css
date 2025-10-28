@@ -1,0 +1,106 @@
+/* Copia stili originali dell'editor avatar del form recensione */
+.avatar-container {
+  display: flex;
+  align-items: center;
+  position: relative;
+}
+/* Mantiene la larghezza quando le frecce sono nascoste */
+.avatar-nav-spacer { width: 32px; height: 32px; display: inline-block; flex-shrink: 0; }
+
+.avatar-preview-wrap { position: relative; width: 80px; height: 80px; }
+.avatar-preview {
+  position: relative;
+  width: 100%;
+  height: 100%;
+  border-radius: 50%;
+  overflow: hidden;
+  cursor: pointer;
+  transition: transform var(--transition-1), box-shadow var(--transition-1);
+}
+.avatar-preview:hover {
+  transform: scale(1.05);
+  box-shadow: var(--shadow-2);
+}
+.avatar-image {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  border-radius: 50%;
+}
+.avatar-overlay {
+  position: absolute;
+  top: 0; left: 0; right: 0; bottom: 0;
+  background: rgba(0, 0, 0, 0.5);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  opacity: 0;
+  transition: opacity var(--transition-1);
+  border-radius: 50%;
+}
+.avatar-preview:hover .avatar-overlay { opacity: 1; }
+.avatar-overlay svg { width: 24px; height: 24px; color: white; }
+
+/* Pulsante rimozione immagine caricata (X rossa) */
+.avatar-remove {
+  position: absolute;
+  top: -6px;
+  right: -6px;
+  width: 26px;
+  height: 26px;
+  border-radius: 50%;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  background: transparent; /* nessun background */
+  border: 2px solid #ef4444; /* rosso */
+  color: #ef4444;
+  z-index: 2;
+  box-shadow: none;
+  cursor: pointer;
+  transition: transform var(--transition-1), border-color var(--transition-1), color var(--transition-1);
+}
+.avatar-remove:hover {
+  transform: scale(1.15); /* si ingrandisce */
+  border-width: 3px;      /* bordo più cicciotto */
+}
+.avatar-remove svg {
+  width: 18px;  /* X più grande */
+  height: 18px;
+  stroke: currentColor;
+  fill: none;
+  stroke-width: 2.5; /* X più spessa */
+}
+.avatar-remove:hover svg {
+  stroke-width: 3; /* ancora più spessa all'hover */
+}
+
+.avatar-nav-btn {
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  border: 2px solid var(--accent-primary);
+  background: var(--bg-card);
+  color: var(--accent-primary);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  transition: all var(--transition-1);
+  box-shadow: var(--shadow-1);
+  flex-shrink: 0;
+}
+.avatar-nav-btn:hover:not(:disabled) {
+  background: var(--accent-primary);
+  color: var(--bg-card);
+  transform: scale(1.1);
+  box-shadow: var(--shadow-2);
+}
+.avatar-nav-btn:disabled { opacity: 0.3; cursor: not-allowed; transform: none; }
+.avatar-nav-btn svg { width: 16px; height: 16px; }
+
+@media (max-width: 579px) {
+  .avatar-preview-wrap { width: 70px; height: 70px; }
+}
+
+
