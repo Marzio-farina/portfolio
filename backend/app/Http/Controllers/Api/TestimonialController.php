@@ -246,13 +246,14 @@ class TestimonialController extends Controller
             // Genera nome file unico
             $extension = $file->getClientOriginalExtension();
             $filename = 'testimonial_avatar_' . Str::uuid() . '.' . $extension;
-            // In produzione salviamo sempre l'originale sotto avatars/original/
-            $relativePath = app()->environment('production')
+            // Se è configurato Supabase (disk src) usa sempre avatars/original/, altrimenti locale avatars/
+            $useSupabase = (bool) (config('filesystems.disks.src.url') ?: env('SUPABASE_PUBLIC_URL'));
+            $relativePath = $useSupabase
                 ? ('avatars/original/' . $filename)
                 : ('avatars/' . $filename);
 
-            if (app()->environment('production')) {
-                // PRODUZIONE: salva l'ORIGINALE su Supabase; il resize 70x70 lo fa una Edge Function
+            if ($useSupabase) {
+                // Salva l'ORIGINALE su Supabase; il resize 70x70 lo fa una Edge Function
                 $binary = file_get_contents($file->getRealPath());
                 $ok = Storage::disk('src')->put($relativePath, $binary);
                 if (!$ok) {
