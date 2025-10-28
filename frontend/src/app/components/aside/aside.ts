@@ -151,8 +151,8 @@ export class Aside {
   private getProfile$() {
     const token = this.auth.token();
     if (!token) {
-      // Utente non loggato: profilo pubblico di default
-      return this.svc.get$();
+      // Utente non loggato: usa SEMPRE l'utente con id=1 come profilo di default
+      return this.http.get<PublicProfileDto>(apiUrl('users/1/public-profile'));
     }
     // Utente loggato: prendi il suo id da /me e poi il public-profile specifico
     const headers = { Authorization: `Bearer ${token}` } as any;
