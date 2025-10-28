@@ -14,8 +14,71 @@ h2.article-title {
   position: relative;
 }
 
-/* Pulsante circolare Curriculum - visibile solo su schermi >= 1250px */
-.cv-fab { display: none; }
+/* Pulsante circolare Curriculum - visibile su tutti i dispositivi */
+.cv-fab {
+  position: absolute;
+  top: -36px;
+  right: clamp(45%, 18vw, 70%);
+  width: 64px;
+  height: 64px;
+  border-radius: 100%;
+  clip-path: ellipse(50% 50% at 50% 100%);
+  -webkit-clip-path: ellipse(50% 50% at 50% 100%);
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  background: var(--bg-card);
+  border: 2px solid var(--border-primary);
+  color: var(--text-primary);
+  box-shadow: var(--shadow-1);
+  transition: transform var(--transition-1), box-shadow var(--transition-1), background var(--transition-1), border-color var(--transition-1), color var(--transition-1);
+  cursor: pointer;
+  z-index: 5;
+}
+.cv-fab:hover {
+  transform: translateY(-1px) scale(1.03);
+  box-shadow: var(--shadow-3);
+  border-color: var(--accent-primary);
+  color: var(--accent-primary);
+}
+.cv-fab svg {
+  width: 24px;
+  height: 24px;
+  transform: translateY(4px);
+  stroke: currentColor;
+  fill: none;
+  stroke-width: 2;
+}
+
+/* Tablet/desktop medi (580px–1249px): sposta più a sinistra */
+@media (min-width: 580px) and (max-width: 1249px) {
+  .cv-fab {
+    right: clamp(45%, 18vw, 70%);
+    top: -44px;
+    width: 72px;
+    height: 72px;
+  }
+  .cv-fab svg { width: 28px; height: 28px; transform: translateY(5px); }
+}
+
+/* Mobile (<580px): lungo il bordo destro, più in basso e ruotato */
+@media (max-width: 579px) {
+  .cv-fab {
+    right: -10px;
+    top: 55px;
+    width: 56px;
+    height: 56px;
+    transform: rotate(90deg);
+  }
+  .cv-fab:hover { transform: rotate(90deg) translateY(-1px) scale(1.03); }
+  .cv-fab svg {
+    width: 22px;
+    height: 22px;
+      transform: rotate(-90deg);
+      position: relative;
+      top: 8px; /* sposta l'icona più verso sinistra */
+  }
+}
 
 @media (min-width: 1250px) {
   h2.article-title { position: relative; }
@@ -36,7 +99,7 @@ h2.article-title {
     border: 3px solid var(--border-primary);
     color: var(--text-primary);
     box-shadow: var(--shadow-1);
-    transition: transform var(--transition-1), box-shadow var(--transition-1), background var(--transition-1), border-color var(--transition-1);
+    transition: transform var(--transition-1), box-shadow var(--transition-1), background var(--transition-1), border-color var(--transition-1), color var(--transition-1);
     cursor: pointer;
     z-index: 5;
   }
@@ -44,6 +107,7 @@ h2.article-title {
     transform: translateY(-1px) scale(1.03);
     box-shadow: var(--shadow-3);
     border-color: var(--accent-primary);
+    color: var(--accent-primary); /* icona assume il colore principale del tema */
   }
   .cv-fab svg {
     width: 32px;
