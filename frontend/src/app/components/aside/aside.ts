@@ -16,7 +16,7 @@ import { apiUrl } from '../../core/api/api-url';
   selector: 'app-aside',
   standalone: true,
   templateUrl: './aside.html',
-  styleUrls: ['./aside.css', './aside.responsive.css'],
+  styleUrls: ['./aside.css', './aside.responsive.css', './aside.contacts.css', './aside.skeleton.css'],
   changeDetection: ChangeDetectionStrategy.OnPush,
   animations: [
     trigger('expandCollapse', [
