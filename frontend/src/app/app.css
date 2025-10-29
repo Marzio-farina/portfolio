@@ -204,7 +204,7 @@
   display: flex;
   justify-content: center;   /* centra orizzontalmente */
   align-items: flex-start;    /* allinea in alto */
-  padding-top: 15vh;           /* distanza dal bordo superiore: 30% */
+  padding-top: 10vh;           /* distanza dal bordo superiore: 30% */
   z-index: 1201;
 }
 
