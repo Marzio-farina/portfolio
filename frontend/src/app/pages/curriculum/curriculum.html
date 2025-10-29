@@ -6,7 +6,7 @@
 </app-notification>
 
 <h2 class="article-title">{{ title() }}
-  <button class="cv-fab" type="button" title="Curriculum" aria-label="Curriculum" (click)="cvMenuOpen.set(!cvMenuOpen())" [attr.aria-expanded]="cvMenuOpen()">
+  <button class="cv-fab" type="button" title="Curriculum" aria-label="Curriculum" (click)="onCvButtonClick()" [attr.aria-expanded]="cvMenuOpen()">
     <svg viewBox="0 0 24 24" aria-hidden="true">
       <path d="M6 2h9l5 5v15a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2zm8 1.5V8h4.5"/>
       <path d="M8 12h8M8 16h8M8 20h6"/>

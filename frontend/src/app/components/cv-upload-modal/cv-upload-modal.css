@@ -1,0 +1,235 @@
+.cv-upload-modal {
+  background: var(--bg-card);
+  border: 1px solid var(--border-primary);
+  border-radius: 16px;
+  box-shadow: var(--shadow-2);
+  width: 100%;
+  max-width: 500px;
+  max-height: 90vh;
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+}
+
+.cv-upload-modal__header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 1.5rem;
+  border-bottom: 1px solid var(--border-primary);
+  position: relative;
+}
+
+.cv-upload-modal__title {
+  margin: 0;
+  font-size: 1.5rem;
+  font-weight: 600;
+  color: var(--text-primary);
+}
+
+.cv-upload-modal__close {
+  position: absolute;
+  top: 0.5rem;
+  right: 0.5rem;
+  background: transparent;
+  color: var(--text-secondary);
+  border: none;
+  font-size: 2rem;
+  line-height: 1;
+  cursor: pointer;
+  padding: 0.25rem;
+  transition: color var(--transition-1);
+}
+
+.cv-upload-modal__close:hover:not(:disabled) {
+  color: var(--text-primary);
+}
+
+.cv-upload-modal__close:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.cv-upload-modal__content {
+  padding: 1.5rem;
+  overflow-y: auto;
+}
+
+.cv-upload-modal__error {
+  background: rgba(239, 68, 68, 0.1);
+  border: 1px solid rgba(239, 68, 68, 0.3);
+  border-radius: 8px;
+  padding: 0.75rem 1rem;
+  margin-bottom: 1.5rem;
+  color: #ef4444;
+  font-size: 0.875rem;
+}
+
+.cv-upload-modal__field {
+  margin-bottom: 1.5rem;
+}
+
+.cv-upload-modal__field:last-of-type {
+  margin-bottom: 1rem;
+}
+
+.cv-upload-modal__label {
+  display: block;
+  margin-bottom: 0.5rem;
+  font-size: 0.875rem;
+  font-weight: 500;
+  color: var(--text-primary);
+}
+
+.cv-upload-modal__required {
+  color: #ef4444;
+}
+
+.cv-upload-modal__file-button {
+  width: 100%;
+  padding: 2rem;
+  border: 2px dashed var(--border-primary);
+  border-radius: 8px;
+  background: transparent;
+  color: var(--text-secondary);
+  cursor: pointer;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.75rem;
+  transition: all var(--transition-1);
+}
+
+.cv-upload-modal__file-button:hover:not(:disabled) {
+  border-color: var(--accent-primary);
+  color: var(--accent-primary);
+  background: rgba(var(--accent-primary-rgb, 99, 102, 241), 0.05);
+}
+
+.cv-upload-modal__file-button:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.cv-upload-modal__file-button svg {
+  width: 48px;
+  height: 48px;
+  stroke: currentColor;
+  fill: none;
+  stroke-width: 1.5;
+}
+
+.cv-upload-modal__file-info {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  padding: 1rem;
+  border: 1px solid var(--border-primary);
+  border-radius: 8px;
+  background: var(--bg-primary);
+}
+
+.cv-upload-modal__file-info svg {
+  width: 32px;
+  height: 32px;
+  stroke: var(--accent-primary);
+  fill: none;
+  stroke-width: 1.5;
+  flex-shrink: 0;
+}
+
+.cv-upload-modal__filename {
+  flex: 1;
+  font-size: 0.875rem;
+  color: var(--text-primary);
+  word-break: break-all;
+}
+
+.cv-upload-modal__remove-file {
+  background: transparent;
+  border: none;
+  color: var(--text-secondary);
+  font-size: 1.5rem;
+  line-height: 1;
+  cursor: pointer;
+  padding: 0.25rem;
+  transition: color var(--transition-1);
+  flex-shrink: 0;
+}
+
+.cv-upload-modal__remove-file:hover:not(:disabled) {
+  color: #ef4444;
+}
+
+.cv-upload-modal__remove-file:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.cv-upload-modal__input {
+  width: 100%;
+  padding: 0.75rem 1rem;
+  border: 1px solid var(--border-primary);
+  border-radius: 8px;
+  background: var(--bg-primary);
+  color: var(--text-primary);
+  font-size: 0.875rem;
+  transition: border-color var(--transition-1);
+}
+
+.cv-upload-modal__input:focus {
+  outline: none;
+  border-color: var(--accent-primary);
+}
+
+.cv-upload-modal__input:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.cv-upload-modal__actions {
+  display: flex;
+  gap: 0.75rem;
+  justify-content: flex-end;
+  margin-top: 1.5rem;
+  padding-top: 1.5rem;
+  border-top: 1px solid var(--border-primary);
+}
+
+.cv-upload-modal__button {
+  padding: 0.75rem 1.5rem;
+  border-radius: 8px;
+  font-size: 0.875rem;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all var(--transition-1);
+  border: 1px solid transparent;
+}
+
+.cv-upload-modal__button:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.cv-upload-modal__button--cancel {
+  background: transparent;
+  color: var(--text-secondary);
+  border-color: var(--border-primary);
+}
+
+.cv-upload-modal__button--cancel:hover:not(:disabled) {
+  color: var(--text-primary);
+  border-color: var(--text-primary);
+}
+
+.cv-upload-modal__button--submit {
+  background: var(--accent-primary);
+  color: white;
+}
+
+.cv-upload-modal__button--submit:hover:not(:disabled) {
+  opacity: 0.9;
+  transform: translateY(-1px);
+  box-shadow: var(--shadow-2);
+}
+

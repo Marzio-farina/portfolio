@@ -80,5 +80,26 @@ export class CvFileService {
     const url = apiUrl(`cv-files/${id}/download`);
     this.downloadFile(url);
   }
+
+  /**
+   * Upload di un file CV
+   * @param file File PDF da caricare
+   * @param title Titolo opzionale del CV
+   * @param isDefault Se true, imposta questo CV come predefinito
+   * @returns Observable con la risposta dell'upload
+   */
+  upload$(file: File, title?: string, isDefault: boolean = true): Observable<CvFileResponse> {
+    const formData = new FormData();
+    formData.append('cv_file', file, file.name); // Includi il nome del file
+    if (title) {
+      formData.append('title', title);
+    }
+    // Laravel converte "1"/"0" o true/false in boolean, ma è meglio usare "1"/"0"
+    if (isDefault) {
+      formData.append('is_default', '1');
+    }
+
+    return this.http.post<CvFileResponse>(apiUrl('cv-files/upload'), formData);
+  }
 }
 

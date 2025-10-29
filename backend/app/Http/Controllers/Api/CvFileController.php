@@ -239,6 +239,13 @@ class CvFileController extends Controller
                 'message' => 'CV caricato con successo'
             ], 201, [], JSON_UNESCAPED_UNICODE);
 
+        } catch (\Illuminate\Validation\ValidationException $e) {
+            // Errore di validazione - ritorna gli errori dettagliati
+            return response()->json([
+                'success' => false,
+                'message' => 'Errore di validazione',
+                'errors' => $e->errors()
+            ], 422, [], JSON_UNESCAPED_UNICODE);
         } catch (\Exception $e) {
             // Cleanup in caso di errore
             if (isset($relativePath)) {

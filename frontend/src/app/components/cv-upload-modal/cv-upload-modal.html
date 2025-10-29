@@ -1,0 +1,102 @@
+<div class="cv-upload-modal">
+  <div class="cv-upload-modal__header">
+    <h2 class="cv-upload-modal__title">Carica Curriculum</h2>
+    <button 
+      class="cv-upload-modal__close" 
+      (click)="onCancel()" 
+      aria-label="Chiudi"
+      [disabled]="uploading()">
+      ×
+    </button>
+  </div>
+
+  <div class="cv-upload-modal__content">
+    @if (errorMsg()) {
+      <div class="cv-upload-modal__error">
+        {{ errorMsg() }}
+      </div>
+    }
+
+    <form [formGroup]="uploadForm" (ngSubmit)="onSubmit()" novalidate>
+      <!-- File Input -->
+      <div class="cv-upload-modal__field">
+        <label class="cv-upload-modal__label">
+          File PDF <span class="cv-upload-modal__required">*</span>
+        </label>
+        <input 
+          #fileInput
+          type="file" 
+          accept=".pdf,application/pdf"
+          (change)="onFileSelected($event)"
+          [attr.disabled]="uploading() ? '' : null"
+          style="display: none;">
+        
+        @if (!selectedFile()) {
+          <button 
+            type="button"
+            class="cv-upload-modal__file-button"
+            (click)="openFilePicker()"
+            [disabled]="uploading()">
+            <svg viewBox="0 0 24 24" aria-hidden="true">
+              <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/>
+              <path d="M14 2v6h6M12 18v-6M9 15l3-3 3 3"/>
+            </svg>
+            <span>Seleziona file PDF</span>
+          </button>
+        } @else {
+          <div class="cv-upload-modal__file-info">
+            <svg viewBox="0 0 24 24" aria-hidden="true">
+              <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/>
+              <path d="M14 2v6h6"/>
+            </svg>
+            <span class="cv-upload-modal__filename">{{ selectedFile()?.name }}</span>
+            <button 
+              type="button"
+              class="cv-upload-modal__remove-file"
+              (click)="removeFile()"
+              [disabled]="uploading()"
+              aria-label="Rimuovi file">
+              ×
+            </button>
+          </div>
+        }
+      </div>
+
+      <!-- Title Input (Optional) -->
+      <div class="cv-upload-modal__field">
+        <label class="cv-upload-modal__label" for="cv-title">
+          Titolo (opzionale)
+        </label>
+        <input 
+          id="cv-title"
+          type="text" 
+          formControlName="title"
+          class="cv-upload-modal__input"
+          placeholder="Es. Curriculum 2025"
+          maxlength="255">
+      </div>
+
+      <!-- Submit Button -->
+      <div class="cv-upload-modal__actions">
+        <button 
+          type="button"
+          class="cv-upload-modal__button cv-upload-modal__button--cancel"
+          (click)="onCancel()"
+          [disabled]="uploading()">
+          Annulla
+        </button>
+        <button 
+          type="submit"
+          class="cv-upload-modal__button cv-upload-modal__button--submit"
+          [disabled]="uploadForm.invalid || uploading() || !selectedFile()">
+          @if (uploading()) {
+            <span>Caricamento...</span>
+          } @else {
+            <span>Carica</span>
+          }
+        </button>
+      </div>
+    </form>
+  </div>
+</div>
+

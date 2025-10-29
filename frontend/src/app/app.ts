@@ -10,6 +10,8 @@ import { AuthService } from './services/auth.service';
 import { IdleService } from './services/idle.service';
 import { ThemeService } from './services/theme.service';
 import { ParticlesBgComponent } from './components/particles-bg/particles-bg';
+import { CvUploadModalService } from './services/cv-upload-modal.service';
+import { CvUploadModal } from './components/cv-upload-modal/cv-upload-modal';
 
 /**
  * Main Application Component
@@ -19,7 +21,7 @@ import { ParticlesBgComponent } from './components/particles-bg/particles-bg';
  */
 @Component({
   selector: 'app-root',
-  imports: [Aside, Navbar, Dashboard, Auth, ParticlesBgComponent],
+  imports: [Aside, Navbar, Dashboard, Auth, ParticlesBgComponent, CvUploadModal],
   templateUrl: './app.html',
   styleUrl: './app.css'
 })
@@ -40,10 +42,14 @@ export class App {
   private readonly theme = inject(ThemeService);
   private readonly router = inject(Router);
   private readonly destroyRef = inject(DestroyRef);
+  private readonly cvUploadModal = inject(CvUploadModalService);
 
   // Modal login
   isLoginOpen = signal(false);
   isAuthed = computed(() => !!this.auth.token());
+  
+  // Modal CV upload (gestita dal servizio)
+  isCvUploadModalOpen = this.cvUploadModal.isOpen;
 
   // ========================================================================
   // Constructor
@@ -122,6 +128,16 @@ export class App {
   // Apertura/chiusura popup login
   openLogin(): void { this.isLoginOpen.set(true); }
   closeLogin(): void { this.isLoginOpen.set(false); }
+
+  // Gestione modal CV upload
+  onCvUploaded(): void {
+    this.cvUploadModal.notifyUploadCompleted();
+    this.cvUploadModal.close();
+  }
+
+  onCvUploadCancelled(): void {
+    this.cvUploadModal.close();
+  }
 
   // Click sul pulsante in alto a destra: Accedi/Logout dinamico
   onAuthButtonClick(): void {

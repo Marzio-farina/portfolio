@@ -1,12 +1,14 @@
-import { Component, inject, signal } from '@angular/core';
-import { toSignal } from '@angular/core/rxjs-interop';
+import { Component, DestroyRef, inject, signal } from '@angular/core';
+import { toSignal, takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { ActivatedRoute } from '@angular/router';
-import { map } from 'rxjs';
+import { map, catchError, of } from 'rxjs';
 import { ResumeSection } from '../../components/resume-section/resume-section';
 import { Skills } from '../../components/skills/skills';
 import { CvService } from '../../services/cv.service';
 import { CvFileService } from '../../services/cv-file.service';
 import { Notification, NotificationType } from '../../components/notification/notification';
+import { AuthService } from '../../services/auth.service';
+import { CvUploadModalService } from '../../services/cv-upload-modal.service';
 
 type TimelineItem = { title: string; years: string; description: string };
 
@@ -32,6 +34,9 @@ export class Curriculum {
   private route = inject(ActivatedRoute);
   private cv = inject(CvService);
   private cvFile = inject(CvFileService);
+  private auth = inject(AuthService);
+  private cvUploadModal = inject(CvUploadModalService);
+  private destroyRef = inject(DestroyRef);
 
   title = toSignal(this.route.data.pipe(map(d => d['title'] as string)), { initialValue: '' });
 
@@ -58,6 +63,13 @@ export class Curriculum {
         this.loading.set(false);
       }
     });
+
+    // Ascolta quando l'upload CV è completato
+    this.cvUploadModal.onUploadCompleted$
+      .pipe(takeUntilDestroyed(this.destroyRef))
+      .subscribe(() => {
+        this.onCvUploaded();
+      });
   }
 
   /**
@@ -152,6 +164,74 @@ export class Curriculum {
     } catch (err) {
       this.addNotification('error', 'Funzionalità di condivisione non disponibile.', 'cv-share');
     }
+  }
+
+  /**
+   * Gestisce il click sul bottone CV
+   * Se l'utente è autenticato e non esiste un CV, apre la modal di upload
+   * Altrimenti apre il menu normale
+   */
+  onCvButtonClick(): void {
+    // Se l'utente non è autenticato, apri il menu normalmente
+    if (!this.auth.isAuthenticated()) {
+      this.cvMenuOpen.set(!this.cvMenuOpen());
+      return;
+    }
+
+    // Se l'utente è autenticato, controlla se esiste un CV
+    this.cvFile.getDefault$().pipe(
+      catchError((err: any) => {
+        // Se è un 404 (CV non trovato), è normale per utenti senza CV - apri modal silenziosamente
+        // L'interceptor wrappa l'errore, controlla sia originalError che status diretto
+        const status = err?.originalError?.status ?? err?.status ?? err?.statusCode;
+        
+        if (status === 404) {
+          // Ritorna un oggetto che simula una risposta senza CV
+          return of({ success: false, message: 'Nessun CV trovato', cv: undefined });
+        }
+        
+        // Per altri errori, rilancia l'errore
+        throw err;
+      })
+    ).subscribe({
+      next: (response) => {
+        if (response.success && response.cv) {
+          // CV esiste, apri il menu
+          this.cvMenuOpen.set(!this.cvMenuOpen());
+        } else {
+          // CV non esiste, apri la modal di upload
+          // Mostra una notifica informativa
+          this.addNotification('info', 'Nessun CV trovato. Carica il tuo curriculum.', 'cv-not-found');
+          // Apri la modal usando il servizio
+          this.cvUploadModal.open();
+        }
+      },
+      error: (err: any) => {
+        // Gestisci solo errori non-404 qui
+        // Anche qui, se è un 404 che è sfuggito, apri la modal
+        const status = err?.originalError?.status ?? err?.status ?? err?.statusCode;
+        if (status === 404) {
+          // CV non trovato - mostra notifica informativa e apri modal
+          this.addNotification('info', 'Nessun CV trovato. Carica il tuo curriculum.', 'cv-not-found');
+          // Apri la modal usando il servizio
+          this.cvUploadModal.open();
+        } else {
+          this.cvMenuOpen.set(!this.cvMenuOpen());
+          const message = this.getErrorMessage(err) || 'Errore durante il caricamento del CV.';
+          this.addNotification('error', message, 'cv-check');
+        }
+      }
+    });
+  }
+
+  /**
+   * Gestisce l'upload completato del CV (chiamato dall'App component)
+   * Questo metodo viene chiamato dall'event emitter del componente modal
+   */
+  onCvUploaded(): void {
+    this.addNotification('success', 'CV caricato con successo!', 'cv-upload');
+    // Chiudi il menu se era aperto
+    this.cvMenuOpen.set(false);
   }
 
   /**
