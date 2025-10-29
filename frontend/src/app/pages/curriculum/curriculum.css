@@ -18,6 +18,10 @@ h2.article-title {
   --cv-fab-size: 124px;
   --cv-menu-distance: 80px; /* raggio menu radiale */
   --cv-center-offset-y: 0px; /* fine tuning verticale del centro */
+  --cv-center-offset-x: 0px; /* fine tuning orizzontale del centro (positivo = più a sinistra) */
+  /* Angoli per menu radiale - valori di default */
+  --cv-start: 140deg;
+  --cv-step: 50deg;
 }
 
 /* Pulsante circolare Curriculum - visibile su tutti i dispositivi */
@@ -59,9 +63,11 @@ h2.article-title {
 /* Menu radiale intorno al bottone */
 .cv-menu {  
   position: absolute;
-  right: calc(var(--cv-right) + (var(--cv-fab-size) / 2) - var(--cv-menu-distance));
-  /* Centro del cerchio = centro della FAB (+ eventuale offset fine tuning) */
+  /* Posiziona il menu centrato sul pulsante FAB usando le stesse variabili */
+  right: calc(var(--cv-right) + (var(--cv-fab-size) / 2) - var(--cv-menu-distance) - var(--cv-center-offset-x));
   top: calc(var(--cv-top) + (var(--cv-fab-size) / 2) - var(--cv-menu-distance) + var(--cv-center-offset-y));
+  /* Aggiungi transform per seguire le variazioni responsive del FAB */
+  transform: translate(0, 0);
   width: calc(var(--cv-menu-distance) * 2);
   height: calc(var(--cv-menu-distance) * 2);
   list-style: none;
@@ -69,8 +75,7 @@ h2.article-title {
   padding: 0;
   pointer-events: none;
   --cv-items: 3;
-  --cv-start: 20deg; /* inizio arco (verso basso-sinistra) */
-  --cv-step: 70deg;   /* distanza angolare tra item per 3 bottoni => 210,270,330 */
+  /* Le variabili --cv-start e --cv-step sono ereditate da h2.article-title */
   z-index: 2;
 }
 .cv-menu li {
@@ -86,7 +91,9 @@ h2.article-title {
 .cv-menu.is-open { pointer-events: auto; }
 .cv-menu.is-open li {
   opacity: 1;
-  transform: rotate(calc(var(--cv-start) + var(--cv-step) * var(--i))) translate(var(--r, var(--cv-menu-distance))) rotate(calc(-1 * (var(--cv-start) + var(--cv-step) * var(--i)))) scale(1);
+  /* Usa sempre --cv-menu-distance per distanza radiale uniforme */
+  /* Ruota, sposta lungo X di esattamente --cv-menu-distance, poi ruota indietro */
+  transform: rotate(calc(var(--cv-start) + var(--cv-step) * var(--i))) translateX(var(--cv-menu-distance)) rotate(calc(-1 * (var(--cv-start) + var(--cv-step) * var(--i)))) scale(1);
 }
 .cv-menu__item {
   width: 44px;
@@ -107,14 +114,43 @@ h2.article-title {
 
 /* Tablet/desktop medi (580px–1249px): sposta più a sinistra */
 @media (min-width: 580px) and (max-width: 1249px) {
-  h2.article-title { --cv-right: clamp(45%, 18vw, 70%); --cv-top: -44px; --cv-fab-size: 72px; --cv-menu-distance: 92px; }
+  h2.article-title { 
+    --cv-right: clamp(45%, 18vw, 70%); 
+    --cv-top: -44px; 
+    --cv-fab-size: 72px; 
+    --cv-menu-distance: 80px; /* Ridotto per avvicinare i bottoni */
+    --cv-center-offset-y: 0px;
+    --cv-center-offset-x: -20px;
+    /* Angoli ottimizzati: 90°, 210°, 330° per evitare estremi */
+    --cv-start: 20deg;
+    --cv-step: 50deg;
+  }
   /* size della fab gestita via variabili */
   .cv-fab svg { width: 28px; height: 28px; transform: translateY(5px); }
+  /* Assicura che il menu segua il FAB */
+  .cv-menu {
+    right: calc(var(--cv-right) + (var(--cv-fab-size) / 2) - var(--cv-menu-distance) - var(--cv-center-offset-x));
+    top: calc(var(--cv-top) + (var(--cv-fab-size) / 2) - var(--cv-menu-distance) + var(--cv-center-offset-y));
+    /* Definisci le variabili degli angoli per tablet/desktop medi */
+    --cv-start: 20deg;
+    --cv-step: 70deg;
+  }
 }
 
 /* Mobile (<580px): lungo il bordo destro, più in basso e ruotato */
 @media (max-width: 579px) {
-  h2.article-title { --cv-right: -10px; --cv-top: 55px; --cv-fab-size: 56px; --cv-menu-distance: 76px; }
+  h2.article-title { 
+    --cv-right: -10px; 
+    --cv-top: 75px; 
+    --cv-fab-size: 56px; 
+    --cv-menu-distance: 80px; /* Ridotto per mantenere i bottoni visibili */
+    --cv-center-offset-y: -20px;
+    --cv-center-offset-x: 0px;
+    /* Angoli ottimizzati per mobile: bottoni verso sinistra/sopra per evitare che escano a destra */
+    /* 180° = sinistra, 300° = sinistra-basso, 60° = destra-alto */
+    --cv-start: 180deg; /* Primo bottone a sinistra */
+    --cv-step: 120deg;
+  }
   .cv-fab {
     transform: rotate(90deg);
   }
@@ -126,16 +162,36 @@ h2.article-title {
       position: relative;
       top: 8px; /* sposta l'icona più verso sinistra */
   }
+  /* Assicura che il menu segua il FAB anche su mobile */
+  .cv-menu {
+    right: calc(var(--cv-right) + (var(--cv-fab-size) / 2) - var(--cv-menu-distance) - var(--cv-center-offset-x));
+    top: calc(var(--cv-top) + (var(--cv-fab-size) / 2) - var(--cv-menu-distance) + var(--cv-center-offset-y));
+    /* Definisci le variabili degli angoli per mobile */
+    --cv-start: 130deg;
+    --cv-step: 50deg;
+  }
 }
 
 @media (min-width: 1250px) {
-  h2.article-title { position: relative; }
+  h2.article-title { 
+    position: relative; 
+    /* Aggiorna le variabili per desktop grande */
+    --cv-right: clamp(450px, 24vw, 700px);
+    --cv-top: -50px;
+    --cv-fab-size: 86px;
+    --cv-menu-distance: 90px; /* Ridotto leggermente per migliorare la visibilità */
+    --cv-center-offset-y: 0px;
+    --cv-center-offset-x: -20px; /* Positivo = sposta i bottoni più a sinistra */
+    /* Angoli uniformi per desktop */
+    --cv-start: 60deg;
+    --cv-step: 120deg;
+  }
   .cv-fab {
     position: absolute;
-    top: -50px; /* vicino al bordo superiore del componente */
-    right: clamp(450px, 24vw, 700px); /* sposta molto più a sinistra */
-    width: 86px;
-    height: 86px;
+    top: var(--cv-top);
+    right: var(--cv-right);
+    width: var(--cv-fab-size);
+    height: var(--cv-fab-size);
     border-radius: 100%;
     /* Mostra solo la metà inferiore del cerchio (effetto mezza luna) */
     clip-path: ellipse(50% 50% at 50% 100%);
@@ -165,6 +221,14 @@ h2.article-title {
     stroke: currentColor;
     fill: none;
     stroke-width: 2;
+  }
+  /* Assicura che il menu segua il FAB anche su desktop grande */
+  .cv-menu {
+    right: calc(var(--cv-right) + (var(--cv-fab-size) / 2) - var(--cv-menu-distance) - var(--cv-center-offset-x));
+    top: calc(var(--cv-top) + (var(--cv-fab-size) / 2) - var(--cv-menu-distance) + var(--cv-center-offset-y));
+    /* Definisci le variabili degli angoli per desktop */
+    --cv-start: 20deg;
+    --cv-step: 70deg;
   }
 }
 
