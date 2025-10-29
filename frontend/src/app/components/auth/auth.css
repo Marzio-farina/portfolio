@@ -5,12 +5,9 @@
     background-color: var(--bg-primary);
     transition: background-color var(--transition-1);
 }
-
-.card{
+:host.card{
     width:min(480px, 92vw);
     background: var(--bg-card);
-    border: 1px solid var(--border-primary);
-    border-radius:1.25rem;
     box-shadow: var(--shadow-2);
     padding:1.25rem 1.25rem 1.5rem;
     color: var(--text-primary);

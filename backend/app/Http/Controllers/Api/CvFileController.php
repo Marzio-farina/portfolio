@@ -120,39 +120,87 @@ class CvFileController extends Controller
      * Download del file PDF del curriculum
      * 
      * @param int $id ID del file CV
-     * @return Response|RedirectResponse|BinaryFileResponse
+     * @return Response|RedirectResponse|BinaryFileResponse|JsonResponse
      */
     public function download(int $id)
     {
-        $cvFile = CvFile::findOrFail($id);
+        try {
+            $cvFile = CvFile::findOrFail($id);
 
-        // Verifica che il file esista
-        $filePath = $cvFile->file_path;
-        $isUrl = str_starts_with($filePath, 'http://') || str_starts_with($filePath, 'https://');
+            // Verifica che il file_path esista
+            $filePath = $cvFile->file_path;
+            
+            if (empty($filePath)) {
+                Log::error('CV download failed: file_path is empty', [
+                    'cv_file_id' => $id,
+                    'user_id' => $cvFile->user_id,
+                ]);
+                
+                return response()->json([
+                    'ok' => false,
+                    'error' => 'File non trovato'
+                ], 404);
+            }
 
-        if ($isUrl) {
-            // Per file su cloud (Supabase), restituisci redirect o proxy
-            return redirect($filePath);
+            // Verifica se è un URL (Supabase o altro storage cloud)
+            $isUrl = str_starts_with($filePath, 'http://') || str_starts_with($filePath, 'https://');
+
+            if ($isUrl) {
+                // Per file su cloud (Supabase), restituisci l'URL direttamente
+                // Il frontend farà il download direttamente da Supabase
+                // Usiamo un redirect HTTP 302 per mantenere compatibilità
+                return redirect($filePath, 302)
+                    ->header('Cache-Control', 'no-cache, no-store, must-revalidate')
+                    ->header('Pragma', 'no-cache')
+                    ->header('Expires', '0');
+            }
+
+            // File locale: gestisce path con/senza prefisso storage/
+            $relativePath = str_starts_with($filePath, 'storage/') 
+                ? str_replace('storage/', '', $filePath) 
+                : $filePath;
+
+            $disk = Storage::disk('public');
+            
+            if (!$disk->exists($relativePath)) {
+                Log::error('CV download failed: file not found on disk', [
+                    'cv_file_id' => $id,
+                    'file_path' => $filePath,
+                    'relative_path' => $relativePath,
+                    'user_id' => $cvFile->user_id,
+                ]);
+                
+                return response()->json([
+                    'ok' => false,
+                    'error' => 'File non trovato'
+                ], 404);
+            }
+
+            return response()->download(
+                $disk->path($relativePath),
+                $cvFile->filename,
+                [
+                    'Content-Type' => $cvFile->mime_type ?? 'application/pdf',
+                ]
+            );
+            
+        } catch (\Illuminate\Database\Eloquent\ModelNotFoundException $e) {
+            return response()->json([
+                'ok' => false,
+                'error' => 'CV non trovato'
+            ], 404);
+        } catch (\Exception $e) {
+            Log::error('CV download error', [
+                'cv_file_id' => $id,
+                'error' => $e->getMessage(),
+                'trace' => $e->getTraceAsString()
+            ]);
+            
+            return response()->json([
+                'ok' => false,
+                'error' => 'Errore durante il download del file'
+            ], 500);
         }
-
-        // File locale: gestisce path con/senza prefisso storage/
-        $relativePath = str_starts_with($filePath, 'storage/') 
-            ? str_replace('storage/', '', $filePath) 
-            : $filePath;
-
-        $disk = Storage::disk('public');
-        
-        if (!$disk->exists($relativePath)) {
-            abort(404, 'File non trovato');
-        }
-
-        return response()->download(
-            $disk->path($relativePath),
-            $cvFile->filename,
-            [
-                'Content-Type' => $cvFile->mime_type ?? 'application/pdf',
-            ]
-        );
     }
 
     /**
@@ -203,7 +251,20 @@ class CvFileController extends Controller
 
                 // URL pubblico dal disco 'src'
                 $baseUrl = rtrim(config('filesystems.disks.src.url') ?: env('SUPABASE_PUBLIC_URL'), '/');
-                $filePath = $baseUrl . '/' . $relativePath;
+                
+                if (empty($baseUrl)) {
+                    Log::error('CV upload: SUPABASE_PUBLIC_URL non configurato');
+                    throw new \RuntimeException('Supabase public URL non configurato');
+                }
+                
+                $filePath = $baseUrl . '/' . ltrim($relativePath, '/');
+                
+                Log::info('CV file salvato su Supabase', [
+                    'user_id' => $userId,
+                    'relative_path' => $relativePath,
+                    'file_path' => $filePath,
+                    'base_url' => $baseUrl,
+                ]);
             } else {
                 // LOCALE: salva su disco pubblico
                 $storedPath = $file->storeAs('cv-files', $filename, 'public');
