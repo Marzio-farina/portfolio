@@ -132,6 +132,8 @@ Route::middleware(['api', "throttle:{$throttleLimit}", 'db.connection'])
         // ====================================================================
         Route::post('/register', [AuthController::class, 'register']);
         Route::post('/login', [AuthController::class, 'login']);
+        Route::post('/auth/forgot-password', [AuthController::class, 'forgotPassword']);
+        Route::post('/auth/reset-password', [AuthController::class, 'resetPassword']);
 
         // ====================================================================
         // Protected Routes (require authentication)

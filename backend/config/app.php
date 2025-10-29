@@ -55,6 +55,14 @@ return [
     'url' => env('APP_URL', 'http://localhost'),
 
     /*
+     * Frontend Application URL
+     *
+     * This URL is used to generate links to the frontend application
+     * (e.g., password reset links, email confirmation links).
+     */
+    'frontend_url' => env('FRONTEND_URL', 'http://localhost:4200'),
+
+    /*
     |--------------------------------------------------------------------------
     | Application Timezone
     |--------------------------------------------------------------------------

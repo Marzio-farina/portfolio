@@ -1,5 +1,5 @@
-import { Component, DestroyRef, computed, effect, inject, signal } from '@angular/core';
-import { Router } from '@angular/router';
+import { Component, DestroyRef, computed, effect, inject, signal, OnInit, ViewChild, HostListener } from '@angular/core';
+import { Router, ActivatedRoute } from '@angular/router';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 
 import { Aside } from './components/aside/aside';
@@ -12,6 +12,7 @@ import { ThemeService } from './services/theme.service';
 import { ParticlesBgComponent } from './components/particles-bg/particles-bg';
 import { CvUploadModalService } from './services/cv-upload-modal.service';
 import { CvUploadModal } from './components/cv-upload-modal/cv-upload-modal';
+import { filter, map } from 'rxjs/operators';
 
 /**
  * Main Application Component
@@ -41,8 +42,11 @@ export class App {
   private readonly idle = inject(IdleService);
   private readonly theme = inject(ThemeService);
   private readonly router = inject(Router);
+  private readonly route = inject(ActivatedRoute);
   private readonly destroyRef = inject(DestroyRef);
   private readonly cvUploadModal = inject(CvUploadModalService);
+
+  @ViewChild(Auth) authComponent?: Auth;
 
   // Modal login
   isLoginOpen = signal(false);
@@ -60,6 +64,36 @@ export class App {
     this.initializeIdleTimeout();
     this.setupAuthenticationEffect();
     this.setupIdleTimeoutHandler();
+    this.checkPasswordResetParams();
+  }
+
+  /**
+   * Verifica se ci sono parametri di reset password nell'URL
+   * e apre automaticamente il dialog in modalità reset
+   */
+  private checkPasswordResetParams(): void {
+    this.route.queryParams
+      .pipe(
+        takeUntilDestroyed(this.destroyRef),
+        filter(params => params['token'] && params['email']),
+        map(params => ({ token: params['token'], email: params['email'] }))
+      )
+      .subscribe(({ token, email }) => {
+        // Apri il dialog
+        this.isLoginOpen.set(true);
+        // Usa setTimeout per assicurarsi che il componente sia renderizzato
+        setTimeout(() => {
+          if (this.authComponent) {
+            this.authComponent.initializeResetPassword(email, token);
+            // Rimuovi i parametri dall'URL dopo l'inizializzazione
+            this.router.navigate([], {
+              relativeTo: this.route,
+              queryParams: {},
+              replaceUrl: true
+            });
+          }
+        }, 100);
+      });
   }
 
 
@@ -128,6 +162,17 @@ export class App {
   // Apertura/chiusura popup login
   openLogin(): void { this.isLoginOpen.set(true); }
   closeLogin(): void { this.isLoginOpen.set(false); }
+
+  /**
+   * Gestisce la pressione di Esc o Delete per chiudere il dialog di login
+   */
+  @HostListener('document:keydown', ['$event'])
+  handleKeyboardEvent(event: KeyboardEvent): void {
+    // Chiudi il dialog solo se è aperto e viene premuto Esc o Delete
+    if (this.isLoginOpen() && (event.key === 'Escape' || event.key === 'Delete')) {
+      this.closeLogin();
+    }
+  }
 
   // Gestione modal CV upload
   onCvUploaded(): void {

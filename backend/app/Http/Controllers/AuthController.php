@@ -2,14 +2,20 @@
 
 namespace App\Http\Controllers;
 
+use App\Http\Requests\ForgotPasswordRequest;
 use App\Http\Requests\LoginRequest;
 use App\Http\Requests\RegisterRequest;
+use App\Http\Requests\ResetPasswordRequest;
 use App\Http\Requests\UpdateProfileRequest;
+use App\Mail\PasswordResetNotification;
 use App\Models\Role;
 use App\Models\User;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Cache;
+use Illuminate\Support\Facades\Password;
+use Illuminate\Support\Facades\Log;
+use Illuminate\Support\Facades\Mail;
 
 /**
  * Authentication Controller
@@ -180,5 +186,129 @@ class AuthController extends Controller
             'message' => 'Profile updated',
             'profile' => $profile
         ], 200, [], JSON_UNESCAPED_UNICODE);
+    }
+
+    /**
+     * Send password reset link to user's email
+     * 
+     * @param ForgotPasswordRequest $request Validated email address
+     * @return JsonResponse Success or error response
+     */
+    public function forgotPassword(ForgotPasswordRequest $request): JsonResponse
+    {
+        $email = $request->validated()['email'];
+
+        // Verify user exists
+        $user = User::where('email', $email)->first();
+
+        if (!$user) {
+            // For security reasons, we return the same success message
+            // even if the user doesn't exist to prevent email enumeration
+            return response()->json([
+                'ok' => true,
+                'message' => 'Se l\'email esiste, ti abbiamo inviato le istruzioni per il recupero password.'
+            ], 200);
+        }
+
+        try {
+            // Generate password reset token
+            $token = Password::createToken($user);
+
+            // Send password reset email
+            Mail::to($user->email)->send(new PasswordResetNotification($user, $token));
+
+            Log::info('[PASSWORD RESET] Reset link sent', [
+                'email' => $email,
+                'user_id' => $user->id,
+            ]);
+
+            return response()->json([
+                'ok' => true,
+                'message' => 'Ti abbiamo inviato le istruzioni per il recupero password. Controlla la tua email.'
+            ], 200);
+
+        } catch (\Exception $e) {
+            Log::error('[PASSWORD RESET] Failed to send reset email', [
+                'email' => $email,
+                'error' => $e->getMessage(),
+                'trace' => $e->getTraceAsString()
+            ]);
+
+            return response()->json([
+                'ok' => false,
+                'message' => 'Si è verificato un errore. Riprova più tardi.'
+            ], 500);
+        }
+    }
+
+    /**
+     * Reset user password with token
+     * Validates the reset token and updates the user's password
+     * 
+     * @param ResetPasswordRequest $request Validated reset password data
+     * @return JsonResponse Success or error response
+     */
+    public function resetPassword(ResetPasswordRequest $request): JsonResponse
+    {
+        $data = $request->validated();
+        $email = $data['email'];
+        $token = $data['token'];
+        $password = $data['password'];
+
+        try {
+            // Use Laravel's Password facade to reset the password
+            $status = Password::reset(
+                [
+                    'email' => $email,
+                    'password' => $password,
+                    'password_confirmation' => $password,
+                    'token' => $token,
+                ],
+                function ($user, $password) {
+                    $user->password = Hash::make($password);
+                    $user->save();
+                }
+            );
+
+            if ($status === Password::PASSWORD_RESET) {
+                Log::info('[PASSWORD RESET] Password reset successful', [
+                    'email' => $email,
+                ]);
+
+                return response()->json([
+                    'ok' => true,
+                    'message' => 'Password reimpostata con successo. Puoi ora accedere con la nuova password.'
+                ], 200);
+            } else {
+                $messages = [
+                    Password::INVALID_TOKEN => 'Il token di reset non è valido o è scaduto.',
+                    Password::INVALID_USER => 'L\'utente con questa email non esiste.',
+                ];
+
+                $message = $messages[$status] ?? 'Si è verificato un errore durante il reset della password.';
+
+                Log::warning('[PASSWORD RESET] Password reset failed', [
+                    'email' => $email,
+                    'status' => $status,
+                ]);
+
+                return response()->json([
+                    'ok' => false,
+                    'message' => $message
+                ], 400);
+            }
+
+        } catch (\Exception $e) {
+            Log::error('[PASSWORD RESET] Exception during password reset', [
+                'email' => $email,
+                'error' => $e->getMessage(),
+                'trace' => $e->getTraceAsString()
+            ]);
+
+            return response()->json([
+                'ok' => false,
+                'message' => 'Si è verificato un errore. Riprova più tardi.'
+            ], 500);
+        }
     }
 }

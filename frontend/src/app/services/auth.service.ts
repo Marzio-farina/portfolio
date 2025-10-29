@@ -161,6 +161,23 @@ export class AuthService {
   }
 
   /**
+   * Reset user password with token
+   * Validates the reset token and updates the user's password
+   * 
+   * @param email User email address
+   * @param token Password reset token
+   * @param password New password
+   * @returns Observable of reset response
+   */
+  resetPassword(email: string, token: string, password: string): Observable<any> {
+    return this.http.post(apiUrl('/auth/reset-password'), {
+      email,
+      token,
+      password
+    });
+  }
+
+  /**
    * Logout current user
    * Clears token and refreshes profile to public state
    */

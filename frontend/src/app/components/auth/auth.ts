@@ -42,12 +42,13 @@ export class Auth {
   private auth = inject(AuthService);
 
   // UI state
-  mode = signal<'login' | 'register'>('login');
+  mode = signal<'login' | 'register' | 'recover' | 'reset-password'>('login');
   loading = signal(false);
   error = signal<string | null>(null);
   success = signal<string | null>(null);
   showLoginPass = signal(false);
   showRegPass = signal(false);
+  showResetPass = signal(false);
   // Notifiche multiple (stile add-testimonial)
   notifications = signal<{ id: string; message: string; type: NotificationType; timestamp: number; fieldId: string; }[]>([]);
   tooltipVisible = signal<string | null>(null);
@@ -69,9 +70,24 @@ export class Auth {
     { validators: matchFieldsValidator('password', 'confirm') }
   );
 
+  recoverForm: FormGroup = this.fb.group({
+    email: ['', [Validators.required, Validators.email]],
+  });
+
+  resetPasswordForm: FormGroup = this.fb.group(
+    {
+      email: ['', [Validators.required, Validators.email]],
+      token: ['', [Validators.required]],
+      password: ['', [Validators.required, strongPassword()]],
+      confirm: ['', [Validators.required]],
+    },
+    { validators: matchFieldsValidator('password', 'confirm') }
+  );
+
   // Helpers UI
   toggleLoginPass() { this.showLoginPass.set(!this.showLoginPass()); }
   toggleRegPass()   { this.showRegPass.set(!this.showRegPass()); }
+  toggleResetPass() { this.showResetPass.set(!this.showResetPass()); }
 
   showError(form: FormGroup, control: string, errorKey: string): boolean {
     const c = form.get(control);
@@ -127,17 +143,89 @@ export class Auth {
   }
 
   onForgotPassword() {
-    this.error.set(null); this.success.set(null);
-    const email = (this.mode() === 'login' ? this.loginForm.value.email : this.registerForm.value.email) as string | undefined;
-    if (!email) { this.error.set('Inserisci la tua email per procedere.'); return; }
+    // Precompila email se disponibile prima di cambiare mode
+    const currentMode = this.mode();
+    const email = (currentMode === 'login' ? this.loginForm.value.email : this.registerForm.value.email) as string | undefined;
+    
+    // Passa alla modalità recupera
+    this.mode.set('recover');
+    this.error.set(null);
+    this.success.set(null);
+    
+    // Precompila email se disponibile
+    if (email) {
+      this.recoverForm.patchValue({ email });
+    }
+  }
 
+  submitRecover() {
+    this.error.set(null); 
+    this.success.set(null);
+    if (this.recoverForm.invalid) {
+      this.recoverForm.markAllAsTouched();
+      this.showValidationErrors('recover');
+      return;
+    }
     this.loading.set(true);
+
+    const email = this.recoverForm.value.email as string;
     this.auth.forgotPassword(email).pipe(
       finalize(() => this.loading.set(false))
     ).subscribe({
-      next: () => this.success.set('Ti abbiamo inviato le istruzioni per il reset.'),
-      error: (err) => this.error.set(this.humanizeError(err)),
+      next: () => {
+        this.success.set('Ti abbiamo inviato le istruzioni per il reset. Controlla la tua email.');
+        this.recoverForm.reset();
+        this.notifications.set([]);
+      },
+      error: (err) => {
+        const message = this.humanizeError(err);
+        this.error.set(message);
+        this.notifications.update(list => [...list, { id: `global-${Date.now()}`, message, type: 'error', timestamp: Date.now(), fieldId: 'global' }]);
+      },
     });
+  }
+
+  submitResetPassword() {
+    this.error.set(null);
+    this.success.set(null);
+    if (this.resetPasswordForm.invalid) {
+      this.resetPasswordForm.markAllAsTouched();
+      this.showValidationErrors('reset-password');
+      return;
+    }
+    this.loading.set(true);
+
+    const { email, token, password } = this.resetPasswordForm.value;
+    this.auth.resetPassword(email, token, password).pipe(
+      finalize(() => this.loading.set(false))
+    ).subscribe({
+      next: () => {
+        this.success.set('Password reimpostata con successo! Puoi ora accedere con la nuova password.');
+        this.resetPasswordForm.reset();
+        this.notifications.set([]);
+        // Passa al login dopo 2 secondi
+        setTimeout(() => {
+          this.mode.set('login');
+          this.error.set(null);
+          this.success.set(null);
+        }, 2000);
+      },
+      error: (err) => {
+        const message = this.humanizeError(err);
+        this.error.set(message);
+        this.notifications.update(list => [...list, { id: `global-${Date.now()}`, message, type: 'error', timestamp: Date.now(), fieldId: 'global' }]);
+      },
+    });
+  }
+
+  /**
+   * Inizializza il form di reset password con token ed email dai query parameters
+   */
+  initializeResetPassword(email: string, token: string): void {
+    this.mode.set('reset-password');
+    this.resetPasswordForm.patchValue({ email, token });
+    this.error.set(null);
+    this.success.set(null);
   }
 
   // Mapping errori API -> messaggi UI
@@ -175,6 +263,10 @@ export class Auth {
       case 'register.password': return this.registerForm.get('password');
       case 'register.confirm': return this.registerForm.get('confirm');
       case 'register.terms': return this.registerForm.get('terms');
+      case 'recover.email': return this.recoverForm.get('email');
+      case 'reset-password.email': return this.resetPasswordForm.get('email');
+      case 'reset-password.password': return this.resetPasswordForm.get('password');
+      case 'reset-password.confirm': return this.resetPasswordForm.get('confirm');
       default: return null;
     }
   }
@@ -185,13 +277,21 @@ export class Auth {
         return { message: "L'email per il login non valida.", type: 'error' };
       case 'register.email':
         return { message: "L'email per la registrazione non valida.", type: 'error' };
+      case 'recover.email':
+        return { message: "L'email per il recupero non valida.", type: 'error' };
+      case 'reset-password.email':
+        return { message: "L'email non valida.", type: 'error' };
       case 'login.password':
         return { message: 'La password è obbligatoria.', type: 'error' };
       case 'register.name':
         return { message: 'Il nome è obbligatorio (min 2 caratteri).', type: 'warning' };
       case 'register.password':
         return { message: 'Inserisci: 8+ car. con maiuscole, minuscole e numeri.', type: 'warning' };
+      case 'reset-password.password':
+        return { message: 'Inserisci: 8+ car. con maiuscole, minuscole e numeri.', type: 'warning' };
       case 'register.confirm':
+        return { message: 'Le password non coincidono.', type: 'error' };
+      case 'reset-password.confirm':
         return { message: 'Le password non coincidono.', type: 'error' };
       case 'register.terms':
         return { message: 'Devi accettare i termini.', type: 'error' };
@@ -216,16 +316,22 @@ export class Auth {
     this.notifications.update(list => list.filter(n => n.fieldId !== fieldId));
   }
 
-  private showValidationErrors(scope: 'login' | 'register') {
+  private showValidationErrors(scope: 'login' | 'register' | 'recover' | 'reset-password') {
     if (scope === 'login') {
       if (this.loginForm.get('email')?.invalid) this.addNotification('login.email', "L'email è obbligatoria o non valida.", 'error');
       if (this.loginForm.get('password')?.invalid) this.addNotification('login.password', 'La password è obbligatoria.', 'error');
-    } else {
+    } else if (scope === 'register') {
       if (this.registerForm.get('name')?.invalid) this.addNotification('register.name', 'Il nome è obbligatorio (min 2 caratteri).', 'warning');
       if (this.registerForm.get('email')?.invalid) this.addNotification('register.email', "L'email è obbligatoria o non valida.", 'error');
       if (this.registerForm.get('password')?.errors?.['weakPassword'] || this.registerForm.get('password')?.errors?.['required']) this.addNotification('register.password', 'Password debole: 8+ caratteri con maiuscole, minuscole e numeri.', 'warning');
       if (this.registerForm.errors?.['fieldMismatch']) this.addNotification('register.confirm', 'Le password non coincidono.', 'error');
       if (this.registerForm.get('terms')?.invalid) this.addNotification('register.terms', 'Devi accettare i termini.', 'error');
+    } else if (scope === 'recover') {
+      if (this.recoverForm.get('email')?.invalid) this.addNotification('recover.email', "L'email è obbligatoria o non valida.", 'error');
+    } else if (scope === 'reset-password') {
+      if (this.resetPasswordForm.get('email')?.invalid) this.addNotification('reset-password.email', "L'email è obbligatoria o non valida.", 'error');
+      if (this.resetPasswordForm.get('password')?.errors?.['weakPassword'] || this.resetPasswordForm.get('password')?.errors?.['required']) this.addNotification('reset-password.password', 'Password debole: 8+ caratteri con maiuscole, minuscole e numeri.', 'warning');
+      if (this.resetPasswordForm.errors?.['fieldMismatch']) this.addNotification('reset-password.confirm', 'Le password non coincidono.', 'error');
     }
   }
 
