@@ -1,0 +1,173 @@
+<div class="add-attestato-modal">
+  <div class="add-attestato-modal__header">
+    <h2 class="add-attestato-modal__title">Aggiungi Attestato</h2>
+    <button 
+      class="add-attestato-modal__close" 
+      (click)="onCancel()" 
+      aria-label="Chiudi"
+      [disabled]="uploading()">
+      ×
+    </button>
+  </div>
+
+  <!-- Notifiche multiple -->
+  <app-notification 
+    [notifications]="notifications()"
+    [showMultiple]="true"
+    [mostSevereNotification]="getMostSevereNotification()">
+  </app-notification>
+
+  <div class="add-attestato-modal__content">
+    <form [formGroup]="addAttestatoForm" (ngSubmit)="onSubmit()" novalidate>
+      <!-- Title Input (Required) -->
+      <div class="add-attestato-modal__field">
+        <label class="add-attestato-modal__label" for="attestato-title">
+          Titolo <span class="add-attestato-modal__required">*</span>
+        </label>
+        <input 
+          id="attestato-title"
+          type="text" 
+          formControlName="title"
+          class="add-attestato-modal__input"
+          placeholder="Es. Data Week"
+          maxlength="150"
+          (blur)="onFieldBlur('attestato.title')">
+      </div>
+
+      <!-- Description Input -->
+      <div class="add-attestato-modal__field">
+        <label class="add-attestato-modal__label" for="attestato-description">
+          Descrizione
+        </label>
+        <textarea 
+          id="attestato-description"
+          formControlName="description"
+          class="add-attestato-modal__textarea"
+          placeholder="Es. Conoscenza di Python e Tableau"
+          rows="3"
+          maxlength="1000"
+          (blur)="onFieldBlur('attestato.description')"></textarea>
+      </div>
+
+      <!-- Issuer Input -->
+      <div class="add-attestato-modal__field">
+        <label class="add-attestato-modal__label" for="attestato-issuer">
+          Ente Rilasciante
+        </label>
+        <input 
+          id="attestato-issuer"
+          type="text" 
+          formControlName="issuer"
+          class="add-attestato-modal__input"
+          placeholder="Es. Boolean"
+          maxlength="150"
+          (blur)="onFieldBlur('attestato.issuer')">
+      </div>
+
+      <!-- Date Fields -->
+      <div class="add-attestato-modal__field-row">
+        <div class="add-attestato-modal__field">
+          <label class="add-attestato-modal__label" for="attestato-issued-at">
+            Data Rilascio
+          </label>
+          <input 
+            id="attestato-issued-at"
+            type="date" 
+            formControlName="issued_at"
+            class="add-attestato-modal__input"
+            (blur)="onFieldBlur('attestato.issued_at')">
+        </div>
+        <div class="add-attestato-modal__field">
+          <label class="add-attestato-modal__label" for="attestato-expires-at">
+            Data Scadenza
+          </label>
+          <input 
+            id="attestato-expires-at"
+            type="date" 
+            formControlName="expires_at"
+            class="add-attestato-modal__input"
+            (blur)="onFieldBlur('attestato.expires_at')">
+        </div>
+      </div>
+
+      <!-- Credential URL -->
+      <div class="add-attestato-modal__field">
+        <label class="add-attestato-modal__label" for="attestato-credential-url">
+          URL Credenziale (opzionale)
+        </label>
+        <input 
+          id="attestato-credential-url"
+          type="url" 
+          formControlName="credential_url"
+          class="add-attestato-modal__input"
+          placeholder="https://..."
+          maxlength="255"
+          (blur)="onFieldBlur('attestato.credential_url')">
+      </div>
+
+      <!-- Poster File Input -->
+      <div class="add-attestato-modal__field">
+        <label class="add-attestato-modal__label">
+          Immagine Attestato <span class="add-attestato-modal__required">*</span>
+        </label>
+        <input 
+          #fileInput
+          type="file" 
+          accept="image/jpeg,image/png,image/jpg,image/gif,image/webp"
+          (change)="onFileSelected($event)"
+          [attr.disabled]="uploading() ? '' : null"
+          style="display: none;">
+        
+        @if (!selectedFile()) {
+          <button 
+            type="button"
+            class="add-attestato-modal__file-button"
+            (click)="openFilePicker()"
+            [disabled]="uploading()">
+            <svg viewBox="0 0 24 24" aria-hidden="true">
+              <path d="M21 19V5a2 2 0 0 0-2-2H5a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2zM8.5 13.5l2.5 3.01L14.5 12l4.5 6H5l3.5-4.5z"/>
+            </svg>
+            <span>Seleziona immagine</span>
+          </button>
+        } @else {
+          <div class="add-attestato-modal__file-info">
+            <svg viewBox="0 0 24 24" aria-hidden="true">
+              <path d="M21 19V5a2 2 0 0 0-2-2H5a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2zM8.5 13.5l2.5 3.01L14.5 12l4.5 6H5l3.5-4.5z"/>
+            </svg>
+            <span class="add-attestato-modal__filename">{{ selectedFile()?.name }}</span>
+            <button 
+              type="button"
+              class="add-attestato-modal__remove-file"
+              (click)="removeFile()"
+              [disabled]="uploading()"
+              aria-label="Rimuovi file">
+              ×
+            </button>
+          </div>
+        }
+      </div>
+
+      <!-- Submit Button -->
+      <div class="add-attestato-modal__actions">
+        <button 
+          type="button"
+          class="add-attestato-modal__button add-attestato-modal__button--cancel"
+          (click)="onCancel()"
+          [disabled]="uploading()">
+          Annulla
+        </button>
+        <button 
+          type="submit"
+          class="add-attestato-modal__button add-attestato-modal__button--submit"
+          [disabled]="addAttestatoForm.invalid || uploading() || !selectedFile()">
+          @if (uploading()) {
+            <span>Caricamento...</span>
+          } @else {
+            <span>Crea</span>
+          }
+        </button>
+      </div>
+    </form>
+  </div>
+</div>
+

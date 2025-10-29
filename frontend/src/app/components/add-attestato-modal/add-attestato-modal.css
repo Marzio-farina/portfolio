@@ -1,0 +1,251 @@
+.add-attestato-modal {
+  background: var(--bg-card);
+  border: 1px solid var(--border-primary);
+  border-radius: 16px;
+  box-shadow: var(--shadow-2);
+  width: 100%;
+  max-width: 600px;
+  max-height: 90vh;
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+}
+
+.add-attestato-modal__header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 1.5rem;
+  border-bottom: 1px solid var(--border-primary);
+  position: relative;
+}
+
+.add-attestato-modal__title {
+  margin: 0;
+  font-size: 1.5rem;
+  font-weight: 600;
+  color: var(--text-primary);
+}
+
+.add-attestato-modal__close {
+  position: absolute;
+  top: 0.5rem;
+  right: 0.5rem;
+  background: transparent;
+  color: var(--text-secondary);
+  border: none;
+  font-size: 2rem;
+  line-height: 1;
+  cursor: pointer;
+  padding: 0.25rem;
+  transition: color var(--transition-1);
+}
+
+.add-attestato-modal__close:hover:not(:disabled) {
+  color: var(--text-primary);
+}
+
+.add-attestato-modal__close:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.add-attestato-modal__content {
+  padding: 1.5rem;
+  overflow-y: auto;
+}
+
+.add-attestato-modal__error {
+  background: rgba(239, 68, 68, 0.1);
+  border: 1px solid rgba(239, 68, 68, 0.3);
+  border-radius: 8px;
+  padding: 0.75rem 1rem;
+  margin-bottom: 1.5rem;
+  color: #ef4444;
+  font-size: 0.875rem;
+}
+
+.add-attestato-modal__field {
+  margin-bottom: 1.5rem;
+}
+
+.add-attestato-modal__field-row {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 1rem;
+  margin-bottom: 1.5rem;
+}
+
+.add-attestato-modal__field:last-of-type {
+  margin-bottom: 1rem;
+}
+
+.add-attestato-modal__label {
+  display: block;
+  margin-bottom: 0.5rem;
+  font-size: 0.875rem;
+  font-weight: 500;
+  color: var(--text-primary);
+}
+
+.add-attestato-modal__required {
+  color: #ef4444;
+}
+
+.add-attestato-modal__file-button {
+  width: 100%;
+  padding: 2rem;
+  border: 2px dashed var(--border-primary);
+  border-radius: 8px;
+  background: transparent;
+  color: var(--text-secondary);
+  cursor: pointer;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.75rem;
+  transition: all var(--transition-1);
+}
+
+.add-attestato-modal__file-button:hover:not(:disabled) {
+  border-color: var(--accent-primary);
+  color: var(--accent-primary);
+  background: rgba(var(--accent-primary-rgb, 99, 102, 241), 0.05);
+}
+
+.add-attestato-modal__file-button:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.add-attestato-modal__file-button svg {
+  width: 48px;
+  height: 48px;
+  stroke: currentColor;
+  fill: none;
+  stroke-width: 1.5;
+}
+
+.add-attestato-modal__file-info {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  padding: 1rem;
+  border: 1px solid var(--border-primary);
+  border-radius: 8px;
+  background: var(--bg-primary);
+}
+
+.add-attestato-modal__file-info svg {
+  width: 32px;
+  height: 32px;
+  stroke: var(--accent-primary);
+  fill: none;
+  stroke-width: 1.5;
+  flex-shrink: 0;
+}
+
+.add-attestato-modal__filename {
+  flex: 1;
+  font-size: 0.875rem;
+  color: var(--text-primary);
+  word-break: break-all;
+}
+
+.add-attestato-modal__remove-file {
+  background: transparent;
+  border: none;
+  color: var(--text-secondary);
+  font-size: 1.5rem;
+  line-height: 1;
+  cursor: pointer;
+  padding: 0.25rem;
+  transition: color var(--transition-1);
+  flex-shrink: 0;
+}
+
+.add-attestato-modal__remove-file:hover:not(:disabled) {
+  color: #ef4444;
+}
+
+.add-attestato-modal__remove-file:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.add-attestato-modal__input,
+.add-attestato-modal__textarea {
+  width: 100%;
+  padding: 0.75rem 1rem;
+  border: 1px solid var(--border-primary);
+  border-radius: 8px;
+  background: var(--bg-primary);
+  color: var(--text-primary);
+  font-size: 0.875rem;
+  transition: border-color var(--transition-1);
+  font-family: inherit;
+}
+
+.add-attestato-modal__textarea {
+  resize: vertical;
+  min-height: 80px;
+}
+
+.add-attestato-modal__input:focus,
+.add-attestato-modal__textarea:focus {
+  outline: none;
+  border-color: var(--accent-primary);
+}
+
+.add-attestato-modal__input:disabled,
+.add-attestato-modal__textarea:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.add-attestato-modal__actions {
+  display: flex;
+  gap: 0.75rem;
+  justify-content: flex-end;
+  margin-top: 1.5rem;
+  padding-top: 1.5rem;
+  border-top: 1px solid var(--border-primary);
+}
+
+.add-attestato-modal__button {
+  padding: 0.75rem 1.5rem;
+  border-radius: 8px;
+  font-size: 0.875rem;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all var(--transition-1);
+  border: 1px solid transparent;
+}
+
+.add-attestato-modal__button:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.add-attestato-modal__button--cancel {
+  background: transparent;
+  color: var(--text-secondary);
+  border-color: var(--border-primary);
+}
+
+.add-attestato-modal__button--cancel:hover:not(:disabled) {
+  color: var(--text-primary);
+  border-color: var(--text-primary);
+}
+
+.add-attestato-modal__button--submit {
+  background: var(--accent-primary);
+  color: white;
+}
+
+.add-attestato-modal__button--submit:hover:not(:disabled) {
+  opacity: 0.9;
+  transform: translateY(-1px);
+  box-shadow: var(--shadow-2);
+}
+

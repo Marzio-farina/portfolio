@@ -148,6 +148,9 @@ Route::middleware(['api', "throttle:{$throttleLimit}", 'db.connection'])
             Route::get('cv-files', [CvFileController::class, 'index']);
             Route::post('cv-files/upload', [CvFileController::class, 'upload']);
             Route::delete('cv-files/{id}', [CvFileController::class, 'delete']);
+            
+            // Attestati - creazione richiede autenticazione
+            Route::post('attestati', [AttestatiController::class, 'store']);
         });
 
         // ====================================================================

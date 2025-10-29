@@ -12,6 +12,8 @@ import { ThemeService } from './services/theme.service';
 import { ParticlesBgComponent } from './components/particles-bg/particles-bg';
 import { CvUploadModalService } from './services/cv-upload-modal.service';
 import { CvUploadModal } from './components/cv-upload-modal/cv-upload-modal';
+import { AddAttestatoModalService } from './services/add-attestato-modal.service';
+import { AddAttestatoModal } from './components/add-attestato-modal/add-attestato-modal';
 import { Notification, NotificationItem, NotificationType } from './components/notification/notification';
 import { filter, map } from 'rxjs/operators';
 
@@ -23,7 +25,7 @@ import { filter, map } from 'rxjs/operators';
  */
 @Component({
   selector: 'app-root',
-  imports: [Aside, Navbar, Dashboard, Auth, ParticlesBgComponent, CvUploadModal, Notification],
+  imports: [Aside, Navbar, Dashboard, Auth, ParticlesBgComponent, CvUploadModal, AddAttestatoModal, Notification],
   templateUrl: './app.html',
   styleUrl: './app.css'
 })
@@ -46,6 +48,7 @@ export class App {
   private readonly route = inject(ActivatedRoute);
   private readonly destroyRef = inject(DestroyRef);
   private readonly cvUploadModal = inject(CvUploadModalService);
+  private readonly addAttestatoModal = inject(AddAttestatoModalService);
 
   @ViewChild(Auth) authComponent?: Auth;
 
@@ -55,6 +58,9 @@ export class App {
   
   // Modal CV upload (gestita dal servizio)
   isCvUploadModalOpen = this.cvUploadModal.isOpen;
+
+  // Modal Add Attestato (gestita dal servizio)
+  isAddAttestatoModalOpen = this.addAttestatoModal.isOpen;
 
   // Notifiche globali (per logout automatico)
   notifications = signal<NotificationItem[]>([]);
@@ -235,6 +241,20 @@ export class App {
 
   onCvUploadCancelled(): void {
     this.cvUploadModal.close();
+  }
+
+  // Gestione modal Add Attestato
+  onAttestatoCreated(): void {
+    this.addAttestatoModal.notifyAttestatoCreated();
+    this.addAttestatoModal.close();
+  }
+
+  onAttestatoError(event: {message: string; type: 'error' | 'warning'}): void {
+    this.addAttestatoModal.notifyAttestatoError(event);
+  }
+
+  onAttestatoCancelled(): void {
+    this.addAttestatoModal.close();
   }
 
   // Click sul pulsante in alto a destra: Accedi/Logout dinamico

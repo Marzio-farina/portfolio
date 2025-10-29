@@ -20,4 +20,12 @@ export class AttestatiService {
   listAll$(max = 1000, params: Record<string, any> = {}): Observable<Attestato[]> {
     return this.list$(1, max, params).pipe(map(r => r.data ?? []));
   }
+
+  /**
+   * Crea un nuovo attestato
+   */
+  create$(data: FormData): Observable<Attestato> {
+    const url = apiUrl('attestati');
+    return this.http.post<Attestato>(url, data);
+  }
 }

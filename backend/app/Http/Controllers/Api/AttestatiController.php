@@ -5,7 +5,12 @@ namespace App\Http\Controllers\Api;
 use App\Http\Controllers\Controller;
 use App\Http\Resources\AttestatoResource;
 use App\Models\Attestato;
+use App\Models\User;
+use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\Storage;
+use Illuminate\Support\Str;
 
 class AttestatiController extends Controller
 {
@@ -73,5 +78,88 @@ class AttestatiController extends Controller
 
         $paginator = $q->paginate($perPage)->appends($request->query());
         return AttestatoResource::collection($paginator);
+    }
+
+    /**
+     * POST /api/attestati
+     * Crea un nuovo attestato
+     */
+    public function store(Request $request): JsonResponse
+    {
+        $validated = $request->validate([
+            'title' => 'required|string|max:150',
+            'description' => 'nullable|string|max:1000',
+            'issuer' => 'nullable|string|max:150',
+            'issued_at' => 'nullable|date',
+            'expires_at' => 'nullable|date|after:issued_at',
+            'credential_id' => 'nullable|string|max:100',
+            'credential_url' => 'nullable|url|max:255',
+            'poster_file' => 'nullable|image|mimes:jpeg,png,jpg,gif,webp|max:5120', // max 5MB
+            'status' => 'nullable|string|in:draft,published',
+            'is_featured' => 'nullable|boolean',
+        ]);
+
+        // Determina user_id (autenticato o public fallback)
+        $userId = Auth::id();
+        if (!$userId) {
+            // Fallback a PUBLIC_USER_ID se configurato, altrimenti errore
+            $publicUserId = env('PUBLIC_USER_ID');
+            if (!$publicUserId) {
+                return response()->json([
+                    'ok' => false,
+                    'message' => 'Autenticazione richiesta per creare attestati',
+                ], 401);
+            }
+            $userId = (int) $publicUserId;
+        }
+
+        // Gestione upload poster
+        $posterPath = null;
+        if ($request->hasFile('poster_file')) {
+            $file = $request->file('poster_file');
+            $extension = $file->getClientOriginalExtension();
+            $filename = Str::slug($validated['title']) . '-' . time() . '.' . $extension;
+            
+            if (app()->environment('production')) {
+                // Salva su Supabase
+                $relativePath = 'attestati/' . $filename;
+                $binary = file_get_contents($file->getRealPath());
+                $ok = Storage::disk('src')->put($relativePath, $binary);
+                
+                if (!$ok) {
+                    return response()->json([
+                        'ok' => false,
+                        'message' => 'Errore durante il caricamento dell\'immagine',
+                    ], 500);
+                }
+
+                $baseUrl = rtrim(config('filesystems.disks.src.url') ?: env('SUPABASE_PUBLIC_URL'), '/');
+                $posterPath = $baseUrl . '/' . ltrim($relativePath, '/');
+            } else {
+                // Salva localmente
+                $storedPath = $file->storeAs('attestati', $filename, 'public');
+                $posterPath = 'storage/' . ltrim($storedPath, '/');
+            }
+        }
+
+        // Crea l'attestato
+        $attestato = Attestato::create([
+            'user_id' => $userId,
+            'title' => $validated['title'],
+            'description' => $validated['description'] ?? null,
+            'poster' => $posterPath,
+            'issuer' => $validated['issuer'] ?? null,
+            'issued_at' => $validated['issued_at'] ?? null,
+            'expires_at' => $validated['expires_at'] ?? null,
+            'credential_id' => $validated['credential_id'] ?? null,
+            'credential_url' => $validated['credential_url'] ?? null,
+            'status' => $validated['status'] ?? 'published',
+            'is_featured' => $validated['is_featured'] ?? false,
+        ]);
+
+        return response()->json(
+            new AttestatoResource($attestato),
+            201
+        );
     }
 }
