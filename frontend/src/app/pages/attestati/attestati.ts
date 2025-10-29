@@ -51,7 +51,7 @@ export class Attestati {
     this.addAttestatoModal.onAttestatoCreated$.pipe(
       takeUntilDestroyed()
     ).subscribe(() => {
-      this.loadAttestati();
+      this.loadAttestati(true); // Forza refresh per bypassare la cache
       this.addNotification('success', 'Attestato creato con successo!', 'attestato-create');
     });
 
@@ -66,9 +66,9 @@ export class Attestati {
     });
   }
 
-  private loadAttestati(): void {
+  private loadAttestati(forceRefresh = false): void {
     this.loading.set(true);
-    this.api.listAll$(1000).subscribe({
+    this.api.listAll$(1000, {}, forceRefresh).subscribe({
       next: data => { 
         this.attestati.set(data); 
         this.loading.set(false); 
