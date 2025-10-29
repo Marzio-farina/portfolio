@@ -12,6 +12,7 @@ import { ThemeService } from './services/theme.service';
 import { ParticlesBgComponent } from './components/particles-bg/particles-bg';
 import { CvUploadModalService } from './services/cv-upload-modal.service';
 import { CvUploadModal } from './components/cv-upload-modal/cv-upload-modal';
+import { Notification, NotificationItem, NotificationType } from './components/notification/notification';
 import { filter, map } from 'rxjs/operators';
 
 /**
@@ -22,7 +23,7 @@ import { filter, map } from 'rxjs/operators';
  */
 @Component({
   selector: 'app-root',
-  imports: [Aside, Navbar, Dashboard, Auth, ParticlesBgComponent, CvUploadModal],
+  imports: [Aside, Navbar, Dashboard, Auth, ParticlesBgComponent, CvUploadModal, Notification],
   templateUrl: './app.html',
   styleUrl: './app.css'
 })
@@ -54,6 +55,10 @@ export class App {
   
   // Modal CV upload (gestita dal servizio)
   isCvUploadModalOpen = this.cvUploadModal.isOpen;
+
+  // Notifiche globali (per logout automatico)
+  notifications = signal<NotificationItem[]>([]);
+  showMultipleNotifications = signal(false);
 
   // ========================================================================
   // Constructor
@@ -112,10 +117,11 @@ export class App {
 
   /**
    * Initialize idle timeout configuration
-   * Sets the idle timeout to 15 minutes (900,000 ms)
+   * Sets the idle timeout to 15 seconds (15,000 ms) for testing
+   * TODO: Cambiare a 15 minuti (15 * 60 * 1000) in produzione
    */
   private initializeIdleTimeout(): void {
-    this.idle.configure(15 * 60 * 1000);
+    this.idle.configure(15 * 1000); // 15 secondi per test
   }
 
   /**
@@ -155,8 +161,55 @@ export class App {
    * Logs out user and redirects to auth page
    */
   private handleIdleTimeout(): void {
+    // Aggiungi notifica di logout per inattività
+    this.addNotification('Sei stato disconnesso per inattività.', 'warning');
+    
     this.auth.logout();
     this.isLoginOpen.set(true);
+  }
+
+  /**
+   * Aggiunge una notifica globale
+   */
+  private addNotification(message: string, type: NotificationType): void {
+    const notification: NotificationItem = {
+      id: `global-${Date.now()}`,
+      message,
+      type,
+      timestamp: Date.now(),
+      fieldId: 'global'
+    };
+    
+    this.notifications.update(list => [...list, notification]);
+    this.showMultipleNotifications.set(true);
+
+    // Rimuovi automaticamente la notifica dopo 5 secondi
+    setTimeout(() => {
+      this.removeNotification(notification.id);
+    }, 5000);
+  }
+
+  /**
+   * Rimuove una notifica per ID
+   */
+  private removeNotification(id: string): void {
+    this.notifications.update(list => {
+      const filtered = list.filter(n => n.id !== id);
+      if (filtered.length === 0) {
+        this.showMultipleNotifications.set(false);
+      }
+      return filtered;
+    });
+  }
+
+  /**
+   * Ottiene la notifica più grave (per il componente Notification)
+   */
+  getMostSevereNotification(): NotificationItem | null {
+    const list = this.notifications();
+    if (!list.length) return null;
+    const order: NotificationType[] = ['error', 'warning', 'info', 'success'];
+    return [...list].sort((a, b) => order.indexOf(a.type) - order.indexOf(b.type))[0];
   }
 
   // Apertura/chiusura popup login
