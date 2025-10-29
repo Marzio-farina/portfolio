@@ -11,6 +11,7 @@
 use App\Http\Controllers\Api\AttestatiController;
 use App\Http\Controllers\Api\AvatarController;
 use App\Http\Controllers\Api\CvController;
+use App\Http\Controllers\Api\CvFileController;
 use App\Http\Controllers\Api\ProjectController;
 use App\Http\Controllers\Api\TestimonialController;
 use App\Http\Controllers\Api\UserPublicController;
@@ -101,6 +102,10 @@ Route::middleware(['api', "throttle:{$throttleLimit}", 'db.connection'])
             Route::get('cv', [CvController::class, 'index']);
             Route::get('what-i-do', [WhatIDoController::class, 'index']);
             Route::get('attestati', [AttestatiController::class, 'index']);
+            
+            // CV Files - download pubblico (utente identificato opzionalmente)
+            Route::get('cv-files/default', [CvFileController::class, 'getDefault']);
+            Route::get('cv-files/{id}/download', [CvFileController::class, 'download'])->name('api.cv-files.download');
         });
 
         // Profilo pubblico NON in cache, per riflettere subito le modifiche
@@ -136,6 +141,11 @@ Route::middleware(['api', "throttle:{$throttleLimit}", 'db.connection'])
             Route::post('/logout', [AuthController::class, 'logout']);
             Route::put('/profile', [AuthController::class, 'updateProfile']);
             Route::delete('avatars/{id}', [AvatarController::class, 'delete']); // Delete avatar
+            
+            // CV Files - gestione completa (richiede autenticazione)
+            Route::get('cv-files', [CvFileController::class, 'index']);
+            Route::post('cv-files/upload', [CvFileController::class, 'upload']);
+            Route::delete('cv-files/{id}', [CvFileController::class, 'delete']);
         });
 
         // ====================================================================

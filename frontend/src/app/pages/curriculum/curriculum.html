@@ -1,3 +1,10 @@
+<!-- Sistema di notifiche multiple -->
+<app-notification 
+  [notifications]="notifications()"
+  [showMultiple]="showMultipleNotifications()"
+  [mostSevereNotification]="getMostSevereNotification()">
+</app-notification>
+
 <h2 class="article-title">{{ title() }}
   <button class="cv-fab" type="button" title="Curriculum" aria-label="Curriculum" (click)="cvMenuOpen.set(!cvMenuOpen())" [attr.aria-expanded]="cvMenuOpen()">
     <svg viewBox="0 0 24 24" aria-hidden="true">
@@ -6,15 +13,37 @@
     </svg>
   </button>
   <ul class="cv-menu" [class.is-open]="cvMenuOpen()" role="menu" aria-label="Opzioni curriculum">
-    <li role="none" style="--i:0"><button role="menuitem" class="cv-menu__item" title="Scarica PDF" aria-label="Scarica PDF">
-      <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 3v12m0 0l-4-4m4 4l4-4M5 21h14"/></svg>
-    </button></li>
-    <li role="none" style="--i:1; --r: 66px"><button role="menuitem" class="cv-menu__item" title="Apri online" aria-label="Apri online">
-      <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M14 3h7v7M10 14L21 3M5 5h6v6H5z"/></svg>
-    </button></li>
-    <li role="none" style="--i:2"><button role="menuitem" class="cv-menu__item" title="Condividi" aria-label="Condividi">
-      <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 12v7a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-7M16 6l-4-4-4 4M12 2v14"/></svg>
-    </button></li>
+    <li role="none" style="--i:0">
+      <button 
+        role="menuitem" 
+        class="cv-menu__item" 
+        title="Scarica PDF" 
+        aria-label="Scarica PDF"
+        (click)="downloadPdf()"
+        [disabled]="downloading()">
+        <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 3v12m0 0l-4-4m4 4l4-4M5 21h14"/></svg>
+      </button>
+    </li>
+    <li role="none" style="--i:1; --r: 66px">
+      <button 
+        role="menuitem" 
+        class="cv-menu__item" 
+        title="Apri online" 
+        aria-label="Apri online"
+        (click)="openOnline()">
+        <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M14 3h7v7M10 14L21 3M5 5h6v6H5z"/></svg>
+      </button>
+    </li>
+    <li role="none" style="--i:2">
+      <button 
+        role="menuitem" 
+        class="cv-menu__item" 
+        title="Condividi" 
+        aria-label="Condividi"
+        (click)="share()">
+        <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 12v7a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-7M16 6l-4-4-4 4M12 2v14"/></svg>
+      </button>
+    </li>
   </ul>
 </h2>
 
@@ -60,12 +89,7 @@
   </section>
 }
 
-@if (!loading() && errorMsg()) {
-  <div class="state error">
-    {{ errorMsg() }}
-  </div>
-}
-@if (!loading() && !errorMsg()) {
+@if (!loading()) {
   <app-resume-section
     id="sec-edu"
     icon="book"

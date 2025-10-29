@@ -1,8 +1,8 @@
 import { Injectable } from '@angular/core';
 import {
-  HttpEvent, HttpHandler, HttpInterceptor, HttpRequest
+  HttpErrorResponse, HttpEvent, HttpHandler, HttpInterceptor, HttpRequest
 } from '@angular/common/http';
-import { Observable, catchError, retry, throwError, timer, timeout } from 'rxjs';
+import { Observable, catchError, retryWhen, switchMap, throwError, timer, timeout } from 'rxjs';
 import { environment } from '../../../environments/environment';
 
 const API_BASE = '';
@@ -34,10 +34,27 @@ export class ApiInterceptor implements HttpInterceptor {
 
     return next.handle(clone).pipe(
       timeout(requestTimeout),
-      retry({
-        count: isGet ? 1 : 0,
-        delay: (_, i) => timer(200 * (i + 1)),
-        resetOnSuccess: true
+      // Retry solo per errori non 4xx
+      retryWhen(errors => {
+        let retryCount = 0;
+        const maxRetries = isGet ? 1 : 0;
+        
+        return errors.pipe(
+          switchMap((err: unknown) => {
+            const status = (err as HttpErrorResponse)?.status;
+            // Non riprovare per errori client (4xx) - passa direttamente
+            if (status >= 400 && status < 500) {
+              return throwError(() => err);
+            }
+            // Riprova solo se non abbiamo raggiunto il limite
+            if (retryCount < maxRetries) {
+              retryCount++;
+              return timer(200 * retryCount);
+            }
+            // Limite raggiunto - passa l'errore
+            return throwError(() => err);
+          })
+        );
       }),
       catchError((err: unknown) => {
         if (isAbort(err)) {
