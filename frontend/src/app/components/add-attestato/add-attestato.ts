@@ -1,5 +1,5 @@
 import { Component, ElementRef, effect, inject, signal, ViewChild } from '@angular/core';
-import { ReactiveFormsModule, FormBuilder, FormGroup, Validators } from '@angular/forms';
+import { ReactiveFormsModule, FormBuilder, FormGroup, Validators, ValidatorFn, AbstractControl } from '@angular/forms';
 import { Router } from '@angular/router';
 import { AttestatiService } from '../../services/attestati.service';
 import { Notification, NotificationType } from '../notification/notification';
@@ -26,13 +26,42 @@ export class AddAttestato {
   isDragOver = signal(false);
 
   notifications = signal<{ id: string; message: string; type: NotificationType; timestamp: number; fieldId: string; }[]>([]);
+  // yyyy-mm-dd formattato in locale (no timezone shift)
+  readonly todayStr = (() => {
+    const d = new Date();
+    const y = d.getFullYear();
+    const m = String(d.getMonth() + 1).padStart(2, '0');
+    const day = String(d.getDate()).padStart(2, '0');
+    return `${y}-${m}-${day}`;
+  })();
+
+  private parseLocalDate(ymd?: string | null): Date | null {
+    if (!ymd) return null;
+    const m = /^([0-9]{4})-([0-9]{2})-([0-9]{2})$/.exec(ymd);
+    if (!m) return null;
+    const y = Number(m[1]);
+    const mo = Number(m[2]);
+    const d = Number(m[3]);
+    const date = new Date(y, mo - 1, d);
+    date.setHours(0, 0, 0, 0);
+    return isNaN(date.getTime()) ? null : date;
+  }
 
   constructor() {
+    const notFutureDate: ValidatorFn = (control: AbstractControl) => {
+      const value = control.value as string | null | undefined;
+      if (!value) return null;
+      const today = this.parseLocalDate(this.todayStr);
+      const candidate = this.parseLocalDate(value);
+      if (!today || !candidate) return null;
+      return candidate.getTime() > today.getTime() ? { futureDate: true } : null;
+    };
+
     this.addAttestatoForm = this.fb.group({
       title: ['', [Validators.required, Validators.maxLength(150)]],
       description: ['', [Validators.maxLength(1000)]],
       issuer: ['', [Validators.maxLength(150)]],
-      issued_at: [''],
+      issued_at: ['', [notFutureDate]],
       expires_at: [''],
       credential_id: ['', [Validators.maxLength(100)]],
       credential_url: ['', [Validators.pattern('https?://.+'), Validators.maxLength(255)]],
@@ -48,6 +77,43 @@ export class AddAttestato {
         isUploading ? ctrl.disable() : ctrl.enable();
       });
     });
+
+    // Aggiorna errori di ordinamento date quando cambiano
+    this.addAttestatoForm.get('issued_at')?.valueChanges.subscribe(() => this.updateDateOrderErrors());
+    this.addAttestatoForm.get('expires_at')?.valueChanges.subscribe(() => this.updateDateOrderErrors());
+  }
+
+  private updateDateOrderErrors(): void {
+    const issuedCtrl = this.addAttestatoForm.get('issued_at');
+    const expiresCtrl = this.addAttestatoForm.get('expires_at');
+    const issued = this.parseLocalDate(issuedCtrl?.value);
+    const expires = this.parseLocalDate(expiresCtrl?.value);
+
+    // reset specifici errori di ordine (senza toccare altri errori)
+    const clearSpecific = (ctrl: any, key: string) => {
+      if (!ctrl) return;
+      const errs = { ...(ctrl.errors || {}) };
+      if (errs[key]) { delete errs[key]; }
+      ctrl.setErrors(Object.keys(errs).length ? errs : null);
+    };
+
+    clearSpecific(issuedCtrl, 'afterExpiry');
+    clearSpecific(expiresCtrl, 'beforeIssued');
+
+    if (issued && expires) {
+      if (issued.getTime() > expires.getTime()) {
+        // issued after expires
+        issuedCtrl?.setErrors({ ...(issuedCtrl.errors || {}), afterExpiry: true });
+        expiresCtrl?.setErrors({ ...(expiresCtrl.errors || {}), beforeIssued: true });
+      }
+    }
+  }
+
+  getIssuedMax(): string {
+    const expiresStr = this.addAttestatoForm.get('expires_at')?.value as string | null | undefined;
+    if (!expiresStr) return this.todayStr;
+    // restituisci la min tra today e expires (stringhe yyyy-mm-dd confrontabili)
+    return expiresStr < this.todayStr ? expiresStr : this.todayStr;
   }
 
   goBack(): void {
@@ -237,12 +303,22 @@ export class AddAttestato {
       case 'attestato.issuer':
         if (ctrl.errors['maxlength']) return { message: "L'ente rilasciante deve essere lungo massimo 150 caratteri.", type: 'warning' };
         break;
+      case 'attestato.issued_at':
+        if (ctrl.errors['futureDate']) {
+          return { message: 'La data di rilascio non può essere nel futuro.', type: 'error' };
+        }
+        break;
       case 'attestato.credential_id':
         if (ctrl.errors['maxlength']) return { message: "L'ID credenziale deve essere lungo massimo 100 caratteri.", type: 'warning' };
         break;
       case 'attestato.credential_url':
         if (ctrl.errors['pattern']) return { message: 'Inserisci un URL valido (es. https://...).', type: 'error' };
         if (ctrl.errors['maxlength']) return { message: "L'URL deve essere lungo massimo 255 caratteri.", type: 'warning' };
+        break;
+      case 'attestato.expires_at':
+        if (ctrl.errors['beforeIssued']) {
+          return { message: 'La data di scadenza non può essere precedente.', type: 'error' };
+        }
         break;
       case 'attestato.poster_file':
         if (ctrl.errors['required']) return { message: "L'immagine dell'attestato è obbligatoria.", type: 'error' };
@@ -276,6 +352,8 @@ export class AddAttestato {
     if (desc?.invalid && desc.errors?.['maxlength']) this.addNotification('attestato.description', 'La descrizione deve essere lunga massimo 1000 caratteri.', 'warning');
     const issuer = this.addAttestatoForm.get('issuer');
     if (issuer?.invalid && issuer.errors?.['maxlength']) this.addNotification('attestato.issuer', "L'ente rilasciante deve essere lungo massimo 150 caratteri.", 'warning');
+    const issuedAt = this.addAttestatoForm.get('issued_at');
+    if (issuedAt?.invalid && issuedAt.errors?.['futureDate']) this.addNotification('attestato.issued_at', 'La data di rilascio non può essere nel futuro.', 'error');
     const credId = this.addAttestatoForm.get('credential_id');
     if (credId?.invalid && credId.errors?.['maxlength']) this.addNotification('attestato.credential_id', "L'ID credenziale deve essere lungo massimo 100 caratteri.", 'warning');
     const credUrl = this.addAttestatoForm.get('credential_url');
@@ -283,6 +361,8 @@ export class AddAttestato {
       if (credUrl.errors?.['pattern']) this.addNotification('attestato.credential_url', 'Inserisci un URL valido (es. https://...).', 'error');
       else if (credUrl.errors?.['maxlength']) this.addNotification('attestato.credential_url', "L'URL deve essere lungo massimo 255 caratteri.", 'warning');
     }
+    const expiresAt = this.addAttestatoForm.get('expires_at');
+    if (expiresAt?.invalid && expiresAt.errors?.['beforeIssued']) this.addNotification('attestato.expires_at', 'La data di scadenza non può essere precedente.', 'error');
   }
 
   getMostSevereNotification() {

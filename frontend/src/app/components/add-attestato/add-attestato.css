@@ -400,3 +400,8 @@
     transform: translateY(-50%);
   }
 }
+
+/* Header spacing on very small devices */
+@media (max-width: 519.98px) {
+  .add-attestato .header { margin-top: 24px; }
+}

@@ -28,11 +28,11 @@
       </label>
 
       <label class="field col-1 c1 row-2" aria-label="Data Rilascio">
-        <input id="attestato-issued-at" type="date" formControlName="issued_at" placeholder=" " (blur)="onFieldBlur('attestato.issued_at')"/>
+        <input id="attestato-issued-at" type="date" formControlName="issued_at" [max]="todayStr" placeholder=" " (blur)="onFieldBlur('attestato.issued_at')"/>
         <span class="field-label">Data Rilascio</span>
       </label>
       <label class="field col-1 c2 row-2" aria-label="Data Scadenza">
-        <input id="attestato-expires-at" type="date" formControlName="expires_at" placeholder=" " (blur)="onFieldBlur('attestato.expires_at')"/>
+        <input id="attestato-expires-at" type="date" formControlName="expires_at" [min]="addAttestatoForm.value.issued_at || null" placeholder=" " (blur)="onFieldBlur('attestato.expires_at')"/>
         <span class="field-label">Data Scadenza</span>
       </label>
 
