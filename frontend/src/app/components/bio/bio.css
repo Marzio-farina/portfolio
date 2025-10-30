@@ -5,7 +5,7 @@
   background: var(--bg-card);
   border: 1px solid var(--border-primary);
   border-radius: 14px;
-  padding: clamp(12px, 3vw, 20px);
+  padding: clamp(12px, 3vw, 20px) clamp(3px, 8vw, 48px); /* Padding verticale, padding laterale molto aumentato */
   margin: 20px 0;
   height: 200px;
   transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
@@ -325,7 +325,7 @@
   .bio-card-mobile {
     margin-left: 0.25rem !important;
     margin-right: 0.25rem !important;
-    padding: 0.75rem !important; /* 12px su iPhone SE */
+    padding: 1.75rem clamp(28px, 6vw, 40px) !important; /* Padding verticale, padding laterale molto aumentato */
     height: auto !important;
     min-height: 150px;
   }

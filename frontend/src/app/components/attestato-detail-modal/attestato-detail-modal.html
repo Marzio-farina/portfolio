@@ -1,0 +1,64 @@
+<div class="attestato-detail-modal">
+  <div class="attestato-detail-modal__header">
+    <h2 class="attestato-detail-modal__title">{{ attestato().title }}</h2>
+    <button 
+      class="attestato-detail-modal__close" 
+      (click)="onClose()" 
+      aria-label="Chiudi">
+      ×
+    </button>
+  </div>
+
+  <div class="attestato-detail-modal__content">
+    @if (attestato().img; as img) {
+      <div class="attestato-detail-modal__image">
+        <div class="attestato-detail-modal__image-container">
+          <img
+            [ngSrc]="img.src"
+            fill
+            [alt]="img.alt || attestato().title"
+            [sizes]="img.sizes || '100vw'"
+            [priority]="true"
+            style="object-fit: contain; border-radius: 8px;"
+          />
+        </div>
+      </div>
+    }
+
+    <div class="attestato-detail-modal__info">
+      @if (attestato().issuer) {
+        <div class="attestato-detail-modal__field">
+          <span class="attestato-detail-modal__label">Ente rilasciante:</span>
+          <span class="attestato-detail-modal__value">{{ attestato().issuer }}</span>
+        </div>
+      }
+
+      @if (attestato().date) {
+        <div class="attestato-detail-modal__field">
+          <span class="attestato-detail-modal__label">Data rilascio:</span>
+          <span class="attestato-detail-modal__value">{{ formatDate(attestato().date) }}</span>
+        </div>
+      }
+
+      @if (attestato().badgeUrl) {
+        <div class="attestato-detail-modal__field">
+          <span class="attestato-detail-modal__label">Credenziale:</span>
+          <a 
+            [href]="attestato().badgeUrl" 
+            target="_blank" 
+            rel="noopener noreferrer"
+            class="attestato-detail-modal__link"
+            (click)="onBadgeClick($event)">
+            Visualizza credenziale esterna
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"></path>
+              <polyline points="15 3 21 3 21 9"></polyline>
+              <line x1="10" y1="14" x2="21" y2="3"></line>
+            </svg>
+          </a>
+        </div>
+      }
+    </div>
+  </div>
+</div>
+

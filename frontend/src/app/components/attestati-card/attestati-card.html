@@ -1,4 +1,4 @@
-<article class="attestato-card">
+<article class="attestato-card" (click)="onCardClick()">
   @if (attestato().img; as img) {
     <div class="cover" [style.aspect-ratio]="aspectRatio() || defaultAR">
       <img
