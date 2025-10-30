@@ -93,6 +93,14 @@
   background: rgba(var(--accent-primary-rgb, 99, 102, 241), 0.05);
 }
 
+/* Stato drag & drop */
+.add-attestato-modal__file-button.is-dragover,
+.add-attestato-modal__file-info.is-dragover {
+  border-color: var(--accent-primary);
+  background: var(--accent-primary-alpha);
+  color: var(--accent-primary);
+}
+
 .add-attestato-modal__file-button:disabled { opacity: 0.5; cursor: not-allowed; }
 .add-attestato-modal__file-button svg { width: 48px; height: 48px; stroke: currentColor; fill: none; stroke-width: 1.5; }
 
@@ -206,7 +214,7 @@
 
 .title { margin: 0; font-weight: 800; color: var(--text-primary); }
 
-.form { background: transparent; display: grid; grid-template-columns: repeat(4, 1fr); column-gap: 16px; row-gap: 16px; }
+.form { background: transparent; display: grid; grid-template-columns: repeat(3, 1fr); column-gap: 16px; row-gap: 16px; }
 .form > .field { align-self: center; }
 .form > .add-attestato-modal__field { align-self: start; }
 .add-attestato-modal__field { grid-column: span 4; }
@@ -220,7 +228,8 @@
 .c2 { grid-column: 2; }
 .c3 { grid-column: 3; }
 .c4 { grid-column: 4; }
-.c3-4 { grid-column: 3 / 5; }
+/* con 3 colonne: immagine in colonna 3 */
+.c3-4 { grid-column: 3; }
 .row-1 { grid-row: 1; }
 .row-2 { grid-row: 2; }
 .r1-2 { grid-row: 1 / 3; }
@@ -255,6 +264,9 @@
 .btn:active:not(:disabled) { transform: translateY(0); }
 .btn:disabled { opacity: 0.6; cursor: not-allowed; }
 .btn .icon { width: 18px; height: 18px; fill: currentColor; transform: translateY(-1px); }
+
+/* Spingi leggermente verso il basso i campi della prima riga */
+.form > .field.row-1 { margin-top: 20px; }
 
 /* ================== Campi (replica stile add-testimonial) ================== */
 .field {
@@ -331,3 +343,60 @@
 .field--textarea:focus-within .field-label { color: var(--accent-primary); }
 .field--textarea textarea:not(:placeholder-shown) + .field-label { opacity: 0; }
 
+
+/* ================== Responsive (< 720px) ================== */
+@media (max-width: 719.98px) {
+  /* Nascondi Ente Rilasciante */
+  .field.c2.row-1 { display: none; }
+
+  /* Titolo occupa tutte le colonne fino all'immagine (col 1-2) */
+  .field.c1.row-1 { grid-column: 1 / 3; }
+
+  /* Data Rilascio in riga 2, estesa fino all'immagine */
+  .field.c1.row-2 { grid-column: 1 / 3; grid-row: 2; }
+
+  /* Data Scadenza in riga 3, estesa fino all'immagine */
+  .field.c2.row-2 { grid-column: 1 / 3; grid-row: 3; }
+
+  /* Immagine in colonna 3, altezza 3 righe (1 → 3) */
+  .add-attestato-modal__field.c3 { grid-column: 3; grid-row: 1 / 4; }
+}
+
+/* ================== Responsive (< 580px) ================== */
+@media (max-width: 579.98px) {
+  /* Griglia a 2 colonne */
+  .form { grid-template-columns: repeat(2, 1fr); }
+
+  /* Titolo su tutta la riga 1 */
+  .field.c1.row-1 { grid-column: 1 / -1; grid-row: 1; }
+
+  /* Immagine sotto il titolo su tutta la riga 2 */
+  .add-attestato-modal__field.c3 { grid-column: 1 / -1; grid-row: 2; }
+
+  /* Data Rilascio colonna 1 riga 3 */
+  .field.c1.row-2 { grid-column: 1 / 2; grid-row: 3; }
+
+  /* Data Scadenza colonna 2 riga 3 */
+  .field.c2.row-2 { grid-column: 2 / 3; grid-row: 3; }
+
+  /* Rimuovi padding e centra contenuto per i campi data */
+  .field.col-1.c1.row-2,
+  .field.col-1.c2.row-2 {
+    padding: 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    min-height: 44px; /* altezza controllata senza usare padding */
+  }
+  .field.col-1.c1.row-2 input,
+  .field.col-1.c2.row-2 input {
+    text-align: center;
+    padding: 0 8px;
+  }
+  /* Posiziona la floating label senza usare padding/margini del contenitore */
+  .field.col-1.c1.row-2 .field-label,
+  .field.col-1.c2.row-2 .field-label {
+    top: 0;               /* porta la label sul bordo superiore */
+    transform: translateY(-50%);
+  }
+}

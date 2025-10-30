@@ -46,7 +46,7 @@
         <span class="field-label">URL Credenziale (opzionale)</span>
       </label>
 
-      <div class="add-attestato-modal__field c3-4 r1-2">
+      <div class="add-attestato-modal__field c3 r1-2">
         <label class="add-attestato-modal__label">
           Immagine Attestato <span class="add-attestato-modal__required">*</span>
         </label>
@@ -63,14 +63,22 @@
             type="button"
             class="add-attestato-modal__file-button"
             (click)="openFilePicker()"
-            [disabled]="uploading()">
+            [disabled]="uploading()"
+            (dragover)="onDragOver($event)"
+            (dragleave)="onDragLeave($event)"
+            (drop)="onFileDrop($event)"
+            [class.is-dragover]="isDragOver()">
             <svg viewBox="0 0 24 24" aria-hidden="true">
               <path d="M21 19V5a2 2 0 0 0-2-2H5a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2zM8.5 13.5l2.5 3.01L14.5 12l4.5 6H5l3.5-4.5z"/>
             </svg>
             <span>Seleziona immagine</span>
           </button>
         } @else {
-          <div class="add-attestato-modal__file-info">
+          <div class="add-attestato-modal__file-info" 
+               (dragover)="onDragOver($event)" 
+               (dragleave)="onDragLeave($event)" 
+               (drop)="onFileDrop($event)"
+               [class.is-dragover]="isDragOver()">
             <svg viewBox="0 0 24 24" aria-hidden="true">
               <path d="M21 19V5a2 2 0 0 0-2-2H5a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2zM8.5 13.5l2.5 3.01L14.5 12l4.5 6H5l3.5-4.5z"/>
             </svg>

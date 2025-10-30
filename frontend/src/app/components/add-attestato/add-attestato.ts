@@ -23,6 +23,7 @@ export class AddAttestato {
   uploading = signal(false);
   selectedFile = signal<File | null>(null);
   errorMsg = signal<string | null>(null);
+  isDragOver = signal(false);
 
   notifications = signal<{ id: string; message: string; type: NotificationType; timestamp: number; fieldId: string; }[]>([]);
 
@@ -57,7 +58,10 @@ export class AddAttestato {
     const input = event.target as HTMLInputElement;
     const file = input.files?.[0];
     if (!file) return;
+    this.handleSelectedFile(file);
+  }
 
+  private handleSelectedFile(file: File): void {
     const validTypes = ['image/jpeg', 'image/png', 'image/jpg', 'image/gif', 'image/webp'];
     if (!validTypes.includes(file.type)) {
       const errorMessage = 'Formato file non supportato. Usa JPEG, PNG, GIF o WEBP.';
@@ -87,6 +91,28 @@ export class AddAttestato {
     this.addAttestatoForm.get('poster_file')?.updateValueAndValidity();
     this.removeNotification('attestato.poster_file');
     this.errorMsg.set(null);
+  }
+
+  onDragOver(event: DragEvent): void {
+    event.preventDefault();
+    event.stopPropagation();
+    this.isDragOver.set(true);
+  }
+
+  onDragLeave(event: DragEvent): void {
+    event.preventDefault();
+    event.stopPropagation();
+    this.isDragOver.set(false);
+  }
+
+  onFileDrop(event: DragEvent): void {
+    event.preventDefault();
+    event.stopPropagation();
+    this.isDragOver.set(false);
+    const dt = event.dataTransfer;
+    const file = dt?.files?.[0];
+    if (!file) return;
+    this.handleSelectedFile(file);
   }
 
   openFilePicker(): void { this.fileInputRef?.nativeElement?.click(); }
