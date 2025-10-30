@@ -1,8 +1,9 @@
 import { Injectable, inject } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
-import { map, Observable } from 'rxjs';
+import { map, Observable, shareReplay } from 'rxjs';
 // Se già usi questo helper altrove, il path giusto dal folder /services è questo:
 import { apiUrl } from '../core/api/api-url';
+import { Router } from '@angular/router';
 
 /** Singolo social link esposto dal backend */
 export type SocialLink = {
@@ -35,6 +36,8 @@ export interface PublicProfileDto {
 @Injectable({ providedIn: 'root' })
 export class AboutProfileService {
   private readonly http = inject(HttpClient);
+  private readonly router = inject(Router);
+  private cache = new Map<string, Observable<PublicProfileDto>>();
 
   /**
    * Restituisce il profilo pubblico per l'Aside (nome, cognome, email, phone,
@@ -43,16 +46,55 @@ export class AboutProfileService {
    * Dev:  http://localhost:8000/api/public-profile
    * Prod: https://api.marziofarina.it/api/api/public-profile
    */
-  get$(): Observable<PublicProfileDto> {
-    return this.http.get<PublicProfileDto>(apiUrl('public-profile')).pipe(
-      // opzionale: normalizzo i provider in lowercase
+  get$(userId?: number): Observable<PublicProfileDto> {
+    // Se non è passato userId e la URL contiene slug, dirotta su slug (no TenantService per evitare cicli)
+    if (userId === undefined) {
+      const slug = this.peekSlugFromUrl();
+      if (slug) return this.getBySlug(slug);
+    }
+    const key = userId ? `u:${userId}` : 'root';
+    const cached = this.cache.get(key);
+    if (cached) return cached;
+
+    const url = userId ? apiUrl(`users/${userId}/public-profile`) : apiUrl('public-profile');
+    const stream = this.http.get<PublicProfileDto>(url).pipe(
       map(res => ({
         ...res,
         socials: (res.socials ?? []).map(s => ({
           ...s,
           provider: (s.provider ?? '').toLowerCase()
         }))
-      }))
+      })),
+      shareReplay(1)
     );
+
+    this.cache.set(key, stream);
+    return stream;
+  }
+
+  getBySlug(slug: string): Observable<PublicProfileDto> {
+    const key = `s:${slug}`;
+    const cached = this.cache.get(key);
+    if (cached) return cached;
+
+    const stream = this.http.get<PublicProfileDto>(apiUrl(`${slug}/public-profile`)).pipe(
+      map(res => ({
+        ...res,
+        socials: (res.socials ?? []).map(s => ({
+          ...s,
+          provider: (s.provider ?? '').toLowerCase()
+        }))
+      })),
+      shareReplay(1)
+    );
+    this.cache.set(key, stream);
+    return stream;
+  }
+
+  private peekSlugFromUrl(): string | null {
+    const segments = this.router.url.split('/').filter(Boolean);
+    const first = segments[0] || '';
+    const reserved = new Set(['about','curriculum','progetti','attestati','contatti']);
+    return first && !reserved.has(first) ? first : null;
   }
 }

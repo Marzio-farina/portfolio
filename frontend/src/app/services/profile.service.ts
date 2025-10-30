@@ -2,6 +2,7 @@ import { Injectable, inject } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
 import { Observable } from 'rxjs';
 import { apiUrl } from '../core/api/api-url';
+import { AboutProfileService } from './about-profile.service';
 
 /**
  * Profile Service
@@ -14,21 +15,16 @@ import { apiUrl } from '../core/api/api-url';
 })
 export class ProfileService {
   private http = inject(HttpClient);
+  private about = inject(AboutProfileService);
 
   /**
    * Get public profile data
    * 
    * @returns Observable with profile data
    */
-  getProfile$(): Observable<ProfileData> {
-    return this.http.get<ProfileData>(apiUrl('public-profile'), {
-      headers: {
-        'Accept': 'application/json',
-        'Content-Type': 'application/json',
-        'Cache-Control': 'no-cache',
-        'Pragma': 'no-cache'
-      }
-    });
+  getProfile$(userId?: number): Observable<ProfileData> {
+    // Delego al servizio con cache (shareReplay) per evitare chiamate duplicate
+    return this.about.get$(userId) as unknown as Observable<ProfileData>;
   }
 }
 

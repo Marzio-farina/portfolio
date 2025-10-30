@@ -1,10 +1,10 @@
 import { Injectable, inject, signal } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
-import { Observable } from 'rxjs';
-import { ReplaySubject } from 'rxjs';
+import { Observable, ReplaySubject } from 'rxjs';
 import { shareReplay, switchMap } from 'rxjs/operators';
 
 import { apiUrl } from '../core/api/api-url';
+import { TenantService } from './tenant.service';
 
 // ========================================================================
 // Interfaces
@@ -53,6 +53,7 @@ export class AuthService {
   // ========================================================================
 
   private readonly http = inject(HttpClient);
+  private readonly tenant = inject(TenantService);
 
   // ========================================================================
   // State Management
@@ -74,9 +75,8 @@ export class AuthService {
    */
   readonly me$ = this.meRefresh$.pipe(
     switchMap(() => {
-      const url = this.isAuthenticated() 
-        ? apiUrl('/me') 
-        : apiUrl('/public-profile');
+      const slug = this.tenant.userSlug();
+      const url = apiUrl(slug ? `/${slug}/public-profile` : '/public-profile');
       
       return this.http.get<PublicProfile>(url);
     }),
@@ -87,9 +87,7 @@ export class AuthService {
   // Constructor
   // ========================================================================
 
-  constructor() {
-    this.refreshMe();
-  }
+  constructor() {}
 
   // ========================================================================
   // Public Methods

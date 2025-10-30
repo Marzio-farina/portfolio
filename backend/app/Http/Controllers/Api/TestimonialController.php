@@ -39,6 +39,11 @@ class TestimonialController extends Controller
             ->with(['user:id,name,surname', 'icon:id,img,alt'])
             ->orderByDesc('id');
 
+        // Filtro per utente (tenant) se specificato
+        if ($request->filled('user_id')) {
+            $query->where('user_id', $request->query('user_id'));
+        }
+
         // se vuoi la paginazione
         $paginator = $query->paginate($perPage);
 

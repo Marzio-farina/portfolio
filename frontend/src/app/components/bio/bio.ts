@@ -1,5 +1,6 @@
 import { Component, signal, OnDestroy, inject } from '@angular/core';
 import { ProfileService, ProfileData } from '../../services/profile.service';
+import { TenantService } from '../../services/tenant.service';
 import { Nl2brPipe } from '../../pipes/nl2br.pipe';
 
 @Component({
@@ -14,6 +15,7 @@ export class Bio implements OnDestroy {
   // ========================================================================
 
   private readonly profileApi = inject(ProfileService);
+  private readonly tenant = inject(TenantService);
 
   // ========================================================================
   // Properties
@@ -82,7 +84,20 @@ export class Bio implements OnDestroy {
    * Load profile data from API
    */
   private loadProfileData(): void {
-    this.profileApi.getProfile$().subscribe({
+    const slug = (this as any).tenant?.userSlug?.() as string | null;
+    if (slug) {
+      // Richiama via slug per evitare doppie GET
+      (this.profileApi as any).about.getBySlug(slug).subscribe({
+        next: (data: any) => {
+          this.profile.set(data ?? null);
+          this.profileLoading.set(false);
+          if (data?.bio) this.startTypewriterEffectForAllDevices(data.bio);
+        },
+        error: () => { this.profileError.set('Impossibile caricare il profilo.'); this.profileLoading.set(false); }
+      });
+      return;
+    }
+    this.profileApi.getProfile$(undefined).subscribe({
       next: (data) => {
         this.profile.set(data ?? null);
         this.profileLoading.set(false);

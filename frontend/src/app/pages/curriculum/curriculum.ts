@@ -6,6 +6,7 @@ import { map, catchError, of } from 'rxjs';
 import { ResumeSection } from '../../components/resume-section/resume-section';
 import { Skills } from '../../components/skills/skills';
 import { CvService } from '../../services/cv.service';
+import { TenantService } from '../../services/tenant.service';
 import { CvFileService } from '../../services/cv-file.service';
 import { Notification, NotificationType } from '../../components/notification/notification';
 import { AuthService } from '../../services/auth.service';
@@ -35,6 +36,7 @@ export interface NotificationItem {
 export class Curriculum {
   private route = inject(ActivatedRoute);
   private cv = inject(CvService);
+  private tenant = inject(TenantService);
   private cvFile = inject(CvFileService);
   private auth = inject(AuthService);
   private cvUploadModal = inject(CvUploadModalService);
@@ -61,7 +63,8 @@ export class Curriculum {
   showMultipleNotifications = signal(false);
 
   constructor() {
-    this.cv.get$().subscribe({
+    const uid = this.tenant.userId();
+    this.cv.get$(uid ?? undefined).subscribe({
       next: data => {
         this.education.set(data.education);
         this.experience.set(data.experience);

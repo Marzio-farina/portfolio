@@ -6,6 +6,7 @@ import { map } from 'rxjs';
 import { WhatIDoCard } from '../../components/what-i-do-card/what-i-do-card';
 import { Bio } from '../../components/bio/bio';
 import { WhatIDoService } from '../../services/what-i-do.service';
+import { TenantService } from '../../services/tenant.service';
 import { ProfileService, ProfileData } from '../../services/profile.service';
 import { TestimonialCarouselCard } from '../../components/testimonial-carousel-card/testimonial-carousel-card';
 import { Notification, NotificationItem } from '../../components/notification/notification';
@@ -45,6 +46,7 @@ export class About {
 
   private readonly route = inject(ActivatedRoute);
   private readonly whatIDoApi = inject(WhatIDoService);
+  private readonly tenant = inject(TenantService);
   private readonly profileApi = inject(ProfileService);
 
 
@@ -71,6 +73,15 @@ export class About {
 
   constructor() {
     this.loadWhatIDoData();
+    // Ricarica quando cambia tenant
+    const t = this.tenant; // cattura ref
+    // usa micro-task per non interrompere il costruttore
+    queueMicrotask(() => {
+      const effectRef = (window as any).ngEffect?.(() => {
+        void t.userId();
+        this.loadWhatIDoData();
+      });
+    });
     const state = window.history.state as any;
     if (state && state.toast && state.toast.message) {
       // nota: alimenta sia il messaggio singolo che la pila multiple
@@ -112,7 +123,8 @@ export class About {
    * Load "What I Do" data from API
    */
   private loadWhatIDoData(): void {
-    this.whatIDoApi.get$().subscribe({
+    const uid = this.tenant.userId();
+    this.whatIDoApi.get$(uid ?? undefined).subscribe({
       next: items => {
         this.cards.set(items.map(item => ({
           id: String(item.id),

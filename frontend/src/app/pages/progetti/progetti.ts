@@ -5,6 +5,7 @@ import { map } from 'rxjs';
 import { ProgettiCard, Progetto } from '../../components/progetti-card/progetti-card';
 import { Filter } from '../../components/filter/filter';
 import { ProjectService } from '../../services/project.service';
+import { TenantService } from '../../services/tenant.service';
 
 @Component({
   selector: 'app-progetti',
@@ -18,6 +19,7 @@ import { ProjectService } from '../../services/project.service';
 export class Progetti {
   private route = inject(ActivatedRoute);
   private api   = inject(ProjectService);
+  private tenant = inject(TenantService);
 
   title = toSignal(this.route.data.pipe(map(d => d['title'] as string)), { initialValue: '' });
 
@@ -44,7 +46,8 @@ export class Progetti {
 
   constructor() {
     // Carichiamo (qui: tutti fino a 1000; se vuoi, usa paginazione list$ page/perPage)
-    this.api.listAll$(1000).subscribe({
+    const uid = this.tenant.userId();
+    this.api.listAll$(1000, uid ?? undefined).subscribe({
       next: data => { this.projects.set(data); this.loading.set(false); },
       error: err => { this.errorMsg.set('Impossibile caricare i progetti.'); this.loading.set(false); }
     });

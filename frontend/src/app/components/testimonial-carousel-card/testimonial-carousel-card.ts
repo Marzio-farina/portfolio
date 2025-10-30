@@ -1,6 +1,7 @@
 import { Component, computed, inject, signal } from '@angular/core';
 import { Router } from '@angular/router';
 import { Avatar } from '../avatar/avatar';
+import { TenantService } from '../../services/tenant.service';
 import { TestimonialService } from '../../services/testimonial.service';
 import { Testimonial } from '../../core/models/testimonial';
 
@@ -13,6 +14,7 @@ import { Testimonial } from '../../core/models/testimonial';
 export class TestimonialCarouselCard {
   private readonly testimonialApi = inject(TestimonialService);
   private readonly router = inject(Router);
+  private readonly tenant = inject(TenantService);
 
   currentSlide = signal(0);
   
@@ -31,6 +33,14 @@ export class TestimonialCarouselCard {
 
   constructor() {
     this.loadTestimonials();
+    // Ricarica su cambio tenant
+    const t = this.tenant;
+    queueMicrotask(() => {
+      const effectRef = (window as any).ngEffect?.(() => {
+        void t.userId();
+        this.loadTestimonials();
+      });
+    });
   }
 
   get slides() {
@@ -42,7 +52,8 @@ export class TestimonialCarouselCard {
    */
   private loadTestimonials(): void {
     this.testimonialsLoading.set(true);
-    this.testimonialApi.list$(1, 8).subscribe({
+    const uid = this.tenant.userId();
+    this.testimonialApi.list$(1, 8, uid ?? undefined).subscribe({
       next: response => {
         this.testimonials.set(response.data ?? []);
         this.testimonialsLoading.set(false);

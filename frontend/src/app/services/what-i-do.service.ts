@@ -1,6 +1,6 @@
 import { Injectable, inject } from '@angular/core';
-import { HttpClient } from '@angular/common/http';
-import { Observable, map } from 'rxjs';
+import { HttpClient, HttpResponse } from '@angular/common/http';
+import { Observable, map, filter } from 'rxjs';
 import { apiUrl } from '../core/api/api-url';
 
 export type WhatIDoItem = {
@@ -18,9 +18,12 @@ export interface WhatIDoResponse {
 export class WhatIDoService {
   private readonly http = inject(HttpClient);
 
-  get$(): Observable<WhatIDoItem[]> {
-    return this.http.get<WhatIDoResponse>(apiUrl('what-i-do')).pipe(
-      map(res => res.items ?? [])
+  get$(userId?: number): Observable<WhatIDoItem[]> {
+    const options: any = userId ? { params: { user_id: String(userId) } } : {};
+    return this.http.get<WhatIDoResponse>(apiUrl('what-i-do'), { ...options, observe: 'events', reportProgress: false }).pipe(
+      filter((e): e is HttpResponse<WhatIDoResponse> => e instanceof HttpResponse),
+      map(e => (e.body as WhatIDoResponse)),
+      map((res: WhatIDoResponse) => res.items ?? [])
     );
   }
 }

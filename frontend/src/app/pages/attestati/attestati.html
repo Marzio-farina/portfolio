@@ -41,7 +41,7 @@
 <div class="certificates">
   @if (!loading() && !errorMsg()) {
     @for (a of attestati(); track a.id; let i = $index) {
-      <app-attestati-card [attestato]="a" [priority]="i < 3"/>
+      <app-attestati-card [attestato]="a" [priority]="i < 3" (deleted)="onCardDeleted($event)"/>
     }
   }
 </div>

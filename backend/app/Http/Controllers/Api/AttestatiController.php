@@ -137,9 +137,11 @@ class AttestatiController extends Controller
                 $baseUrl = rtrim(config('filesystems.disks.src.url') ?: env('SUPABASE_PUBLIC_URL'), '/');
                 $posterPath = $baseUrl . '/' . ltrim($relativePath, '/');
             } else {
-                // Salva localmente
+                // Salva localmente sul disco 'public'.
+                // In DB memorizziamo SOLO il path relativo (es. "attestati/filename.webp").
+                // L'URL finale sarà costruito dalla Resource come /storage/<path>.
                 $storedPath = $file->storeAs('attestati', $filename, 'public');
-                $posterPath = 'storage/' . ltrim($storedPath, '/');
+                $posterPath = ltrim($storedPath, '/');
             }
         }
 
@@ -165,5 +167,26 @@ class AttestatiController extends Controller
             new AttestatoResource($attestato),
             201
         );
+    }
+
+    /**
+     * DELETE /api/attestati/{attestato}
+     * Soft-delete (popola deleted_at) e ritorna 204.
+     */
+    public function destroy(Attestato $attestato): JsonResponse
+    {
+        // opzionale: verifica proprietà dell'utente
+        $userId = Auth::id();
+        if (!$userId) {
+            return response()->json(['ok' => false, 'message' => 'Non autenticato'], 401);
+        }
+
+        // Se vuoi restringere al proprietario: (commenta se non necessario)
+        if ($attestato->user_id !== $userId) {
+            return response()->json(['ok' => false, 'message' => 'Non autorizzato'], 403);
+        }
+
+        $attestato->delete(); // SoftDeletes
+        return response()->json(null, 204);
     }
 }

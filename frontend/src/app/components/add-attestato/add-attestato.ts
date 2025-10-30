@@ -1,6 +1,7 @@
 import { Component, ElementRef, effect, inject, signal, ViewChild } from '@angular/core';
 import { ReactiveFormsModule, FormBuilder, FormGroup, Validators, ValidatorFn, AbstractControl } from '@angular/forms';
 import { Router } from '@angular/router';
+import { TenantRouterService } from '../../services/tenant-router.service';
 import { AttestatiService } from '../../services/attestati.service';
 import { Notification, NotificationType } from '../notification/notification';
 import { environment } from '../../../environments/environment';
@@ -16,6 +17,7 @@ export class AddAttestato {
   private fb = inject(FormBuilder);
   private attestatiService = inject(AttestatiService);
   private router = inject(Router);
+  private tenantRouter = inject(TenantRouterService);
 
   @ViewChild('fileInput') fileInputRef?: ElementRef<HTMLInputElement>;
 
@@ -117,7 +119,7 @@ export class AddAttestato {
   }
 
   goBack(): void {
-    this.router.navigate(['/attestati']);
+    this.tenantRouter.navigate(['attestati']);
   }
 
   onFileSelected(event: Event): void {
@@ -221,7 +223,7 @@ export class AddAttestato {
       next: () => {
         this.uploading.set(false);
         this.notifications.set([]);
-        this.router.navigate(['/attestati'], { state: { added: true } });
+        this.tenantRouter.navigate(['attestati'], { queryParams: { refresh: '1', t: Date.now() } });
       },
       error: (err: any) => {
         let message = 'Errore durante la creazione dell\'attestato';
@@ -259,7 +261,7 @@ export class AddAttestato {
   onCancel(): void {
     if (!this.uploading()) {
       this.notifications.set([]);
-      this.router.navigate(['/attestati']);
+      this.tenantRouter.navigate(['attestati']);
     }
   }
 

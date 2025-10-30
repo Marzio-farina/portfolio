@@ -8,5 +8,10 @@ class WhatIDo extends Model
 {
     protected $table = 'what_i_do';
 
-    protected $fillable = ['title', 'description', 'icon'];
+    protected $fillable = ['title', 'description', 'icon', 'user_id'];
+
+    public function user()
+    {
+        return $this->belongsTo(User::class);
+    }
 }

@@ -1,13 +1,14 @@
 import { Component, DestroyRef, Inject, PLATFORM_ID, computed, effect, inject, signal, ChangeDetectionStrategy } from '@angular/core';
 import { isPlatformBrowser } from '@angular/common';
 import { toSignal } from '@angular/core/rxjs-interop';
-import { fromEvent, map, startWith, switchMap, of } from 'rxjs';
+import { fromEvent, map, startWith, switchMap, of, Subscription } from 'rxjs';
 import { trigger, transition, style, animate } from '@angular/animations';
 import { Avatar } from "../avatar/avatar";
 import { AvatarEditor, AvatarSelection } from '../avatar-editor/avatar-editor';
 import { AboutProfileService, PublicProfileDto, SocialLink } from '../../services/about-profile.service'
-import { makeLoadable } from '../../core/utils/loadable-signal';
+import { TenantService } from '../../services/tenant.service';
 import { ThemeService } from '../../services/theme.service';
+import { EditModeService } from '../../services/edit-mode.service';
 import { AuthService } from '../../services/auth.service';
 import { HttpClient } from '@angular/common/http';
 import { apiUrl } from '../../core/api/api-url';
@@ -47,7 +48,8 @@ export class Aside {
   readonly showContacts;
   readonly showButton;
   readonly isSmall;
-  readonly editMode = signal(false);
+  readonly edit = inject(EditModeService);
+  readonly editMode = this.edit.isEditing;
   private pendingAvatarSel = signal<AvatarSelection | null>(null);
   private saveTimer: any = null;
 
@@ -58,14 +60,31 @@ export class Aside {
   private readonly auth = inject(AuthService);
   private readonly http = inject(HttpClient);
   private readonly router = inject(Router);
+  private readonly tenant = inject(TenantService);
 
-  // loadable (data/loading/error + reload)
-  private readonly load = makeLoadable<PublicProfileDto>(() => this.getProfile$(), this.dr);
+  // Gestione manuale caricamento profilo (senza helper)
+  private lastProfileKey: string | null = null;
+  private sub: Subscription | null = null;
+  private inFlight = false;
 
-  profile  = this.load.data;      // Signal<PublicProfileDto | null>
-  loading  = this.load.loading;   // Signal<boolean>
-  errorMsg = this.load.error;     // Signal<string | null>
-  reload() { this.load.reload(); }
+  profile  = signal<PublicProfileDto | null>(null);
+  loading  = signal<boolean>(false);
+  errorMsg = signal<string | null>(null);
+  reload() {
+    if (this.inFlight) return;
+    this.sub?.unsubscribe();
+    this.loading.set(true);
+    this.errorMsg.set(null);
+    this.inFlight = true;
+    this.sub = this.getProfile$().subscribe({
+      next: (res) => { this.profile.set(res); this.loading.set(false); this.inFlight = false; },
+      error: (err) => {
+        if (err?.status === 0 || err?.name === 'CanceledError') { this.loading.set(false); this.inFlight = false; return; }
+        this.errorMsg.set(err?.message ?? 'Errore di rete'); this.loading.set(false); this.inFlight = false;
+      }
+    });
+    this.dr.onDestroy(() => this.sub?.unsubscribe());
+  }
 
   // Helpers per UI
   fullName = computed(() => {
@@ -140,6 +159,20 @@ export class Aside {
     this.showButton   = computed(() => this.viewMode() !== 'large');
     this.isSmall      = computed(() => this.viewMode() === 'small');
 
+    // Avvia il load solo quando cambia la chiave profilo (slug o root)
+    effect(() => {
+      const slug = this.tenant.userSlug();
+      const segments = this.router.url.split('/').filter(Boolean);
+      const first = segments[0] || '';
+      const reserved = new Set(['about','curriculum','progetti','attestati','contatti']);
+      const isTenantPath = first && !reserved.has(first);
+      const key = slug ? `s:${slug}` : (isTenantPath ? `s:${first}` : 'root');
+      if (this.lastProfileKey !== key) {
+        this.lastProfileKey = key;
+        this.reload();
+      }
+    });
+
     // Salvataggio su chiusura/refresh pagina
     if (this.isBrowser) {
       const beforeUnloadHandler = (e: BeforeUnloadEvent) => {
@@ -151,20 +184,21 @@ export class Aside {
   }
 
   private getProfile$() {
-    const token = this.auth.token();
-    if (!token) {
-      // Utente non loggato: usa SEMPRE l'utente con id=1 come profilo di default
-      return this.http.get<PublicProfileDto>(apiUrl('users/1/public-profile'));
+    // 1) Prova a leggere lo slug direttamente dalla URL del browser (più affidabile all'avvio)
+    if (this.isBrowser) {
+      const path = window.location.pathname || '';
+      const segs = path.split('/').filter(Boolean);
+      const firstSeg = segs[0] || '';
+      const reserved = new Set(['about','curriculum','progetti','attestati','contatti']);
+      if (firstSeg && !reserved.has(firstSeg)) {
+        return this.svc.getBySlug(firstSeg);
+      }
     }
-    // Utente loggato: prendi il suo id da /me e poi il public-profile specifico
-    const headers = { Authorization: `Bearer ${token}` } as any;
-    return this.http.get<{id:number}>(apiUrl('me'), { headers }).pipe(
-      switchMap((u) => {
-        const uid = u?.id;
-        if (!uid) return this.svc.get$();
-        return this.http.get<PublicProfileDto>(apiUrl(`users/${uid}/public-profile`));
-      })
-    );
+    // 2) Altrimenti usa lo slug dal TenantService se già disponibile
+    const slug = this.tenant.userSlug();
+    if (slug) return this.svc.getBySlug(slug);
+    // Root senza slug: profilo principale
+    return this.svc.get$();
   }
 
   toggleContacts() {
@@ -184,7 +218,7 @@ export class Aside {
   // Toggle modalità modifica
   toggleEditMode() {
     const wasEditing = this.editMode();
-    this.editMode.set(!wasEditing);
+    this.edit.toggle();
     // Se stiamo uscendo dalla modalità modifica e c'è una selezione, salvala ora
     if (wasEditing) {
       const sel = this.pendingAvatarSel();

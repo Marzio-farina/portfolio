@@ -1,4 +1,9 @@
 <article class="attestato-card" (click)="onCardClick()">
+  @if (isAuthenticated() && isEditing()) {
+    <button class="admin-x-btn" type="button" aria-label="Azione amministratore" (click)="onAdminButtonClick($event)">
+      <span aria-hidden="true">×</span>
+    </button>
+  }
   @if (attestato().img; as img) {
     <div class="cover" [style.aspect-ratio]="aspectRatio() || defaultAR">
       <img

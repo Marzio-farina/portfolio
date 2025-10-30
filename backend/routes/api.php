@@ -106,9 +106,13 @@ Route::middleware(['api', "throttle:{$throttleLimit}", 'db.connection'])
                 Route::get('attestati', [AttestatiController::class, 'index']);
             });
 
-        // Profilo pubblico NON in cache, per riflettere subito le modifiche
-        Route::get('users/{user}/public-profile', [UserPublicController::class, 'show']);
+        // Profilo pubblico
         Route::get('public-profile', [UserPublicController::class, 'me']);
+        // Compatibilità: vecchia rotta usata dal frontend
+        Route::get('users/slug/{slug}/public-profile', [UserPublicController::class, 'showBySlug']);
+        // Rotta slug-based "pulita" (preferita): /{slug}/public-profile
+        Route::get('{slug}/public-profile', [UserPublicController::class, 'showBySlug'])
+            ->where('slug', '^(?!api$|users$|testimonials$|projects$|cv$|what-i-do$|attestati$|avatars$|contact$|login$|register$)[A-Za-z0-9-]+$');
 
         // CV Files - download pubblico (utente identificato opzionalmente)
         // Spostato fuori da gruppi con http.cache/throttle
@@ -154,6 +158,7 @@ Route::middleware(['api', "throttle:{$throttleLimit}", 'db.connection'])
             
             // Attestati - creazione richiede autenticazione
             Route::post('attestati', [AttestatiController::class, 'store']);
+            Route::delete('attestati/{attestato}', [AttestatiController::class, 'destroy']);
         });
 
         // ====================================================================

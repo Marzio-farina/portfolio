@@ -37,6 +37,10 @@ class ProjectController extends Controller
             ])
             ->orderByDesc('id');
 
+        if ($request->filled('user_id')) {
+            $query->where('user_id', $request->query('user_id'));
+        }
+
         // Execute paginated query
         $paginator = $query->paginate($perPage);
 

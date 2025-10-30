@@ -10,9 +10,10 @@ export class AttestatiService {
   private readonly http = inject(HttpClient);
 
   /** Elenco paginato così come esce dall'API */
-  list$(page = 1, perPage = 12, params: Record<string, any> = {}, forceRefresh = false): Observable<Paginated<Attestato>> {
+  list$(page = 1, perPage = 12, params: Record<string, any> = {}, forceRefresh = false, userId?: number): Observable<Paginated<Attestato>> {
     const url = apiUrl('attestati');
     const q: Record<string, any> = { page, per_page: perPage, status: 'published', ...params };
+    if (userId) q['user_id'] = String(userId);
     
     // Aggiungi timestamp per bypassare la cache quando si forza il refresh
     if (forceRefresh) {
@@ -33,8 +34,8 @@ export class AttestatiService {
   }
 
   /** Bulk semplice (usa page=1, per_page=max) */
-  listAll$(max = 1000, params: Record<string, any> = {}, forceRefresh = false): Observable<Attestato[]> {
-    return this.list$(1, max, params, forceRefresh).pipe(map(r => r.data ?? []));
+  listAll$(max = 1000, params: Record<string, any> = {}, forceRefresh = false, userId?: number): Observable<Attestato[]> {
+    return this.list$(1, max, params, forceRefresh, userId).pipe(map(r => r.data ?? []));
   }
 
   /**
@@ -43,5 +44,13 @@ export class AttestatiService {
   create$(data: FormData): Observable<Attestato> {
     const url = apiUrl('attestati');
     return this.http.post<Attestato>(url, data);
+  }
+
+  /**
+   * Soft-delete di un attestato
+   */
+  delete$(id: number) {
+    const url = apiUrl(`attestati/${id}`);
+    return this.http.delete<void>(url);
   }
 }

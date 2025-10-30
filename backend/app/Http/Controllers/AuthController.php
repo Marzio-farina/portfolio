@@ -16,6 +16,7 @@ use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\Password;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Mail;
+use Illuminate\Support\Str;
 
 /**
  * Authentication Controller
@@ -51,6 +52,18 @@ class AuthController extends Controller
             'role_id' => $roleId,
             'icon_id' => $request->icon_id,
         ]);
+
+        // Generate unique slug: nome-cognome[-n]
+        $base = Str::slug(trim(($user->name ?? '').' '.($user->surname ?? '')));
+        if ($base === '') { $base = 'user-'.$user->id; }
+        $slug = $base;
+        $i = 2;
+        while (User::where('slug', $slug)->where('id', '!=', $user->id)->exists()) {
+            $slug = $base.'-'.$i;
+            $i++;
+        }
+        $user->slug = $slug;
+        $user->save();
 
         // Create empty user profile
         $user->profile()->create([]);

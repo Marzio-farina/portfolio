@@ -1,6 +1,7 @@
 import { Component, inject, signal, computed } from '@angular/core';
 import { toSignal } from '@angular/core/rxjs-interop';
 import { ActivatedRoute, Router } from '@angular/router';
+import { TenantRouterService } from '../../services/tenant-router.service';
 import { map } from 'rxjs';
 import { AttestatiCard } from '../../components/attestati-card/attestati-card';
 import { AttestatiService } from '../../services/attestati.service';
@@ -8,6 +9,7 @@ import { Attestato } from '../../models/attestato.model';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { Notification, NotificationType } from '../../components/notification/notification';
 import { AuthService } from '../../services/auth.service';
+import { TenantService } from '../../services/tenant.service';
 
 export interface NotificationItem {
   id: string;
@@ -27,7 +29,9 @@ export class Attestati {
   private route = inject(ActivatedRoute);
   private api   = inject(AttestatiService);
   private router = inject(Router);
+  private tenantRouter = inject(TenantRouterService);
   private auth = inject(AuthService);
+  private tenant = inject(TenantService);
 
   title = toSignal(this.route.data.pipe(map(d => d['title'] as string)), { initialValue: '' });
 
@@ -45,11 +49,21 @@ export class Attestati {
 
   constructor() {
     this.loadAttestati();
+    // Se arriviamo con ?refresh=1, forza reload bypassando cache
+    this.route.queryParamMap.subscribe(params => {
+      const refresh = params.get('refresh');
+      if (refresh === '1') {
+        this.loadAttestati(true);
+        // Opzionale: rimuovi i parametri dall'URL (senza ricaricare)
+        this.router.navigate([], { queryParams: {}, replaceUrl: true, relativeTo: this.route });
+      }
+    });
   }
 
   private loadAttestati(forceRefresh = false): void {
     this.loading.set(true);
-    this.api.listAll$(1000, {}, forceRefresh).subscribe({
+    const uid = this.tenant.userId();
+    this.api.listAll$(1000, {}, forceRefresh, uid ?? undefined).subscribe({
       next: data => { 
         this.attestati.set(data); 
         this.loading.set(false); 
@@ -64,7 +78,14 @@ export class Attestati {
   }
 
   goToAddAttestato(): void {
-    this.router.navigate(['/attestati/nuovo']);
+    this.tenantRouter.navigate(['attestati','nuovo']);
+  }
+
+  onCardDeleted(id: number): void {
+    this.attestati.set(this.attestati().filter(x => x.id !== id));
+    this.addNotification('success', 'Attestato rimosso.', `attestato-deleted-${id}`);
+    // Forza una nuova fetch senza cache
+    this.loadAttestati(true);
   }
 
 

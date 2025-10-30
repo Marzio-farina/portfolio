@@ -10,6 +10,7 @@
   transition: all var(--transition-1);
   box-shadow: var(--shadow-1); /* Aggiunge ombra come le altre card */
   cursor: pointer; /* Cursore mano al passaggio del mouse */
+  position: relative; /* per posizionare il bottone admin in alto a destra */
 }
 
 /* Hover effect come le altre card */
@@ -63,4 +64,44 @@
 .meta .data {
   font-style: italic;
   margin-bottom: 0; /* Rimuove margine dall'ultimo elemento */
+}
+
+/* Bottone admin grande, rosso, con cerchio di contorno e X interna */
+.attestato-card .admin-x-btn {
+  position: absolute;
+  top: 10px;
+  right: 10px;
+  width: 42px;
+  height: 42px;
+  border-radius: 50%;
+  border: 4px solid #ef4444; /* rosso spesso */
+  background: transparent;
+  color: #ef4444;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 0; /* gestiamo la dimensione sulla span interna */
+  line-height: 1;
+  font-weight: 800;
+  transition: transform var(--transition-1), box-shadow var(--transition-1);
+  z-index: 2;
+  padding: 0;
+  cursor: pointer;
+}
+
+.attestato-card .admin-x-btn:hover {
+  transform: scale(1.08);
+  box-shadow: 0 6px 18px rgba(239, 68, 68, 0.35);
+}
+
+.attestato-card .admin-x-btn:active {
+  transform: scale(1.0);
+}
+
+/* X interna molto grande e centrata */
+.attestato-card .admin-x-btn > span {
+  display: block;
+  font-size: 30px !important; /* aumenta la dimensione della X */
+  line-height: 1;
+  font-weight: 900;
 }

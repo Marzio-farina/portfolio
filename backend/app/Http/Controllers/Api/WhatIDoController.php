@@ -14,10 +14,15 @@ class WhatIDoController extends Controller
 {
     public function index(Request $request): JsonResponse
     {
-        $cacheKey = 'what_i_do_v1';
+        $userId = $request->query('user_id');
+        $cacheKey = 'what_i_do_v1'.($userId ? ':u'.$userId : '');
         try {
-            $data = Cache::remember($cacheKey, now()->addSeconds(300), function () use ($request) {
-                $items = WhatIDo::orderBy('id')->get();
+            $data = Cache::remember($cacheKey, now()->addSeconds(300), function () use ($request, $userId) {
+                $q = WhatIDo::orderBy('id');
+                if ($userId && \Schema::hasColumn('what_i_do', 'user_id')) {
+                    $q->where('user_id', $userId);
+                }
+                $items = $q->get();
                 return [
                     'items' => WhatIDoResource::collection($items)->toArray($request),
                 ];

@@ -15,12 +15,13 @@ export class TestimonialService {
   private http = inject(HttpClient);
 
   // usa SEMPRE apiUrl('testimonials'), niente stringhe hard-coded tipo '/testimonials'
-  list$(page = 1, perPage = 8): Observable<Paginated<Testimonial>> {
+  list$(page = 1, perPage = 8, userId?: number): Observable<Paginated<Testimonial>> {
     const url = apiUrl('testimonials');
     
     // Aggiungi sempre un timestamp per evitare problemi di cache con ETag
     // Questo fa sì che ogni richiesta appaia diversa al browser
     const params: any = { page, per_page: perPage, _t: Date.now() };
+    if (userId) params.user_id = String(userId);
     
     return this.http.get<Paginated<Testimonial>>(url, { params });
   }

@@ -32,12 +32,11 @@ export class ProjectService {
    * @param perPage Items per page (default: 12)
    * @returns Observable of paginated project data
    */
-  list$(page = 1, perPage = 12): Observable<Paginated<Progetto>> {
+  list$(page = 1, perPage = 12, userId?: number): Observable<Paginated<Progetto>> {
     const url = apiUrl('projects');
-    
-    return this.http.get<Paginated<ProjectDto>>(url, { 
-      params: { page, per_page: perPage } 
-    }).pipe(
+    const params: any = { page, per_page: perPage };
+    if (userId) params.user_id = String(userId);
+    return this.http.get<Paginated<ProjectDto>>(url, { params }).pipe(
       map(response => ({
         ...response,
         data: (response.data ?? []).map(dto => this.dtoToProgetto(dto))
@@ -51,8 +50,8 @@ export class ProjectService {
    * @param max Maximum number of projects to fetch (default: 1000)
    * @returns Observable of project array
    */
-  listAll$(max = 1000): Observable<Progetto[]> {
-    return this.list$(1, max).pipe(
+  listAll$(max = 1000, userId?: number): Observable<Progetto[]> {
+    return this.list$(1, max, userId).pipe(
       map(response => response.data ?? [])
     );
   }

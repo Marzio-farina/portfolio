@@ -1,13 +1,13 @@
 import { Injectable, inject } from '@angular/core';
-import { HttpClient } from '@angular/common/http';
-import { Observable, map } from 'rxjs';
+import { HttpClient, HttpResponse } from '@angular/common/http';
+import { Observable, map, filter } from 'rxjs';
 import { apiUrl } from '../core/api/api-url';
-import { CvResponse } from '../core/models/cv';
+import { CvResponse, CvDto } from '../core/models/cv';
 
 export type TimelineItem = {
   title: string;
   years: string;
-  description: string
+  description: string;
 };
 
 export interface CvUi {
@@ -19,15 +19,19 @@ export interface CvUi {
 export class CvService {
   private readonly http = inject(HttpClient);
 
-  get$(): Observable<CvUi> {
-    return this.http.get<CvResponse>(apiUrl('cv')).pipe(
-      map(res => ({
-        education: (res.education ?? []).map(r => ({
+  get$(userId?: number): Observable<CvUi> {
+    const url = apiUrl('cv');
+    const options: any = userId ? { params: { user_id: String(userId) } } : {};
+    return this.http.get<CvResponse>(url, { ...options, observe: 'events', reportProgress: false }).pipe(
+      filter((e): e is HttpResponse<CvResponse> => e instanceof HttpResponse),
+      map(e => (e.body as CvResponse)),
+      map((res: CvResponse) => ({
+        education: (res.education ?? []).map((r: CvDto) => ({
           title: r.title,
           years: r.years,
           description: r.description ?? '',
         })),
-        experience: (res.experience ?? []).map(r => ({
+        experience: (res.experience ?? []).map((r: CvDto) => ({
           title: r.title,
           years: r.years,
           description: r.description ?? '',

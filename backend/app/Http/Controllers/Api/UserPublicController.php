@@ -10,6 +10,7 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Arr;
 use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\Log;
+use Illuminate\Support\Facades\DB;
 
 class UserPublicController extends Controller
 {
@@ -74,6 +75,31 @@ class UserPublicController extends Controller
             Log::warning('GET /api/public-profile failed', ['class'=>get_class($e),'msg'=>$msg]);
             return response()->json(['error' => 'Internal error'], 500, [], JSON_UNESCAPED_UNICODE);
         }
+    }
+
+    /**
+     * GET /api/users/slug/{slug}/public-profile
+     * Profilo pubblico risolto da slug univoco nome-cognome[-n]
+     */
+    public function showBySlug(Request $request, string $slug): JsonResponse
+    {
+        $user = User::query()->select(['id','name','surname','email','date_of_birth','slug'])
+            ->where('slug', $slug)
+            ->with([
+                'profile:id,user_id,title,headline,bio,phone,location,avatar_url',
+                'icon:id,img,alt',
+                'socialAccounts' => fn($q) => $q
+                    ->select(['id','user_id','provider','handle','url'])
+                    ->orderBy('provider'),
+            ])
+            ->first();
+
+        if (!$user) {
+            return response()->json(['ok' => false, 'message' => 'Utente non trovato'], 404);
+        }
+
+        $data = (new UserPublicResource($user))->toArray($request);
+        return response()->json($data, 200, [], JSON_UNESCAPED_UNICODE);
     }
 
     /**
