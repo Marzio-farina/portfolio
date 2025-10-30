@@ -10,6 +10,7 @@ use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Storage;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Str;
 
 class AttestatiController extends Controller
@@ -143,6 +144,8 @@ class AttestatiController extends Controller
         }
 
         // Crea l'attestato
+        $featuredBool = filter_var($validated['is_featured'] ?? false, FILTER_VALIDATE_BOOLEAN);
+
         $attestato = Attestato::create([
             'user_id' => $userId,
             'title' => $validated['title'],
@@ -154,7 +157,8 @@ class AttestatiController extends Controller
             'credential_id' => $validated['credential_id'] ?? null,
             'credential_url' => $validated['credential_url'] ?? null,
             'status' => $validated['status'] ?? 'published',
-            'is_featured' => $validated['is_featured'] ?? false,
+            // forza literal boolean per Postgres
+            'is_featured' => DB::raw($featuredBool ? 'TRUE' : 'FALSE'),
         ]);
 
         return response()->json(
