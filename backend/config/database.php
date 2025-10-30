@@ -100,7 +100,8 @@ return [
                 PDO::ATTR_TIMEOUT => 30,
                 PDO::ATTR_ERRMODE => PDO::ERRMODE_EXCEPTION,
                 PDO::ATTR_DEFAULT_FETCH_MODE => PDO::FETCH_ASSOC,
-                PDO::ATTR_EMULATE_PREPARES => false,
+                // Evita server-side prepared statements su ambienti serverless (errore 26000)
+                PDO::ATTR_EMULATE_PREPARES => true,
                 PDO::ATTR_PERSISTENT => false, // Disabilita connessioni persistenti per evitare problemi
             ],
         ],
