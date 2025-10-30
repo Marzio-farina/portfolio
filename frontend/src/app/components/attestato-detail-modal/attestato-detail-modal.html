@@ -12,14 +12,18 @@
   <div class="attestato-detail-modal__content">
     @if (attestato().img; as img) {
       <div class="attestato-detail-modal__image">
-        <div class="attestato-detail-modal__image-container">
+        <div 
+          class="attestato-detail-modal__image-container"
+          [style.width.px]="containerWidth()"
+          [style.height.px]="containerHeight">
           <img
             [ngSrc]="img.src"
             fill
             [alt]="img.alt || attestato().title"
             [sizes]="img.sizes || '100vw'"
             [priority]="true"
-            style="object-fit: contain; border-radius: 8px;"
+            (load)="onImgLoad($event)"
+            class="attestato-detail-modal__image-img"
           />
         </div>
       </div>

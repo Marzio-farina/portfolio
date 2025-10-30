@@ -22,6 +22,12 @@ export class AttestatoDetailModal {
   // Aspect ratio per le immagini senza width/height
   aspectRatio = signal<string | null>(null);
   defaultAR = '16 / 9';
+  
+  // Altezza fissa del contenitore
+  containerHeight = 300;
+  
+  // Larghezza calcolata dinamicamente basata sull'aspect ratio
+  containerWidth = signal<number | null>(null);
 
   /**
    * Chiude la modal
@@ -40,12 +46,21 @@ export class AttestatoDetailModal {
   }
 
   /**
-   * Gestisce il caricamento dell'immagine per calcolare l'aspect ratio
+   * Gestisce il caricamento dell'immagine per calcolare l'aspect ratio e la larghezza del contenitore
    */
   onImgLoad(ev: Event): void {
     const el = ev.target as HTMLImageElement;
     if (el?.naturalWidth && el?.naturalHeight) {
-      this.aspectRatio.set(`${el.naturalWidth} / ${el.naturalHeight}`);
+      const width = el.naturalWidth;
+      const height = el.naturalHeight;
+      
+      // Calcola aspect ratio
+      this.aspectRatio.set(`${width} / ${height}`);
+      
+      // Calcola la larghezza del contenitore basata sull'altezza fissa e l'aspect ratio
+      // Larghezza = Altezza contenitore * (larghezza immagine / altezza immagine)
+      const calculatedWidth = this.containerHeight * (width / height);
+      this.containerWidth.set(calculatedWidth);
     }
   }
 
