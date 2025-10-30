@@ -169,9 +169,32 @@ class CvFileController extends Controller
             $isUrl = str_starts_with($filePath, 'http://') || str_starts_with($filePath, 'https://');
 
             if ($isUrl) {
-                // Per file su cloud (Supabase), restituisci l'URL direttamente
-                // Il frontend farà il download direttamente da Supabase
-                // Usiamo un redirect HTTP 302 per mantenere compatibilità
+                // Per file su cloud (Supabase): prova a risolvere il path relativo
+                // e a streammare come attachment, così forziamo il download.
+                $baseUrl = rtrim(config('filesystems.disks.src.url') ?: env('SUPABASE_PUBLIC_URL'), '/');
+                $relative = ltrim(str_replace($baseUrl, '', $filePath), '/');
+
+                if ($relative && Storage::disk('src')->exists($relative)) {
+                    $stream = Storage::disk('src')->readStream($relative);
+                    if ($stream === false) {
+                        return response()->json([
+                            'ok' => false,
+                            'error' => 'Errore durante la lettura del file'
+                        ], 500);
+                    }
+
+                    return response()->streamDownload(function () use ($stream) {
+                        fpassthru($stream);
+                    }, $cvFile->filename, [
+                        'Content-Type' => $cvFile->mime_type ?? 'application/pdf',
+                        'Cache-Control' => 'no-cache, no-store, must-revalidate',
+                        'Pragma' => 'no-cache',
+                        'Expires' => '0',
+                        'Content-Disposition' => 'attachment; filename="' . addslashes($cvFile->filename) . '"'
+                    ]);
+                }
+
+                // Fallback: redirect all'URL pubblico (potrebbe aprire inline se il provider imposta inline)
                 return redirect($filePath, 302)
                     ->header('Cache-Control', 'no-cache, no-store, must-revalidate')
                     ->header('Pragma', 'no-cache')
@@ -204,6 +227,7 @@ class CvFileController extends Controller
                 $cvFile->filename,
                 [
                     'Content-Type' => $cvFile->mime_type ?? 'application/pdf',
+                    'Content-Disposition' => 'attachment; filename="' . addslashes($cvFile->filename) . '"',
                 ]
             );
             
