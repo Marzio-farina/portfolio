@@ -1,66 +1,4 @@
-.add-project-modal {
-  background: var(--bg-card);
-  width: 100%;
-  max-width: 600px;
-  overflow: hidden;
-  display: block;
-}
-
-.add-project-modal__header {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  padding: 1.5rem;
-  border-bottom: 1px solid var(--border-primary);
-  position: relative;
-}
-
-.add-project-modal__title {
-  margin: 0;
-  font-size: 1.5rem;
-  font-weight: 600;
-  color: var(--text-primary);
-}
-
-.add-project-modal__close {
-  position: absolute;
-  top: 0.5rem;
-  right: 0.5rem;
-  background: transparent;
-  color: var(--text-secondary);
-  border: none;
-  font-size: 2rem;
-  line-height: 1;
-  cursor: pointer;
-  padding: 0.25rem;
-  transition: color var(--transition-1);
-}
-
-.add-project-modal__close:hover:not(:disabled) { color: var(--text-primary); }
-.add-project-modal__close:disabled { opacity: 0.5; cursor: not-allowed; }
-
-.add-project-modal__content { padding: 1.5rem; overflow-y: auto; }
-
-.add-project-modal__error {
-  background: rgba(239, 68, 68, 0.1);
-  border: 1px solid rgba(239, 68, 68, 0.3);
-  border-radius: 8px;
-  padding: 0.75rem 1rem;
-  margin-bottom: 1.5rem;
-  color: #ef4444;
-  font-size: 0.875rem;
-}
-
 .add-project-modal__field { margin-bottom: 1.5rem; }
-
-.add-project-modal__field-row {
-  display: grid;
-  grid-template-columns: 1fr 1fr;
-  gap: 1rem;
-  margin-bottom: 1.5rem;
-}
-
-.add-project-modal__field:last-of-type { margin-bottom: 1rem; }
 
 .add-project-modal__label {
   display: block;
@@ -133,49 +71,6 @@
 .add-project-modal__remove-file:hover:not(:disabled) { color: #ef4444; }
 .add-project-modal__remove-file:disabled { opacity: 0.5; cursor: not-allowed; }
 
-.add-project-modal__input,
-.add-project-modal__textarea {
-  width: 100%;
-  padding: 0.75rem 1rem;
-  border: 1px solid var(--border-primary);
-  border-radius: 8px;
-  background: var(--bg-primary);
-  color: var(--text-primary);
-  font-size: 0.875rem;
-  transition: border-color var(--transition-1);
-  font-family: inherit;
-}
-
-.add-project-modal__textarea { resize: vertical; min-height: 80px; }
-
-.add-project-modal__input:focus,
-.add-project-modal__textarea:focus { outline: none; border-color: var(--accent-primary); }
-
-.add-project-modal__input:disabled,
-.add-project-modal__textarea:disabled { opacity: 0.5; cursor: not-allowed; }
-
-.add-project-modal__actions { display: flex; gap: 0.75rem; justify-content: flex-end; margin-top: 1.5rem; padding-top: 1.5rem; border-top: 1px solid var(--border-primary); }
-
-.add-project-modal__button {
-  padding: 0.75rem 1.5rem;
-  border-radius: 8px;
-  font-size: 0.875rem;
-  font-weight: 500;
-  cursor: pointer;
-  transition: all var(--transition-1);
-  border: 1px solid transparent;
-}
-
-.add-project-modal__button:disabled { opacity: 0.5; cursor: not-allowed; }
-
-.add-project-modal__button--cancel { background: transparent; color: var(--text-secondary); border-color: var(--border-primary); }
-.add-project-modal__button--cancel:hover:not(:disabled) { color: var(--text-primary); border-color: var(--text-primary); }
-
-.add-project-modal__button--submit { background: var(--accent-primary); color: white; }
-.add-project-modal__button--submit:hover:not(:disabled) { opacity: 0.9; transform: translateY(-1px); box-shadow: var(--shadow-2); }
-
-
-/* ================== STRUTTURA PAGINA ROUTATA (replica add-attestato) ================== */
 .add-project {
   padding-left: clamp(0.25rem, 4vw, 2rem);
   padding-right: clamp(0.25rem, 4vw, 2rem);
@@ -219,7 +114,6 @@
 .form > .add-project-modal__field { align-self: start; }
 .col-1 { grid-column: span 1; }
 .col-2 { grid-column: span 2; }
-.add-project-modal__field-row { display: contents; }
 
 /* Utility per posizionamento esplicito */
 .c1 { grid-column: 1; }
@@ -259,10 +153,7 @@
 .btn:disabled { opacity: 0.6; cursor: not-allowed; }
 .btn .icon { width: 18px; height: 18px; fill: currentColor; transform: translateY(-1px); }
 
-/* Spingi leggermente verso il basso i campi della prima riga */
 .form > .field.row-1 { margin-top: 20px; }
-
-/* ================== Campi (replica stile add-attestato) ================== */
 .field {
   display: block;
   background: var(--bg-card);
@@ -333,15 +224,12 @@
   transform: translateY(-50%);
 }
 
-.field select + .field-label {
-  transform: translateY(-50%);
-}
-
 .field select:not([value=""]) + .field-label,
 .field:focus-within select + .field-label {
   top: 0;
   font-size: 0.85rem;
   color: var(--accent-primary);
+  transform: translateY(-50%);
 }
 
 .field--textarea .field-label {
@@ -359,6 +247,4 @@
 .field--textarea:focus-within .field-label { color: var(--accent-primary); }
 .field--textarea textarea:not(:placeholder-shown) + .field-label { opacity: 0; }
 
-
-/* responsive rules moved to add-project.responsive.css */
 
