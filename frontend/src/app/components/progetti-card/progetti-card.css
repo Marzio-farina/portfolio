@@ -1,15 +1,48 @@
-.card {
+.card-wrapper{
   border-radius: 16px;
+  --hover-meta-bg: transparent; /* Default value for meta background */
+  --radial-gradient-color: transparent; /* Default value for radial gradient */
+  
+  /* Padding di 3px ai lati e in alto (non in basso) */
+  padding: 8px 8px 0;
+  
+  /* Shadow base per le card */
+  /* box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08); */
+  
+  /* Gradiente radiale - inizialmente nascosto */
+  background: radial-gradient(
+    circle at center,
+    var(--radial-gradient-color) 0%,
+    var(--radial-gradient-color) 30%,
+    transparent 70%,
+    transparent 100%
+  );
+  background-size: 0% 0%;
+  background-position: center;
+  background-repeat: no-repeat;
+  /* Transizione per contrazione (al leave) - ease-in per effetto più naturale */
+  transition: background-size 0.8s ease-in, transform var(--transition-1), box-shadow var(--transition-1);
+}
+
+.card-wrapper:hover{
+  transform: translateY(var(--hover-translate, -2px)) scale(var(--hover-scale, 1.012)) rotate(var(--hover-rotate, 0deg));
+  /* box-shadow: var(--hover-shadow, 0 8px 22px rgba(0,0,0,.18)); */
+  /* Espande il gradiente radiale dal centro verso i bordi */
+  background-size: 200% 200%;
+  /* Transizione per espansione (al hover) - ease-out per effetto più fluido */
+  transition: background-size 0.4s ease-out, transform var(--transition-1), box-shadow var(--transition-1);
+}
+
+.card {
+  border-radius: 16px; /* Solo angoli superiori arrotondati */
   background: var(--bg-card);
   border: 1px solid var(--border-primary);
   overflow: hidden;
-  transition: transform var(--transition-1), background var(--transition-1), border-color var(--transition-1);
   cursor: pointer;
+  transition: border-color var(--transition-1);
 }
 
-.card:hover {
-  transform: translateY(-2px);
-}
+/* l'effetto hover ora è sul wrapper e coinvolge anche il testo */
 
 .media {
   position: relative;
@@ -19,6 +52,9 @@
 
 .meta {
   padding: 12px 14px 16px;
+  border-radius: 0 0 16px 16px; /* Replica i bordi arrotondati di 16px della card */
+  background: transparent; /* Trasparente per mostrare il gradiente radiale del wrapper */
+  overflow: hidden; /* Assicura che il background rispetti border-radius */
 }
 
 .title {
@@ -27,6 +63,10 @@
   color: var(--text-primary);
   font-size: var(--fs-5);
   transition: color var(--transition-1);
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
 }
 
 .category {
@@ -66,3 +106,7 @@
 .card:hover .video  {
   opacity: 1;
 }
+
+/* Se non c'è video mantieni l'immagine anche in hover */
+.card.no-video:hover .poster { opacity: 1; }
+.card.no-video:hover .video  { opacity: 0; }

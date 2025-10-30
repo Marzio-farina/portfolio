@@ -1,4 +1,12 @@
-<div class="card" (mouseenter)="play()" (mouseleave)="pause()">
+<div class="card-wrapper"
+     (mouseenter)="play()" (mouseleave)="pause()"
+     [style.--hover-rotate]="hoverRotate()"
+     [style.--hover-translate]="hoverTranslate()"
+     [style.--hover-scale]="hoverScale()"
+     [style.--hover-shadow]="hoverShadow()"
+     [style.--hover-meta-bg]="hoverMetaBackgroundColor()"
+     [style.--radial-gradient-color]="radialGradientColor()">
+  <div class="card" [class.no-video]="!progetto().video">
     <div class="media">
         <!-- poster visibile di default -->
         <img class="poster" [src]="progetto().poster" alt="{{ progetto().title }}" />
@@ -14,8 +22,9 @@
             loop>
         </video>
     </div>
-</div>
-<div class="meta">
-  <h3 class="title">{{ progetto().title }}</h3>
-  <p class="category">{{ progetto().category }}</p>
+  </div>
+  <div class="meta">
+    <h3 class="title">{{ progetto().title }}</h3>
+    <p class="category">{{ progetto().category }}</p>
+  </div>
 </div>

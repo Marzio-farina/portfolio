@@ -48,7 +48,27 @@ export class Progetti {
     // Carichiamo (qui: tutti fino a 1000; se vuoi, usa paginazione list$ page/perPage)
     const uid = this.tenant.userId();
     this.api.listAll$(1000, uid ?? undefined).subscribe({
-      next: data => { this.projects.set(data); this.loading.set(false); },
+      next: data => { 
+        if (!data || data.length === 0) {
+          // Seed demo: 6 card stile YouTube con poster random
+          const seeds = Array.from({ length: 6 }).map((_, i) => {
+            const seed = Math.random().toString(36).slice(2, 8);
+            return {
+              id: 10000 + i,
+              title: `Project Seed ${seed.toUpperCase()} — Demo Layout`,
+              category: ['Web', 'Mobile', 'Design'][i % 3],
+              description: 'Demo project to showcase card UI',
+              poster: `https://picsum.photos/seed/${seed}/800/450`,
+              video: '',
+              technologies: 'Angular, TypeScript'
+            } as Progetto;
+          });
+          this.projects.set(seeds);
+        } else {
+          this.projects.set(data);
+        }
+        this.loading.set(false); 
+      },
       error: err => { this.errorMsg.set('Impossibile caricare i progetti.'); this.loading.set(false); }
     });
   }
