@@ -2,6 +2,7 @@ import { Component, DestroyRef, Inject, PLATFORM_ID, computed, effect, inject, s
 import { isPlatformBrowser } from '@angular/common';
 import { toSignal } from '@angular/core/rxjs-interop';
 import { fromEvent, map, startWith, switchMap, of, Subscription } from 'rxjs';
+import { catchError } from 'rxjs/operators';
 import { trigger, transition, style, animate } from '@angular/animations';
 import { Avatar } from "../avatar/avatar";
 import { AvatarEditor, AvatarSelection } from '../avatar-editor/avatar-editor';
@@ -191,12 +192,16 @@ export class Aside {
       const firstSeg = segs[0] || '';
       const reserved = new Set(['about','curriculum','progetti','attestati','contatti']);
       if (firstSeg && !reserved.has(firstSeg)) {
-        return this.svc.getBySlug(firstSeg);
+        return this.svc.getBySlug(firstSeg).pipe(
+          catchError(() => this.svc.get$())
+        );
       }
     }
     // 2) Altrimenti usa lo slug dal TenantService se già disponibile
     const slug = this.tenant.userSlug();
-    if (slug) return this.svc.getBySlug(slug);
+    if (slug) return this.svc.getBySlug(slug).pipe(
+      catchError(() => this.svc.get$())
+    );
     // Root senza slug: profilo principale
     return this.svc.get$();
   }
