@@ -94,7 +94,9 @@ Route::middleware(['api', "throttle:{$throttleLimit}", 'db.connection'])
         // ====================================================================
         // Public Read-Only Endpoints (with HTTP caching)
         // ====================================================================
-        Route::middleware('http.cache:300')->group(function () {
+        Route::middleware(['db.connection','http.cache:300'])
+            ->withoutMiddleware([\Illuminate\Routing\Middleware\ThrottleRequests::class])
+            ->group(function () {
             Route::get('testimonials', [TestimonialController::class, 'index']);
             Route::get('testimonials/icons', [TestimonialController::class, 'getIcons']); // Tutte le icone
             Route::get('testimonials/default-avatars', [TestimonialController::class, 'getDefaultAvatars']); // Solo avatar predefiniti
