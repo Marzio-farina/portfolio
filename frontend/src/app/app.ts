@@ -12,8 +12,7 @@ import { ThemeService } from './services/theme.service';
 import { ParticlesBgComponent } from './components/particles-bg/particles-bg';
 import { CvUploadModalService } from './services/cv-upload-modal.service';
 import { CvUploadModal } from './components/cv-upload-modal/cv-upload-modal';
-import { AddAttestatoModalService } from './services/add-attestato-modal.service';
-import { AddAttestatoModal } from './components/add-attestato-modal/add-attestato-modal';
+ 
 import { AttestatoDetailModalService } from './services/attestato-detail-modal.service';
 import { AttestatoDetailModal } from './components/attestato-detail-modal/attestato-detail-modal';
 import { Notification, NotificationItem, NotificationType } from './components/notification/notification';
@@ -27,7 +26,7 @@ import { filter, map } from 'rxjs/operators';
  */
 @Component({
   selector: 'app-root',
-  imports: [Aside, Navbar, Dashboard, Auth, ParticlesBgComponent, CvUploadModal, AddAttestatoModal, AttestatoDetailModal, Notification],
+  imports: [Aside, Navbar, Dashboard, Auth, ParticlesBgComponent, CvUploadModal, AttestatoDetailModal, Notification],
   templateUrl: './app.html',
   styleUrl: './app.css'
 })
@@ -50,7 +49,6 @@ export class App {
   private readonly route = inject(ActivatedRoute);
   private readonly destroyRef = inject(DestroyRef);
   private readonly cvUploadModal = inject(CvUploadModalService);
-  private readonly addAttestatoModal = inject(AddAttestatoModalService);
   private readonly attestatoDetailModal = inject(AttestatoDetailModalService);
 
   @ViewChild(Auth) authComponent?: Auth;
@@ -62,8 +60,7 @@ export class App {
   // Modal CV upload (gestita dal servizio)
   isCvUploadModalOpen = this.cvUploadModal.isOpen;
 
-  // Modal Add Attestato (gestita dal servizio)
-  isAddAttestatoModalOpen = this.addAttestatoModal.isOpen;
+  
 
   // Modal Attestato Detail (gestita dal servizio)
   isAttestatoDetailModalOpen = this.attestatoDetailModal.isOpen;
@@ -134,7 +131,8 @@ export class App {
    * TODO: Cambiare a 15 minuti (15 * 60 * 1000) in produzione
    */
   private initializeIdleTimeout(): void {
-    this.idle.configure(15 * 1000); // 15 secondi per test
+    // Imposta il timeout di inattività a 30 minuti
+    this.idle.configure(30 * 60 * 1000);
   }
 
   /**
@@ -243,10 +241,7 @@ export class App {
       if (this.isAttestatoDetailModalOpen()) {
         this.onAttestatoDetailClosed();
       }
-      // Chiudi il dialog di add attestato se aperto
-      if (this.isAddAttestatoModalOpen()) {
-        this.onAttestatoCancelled();
-      }
+      
       // Chiudi il dialog di CV upload se aperto
       if (this.isCvUploadModalOpen()) {
         this.onCvUploadCancelled();
@@ -264,19 +259,7 @@ export class App {
     this.cvUploadModal.close();
   }
 
-  // Gestione modal Add Attestato
-  onAttestatoCreated(): void {
-    this.addAttestatoModal.notifyAttestatoCreated();
-    this.addAttestatoModal.close();
-  }
-
-  onAttestatoError(event: {message: string; type: 'error' | 'warning'}): void {
-    this.addAttestatoModal.notifyAttestatoError(event);
-  }
-
-  onAttestatoCancelled(): void {
-    this.addAttestatoModal.close();
-  }
+  
 
   // Gestione modal Attestato Detail
   onAttestatoDetailClosed(): void {

@@ -54,18 +54,7 @@
   </div>
 }
 
-@if (isAddAttestatoModalOpen()) {
-  <div class="mf-modal-backdrop"></div>
-  <div class="mf-modal" role="dialog" aria-modal="true" aria-label="Aggiungi Attestato">
-    <div class="mf-modal__content" (click)="$event.stopPropagation()" style="width: auto; max-width: 600px;">
-      <app-add-attestato-modal
-        (created)="onAttestatoCreated()"
-        (errorOccurred)="onAttestatoError($event)"
-        (cancelled)="onAttestatoCancelled()">
-      </app-add-attestato-modal>
-    </div>
-  </div>
-}
+ 
 
 @if (isAttestatoDetailModalOpen() && selectedAttestato()) {
   <div class="mf-modal-backdrop" (click)="onAttestatoDetailClosed()"></div>

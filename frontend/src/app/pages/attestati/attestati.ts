@@ -1,11 +1,10 @@
 import { Component, inject, signal, computed } from '@angular/core';
 import { toSignal } from '@angular/core/rxjs-interop';
-import { ActivatedRoute } from '@angular/router';
+import { ActivatedRoute, Router } from '@angular/router';
 import { map } from 'rxjs';
 import { AttestatiCard } from '../../components/attestati-card/attestati-card';
 import { AttestatiService } from '../../services/attestati.service';
 import { Attestato } from '../../models/attestato.model';
-import { AddAttestatoModalService } from '../../services/add-attestato-modal.service';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { Notification, NotificationType } from '../../components/notification/notification';
 import { AuthService } from '../../services/auth.service';
@@ -27,7 +26,7 @@ export interface NotificationItem {
 export class Attestati {
   private route = inject(ActivatedRoute);
   private api   = inject(AttestatiService);
-  private addAttestatoModal = inject(AddAttestatoModalService);
+  private router = inject(Router);
   private auth = inject(AuthService);
 
   title = toSignal(this.route.data.pipe(map(d => d['title'] as string)), { initialValue: '' });
@@ -46,24 +45,6 @@ export class Attestati {
 
   constructor() {
     this.loadAttestati();
-
-    // Ricarica gli attestati quando viene creato un nuovo attestato
-    this.addAttestatoModal.onAttestatoCreated$.pipe(
-      takeUntilDestroyed()
-    ).subscribe(() => {
-      this.loadAttestati(true); // Forza refresh per bypassare la cache
-      this.addNotification('success', 'Attestato creato con successo!', 'attestato-create');
-    });
-
-    // Gestisce gli errori dal modal di aggiunta attestato
-    this.addAttestatoModal.onAttestatoError$.pipe(
-      takeUntilDestroyed()
-    ).subscribe((error) => {
-      // Crea un fieldId unico per ogni errore, in modo da poter mostrare più errori contemporaneamente
-      const uniqueId = `${Date.now()}-${Math.random().toString(36).substr(2, 9)}`;
-      const fieldId = `attestato-upload-${error.type}-${uniqueId}`;
-      this.addNotification(error.type, error.message, fieldId);
-    });
   }
 
   private loadAttestati(forceRefresh = false): void {
@@ -82,8 +63,8 @@ export class Attestati {
     });
   }
 
-  openAddAttestatoModal(): void {
-    this.addAttestatoModal.open();
+  goToAddAttestato(): void {
+    this.router.navigate(['/attestati/nuovo']);
   }
 
 
