@@ -1,4 +1,5 @@
-import { Component, DestroyRef, inject, signal } from '@angular/core';
+import { Component, DestroyRef, inject, signal, computed } from '@angular/core';
+import { DomSanitizer, SafeResourceUrl } from '@angular/platform-browser';
 import { toSignal, takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { ActivatedRoute } from '@angular/router';
 import { map, catchError, of } from 'rxjs';
@@ -9,6 +10,7 @@ import { CvFileService } from '../../services/cv-file.service';
 import { Notification, NotificationType } from '../../components/notification/notification';
 import { AuthService } from '../../services/auth.service';
 import { CvUploadModalService } from '../../services/cv-upload-modal.service';
+import { CvPreviewModalService } from '../../services/cv-preview-modal.service';
 
 type TimelineItem = { title: string; years: string; description: string };
 
@@ -36,6 +38,8 @@ export class Curriculum {
   private cvFile = inject(CvFileService);
   private auth = inject(AuthService);
   private cvUploadModal = inject(CvUploadModalService);
+  private cvPreviewModal = inject(CvPreviewModalService);
+  private sanitizer = inject(DomSanitizer);
   private destroyRef = inject(DestroyRef);
 
   title = toSignal(this.route.data.pipe(map(d => d['title'] as string)), { initialValue: '' });
@@ -45,6 +49,12 @@ export class Curriculum {
   loading = signal(true);
   cvMenuOpen = signal(false);
   downloading = signal(false);
+  pdfDialogOpen = signal(false);
+  pdfUrl = signal<string | null>(null);
+  safePdfUrl = computed<SafeResourceUrl | null>(() => {
+    const url = this.pdfUrl();
+    return url ? this.sanitizer.bypassSecurityTrustResourceUrl(url) : null;
+  });
   
   // Gestione notifiche multiple
   notifications = signal<NotificationItem[]>([]);
@@ -106,8 +116,9 @@ export class Curriculum {
   openOnline(): void {
     this.cvFile.getDefault$().subscribe({
       next: (response) => {
-        if (response.success && response.cv?.download_url) {
-          window.open(response.cv.download_url, '_blank');
+        if (response.success && (response.cv?.view_url || response.cv?.download_url)) {
+          const url = response.cv.view_url || response.cv.download_url;
+          this.cvPreviewModal.open(url);
         } else {
           const message = response.message || 'Nessun CV disponibile.';
           this.addNotification('error', message, 'cv-open');
@@ -120,6 +131,11 @@ export class Curriculum {
     });
   }
 
+  closePdfDialog(): void {
+    this.pdfDialogOpen.set(false);
+    this.pdfUrl.set(null);
+  }
+
   /**
    * Condivide il link del CV (Web Share API se disponibile, altrimenti copia URL)
    */
@@ -127,8 +143,8 @@ export class Curriculum {
     try {
       this.cvFile.getDefault$().subscribe({
         next: async (response) => {
-          if (response.success && response.cv?.download_url) {
-            const url = response.cv.download_url;
+          if (response.success && (response.cv?.view_url || response.cv?.download_url)) {
+            const url = response.cv.view_url || response.cv.download_url;
 
             // Prova Web Share API
             if (navigator.share) {

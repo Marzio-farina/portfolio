@@ -1,0 +1,13 @@
+<div class="cv-preview-modal">
+  <div class="cv-preview-modal__header">
+    <h2 class="cv-preview-modal__title">Anteprima CV</h2>
+    <button class="cv-preview-modal__close" (click)="close()" aria-label="Chiudi">×</button>
+  </div>
+  <div class="cv-preview-modal__content">
+    @if (safeUrl(); as src) {
+      <iframe [src]="src" title="Anteprima CV" class="cv-preview-modal__iframe"></iframe>
+    }
+  </div>
+</div>
+
+

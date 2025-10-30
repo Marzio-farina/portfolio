@@ -67,6 +67,18 @@ class CvFileController extends Controller
                 ], 404);
             }
 
+            // Costruisci una view_url che punti alla risorsa visualizzabile inline
+            $viewUrl = null;
+            if (!empty($cvFile->file_path)) {
+                $isUrl = str_starts_with($cvFile->file_path, 'http://') || str_starts_with($cvFile->file_path, 'https://');
+                if ($isUrl) {
+                    $viewUrl = $cvFile->file_path; // URL pubblico (Supabase)
+                } else {
+                    // Path locale pubblicato via /storage
+                    $viewUrl = url($cvFile->file_path);
+                }
+            }
+
             return response()->json([
                 'success' => true,
                 'cv' => [
@@ -75,6 +87,7 @@ class CvFileController extends Controller
                     'title' => $cvFile->title,
                     'file_size' => $cvFile->file_size,
                     'download_url' => route('api.cv-files.download', ['id' => $cvFile->id]),
+                    'view_url' => $viewUrl,
                 ]
             ], 200, [], JSON_UNESCAPED_UNICODE);
 

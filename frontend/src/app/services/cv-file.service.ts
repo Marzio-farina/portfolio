@@ -15,6 +15,7 @@ export interface CvFileResponse {
     file_size: number | null;
     is_default?: boolean;
     download_url: string;
+    view_url?: string;
   };
   message?: string;
 }
@@ -32,6 +33,7 @@ export interface CvFilesListResponse {
     is_default: boolean;
     created_at: string;
     download_url: string;
+    view_url?: string;
   }>;
 }
 

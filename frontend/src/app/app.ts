@@ -16,6 +16,8 @@ import { CvUploadModal } from './components/cv-upload-modal/cv-upload-modal';
 import { AttestatoDetailModalService } from './services/attestato-detail-modal.service';
 import { AttestatoDetailModal } from './components/attestato-detail-modal/attestato-detail-modal';
 import { Notification, NotificationItem, NotificationType } from './components/notification/notification';
+import { CvPreviewModalService } from './services/cv-preview-modal.service';
+import { CvPreviewModal } from './components/cv-preview-modal/cv-preview-modal';
 import { filter, map } from 'rxjs/operators';
 
 /**
@@ -26,7 +28,7 @@ import { filter, map } from 'rxjs/operators';
  */
 @Component({
   selector: 'app-root',
-  imports: [Aside, Navbar, Dashboard, Auth, ParticlesBgComponent, CvUploadModal, AttestatoDetailModal, Notification],
+  imports: [Aside, Navbar, Dashboard, Auth, ParticlesBgComponent, CvUploadModal, AttestatoDetailModal, CvPreviewModal, Notification],
   templateUrl: './app.html',
   styleUrl: './app.css'
 })
@@ -50,6 +52,7 @@ export class App {
   private readonly destroyRef = inject(DestroyRef);
   private readonly cvUploadModal = inject(CvUploadModalService);
   private readonly attestatoDetailModal = inject(AttestatoDetailModalService);
+  private readonly cvPreviewModal = inject(CvPreviewModalService);
 
   @ViewChild(Auth) authComponent?: Auth;
 
@@ -65,6 +68,9 @@ export class App {
   // Modal Attestato Detail (gestita dal servizio)
   isAttestatoDetailModalOpen = this.attestatoDetailModal.isOpen;
   selectedAttestato = this.attestatoDetailModal.selectedAttestato;
+
+  // Modal CV Preview (gestita dal servizio)
+  isCvPreviewModalOpen = this.cvPreviewModal.isOpen;
 
   // Notifiche globali (per logout automatico)
   notifications = signal<NotificationItem[]>([]);

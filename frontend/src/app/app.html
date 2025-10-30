@@ -67,3 +67,12 @@
     </div>
   </div>
 }
+
+@if (isCvPreviewModalOpen()) {
+  <div class="mf-modal-backdrop"></div>
+  <div class="mf-modal" role="dialog" aria-modal="true" aria-label="Anteprima CV">
+    <div class="mf-modal__content" style="width: auto; max-width: 920px;">
+      <app-cv-preview-modal></app-cv-preview-modal>
+    </div>
+  </div>
+}

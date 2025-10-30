@@ -107,3 +107,13 @@
   </app-resume-section>
 }
 <app-skills/>
+
+@if (pdfDialogOpen() && pdfUrl()) {
+  <div class="mf-modal-backdrop" (click)="closePdfDialog()"></div>
+  <div class="mf-modal" role="dialog" aria-modal="true" aria-label="Anteprima CV" (click)="closePdfDialog()">
+    <div class="mf-modal__content" (click)="$event.stopPropagation()" style="width: auto; max-width: 900px;">
+      <button class="mf-modal__close" (click)="closePdfDialog()" aria-label="Chiudi">×</button>
+      <iframe [src]="safePdfUrl()" style="width: 100%; height: 75vh; border: 0;" title="Anteprima CV"></iframe>
+    </div>
+  </div>
+}
