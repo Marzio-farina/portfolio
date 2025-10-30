@@ -5,6 +5,7 @@ namespace App\Models;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Illuminate\Support\Facades\DB;
 
 /**
  * CvFile Model
@@ -60,8 +61,17 @@ class CvFile extends Model
      */
     public function scopeDefaultForUser($query, ?int $userId = null)
     {
-        return $query->where('is_default', true)
-                     ->when($userId, fn($q) => $q->where('user_id', $userId));
+        // Postgres richiede confronto booleano nativo (TRUE/FALSE),
+        // mentre SQLite/MySQL accettano 1/0. Usiamo condizione per driver.
+        $driver = DB::getDriverName();
+
+        if ($driver === 'pgsql') {
+            $query->whereRaw('is_default = TRUE');
+        } else {
+            $query->where('is_default', true);
+        }
+
+        return $query->when($userId, fn($q) => $q->where('user_id', $userId));
     }
 
     /**
