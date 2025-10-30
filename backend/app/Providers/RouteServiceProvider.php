@@ -43,7 +43,9 @@ class RouteServiceProvider extends ServiceProvider
 
         $apiGroup->group(base_path('routes/api.php'));
 
-        // ✅ Registra le rotte WEB
-        Route::middleware('web')->group(base_path('routes/web.php'));
+        // ✅ Registra le rotte WEB solo in locale (evita 500 sul root in produzione)
+        if (app()->environment('local')) {
+            Route::middleware('web')->group(base_path('routes/web.php'));
+        }
     }
 }
