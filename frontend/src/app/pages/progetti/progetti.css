@@ -65,6 +65,121 @@ app-filter {
   padding: 12px 14px 16px;
 }
 
+/* Card aggiungi quando lista vuota o in edit mode - replica struttura card progetti */
+.projects .add-card {
+  /* Usa la stessa struttura della card-wrapper delle card progetti */
+  border-radius: 16px;
+  padding: 8px 8px 0;
+  cursor: pointer;
+  position: relative;
+  
+  /* Gradiente radiale - inizialmente nascosto (usa colore accent per consistenza) */
+  /* Usa color-mix per applicare opacità al colore accent */
+  background: radial-gradient(
+    circle at center,
+    color-mix(in srgb, var(--accent-primary) 15%, transparent) 0%,
+    color-mix(in srgb, var(--accent-primary) 15%, transparent) 30%,
+    transparent 70%,
+    transparent 100%
+  );
+  background-size: 0% 0%;
+  background-position: center;
+  background-repeat: no-repeat;
+  transition: background-size 0.8s ease-in, transform var(--transition-1), box-shadow var(--transition-1);
+}
+
+.projects .add-card:hover {
+  transform: translateY(-3px) scale(1.015) rotate(0deg);
+  /* Espande il gradiente radiale dal centro verso i bordi */
+  background-size: 200% 200%;
+  transition: background-size 0.4s ease-out, transform var(--transition-1), box-shadow var(--transition-1);
+}
+
+.projects .add-card .card {
+  border-radius: 16px;
+  background: var(--bg-card);
+  border: 4px dashed var(--border-primary);
+  border-color: color-mix(in oklab, var(--border-primary) 60%, transparent 40%);
+  overflow: hidden;
+  transition: border-color var(--transition-1);
+}
+
+.projects .add-card:hover .card {
+  border-color: var(--accent-primary);
+}
+
+.projects .add-card .add-card-media {
+  position: relative;
+  aspect-ratio: 16 / 9;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: transparent;
+}
+
+.projects .add-card-circle {
+  width: 64px;
+  height: 64px;
+  border-radius: 50%;
+  border: 5px solid var(--accent-primary);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: transform var(--transition-1), border-color var(--transition-1), color var(--transition-1);
+  color: var(--accent-primary);
+}
+
+.projects .add-card:hover .add-card-circle {
+  transform: scale(1.1);
+}
+
+.projects .add-card-plus {
+  width: 32px;
+  height: 32px;
+  color: var(--accent-primary);
+}
+
+.projects .add-card .add-card-meta {
+  padding: 12px 14px 16px;
+  border-radius: 0 0 16px 16px;
+  background: transparent;
+  overflow: hidden;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.projects .add-card-hint {
+  margin: 0;
+  color: var(--text-secondary);
+  font-size: var(--fs-6);
+  font-weight: var(--fw-300);
+  text-align: center;
+  transition: color var(--transition-1);
+}
+
+/* stato errore/coerenza */
+.state.error {
+  color: var(--error-color);
+  background: var(--error-bg);
+  border: 1px solid var(--error-color);
+  padding: 12px;
+  border-radius: 6px;
+  margin-left: clamp(0.25rem, 4vw, 2rem);
+  margin-right: clamp(0.25rem, 4vw, 2rem);
+}
+
+/* stato empty: messaggio centrato */
+.state.empty {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 160px;
+  color: var(--text-secondary);
+  padding-left: clamp(0.25rem, 4vw, 2rem);
+  padding-right: clamp(0.25rem, 4vw, 2rem);
+}
+
 @media (min-width: 768px) {
     .projects {
         grid-template-columns: repeat(2, 1fr);

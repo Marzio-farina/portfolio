@@ -1,0 +1,146 @@
+<app-notification 
+  [notifications]="notifications()"
+  [showMultiple]="true"
+  [mostSevereNotification]="getMostSevereNotification()">
+</app-notification>
+
+<section class="add-project">
+  <div class="header">
+    <button class="back-btn" type="button" (click)="goBack()" aria-label="Torna indietro">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+        <path d="M19 12H5M12 19l-7-7 7-7"/>
+      </svg>
+    </button>
+    <h2 class="title">Aggiungi Progetto</h2>
+  </div>
+
+  <form class="form" [formGroup]="addProjectForm" (ngSubmit)="onSubmit()" novalidate>
+      <label class="field col-1 c1 row-1" aria-label="Titolo">
+        <input id="project-title" type="text" formControlName="title" placeholder=" " maxlength="50" (blur)="onFieldBlur('project.title')"/>
+        <span class="field-label">Titolo *</span>
+      </label>
+
+      <label class="field col-1 c2 row-1" aria-label="Categoria">
+        <select id="project-category" formControlName="category_id" (blur)="onFieldBlur('project.category_id')">
+          <option value="">Seleziona categoria</option>
+          @for (cat of categories(); track cat.id) {
+            <option [value]="cat.id">{{ cat.title }}</option>
+          }
+        </select>
+        <span class="field-label">Categoria *</span>
+      </label>
+
+      <div class="add-project-modal__field c1 row-2">
+        <label class="add-project-modal__label">
+          Immagine Poster <span class="add-project-modal__required">*</span>
+        </label>
+        <input 
+          #posterInput
+          type="file" 
+          accept="image/jpeg,image/png,image/jpg,image/gif,image/webp"
+          (change)="onPosterFileSelected($event)"
+          [attr.disabled]="uploading() ? '' : null"
+          style="display: none;">
+        
+        @if (!selectedPosterFile()) {
+          <button 
+            type="button"
+            class="add-project-modal__file-button"
+            (click)="openPosterPicker()"
+            [disabled]="uploading()"
+            (dragover)="onDragOverPoster($event)"
+            (dragleave)="onDragLeavePoster($event)"
+            (drop)="onFileDropPoster($event)"
+            [class.is-dragover]="isDragOverPoster()">
+            <svg viewBox="0 0 24 24" aria-hidden="true">
+              <path d="M21 19V5a2 2 0 0 0-2-2H5a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2zM8.5 13.5l2.5 3.01L14.5 12l4.5 6H5l3.5-4.5z"/>
+            </svg>
+            <span>Seleziona immagine</span>
+          </button>
+        } @else {
+          <div class="add-project-modal__file-info" 
+               (dragover)="onDragOverPoster($event)" 
+               (dragleave)="onDragLeavePoster($event)"
+               (drop)="onFileDropPoster($event)"
+               [class.is-dragover]="isDragOverPoster()">
+            <svg viewBox="0 0 24 24" aria-hidden="true">
+              <path d="M21 19V5a2 2 0 0 0-2-2H5a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2zM8.5 13.5l2.5 3.01L14.5 12l4.5 6H5l3.5-4.5z"/>
+            </svg>
+            <span class="add-project-modal__filename">{{ selectedPosterFile()?.name }}</span>
+            <button 
+              type="button"
+              class="add-project-modal__remove-file"
+              (click)="removePosterFile()"
+              [disabled]="uploading()"
+              aria-label="Rimuovi file">
+              ×
+            </button>
+          </div>
+        }
+      </div>
+
+      <div class="add-project-modal__field c2 row-2">
+        <label class="add-project-modal__label">
+          Video (opzionale)
+        </label>
+        <input 
+          #videoInput
+          type="file" 
+          accept="video/mp4,video/webm,video/ogg"
+          (change)="onVideoFileSelected($event)"
+          [attr.disabled]="uploading() ? '' : null"
+          style="display: none;">
+        
+        @if (!selectedVideoFile()) {
+          <button 
+            type="button"
+            class="add-project-modal__file-button"
+            (click)="openVideoPicker()"
+            [disabled]="uploading()"
+            (dragover)="onDragOverVideo($event)"
+            (dragleave)="onDragLeaveVideo($event)"
+            (drop)="onFileDropVideo($event)"
+            [class.is-dragover]="isDragOverVideo()">
+            <svg viewBox="0 0 24 24" aria-hidden="true">
+              <path d="M8 5v14l11-7z"/>
+            </svg>
+            <span>Seleziona video</span>
+          </button>
+        } @else {
+          <div class="add-project-modal__file-info" 
+               (dragover)="onDragOverVideo($event)" 
+               (dragleave)="onDragLeaveVideo($event)"
+               (drop)="onFileDropVideo($event)"
+               [class.is-dragover]="isDragOverVideo()">
+            <svg viewBox="0 0 24 24" aria-hidden="true">
+              <path d="M8 5v14l11-7z"/>
+            </svg>
+            <span class="add-project-modal__filename">{{ selectedVideoFile()?.name }}</span>
+            <button 
+              type="button"
+              class="add-project-modal__remove-file"
+              (click)="removeVideoFile()"
+              [disabled]="uploading()"
+              aria-label="Rimuovi file">
+              ×
+            </button>
+          </div>
+        }
+      </div>
+
+      <label class="field field--textarea col-2 row-3" aria-label="Descrizione">
+        <textarea id="project-description" formControlName="description" placeholder=" " rows="3" maxlength="1000" (blur)="onFieldBlur('project.description')"></textarea>
+        <span class="field-label">Descrizione</span>
+      </label>
+
+      <div class="actions">
+        <button type="button" class="btn btn-secondary" (click)="goBack()" [disabled]="uploading()">
+          Annulla
+        </button>
+        <button type="submit" class="btn btn-primary" [disabled]="addProjectForm.invalid || uploading() || !selectedPosterFile()">
+          @if (uploading()) { <span>Caricamento...</span> } @else { <span>Crea</span> }
+        </button>
+      </div>
+  </form>
+</section>
+

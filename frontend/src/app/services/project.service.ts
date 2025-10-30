@@ -1,5 +1,5 @@
 import { Injectable, inject } from '@angular/core';
-import { HttpClient } from '@angular/common/http';
+import { HttpClient, HttpHeaders } from '@angular/common/http';
 import { Observable } from 'rxjs';
 import { map } from 'rxjs/operators';
 
@@ -30,13 +30,30 @@ export class ProjectService {
    * 
    * @param page Page number (default: 1)
    * @param perPage Items per page (default: 12)
+   * @param forceRefresh Se true, disabilita la cache
    * @returns Observable of paginated project data
    */
-  list$(page = 1, perPage = 12, userId?: number): Observable<Paginated<Progetto>> {
+  list$(page = 1, perPage = 12, userId?: number, forceRefresh = false): Observable<Paginated<Progetto>> {
     const url = apiUrl('projects');
     const params: any = { page, per_page: perPage };
     if (userId) params.user_id = String(userId);
-    return this.http.get<Paginated<ProjectDto>>(url, { params }).pipe(
+    
+    // Aggiungi timestamp per bypassare la cache quando si forza il refresh
+    if (forceRefresh) {
+      params['_t'] = Date.now();
+    }
+    
+    // Headers per disabilitare cache quando si forza il refresh
+    const headers = forceRefresh ? new HttpHeaders({
+      'Cache-Control': 'no-cache, no-store, must-revalidate',
+      'Pragma': 'no-cache',
+      'Expires': '0'
+    }) : undefined;
+    
+    return this.http.get<Paginated<ProjectDto>>(url, { 
+      params,
+      headers
+    }).pipe(
       map(response => ({
         ...response,
         data: (response.data ?? []).map(dto => this.dtoToProgetto(dto))
@@ -48,12 +65,35 @@ export class ProjectService {
    * Get all projects (up to specified maximum)
    * 
    * @param max Maximum number of projects to fetch (default: 1000)
+   * @param forceRefresh Se true, disabilita la cache
    * @returns Observable of project array
    */
-  listAll$(max = 1000, userId?: number): Observable<Progetto[]> {
-    return this.list$(1, max, userId).pipe(
+  listAll$(max = 1000, userId?: number, forceRefresh = false): Observable<Progetto[]> {
+    return this.list$(1, max, userId, forceRefresh).pipe(
       map(response => response.data ?? [])
     );
+  }
+
+  /**
+   * Crea un nuovo progetto
+   * 
+   * @param data FormData con i dati del progetto
+   * @returns Observable del progetto creato
+   */
+  create$(data: FormData): Observable<any> {
+    const url = apiUrl('projects');
+    return this.http.post<any>(url, data);
+  }
+
+  /**
+   * Soft-delete di un progetto
+   * 
+   * @param id ID del progetto da eliminare
+   * @returns Observable che completa quando l'eliminazione è terminata
+   */
+  delete$(id: number): Observable<void> {
+    const url = apiUrl(`projects/${id}`);
+    return this.http.delete<void>(url);
   }
 
   // ========================================================================

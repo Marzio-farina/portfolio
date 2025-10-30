@@ -159,6 +159,10 @@ Route::middleware(['api', "throttle:{$throttleLimit}", 'db.connection'])
             // Attestati - creazione richiede autenticazione
             Route::post('attestati', [AttestatiController::class, 'store']);
             Route::delete('attestati/{attestato}', [AttestatiController::class, 'destroy']);
+            
+            // Projects - creazione ed eliminazione richiedono autenticazione
+            Route::post('projects', [ProjectController::class, 'store']);
+            Route::delete('projects/{project}', [ProjectController::class, 'destroy']);
         });
 
         // ====================================================================

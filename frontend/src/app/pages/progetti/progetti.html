@@ -1,3 +1,10 @@
+<!-- Sistema di notifiche multiple -->
+<app-notification 
+  [notifications]="notifications()"
+  [showMultiple]="showMultipleNotifications"
+  [mostSevereNotification]="getMostSevereNotification()">
+</app-notification>
+
 <h2 class="article-title">{{ title() }}</h2>
 <app-filter 
     [categories]="categories()"
@@ -28,10 +35,51 @@
     </div>
 }
 
+@if (!loading() && !errorMsg() && projects().length === 0) {
+    @if (showEmptyAddCard()) {
+        <div class="projects">
+            <div class="card-wrapper add-card" (click)="goToAddProgetto()" role="button" tabindex="0" aria-label="Aggiungi progetto">
+                <div class="card">
+                    <div class="media add-card-media">
+                        <div class="add-card-circle" aria-hidden="true">
+                            <svg class="add-card-plus" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round">
+                                <line x1="12" y1="5" x2="12" y2="19"></line>
+                                <line x1="5" y1="12" x2="19" y2="12"></line>
+                            </svg>
+                        </div>
+                    </div>
+                </div>
+                <div class="meta add-card-meta">
+                    <div class="add-card-hint">Aggiungi un progetto</div>
+                </div>
+            </div>
+        </div>
+    } @else {
+        <div class="state empty" aria-live="polite">Nessun progetto caricato</div>
+    }
+}
+
 <div class="projects">
     @if (!loading() && !errorMsg()) {
+        @if (showEmptyAddCard()) {
+            <div class="card-wrapper add-card" (click)="goToAddProgetto()" role="button" tabindex="0" aria-label="Aggiungi progetto">
+                <div class="card">
+                    <div class="media add-card-media">
+                        <div class="add-card-circle" aria-hidden="true">
+                            <svg class="add-card-plus" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round">
+                                <line x1="12" y1="5" x2="12" y2="19"></line>
+                                <line x1="5" y1="12" x2="19" y2="12"></line>
+                            </svg>
+                        </div>
+                    </div>
+                </div>
+                <div class="meta add-card-meta">
+                    <div class="add-card-hint">Aggiungi un progetto</div>
+                </div>
+            </div>
+        }
         @for (p of filtered(); track p.id) {
-            <app-progetti-card [progetto]="p" />
+            <app-progetti-card [progetto]="p" (deleted)="onProjectDeleted($event)" />
         }
     }    
 </div>

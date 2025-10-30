@@ -1,5 +1,8 @@
-import { Component, ElementRef, input, ViewChild, signal, inject, effect } from '@angular/core';
+import { Component, ElementRef, input, ViewChild, signal, inject, effect, computed, output } from '@angular/core';
 import { ThemeService } from '../../services/theme.service';
+import { AuthService } from '../../services/auth.service';
+import { EditModeService } from '../../services/edit-mode.service';
+import { ProjectService } from '../../services/project.service';
 
 export type Progetto = {
   id: number;
@@ -21,6 +24,14 @@ export class ProgettiCard {
   progetto = input.required<Progetto>();
   @ViewChild('videoEl', { static: false }) videoEl?: ElementRef<HTMLVideoElement>;
   private readonly themeService = inject(ThemeService);
+  private readonly auth = inject(AuthService);
+  private readonly editModeService = inject(EditModeService);
+  private readonly api = inject(ProjectService);
+  
+  isAuthenticated = computed(() => this.auth.isAuthenticated());
+  isEditing = computed(() => this.editModeService.isEditing());
+  
+  deleted = output<number>();
 
   // Valori randomici per hover, generati al mount
   hoverRotate = signal<string>('0deg');
@@ -170,5 +181,18 @@ export class ProgettiCard {
     const v = this.videoEl?.nativeElement;
     if (!v) return;
     v.pause();
+  }
+
+  onAdminButtonClick(event: Event): void {
+    event.stopPropagation();
+    const id = this.progetto().id;
+    this.api.delete$(id).subscribe({
+      next: () => {
+        this.deleted.emit(id);
+      },
+      error: (err) => {
+        console.error('Errore eliminazione progetto', err);
+      }
+    });
   }
 }

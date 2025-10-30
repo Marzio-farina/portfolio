@@ -6,6 +6,11 @@
      [style.--hover-shadow]="hoverShadow()"
      [style.--hover-meta-bg]="hoverMetaBackgroundColor()"
      [style.--radial-gradient-color]="radialGradientColor()">
+  @if (isAuthenticated() && isEditing()) {
+    <button class="admin-x-btn" type="button" aria-label="Elimina progetto" (click)="onAdminButtonClick($event)">
+      <span aria-hidden="true">×</span>
+    </button>
+  }
   <div class="card" [class.no-video]="!progetto().video">
     <div class="media">
         <!-- poster visibile di default -->

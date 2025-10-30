@@ -1,0 +1,62 @@
+/* ================== Responsive (< 580px) ================== */
+@media (max-width: 579.98px) {
+  /* Griglia a 1 colonna su schermi piccoli */
+  .form { grid-template-columns: 1fr; }
+
+  /* Titolo su tutta la riga 1 */
+  .field.c1.row-1 { grid-column: 1 / -1; grid-row: 1; }
+
+  /* Categoria su tutta la riga 2 */
+  .field.c2.row-1 { grid-column: 1 / -1; grid-row: 2; }
+
+  /* Poster su tutta la riga 3 */
+  .add-project-modal__field.c1.row-2 { grid-column: 1 / -1; grid-row: 3; }
+
+  /* Video su tutta la riga 4 */
+  .add-project-modal__field.c2.row-2 { grid-column: 1 / -1; grid-row: 4; }
+
+  /* Descrizione su tutta la riga 5 */
+  .field.field--textarea.col-2.row-3 { grid-column: 1 / -1; grid-row: 5; }
+
+  /* Rimuovi padding e centra contenuto per i campi select */
+  .field.col-1.c2.row-1 {
+    padding: 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    min-height: 44px;
+  }
+  .field.col-1.c2.row-1 select {
+    text-align: center;
+    padding: 0 8px;
+  }
+  /* Posiziona la floating label senza usare padding/margini del contenitore */
+  .field.col-1.c2.row-1 .field-label {
+    position: absolute;
+    left: 14px;
+    top: 50%;
+    transform: translateY(-50%);
+  }
+  .field.col-1.c2.row-1:focus-within .field-label,
+  .field.col-1.c2.row-1 select:not([value=""]) + .field-label {
+    top: 0;
+    font-size: 0.85rem;
+    transform: translateY(-50%);
+  }
+}
+
+/* ================== Responsive (< 480px) ================== */
+@media (max-width: 479.98px) {
+  .add-project {
+    padding-top: 1rem;
+  }
+
+  .add-project .header {
+    margin-top: 0.5rem;
+  }
+
+  .add-project .header .title {
+    font-size: 1.25rem;
+  }
+}
+
