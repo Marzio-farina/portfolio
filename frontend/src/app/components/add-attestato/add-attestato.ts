@@ -10,7 +10,7 @@ import { environment } from '../../../environments/environment';
   standalone: true,
   imports: [ReactiveFormsModule, Notification],
   templateUrl: './add-attestato.html',
-  styleUrls: ['./add-attestato.css']
+  styleUrls: ['./add-attestato.css','./add-attestato.responsive.css']
 })
 export class AddAttestato {
   private fb = inject(FormBuilder);
