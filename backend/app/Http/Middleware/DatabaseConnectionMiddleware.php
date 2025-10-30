@@ -21,7 +21,7 @@ class DatabaseConnectionMiddleware
     public function handle(Request $request, Closure $next): Response
     {
         $attempts = 0;
-        $maxRetries = 1; // un solo retry per errori 26000
+        $maxRetries = 0; // niente retry: fallisci velocemente con 503
 
         do {
             try {

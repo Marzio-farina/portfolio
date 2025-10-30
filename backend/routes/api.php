@@ -92,27 +92,28 @@ Route::middleware(['api', "throttle:{$throttleLimit}", 'db.connection'])
     ->group(function () {
 
         // ====================================================================
-        // Public Read-Only Endpoints (with HTTP caching)
+        // Public Read-Only Endpoints (with HTTP caching, no throttle)
         // ====================================================================
         Route::middleware(['db.connection','http.cache:300'])
             ->withoutMiddleware([\Illuminate\Routing\Middleware\ThrottleRequests::class])
             ->group(function () {
-            Route::get('testimonials', [TestimonialController::class, 'index']);
-            Route::get('testimonials/icons', [TestimonialController::class, 'getIcons']); // Tutte le icone
-            Route::get('testimonials/default-avatars', [TestimonialController::class, 'getDefaultAvatars']); // Solo avatar predefiniti
-            Route::get('projects', [ProjectController::class, 'index']);
-            Route::get('cv', [CvController::class, 'index']);
-            Route::get('what-i-do', [WhatIDoController::class, 'index']);
-            Route::get('attestati', [AttestatiController::class, 'index']);
-            
-            // CV Files - download pubblico (utente identificato opzionalmente)
-            Route::get('cv-files/default', [CvFileController::class, 'getDefault']);
-            Route::get('cv-files/{id}/download', [CvFileController::class, 'download'])->name('api.cv-files.download');
-        });
+                Route::get('testimonials', [TestimonialController::class, 'index']);
+                Route::get('testimonials/icons', [TestimonialController::class, 'getIcons']); // Tutte le icone
+                Route::get('testimonials/default-avatars', [TestimonialController::class, 'getDefaultAvatars']); // Solo avatar predefiniti
+                Route::get('projects', [ProjectController::class, 'index']);
+                Route::get('cv', [CvController::class, 'index']);
+                Route::get('what-i-do', [WhatIDoController::class, 'index']);
+                Route::get('attestati', [AttestatiController::class, 'index']);
+            });
 
         // Profilo pubblico NON in cache, per riflettere subito le modifiche
         Route::get('users/{user}/public-profile', [UserPublicController::class, 'show']);
         Route::get('public-profile', [UserPublicController::class, 'me']);
+
+        // CV Files - download pubblico (utente identificato opzionalmente)
+        // Spostato fuori da gruppi con http.cache/throttle
+        Route::get('cv-files/default', [CvFileController::class, 'getDefault']);
+        Route::get('cv-files/{id}/download', [CvFileController::class, 'download'])->name('api.cv-files.download');
 
         // ====================================================================
         // Public Write Endpoints (with rate limiting)

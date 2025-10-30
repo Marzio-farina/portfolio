@@ -13,6 +13,7 @@ use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Str;
 use Symfony\Component\HttpFoundation\BinaryFileResponse;
 use Illuminate\Http\RedirectResponse;
+use Illuminate\Database\QueryException;
 
 /**
  * CV File Controller
@@ -29,52 +30,74 @@ class CvFileController extends Controller
      */
     public function getDefault(Request $request): JsonResponse
     {
-        // Leggi user_id dalla query string o usa l'utente autenticato
-        $userId = $request->query('user_id') ? (int) $request->query('user_id') : null;
-        
-        if (!$userId && Auth::check()) {
-            $userId = Auth::id();
-        }
-
-        // Se non specificato, usa l'utente pubblico (per portfolio pubblico)
-        if (!$userId) {
-            $publicUserId = (int) env('PUBLIC_USER_ID', 0);
-            $publicEmail = env('PUBLIC_USER_EMAIL', 'marziofarina@icloud.com');
+        try {
+            // Leggi user_id dalla query string o usa l'utente autenticato
+            $userId = $request->query('user_id') ? (int) $request->query('user_id') : null;
             
-            if ($publicUserId > 0) {
-                $userId = $publicUserId;
-            } elseif ($publicEmail) {
-                $user = \App\Models\User::where('email', $publicEmail)->first();
-                $userId = $user ? $user->id : null;
+            if (!$userId && Auth::check()) {
+                $userId = Auth::id();
             }
-        }
 
-        if (!$userId) {
+            // Se non specificato, usa l'utente pubblico (per portfolio pubblico)
+            if (!$userId) {
+                $publicUserId = (int) env('PUBLIC_USER_ID', 0);
+                $publicEmail = env('PUBLIC_USER_EMAIL', 'marziofarina@icloud.com');
+                
+                if ($publicUserId > 0) {
+                    $userId = $publicUserId;
+                } elseif ($publicEmail) {
+                    $user = \App\Models\User::where('email', $publicEmail)->first();
+                    $userId = $user ? $user->id : null;
+                }
+            }
+
+            if (!$userId) {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'Nessun CV disponibile'
+                ], 404);
+            }
+
+            $cvFile = CvFile::defaultForUser($userId)->first();
+
+            if (!$cvFile) {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'Nessun CV trovato per questo utente'
+                ], 404);
+            }
+
+            return response()->json([
+                'success' => true,
+                'cv' => [
+                    'id' => $cvFile->id,
+                    'filename' => $cvFile->filename,
+                    'title' => $cvFile->title,
+                    'file_size' => $cvFile->file_size,
+                    'download_url' => route('api.cv-files.download', ['id' => $cvFile->id]),
+                ]
+            ], 200, [], JSON_UNESCAPED_UNICODE);
+
+        } catch (QueryException $e) {
+            Log::error('CV default query failed', [
+                'error' => $e->getMessage(),
+                'code' => $e->getCode(),
+                'route' => 'cv-files/default',
+            ]);
             return response()->json([
                 'success' => false,
-                'message' => 'Nessun CV disponibile'
-            ], 404);
-        }
-
-        $cvFile = CvFile::defaultForUser($userId)->first();
-
-        if (!$cvFile) {
+                'message' => 'Servizio temporaneamente non disponibile (DB)'
+            ], 503);
+        } catch (\Throwable $e) {
+            Log::error('CV default unexpected error', [
+                'error' => $e->getMessage(),
+                'route' => 'cv-files/default',
+            ]);
             return response()->json([
                 'success' => false,
-                'message' => 'Nessun CV trovato per questo utente'
-            ], 404);
+                'message' => 'Errore interno'
+            ], 500);
         }
-
-        return response()->json([
-            'success' => true,
-            'cv' => [
-                'id' => $cvFile->id,
-                'filename' => $cvFile->filename,
-                'title' => $cvFile->title,
-                'file_size' => $cvFile->file_size,
-                'download_url' => route('api.cv-files.download', ['id' => $cvFile->id]),
-            ]
-        ], 200, [], JSON_UNESCAPED_UNICODE);
     }
 
     /**
