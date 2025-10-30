@@ -31,6 +31,7 @@ class UserPublicResource extends JsonResource
             'bio'         => $this->profile->bio ?? null,
             'phone'       => $this->profile->phone ?? null,
             'location'    => $this->profile->location ?? null,
+            'location_url'=> $this->profile->location_url ?? null,
             'avatar_url'  => $this->getAbsoluteUrl($rawAvatar),
             'date_of_birth'      => $dob,                  // ISO per logica
             'date_of_birth_it'   => $dob_it,               // formattata per UI

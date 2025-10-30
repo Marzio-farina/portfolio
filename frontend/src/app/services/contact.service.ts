@@ -12,6 +12,7 @@ export interface ContactPayload {
   message: string;
   consent: boolean;
   website?: string;
+  toEmail?: string; // destinatario (email del profilo pubblico)
 }
 
 @Injectable({ providedIn: 'root' })

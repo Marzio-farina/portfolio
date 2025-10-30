@@ -1,16 +1,28 @@
 <figure class="map-embed">
-  @if (!loaded()) {
-    <div class="skeleton map-skeleton" aria-hidden="true"></div>
+  @if (hasLocation()) {
+    @if (!loaded()) {
+      <div class="skeleton map-skeleton" aria-hidden="true"></div>
+    } @else {
+      <iframe 
+        [src]="safeSrc()"
+        width="100%" 
+        height="100%" 
+        style="border:0;" 
+        allowfullscreen="" 
+        loading="lazy" 
+        referrerpolicy="no-referrer-when-downgrade"
+        [attr.title]="'Mappa di ' + locationName()"
+        (load)="onMapLoad()">
+      </iframe>
+    }
+  } @else if (showPlaceholder()) {
+    <div class="map-placeholder" aria-label="Nessuna posizione impostata">
+      <svg class="map-plus-svg" viewBox="-50 -50 100 100" preserveAspectRatio="xMidYMid meet" aria-hidden="true">
+        <!-- croce con solo contorno, centrata rispetto al viewBox -->
+        <path d="M-10 -40 h20 v30 h30 v20 h-30 v30 h-20 v-30 h-30 v-20 h30z" fill="transparent" stroke="currentColor" stroke-width="4" stroke-linejoin="round" />
+      </svg>
+    </div>
+  } @else if (showSkeleton()) {
+    <div class="map-empty" aria-hidden="true">Nessuna località specificata</div>
   }
-  <iframe 
-    src="https://www.google.com/maps?q=San%20Valentino%20Torio%2C%20Italia&hl=it&z=13&output=embed"
-    width="100%" 
-    height="100%" 
-    style="border:0;" 
-    allowfullscreen="" 
-    loading="lazy" 
-    referrerpolicy="no-referrer-when-downgrade"
-    title="Mappa di San Valentino Torio"
-    (load)="onMapLoad()">
-  </iframe>
 </figure>

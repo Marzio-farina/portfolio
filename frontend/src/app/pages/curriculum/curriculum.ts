@@ -83,6 +83,19 @@ export class Curriculum {
       .subscribe(() => {
         this.onCvUploaded();
       });
+
+    // Ricarica il CV quando cambia tenant
+    const t = this.tenant;
+    queueMicrotask(() => {
+      const effectRef = (window as any).ngEffect?.(() => {
+        void t.userId();
+        const uid2 = t.userId();
+        this.cv.get$(uid2 ?? undefined).subscribe({
+          next: data => { this.education.set(data.education); this.experience.set(data.experience); this.loading.set(false); },
+          error: () => { this.loading.set(false); }
+        });
+      });
+    });
   }
 
   /**
@@ -94,7 +107,8 @@ export class Curriculum {
     }
 
     this.downloading.set(true);
-    this.cvFile.getDefault$().subscribe({
+    const uid = this.tenant.userId();
+    this.cvFile.getDefault$(uid ?? undefined).subscribe({
       next: (response) => {
         if (response.success && response.cv?.download_url) {
           this.cvFile.downloadFile(response.cv.download_url);
@@ -117,7 +131,8 @@ export class Curriculum {
    * Apre il CV online (stesso URL del download, ma in una nuova tab)
    */
   openOnline(): void {
-    this.cvFile.getDefault$().subscribe({
+    const uid = this.tenant.userId();
+    this.cvFile.getDefault$(uid ?? undefined).subscribe({
       next: (response) => {
         if (response.success && (response.cv?.view_url || response.cv?.download_url)) {
           const url = response.cv.view_url || response.cv.download_url;
@@ -144,7 +159,8 @@ export class Curriculum {
    */
   async share(): Promise<void> {
     try {
-      this.cvFile.getDefault$().subscribe({
+      const uid = this.tenant.userId();
+      this.cvFile.getDefault$(uid ?? undefined).subscribe({
         next: async (response) => {
           if (response.success && (response.cv?.view_url || response.cv?.download_url)) {
             const url = response.cv.view_url || response.cv.download_url;
@@ -198,7 +214,8 @@ export class Curriculum {
     }
 
     // Se l'utente è autenticato, controlla se esiste un CV
-    this.cvFile.getDefault$().pipe(
+    const uid = this.tenant.userId();
+    this.cvFile.getDefault$(uid ?? undefined).pipe(
       catchError((err: any) => {
         // Se è un 404 (CV non trovato), è normale per utenti senza CV - apri modal silenziosamente
         // L'interceptor wrappa l'errore, controlla sia originalError che status diretto

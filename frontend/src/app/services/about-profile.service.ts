@@ -23,6 +23,7 @@ export interface PublicProfileDto {
   bio: string | null;
   phone: string | null;
   location: string | null;
+  location_url?: string | null;
   avatar_url: string | null;
 
   // date

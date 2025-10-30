@@ -41,7 +41,7 @@ class UserPublicController extends Controller
                 // Eager load minimali e ordinati
                 $user = $query
                 ->with([
-                    'profile:id,user_id,title,headline,bio,phone,location,avatar_url',
+                           'profile:id,user_id,title,headline,bio,phone,location,location_url,avatar_url',
                     'icon:id,img,alt',
                     'socialAccounts' => fn($q) => $q
                         ->select(['id','user_id','provider','handle','url'])
@@ -86,7 +86,7 @@ class UserPublicController extends Controller
         $user = User::query()->select(['id','name','surname','email','date_of_birth','slug'])
             ->where('slug', $slug)
             ->with([
-                'profile:id,user_id,title,headline,bio,phone,location,avatar_url',
+                           'profile:id,user_id,title,headline,bio,phone,location,location_url,avatar_url',
                 'icon:id,img,alt',
                 'socialAccounts' => fn($q) => $q
                     ->select(['id','user_id','provider','handle','url'])

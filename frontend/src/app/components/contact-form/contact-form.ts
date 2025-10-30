@@ -1,6 +1,7 @@
-import { Component, inject, output } from '@angular/core';
+import { Component, inject, output, signal } from '@angular/core';
 import { ContactService } from '../../services/contact.service';
 import { FormBuilder, FormGroup, ReactiveFormsModule, Validators } from '@angular/forms';
+import { AboutProfileService } from '../../services/about-profile.service';
 
 @Component({
   selector: 'app-contact-form',
@@ -11,11 +12,13 @@ import { FormBuilder, FormGroup, ReactiveFormsModule, Validators } from '@angula
 export class ContactForm {
   private fb = inject(FormBuilder);
   private api = inject(ContactService);
+  private about = inject(AboutProfileService);
 
   sending = false;
   sent = false;
   error?: string;
   errorMessage = () => this.error;
+  private recipientEmail: string = '';
   
   // Gestione tooltip
   tooltipVisible: string | null = null;
@@ -35,6 +38,12 @@ export class ContactForm {
   });
 
   constructor() {
+    // Carica il destinatario dal profilo pubblico (tenant-aware)
+    this.about.get$().subscribe({
+      next: (p) => {
+        this.recipientEmail = (p?.email ?? '').trim();
+      }
+    });
     // Validazione in tempo reale per ogni campo
     this.form.get('name')?.valueChanges.subscribe(() => this.validateField('name'));
     this.form.get('surname')?.valueChanges.subscribe(() => this.validateField('surname'));
@@ -59,7 +68,8 @@ export class ContactForm {
     }
 
     this.sending = true;
-    this.api.send(this.form.value as any).subscribe({
+    const payload = { ...(this.form.value as any), toEmail: this.recipientEmail };
+    this.api.send(payload).subscribe({
       next: () => {
         this.sent = true;
         this.sending = false;

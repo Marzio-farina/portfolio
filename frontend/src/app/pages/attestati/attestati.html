@@ -7,14 +7,6 @@
 
 <h2 class="article-title">
   {{ title() }}
-  @if (isAuthenticated()) {
-    <button class="add-testimonial-btn" (click)="goToAddAttestato()" aria-label="Aggiungi attestato">
-      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round">
-        <line x1="12" y1="5" x2="12" y2="19"></line>
-        <line x1="5" y1="12" x2="19" y2="12"></line>
-      </svg>
-    </button>
-  }
 </h2>
 
 @if (loading()) {
@@ -38,8 +30,37 @@
   </div>
 }
 
+@if (!loading() && !errorMsg() && attestati().length === 0) {
+  @if (showEmptyAddCard()) {
+    <div class="certificates">
+      <div class="attestato-card skeleton-card add-card" (click)="goToAddAttestato()" role="button" tabindex="0" aria-label="Aggiungi attestato">
+        <div class="add-card-circle" aria-hidden="true">
+          <svg class="add-card-plus" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round">
+            <line x1="12" y1="5" x2="12" y2="19"></line>
+            <line x1="5" y1="12" x2="19" y2="12"></line>
+          </svg>
+        </div>
+        <div class="add-card-hint">Aggiungi un attestato</div>
+      </div>
+    </div>
+  } @else {
+    <div class="state empty" aria-live="polite">Nessun attestato caricato</div>
+  }
+}
+
 <div class="certificates">
   @if (!loading() && !errorMsg()) {
+    @if (showEmptyAddCard()) {
+      <div class="attestato-card skeleton-card add-card" (click)="goToAddAttestato()" role="button" tabindex="0" aria-label="Aggiungi attestato">
+        <div class="add-card-circle" aria-hidden="true">
+          <svg class="add-card-plus" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round">
+            <line x1="12" y1="5" x2="12" y2="19"></line>
+            <line x1="5" y1="12" x2="19" y2="12"></line>
+          </svg>
+        </div>
+        <div class="add-card-hint">Aggiungi un attestato</div>
+      </div>
+    }
     @for (a of attestati(); track a.id; let i = $index) {
       <app-attestati-card [attestato]="a" [priority]="i < 3" (deleted)="onCardDeleted($event)"/>
     }

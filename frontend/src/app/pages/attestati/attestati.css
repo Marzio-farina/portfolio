@@ -80,6 +80,48 @@ h2.article-title::after {
   transform: translateY(-2px);
 }
 
+/* Card aggiungi quando lista vuota in edit */
+.add-card{
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  row-gap: 10px;
+  cursor: pointer;
+  min-height: 260px;
+  /* override stile card standard */
+  background: transparent !important;
+  box-shadow: none !important;
+  border-radius: var(--radius-2xl);
+  border: 4px dashed var(--border-primary);
+  /* tono leggermente più chiaro rispetto al bordo standard */
+  border-color: color-mix(in oklab, var(--border-primary) 60%, white 40%);
+}
+.add-card-circle{
+  width: 64px;
+  height: 64px;
+  border-radius: 50%;
+  border: 5px solid var(--accent-primary);
+  display: grid;
+  place-items: center;
+  transition: transform var(--transition-1), border-color var(--transition-1), color var(--transition-1);
+  color: var(--accent-primary);
+}
+.add-card:hover .add-card-circle{
+  transform: scale(1.06);
+  border-color: var(--accent-primary);
+}
+.add-card-plus{
+  width: 64px;
+  height: 64px;
+  color: var(--accent-primary);
+}
+.add-card-hint{
+  margin-top: 8px;
+  color: var(--text-secondary);
+  font-size: 14px;
+}
+
 /* stato errore/coerenza */
 .state.error {
   color: var(--error-color);
@@ -87,4 +129,15 @@ h2.article-title::after {
   border: 1px solid var(--error-color);
   padding: 12px;
   border-radius: 6px;
+}
+
+/* stato empty: messaggio centrato */
+.state.empty {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 160px;
+  color: var(--text-secondary);
+  padding-left: clamp(0.25rem, 4vw, 2rem);
+  padding-right: clamp(0.25rem, 4vw, 2rem);
 }

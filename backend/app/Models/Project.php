@@ -24,6 +24,7 @@ class Project extends Model
     protected $fillable = [
         'title',
         'category_id',
+        'user_id',
         'description',
         'poster',
         'video'
@@ -51,5 +52,13 @@ class Project extends Model
     public function technologies()
     {
         return $this->belongsToMany(Technology::class, 'project_technology');
+    }
+
+    /**
+     * Proprietario del progetto (utente)
+     */
+    public function user()
+    {
+        return $this->belongsTo(User::class);
     }
 }

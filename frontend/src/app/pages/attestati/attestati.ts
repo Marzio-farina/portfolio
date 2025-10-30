@@ -9,6 +9,7 @@ import { Attestato } from '../../models/attestato.model';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { Notification, NotificationType } from '../../components/notification/notification';
 import { AuthService } from '../../services/auth.service';
+import { EditModeService } from '../../services/edit-mode.service';
 import { TenantService } from '../../services/tenant.service';
 
 export interface NotificationItem {
@@ -32,6 +33,7 @@ export class Attestati {
   private tenantRouter = inject(TenantRouterService);
   private auth = inject(AuthService);
   private tenant = inject(TenantService);
+  private edit = inject(EditModeService);
 
   title = toSignal(this.route.data.pipe(map(d => d['title'] as string)), { initialValue: '' });
 
@@ -46,6 +48,7 @@ export class Attestati {
 
   // Stato autenticazione - mostra il button solo se loggato
   isAuthenticated = computed(() => this.auth.isAuthenticated());
+  showEmptyAddCard = computed(() => this.isAuthenticated() && this.edit.isEditing());
 
   constructor() {
     this.loadAttestati();
