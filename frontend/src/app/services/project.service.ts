@@ -130,7 +130,9 @@ export class ProjectService {
    */
   updateWithFiles$(id: number, formData: FormData): Observable<Progetto> {
     const url = apiUrl(`projects/${id}`);
-    return this.http.put<{ ok: boolean; data: any }>(url, formData).pipe(
+    // Laravel non supporta file multipart/form-data con PUT, quindi usiamo POST
+    // La route POST per update è già configurata nel backend
+    return this.http.post<{ ok: boolean; data: any }>(url, formData).pipe(
       map(response => {
         // Converti il DTO ricevuto in Progetto
         const dto = response.data;

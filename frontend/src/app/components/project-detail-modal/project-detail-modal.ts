@@ -51,6 +51,10 @@ export class ProjectDetailModal {
 
   // Indica se c'è stato un errore nel caricamento dell'immagine
   imageLoadError = signal<boolean>(false);
+  
+  // Stato caricamento video
+  videoLoading = signal<boolean>(false);
+  videoLoadProgress = signal<number>(0); // 0-100
 
   // File input per modificare immagine e video
   @ViewChild('posterInput') posterInputRef?: ElementRef<HTMLInputElement>;
@@ -63,6 +67,7 @@ export class ProjectDetailModal {
   videoPreviewUrl = signal<string | null>(null);
   isDragOverPoster = signal(false);
   isDragOverVideo = signal(false);
+  videoRemoved = signal<boolean>(false); // Flag per indicare che il video esistente è stato rimosso
 
   // Form per l'editing
   editForm!: FormGroup;
@@ -257,6 +262,44 @@ export class ProjectDetailModal {
       video.pause();
     }
   }
+  
+  /**
+   * Gestisce l'inizio del caricamento del video
+   */
+  onVideoLoadStart(event: Event): void {
+    const video = event.target as HTMLVideoElement;
+    this.videoLoading.set(true);
+    this.videoLoadProgress.set(0);
+  }
+  
+  /**
+   * Gestisce il progresso del caricamento del video
+   */
+  onVideoProgress(event: Event): void {
+    const video = event.target as HTMLVideoElement;
+    if (video.buffered.length > 0 && video.duration > 0) {
+      const bufferedEnd = video.buffered.end(video.buffered.length - 1);
+      const progress = (bufferedEnd / video.duration) * 100;
+      this.videoLoadProgress.set(Math.min(100, Math.round(progress)));
+    }
+  }
+  
+  /**
+   * Gestisce il completamento del caricamento del video
+   */
+  onVideoLoadedData(event: Event): void {
+    this.videoLoading.set(false);
+    this.videoLoadProgress.set(100);
+  }
+  
+  /**
+   * Gestisce l'errore nel caricamento del video
+   */
+  onVideoError(event: Event): void {
+    this.videoLoading.set(false);
+    this.videoLoadProgress.set(0);
+    console.warn('Errore caricamento video:', this.project().video);
+  }
 
   /**
    * Salva le modifiche al progetto
@@ -293,10 +336,23 @@ export class ProjectDetailModal {
     }
 
     // Gestisci upload file se presenti
+    // Se il video è stato rimosso (campo speciale per indicare rimozione), devi gestirlo
     const hasPosterFile = this.selectedPosterFile();
     const hasVideoFile = this.selectedVideoFile();
+    const videoRemoved = this.videoRemoved();
     
-    if (hasPosterFile || hasVideoFile) {
+    console.log('onSave - File selezionati:', {
+      hasPosterFile: !!hasPosterFile,
+      hasVideoFile: !!hasVideoFile,
+      videoRemoved: videoRemoved,
+      posterFileName: hasPosterFile?.name,
+      videoFileName: hasVideoFile?.name,
+      videoFileSize: hasVideoFile?.size,
+      existingVideo: this.project().video,
+    });
+    
+    // Se ci sono file da caricare O un video da rimuovere, usa FormData
+    if (hasPosterFile || hasVideoFile || videoRemoved) {
       // Se ci sono file, usa FormData
       const formData = new FormData();
       
@@ -314,11 +370,24 @@ export class ProjectDetailModal {
       
       // Aggiungi i file se presenti
       if (hasPosterFile) {
+        console.log('Aggiungo poster_file al FormData:', hasPosterFile.name, hasPosterFile.size);
         formData.append('poster_file', hasPosterFile);
       }
       if (hasVideoFile) {
+        console.log('Aggiungo video_file al FormData:', hasVideoFile.name, hasVideoFile.size);
         formData.append('video_file', hasVideoFile);
       }
+      
+      // Se il video è stato rimosso, invia un flag speciale
+      if (videoRemoved && !hasVideoFile) {
+        console.log('Video rimosso - invio flag per rimuovere dal database');
+        formData.append('remove_video', 'true');
+      }
+      
+      // Verifica che i file siano stati aggiunti
+      console.log('FormData contiene poster_file:', formData.has('poster_file'));
+      console.log('FormData contiene video_file:', formData.has('video_file'));
+      console.log('FormData contiene remove_video:', formData.has('remove_video'));
       
       this.projectService.updateWithFiles$(this.project().id, formData).subscribe({
         next: (updatedProject: Progetto) => {
@@ -336,6 +405,7 @@ export class ProjectDetailModal {
           // Pulisci i file selezionati
           this.selectedPosterFile.set(null);
           this.selectedVideoFile.set(null);
+          this.videoRemoved.set(false);
           if (this.posterInputRef?.nativeElement) this.posterInputRef.nativeElement.value = '';
           if (this.videoInputRef?.nativeElement) this.videoInputRef.nativeElement.value = '';
           
@@ -394,6 +464,7 @@ export class ProjectDetailModal {
     this.selectedVideoFile.set(null);
     this.posterPreviewUrl.set(null);
     this.videoPreviewUrl.set(null);
+    this.videoRemoved.set(false);
     if (this.posterInputRef?.nativeElement) this.posterInputRef.nativeElement.value = '';
     if (this.videoInputRef?.nativeElement) this.videoInputRef.nativeElement.value = '';
   }
@@ -459,6 +530,7 @@ export class ProjectDetailModal {
     }
     
     this.selectedVideoFile.set(file);
+    this.videoRemoved.set(false); // Resetta il flag se si seleziona un nuovo video
     
     // Crea preview URL
     const reader = new FileReader();
@@ -515,6 +587,7 @@ export class ProjectDetailModal {
   removeVideo(): void {
     this.selectedVideoFile.set(null);
     this.videoPreviewUrl.set(null);
+    this.videoRemoved.set(true); // Indica che il video esistente deve essere rimosso
     if (this.videoInputRef?.nativeElement) this.videoInputRef.nativeElement.value = '';
     this.addNotification('info', 'Video rimosso. Ricorda di salvare per applicare le modifiche.');
   }

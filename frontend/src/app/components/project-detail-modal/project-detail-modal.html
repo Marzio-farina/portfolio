@@ -123,13 +123,30 @@
             (dragleave)="onDragLeaveVideo($event)"
             (drop)="onFileDropVideo($event)"
             [class.is-dragover]="isDragOverVideo()">
-            <video
-              [src]="getVideoUrl() || project().video"
-              controls
-              class="project-detail-modal__video-element"
-              (click)="onVideoClick($event)">
-              Il tuo browser non supporta il tag video.
-            </video>
+            <div class="project-detail-modal__video-wrapper">
+              <video
+                [src]="getVideoUrl() || project().video"
+                controls
+                class="project-detail-modal__video-element"
+                (click)="onVideoClick($event)"
+                (loadstart)="onVideoLoadStart($event)"
+                (progress)="onVideoProgress($event)"
+                (loadeddata)="onVideoLoadedData($event)"
+                (error)="onVideoError($event)">
+                Il tuo browser non supporta il tag video.
+              </video>
+              @if (videoLoading()) {
+                <div class="project-detail-modal__video-loading">
+                  <div class="project-detail-modal__video-progress-bar">
+                    <div 
+                      class="project-detail-modal__video-progress-fill"
+                      [style.width.%]="videoLoadProgress()">
+                    </div>
+                  </div>
+                  <span class="project-detail-modal__video-progress-text">{{ videoLoadProgress() }}%</span>
+                </div>
+              }
+            </div>
             @if (canEdit()) {
               <button 
                 type="button"
@@ -143,11 +160,11 @@
               </button>
               <button 
                 type="button"
-                class="project-detail-modal__remove-video"
+                class="project-detail-modal__remove-video admin-x-btn"
                 (click)="removeVideo()"
                 [disabled]="saving()"
                 aria-label="Rimuovi video">
-                ×
+                <span aria-hidden="true">×</span>
               </button>
             }
           </div>

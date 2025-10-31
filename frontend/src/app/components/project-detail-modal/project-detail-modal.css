@@ -231,49 +231,56 @@
   cursor: not-allowed;
 }
 
-/* Icona X per rimuovere video (solo per video) */
-.project-detail-modal__remove-video {
+/* Icona X per rimuovere video (solo per video) - stesso stile delle card progetti */
+.project-detail-modal__remove-video.admin-x-btn {
   position: absolute;
-  top: 8px;
-  right: 8px;
-  width: 28px;
-  height: 28px;
-  display: inline-flex;
+  top: 10px;
+  right: 10px;
+  width: 42px;
+  height: 42px;
+  border-radius: 50%;
+  border: 4px solid #ef4444; /* rosso spesso */
+  background: transparent;
+  color: #ef4444;
+  display: flex;
   align-items: center;
   justify-content: center;
-  border-radius: 50%;
-  border: 1px solid var(--border-primary);
-  background: var(--bg-card);
-  color: var(--text-secondary);
-  box-shadow: var(--shadow-1);
-  cursor: pointer;
-  opacity: 0;
-  transition: all var(--transition-1);
-  z-index: 10;
-  font-size: 18px;
+  font-size: 0; /* gestiamo la dimensione sulla span interna */
   line-height: 1;
-  pointer-events: none;
+  font-weight: 800;
+  transition: transform var(--transition-1), box-shadow var(--transition-1), opacity var(--transition-1);
+  z-index: 10; /* Sopra tutti gli altri elementi */
+  padding: 0;
+  cursor: pointer;
+  opacity: 0; /* Nascosto di default */
+  pointer-events: none; /* Non cliccabile quando nascosto */
 }
 
-.project-detail-modal__video--editable .project-detail-modal__video-container:hover .project-detail-modal__remove-video {
-  opacity: 1;
-  pointer-events: auto;
+.project-detail-modal__video--editable .project-detail-modal__video-container:hover .project-detail-modal__remove-video.admin-x-btn {
+  opacity: 1; /* Visibile all'hover */
+  pointer-events: auto; /* Cliccabile all'hover */
 }
 
-.project-detail-modal__remove-video:hover {
-  background: #ef4444;
-  color: white;
-  border-color: #ef4444;
-  transform: scale(1.1);
+.project-detail-modal__remove-video.admin-x-btn:hover {
+  transform: scale(1.08);
+  box-shadow: 0 6px 18px rgba(239, 68, 68, 0.35);
 }
 
-.project-detail-modal__remove-video:active {
-  transform: scale(0.95);
+.project-detail-modal__remove-video.admin-x-btn:active {
+  transform: scale(1.0);
 }
 
-.project-detail-modal__remove-video:disabled {
+.project-detail-modal__remove-video.admin-x-btn:disabled {
   opacity: 0.5;
   cursor: not-allowed;
+}
+
+/* X interna molto grande e centrata */
+.project-detail-modal__remove-video.admin-x-btn > span {
+  display: block;
+  font-size: 30px !important; /* aumenta la dimensione della X */
+  line-height: 1;
+  font-weight: 900;
 }
 
 .project-detail-modal__video {
@@ -312,11 +319,83 @@
   background: var(--accent-primary-alpha);
 }
 
+.project-detail-modal__video-wrapper {
+  position: relative;
+  width: 100%;
+  border-radius: 4px;
+  overflow: hidden;
+}
+
 .project-detail-modal__video-element {
   width: 100%;
   max-width: 100%;
   border-radius: 4px;
   background: var(--bg-secondary);
+  display: block;
+}
+
+/* Barra di caricamento video */
+.project-detail-modal__video-loading {
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  background: rgba(0, 0, 0, 0.75);
+  padding: 0.75rem 1rem;
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  z-index: 5;
+}
+
+.project-detail-modal__video-progress-bar {
+  flex: 1;
+  height: 6px;
+  background: rgba(255, 255, 255, 0.2);
+  border-radius: 3px;
+  overflow: hidden;
+  position: relative;
+}
+
+.project-detail-modal__video-progress-fill {
+  height: 100%;
+  background: var(--accent-primary);
+  border-radius: 3px;
+  transition: width 0.3s ease;
+  position: relative;
+}
+
+.project-detail-modal__video-progress-fill::after {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  bottom: 0;
+  right: 0;
+  background: linear-gradient(
+    90deg,
+    transparent,
+    rgba(255, 255, 255, 0.3),
+    transparent
+  );
+  animation: shimmer 1.5s infinite;
+}
+
+@keyframes shimmer {
+  0% {
+    transform: translateX(-100%);
+  }
+  100% {
+    transform: translateX(100%);
+  }
+}
+
+.project-detail-modal__video-progress-text {
+  color: white;
+  font-size: 0.875rem;
+  font-weight: 600;
+  min-width: 45px;
+  text-align: right;
 }
 
 .project-detail-modal__info {

@@ -184,6 +184,7 @@ Route::middleware(['api', "throttle:{$throttleLimit}", 'db.connection'])
                 return app(ProjectController::class)->store($request);
             });
             Route::put('projects/{project}', [ProjectController::class, 'update']);
+            Route::post('projects/{project}', [ProjectController::class, 'update']); // POST per supportare FormData con file
             Route::delete('projects/{project}', [ProjectController::class, 'destroy']);
         });
 

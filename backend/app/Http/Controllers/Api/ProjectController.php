@@ -295,7 +295,9 @@ class ProjectController extends Controller
                 Log::info('Gestione video file presente');
                 $videoFile = $request->file('video_file');
                 $extension = $videoFile->getClientOriginalExtension();
-                $filename = 'video.' . $extension;
+                // Genera nome randomico di 10 caratteri (0-9, a-z)
+                $randomName = $this->generateRandomFilename(10);
+                $filename = $randomName . '.' . $extension;
                 $relativePath = "{$baseFolder}/{$filename}";
 
                 // Verifica se siamo in produzione o se abbiamo configurato Supabase
@@ -455,20 +457,266 @@ class ProjectController extends Controller
         }
 
         // Log della richiesta per debugging
+        $allFiles = $request->allFiles();
+        $hasVideoFileInAll = isset($allFiles['video_file']);
+        $hasVideoFileInRequest = $request->hasFile('video_file');
+        
         Log::info('Aggiornamento progetto richiesto', [
             'project_id' => $project->id,
             'user_id' => $user->id,
-            'request_data' => $request->all()
+            'has_poster_file' => $request->hasFile('poster_file'),
+            'has_video_file' => $hasVideoFileInRequest,
+            'has_video_file_in_allFiles' => $hasVideoFileInAll,
+            'request_keys' => array_keys($request->all()),
+            'allFiles_keys' => array_keys($allFiles),
+            'request_method' => $request->method(),
+            'content_type' => $request->header('Content-Type'),
+            'content_length' => $request->header('Content-Length'),
+            'files_present' => $request->hasFile('poster_file') || $hasVideoFileInRequest,
+            'php_upload_max_filesize' => ini_get('upload_max_filesize'),
+            'php_post_max_size' => ini_get('post_max_size'),
+            'php_max_file_uploads' => ini_get('max_file_uploads'),
         ]);
+        
+        // Controlla se il file è stato rifiutato da PHP a causa di limiti
+        $contentLength = $request->header('Content-Length');
+        $uploadMaxSize = ini_get('upload_max_filesize');
+        $postMaxSize = ini_get('post_max_size');
+        
+        // Converte i limiti PHP in bytes per confronto
+        $uploadMaxBytes = $this->convertToBytes($uploadMaxSize);
+        $postMaxBytes = $this->convertToBytes($postMaxSize);
+        
+        if ($contentLength && (int)$contentLength > $postMaxBytes) {
+            $errorMessage = "Il file è troppo grande. Limite PHP post_max_size: {$postMaxSize}. Dimensione richiesta: " . round((int)$contentLength / 1024 / 1024, 2) . "MB. Per aumentare il limite, modifica il file php.ini o usa un server web configurato.";
+            Log::error('File troppo grande per post_max_size', [
+                'content_length' => $contentLength,
+                'content_length_mb' => round((int)$contentLength / 1024 / 1024, 2),
+                'post_max_size' => $postMaxSize,
+                'post_max_bytes' => $postMaxBytes,
+            ]);
+            return response()->json([
+                'ok' => false,
+                'message' => $errorMessage
+            ], 413); // 413 Payload Too Large
+        }
+        
+        if ($contentLength && (int)$contentLength > $uploadMaxBytes) {
+            $errorMessage = "Il file è troppo grande. Limite PHP upload_max_filesize: {$uploadMaxSize}. Dimensione richiesta: " . round((int)$contentLength / 1024 / 1024, 2) . "MB. Per aumentare il limite, modifica il file php.ini o usa un server web configurato.";
+            Log::error('File troppo grande per upload_max_filesize', [
+                'content_length' => $contentLength,
+                'content_length_mb' => round((int)$contentLength / 1024 / 1024, 2),
+                'upload_max_filesize' => $uploadMaxSize,
+                'upload_max_bytes' => $uploadMaxBytes,
+            ]);
+            return response()->json([
+                'ok' => false,
+                'message' => $errorMessage
+            ], 413); // 413 Payload Too Large
+        }
+        
+        // Log dettagliato se ci sono file
+        if ($hasVideoFileInAll) {
+            $videoFile = $request->file('video_file');
+            if ($videoFile) {
+                // Controlla se il file è valido prima di chiamare metodi che potrebbero fallire
+                $isValid = $videoFile->isValid();
+                $errorCode = $videoFile->getError();
+                
+                $logData = [
+                    'is_valid' => $isValid,
+                    'error_code' => $errorCode,
+                ];
+                
+                // Aggiungi informazioni solo se il file è valido
+                if ($isValid) {
+                    try {
+                        $logData['filename'] = $videoFile->getClientOriginalName();
+                        $logData['size'] = $videoFile->getSize();
+                        $logData['extension'] = $videoFile->getClientOriginalExtension();
+                        $logData['mime_type'] = $videoFile->getMimeType();
+                    } catch (\Exception $e) {
+                        $logData['error_getting_details'] = $e->getMessage();
+                    }
+                } else {
+                    $logData['error_message'] = $videoFile->getErrorMessage();
+                }
+                
+                Log::info('Video file presente nella richiesta', $logData);
+            } else {
+                Log::warning('Video file presente in allFiles ma null quando si tenta di accedere', [
+                    'allFiles_video_file' => $allFiles['video_file'] ?? 'NOT SET',
+                ]);
+            }
+        } else {
+            Log::warning('Video file NON presente nella richiesta', [
+                'allFiles' => $allFiles,
+                'request_all' => array_keys($request->all()),
+            ]);
+        }
+        
+        if ($request->hasFile('poster_file')) {
+            $posterFile = $request->file('poster_file');
+            Log::info('Poster file presente nella richiesta', [
+                'filename' => $posterFile->getClientOriginalName(),
+                'mime_type' => $posterFile->getMimeType(),
+                'size' => $posterFile->getSize(),
+                'extension' => $posterFile->getClientOriginalExtension(),
+            ]);
+        }
 
         try {
+            // Controlla i file in diversi modi per capire il problema
+            $hasVideoFile = $request->hasFile('video_file');
+            $allFiles = $request->allFiles();
+            $videoFileFromAllFiles = $allFiles['video_file'] ?? null;
+            $videoFileFromRequest = $request->file('video_file');
+            
+            Log::info('Controllo file video PRIMA validazione', [
+                'hasFile_video_file' => $hasVideoFile,
+                'allFiles_has_video_file' => isset($allFiles['video_file']),
+                'videoFileFromRequest_is_null' => $videoFileFromRequest === null,
+                'videoFileFromAllFiles_is_null' => $videoFileFromAllFiles === null,
+                'videoFileFromAllFiles_class' => $videoFileFromAllFiles ? get_class($videoFileFromAllFiles) : 'null',
+            ]);
+            
+            // Prova a usare il file da allFiles se quello da hasFile non funziona
+            $videoFile = null;
+            if ($hasVideoFile && $videoFileFromRequest) {
+                $videoFile = $videoFileFromRequest;
+                Log::info('Usando videoFile da hasFile()');
+            } elseif ($videoFileFromAllFiles) {
+                $videoFile = $videoFileFromAllFiles;
+                Log::info('Usando videoFile da allFiles() perché hasFile() ha fallito');
+            }
+            
+            if ($videoFile) {
+                // Controlla se il file è valido prima di accedere alle proprietà
+                $isValid = $videoFile->isValid();
+                $errorCode = $videoFile->getError();
+                
+                $logData = [
+                    'is_valid' => $isValid,
+                    'error_code' => $errorCode,
+                ];
+                
+                if ($isValid) {
+                    try {
+                        $logData['filename'] = $videoFile->getClientOriginalName();
+                        $logData['size'] = $videoFile->getSize();
+                        $logData['extension'] = $videoFile->getClientOriginalExtension();
+                        $logData['mime_type'] = $videoFile->getMimeType();
+                    } catch (\Exception $e) {
+                        $logData['error_getting_details'] = $e->getMessage();
+                    }
+                } else {
+                    $logData['error_message'] = $videoFile->getErrorMessage();
+                }
+                
+                Log::info('Video file presente PRIMA validazione', $logData);
+            } else {
+                Log::warning('Video file NON trovato in nessun modo', [
+                    'request_all_keys' => array_keys($request->all()),
+                    'allFiles_keys' => array_keys($allFiles),
+                    'request_all' => $request->all(),
+                ]);
+            }
+            
+            // Valida i campi normali
             $validated = $request->validate([
                 'title' => 'sometimes|required|string|max:50',
                 'category_id' => 'sometimes|required|integer|exists:categories,id',
                 'description' => 'nullable|string|max:1000',
                 'technology_ids' => 'sometimes|array',
                 'technology_ids.*' => 'integer|exists:technologies,id',
+                'poster_file' => 'sometimes|image|mimes:jpeg,png,jpg,gif,webp|max:5120', // 5MB
+                'remove_video' => 'sometimes|string', // Per FormData, viene passato come stringa
             ]);
+            
+            // Valida il video file separatamente con gestione errore migliore
+            // Usa il videoFile già recuperato prima se disponibile
+            $videoFileForValidation = null;
+            if ($videoFile && $videoFile->isValid()) {
+                $videoFileForValidation = $videoFile;
+            } elseif ($hasVideoFile && $request->hasFile('video_file')) {
+                $videoFileForValidation = $request->file('video_file');
+            } elseif (isset($allFiles['video_file'])) {
+                $videoFileForValidation = $allFiles['video_file'];
+            }
+            
+            if ($videoFileForValidation) {
+                // Controlla se il file è valido prima di accedere alle proprietà
+                if (!$videoFileForValidation->isValid()) {
+                    $errorCode = $videoFileForValidation->getError();
+                    $uploadMaxSize = ini_get('upload_max_filesize');
+                    $postMaxSize = ini_get('post_max_size');
+                    
+                    $errorMessages = [
+                        UPLOAD_ERR_INI_SIZE => "Il file supera il limite di upload di PHP (upload_max_filesize: {$uploadMaxSize}). Dimensione file richiesta: " . (isset($_SERVER['CONTENT_LENGTH']) ? round($_SERVER['CONTENT_LENGTH'] / 1024 / 1024, 2) . 'MB' : 'sconosciuta'),
+                        UPLOAD_ERR_FORM_SIZE => "Il file supera il limite di upload del form (post_max_size: {$postMaxSize})",
+                        UPLOAD_ERR_PARTIAL => 'Il file è stato caricato solo parzialmente',
+                        UPLOAD_ERR_NO_FILE => 'Nessun file è stato caricato',
+                        UPLOAD_ERR_NO_TMP_DIR => 'Directory temporanea mancante',
+                        UPLOAD_ERR_CANT_WRITE => 'Impossibile scrivere il file su disco',
+                        UPLOAD_ERR_EXTENSION => 'Un\'estensione PHP ha fermato il caricamento del file',
+                    ];
+                    $errorMessage = $errorMessages[$errorCode] ?? "Errore sconosciuto: $errorCode";
+                    
+                    $logData = [
+                        'error_code' => $errorCode,
+                        'error_message' => $errorMessage,
+                        'php_upload_max_filesize' => $uploadMaxSize,
+                        'php_post_max_size' => $postMaxSize,
+                        'content_length' => $_SERVER['CONTENT_LENGTH'] ?? 'not set',
+                    ];
+                    
+                    // Prova a ottenere il nome del file solo se possibile
+                    try {
+                        $logData['filename'] = $videoFileForValidation->getClientOriginalName();
+                    } catch (\Exception $e) {
+                        $logData['error_getting_filename'] = $e->getMessage();
+                    }
+                    
+                    Log::error('Video file non valido', $logData);
+                    throw new \RuntimeException($errorMessage);
+                }
+                
+                // Valida dimensione e tipo manualmente
+                $maxSize = 50 * 1024 * 1024; // 50MB in bytes
+                $fileSize = $videoFileForValidation->getSize();
+                if ($fileSize > $maxSize) {
+                    throw new \RuntimeException('Il file video è troppo grande. Dimensione massima: 50MB. Dimensione file: ' . round($fileSize / 1024 / 1024, 2) . 'MB');
+                }
+                
+                // Ottieni il MIME type in modo sicuro
+                $mimeType = null;
+                try {
+                    $mimeType = $videoFileForValidation->getMimeType();
+                } catch (\Exception $e) {
+                    Log::warning('Impossibile ottenere MIME type del video, uso estensione', [
+                        'error' => $e->getMessage(),
+                    ]);
+                    // Fallback: usa l'estensione per determinare il MIME type
+                    $extension = strtolower($videoFileForValidation->getClientOriginalExtension());
+                    $extensionToMime = [
+                        'mp4' => 'video/mp4',
+                        'webm' => 'video/webm',
+                        'ogg' => 'video/ogg',
+                    ];
+                    $mimeType = $extensionToMime[$extension] ?? null;
+                }
+                
+                if (!$mimeType) {
+                    throw new \RuntimeException('Impossibile determinare il tipo del file video');
+                }
+                
+                $allowedMimes = ['video/mp4', 'video/webm', 'video/ogg'];
+                if (!in_array($mimeType, $allowedMimes)) {
+                    throw new \RuntimeException('Formato video non supportato. Usa MP4, WEBM o OGG. Tipo rilevato: ' . $mimeType);
+                }
+                
+                $validated['video_file'] = $videoFileForValidation; // Aggiungi al validated per usarlo dopo
+            }
             
             Log::info('Validazione progetto completata', [
                 'project_id' => $project->id,
@@ -555,6 +803,188 @@ class ProjectController extends Controller
                         throw $syncException; // Rilancia l'eccezione per essere gestita dal catch principale
                     }
                 }
+            }
+
+            // Gestione upload file se presenti
+            // Prepara la struttura cartelle: project/{id_utente}{nome_utente}/{nome_project}
+            $targetUser = $project->user_id 
+                ? User::find($project->user_id) 
+                : User::find(env('PUBLIC_USER_ID', 1));
+            
+            $userFolder = $this->generateUserFolderName($targetUser);
+            $projectFolder = $this->slugifyProjectName($project->title);
+            $baseFolder = "project/{$userFolder}/{$projectFolder}";
+
+            // Gestione poster file (se presente)
+            if ($request->hasFile('poster_file')) {
+                Log::info('Aggiornamento poster file');
+                $posterFile = $request->file('poster_file');
+                $extension = $posterFile->getClientOriginalExtension();
+                $filename = 'poster.' . $extension;
+                $relativePath = "{$baseFolder}/{$filename}";
+
+                $isProduction = app()->environment('production');
+                $hasSupabaseConfig = !empty(config('filesystems.disks.src.key')) && 
+                                    !empty(config('filesystems.disks.src.secret')) &&
+                                    !empty(config('filesystems.disks.src.endpoint'));
+
+                if ($isProduction || $hasSupabaseConfig) {
+                    try {
+                        $binary = file_get_contents($posterFile->getRealPath());
+                        $ok = Storage::disk('src')->put($relativePath, $binary);
+                        if (!$ok || !Storage::disk('src')->exists($relativePath)) {
+                            throw new \RuntimeException('Failed writing poster to src disk');
+                        }
+                        $baseUrl = rtrim(config('filesystems.disks.src.url') ?: env('SUPABASE_PUBLIC_URL'), '/');
+                        $project->poster = $baseUrl . '/' . $relativePath;
+                        $hasChanges = true;
+                    } catch (\Exception $e) {
+                        Log::error('Errore salvataggio poster durante update', [
+                            'error' => $e->getMessage(),
+                            'relative_path' => $relativePath,
+                        ]);
+                        throw $e;
+                    }
+                } else {
+                    $localPath = "public/{$baseFolder}";
+                    $posterFile->storeAs($localPath, $filename);
+                    $project->poster = "storage/{$baseFolder}/{$filename}";
+                    $hasChanges = true;
+                }
+            }
+
+            // Gestione video file (se presente)
+            // Usa il videoFile già recuperato durante la validazione se disponibile
+            $videoFileForSave = null;
+            if ($videoFile && $videoFile->isValid()) {
+                $videoFileForSave = $videoFile;
+            } elseif ($request->hasFile('video_file')) {
+                $videoFileForSave = $request->file('video_file');
+            } elseif (isset($allFiles['video_file'])) {
+                $videoFileForSave = $allFiles['video_file'];
+            }
+            
+            if ($videoFileForSave && $videoFileForSave->isValid()) {
+                Log::info('=== INIZIO AGGIORNAMENTO VIDEO FILE ===', [
+                    'project_id' => $project->id,
+                    'base_folder' => $baseFolder,
+                ]);
+                
+                // Usa il file già recuperato
+                $videoFile = $videoFileForSave;
+                $extension = $videoFile->getClientOriginalExtension();
+                // Genera nome randomico di 10 caratteri (0-9, a-z)
+                $randomName = $this->generateRandomFilename(10);
+                $filename = $randomName . '.' . $extension;
+                $relativePath = "{$baseFolder}/{$filename}";
+                
+                Log::info('Dettagli video file', [
+                    'original_name' => $videoFile->getClientOriginalName(),
+                    'mime_type' => $videoFile->getMimeType(),
+                    'size' => $videoFile->getSize(),
+                    'extension' => $extension,
+                    'random_name' => $randomName,
+                    'filename' => $filename,
+                    'relative_path' => $relativePath,
+                ]);
+
+                $isProduction = app()->environment('production');
+                $hasSupabaseConfig = !empty(config('filesystems.disks.src.key')) && 
+                                    !empty(config('filesystems.disks.src.secret')) &&
+                                    !empty(config('filesystems.disks.src.endpoint'));
+
+                Log::info('Controllo ambiente per salvataggio video', [
+                    'is_production' => $isProduction,
+                    'has_supabase_config' => $hasSupabaseConfig,
+                    'should_use_supabase' => $isProduction || $hasSupabaseConfig,
+                ]);
+
+                if ($isProduction || $hasSupabaseConfig) {
+                    try {
+                        Log::info('Salvataggio video su SUPABASE', [
+                            'relative_path' => $relativePath,
+                        ]);
+                        
+                        $binary = file_get_contents($videoFile->getRealPath());
+                        $binarySize = strlen($binary);
+                        Log::info('Video binary caricato', ['size' => $binarySize]);
+                        
+                        $ok = Storage::disk('src')->put($relativePath, $binary);
+                        if (!$ok) {
+                            Log::error('Errore salvataggio video su Supabase - put() ritorna false', [
+                                'relative_path' => $relativePath,
+                                'binary_size' => $binarySize,
+                            ]);
+                            throw new \RuntimeException('Failed writing video to src disk - put() returned false');
+                        }
+                        
+                        // Verifica che il file sia stato effettivamente salvato
+                        $exists = Storage::disk('src')->exists($relativePath);
+                        if (!$exists) {
+                            Log::error('Video non trovato dopo il salvataggio', [
+                                'relative_path' => $relativePath,
+                            ]);
+                            throw new \RuntimeException('Video file not found after upload - verification failed');
+                        }
+                        
+                        Log::info('Video salvato e verificato su Supabase', [
+                            'relative_path' => $relativePath,
+                            'file_exists' => $exists,
+                        ]);
+                        
+                        $baseUrl = rtrim(config('filesystems.disks.src.url') ?: env('SUPABASE_PUBLIC_URL'), '/');
+                        $videoUrl = $baseUrl . '/' . $relativePath;
+                        $project->video = $videoUrl;
+                        $hasChanges = true;
+                        
+                        Log::info('Video URL generato e assegnato al progetto', [
+                            'video_url' => $videoUrl,
+                            'project_video_field' => $project->video,
+                        ]);
+                        
+                    } catch (\Exception $e) {
+                        Log::error('Eccezione durante salvataggio video su Supabase', [
+                            'error' => $e->getMessage(),
+                            'trace' => $e->getTraceAsString(),
+                            'relative_path' => $relativePath,
+                        ]);
+                        throw $e;
+                    }
+                } else {
+                    Log::info('Salvataggio video in LOCALE', [
+                        'filename' => $filename,
+                        'base_folder' => $baseFolder,
+                    ]);
+                    $localPath = "public/{$baseFolder}";
+                    $videoFile->storeAs($localPath, $filename);
+                    $project->video = "storage/{$baseFolder}/{$filename}";
+                    $hasChanges = true;
+                }
+                
+                Log::info('=== FINE AGGIORNAMENTO VIDEO FILE ===', [
+                    'video_url' => $project->video,
+                    'has_changes' => $hasChanges,
+                ]);
+            } else {
+                Log::info('Nessun file video presente nella richiesta di update');
+            }
+            
+            // Gestione rimozione video se richiesto
+            $removeVideo = $request->input('remove_video');
+            if ($removeVideo === 'true' || $removeVideo === true) {
+                Log::info('Rimozione video richiesta', [
+                    'project_id' => $project->id,
+                    'current_video' => $project->video,
+                    'remove_video_value' => $removeVideo,
+                ]);
+                $project->video = null;
+                $hasChanges = true;
+                Log::info('Video rimosso dal progetto');
+            }
+
+            // Salva le modifiche se ci sono file o altri campi aggiornati
+            if ($hasChanges) {
+                $project->save();
             }
 
             // Se non ci sono modifiche, ritorna comunque il progetto aggiornato
@@ -722,5 +1152,49 @@ class ProjectController extends Controller
         }
         
         return $slug;
+    }
+
+    /**
+     * Converte valori come "2M", "100M", "8G" in bytes
+     */
+    private function convertToBytes(string $value): int
+    {
+        $value = trim($value);
+        $last = strtolower($value[strlen($value) - 1]);
+        $value = (int) $value;
+        
+        switch ($last) {
+            case 'g':
+                $value *= 1024;
+                // no break
+            case 'm':
+                $value *= 1024;
+                // no break
+            case 'k':
+                $value *= 1024;
+        }
+        
+        return $value;
+    }
+
+    /**
+     * Genera un nome file randomico usando caratteri alfanumerici (0-9, a-z)
+     * 
+     * Esempio: "a3b9c2d4e1"
+     * 
+     * @param int $length Lunghezza del nome (default: 10)
+     * @return string
+     */
+    private function generateRandomFilename(int $length = 10): string
+    {
+        $characters = '0123456789abcdefghijklmnopqrstuvwxyz';
+        $randomName = '';
+        $max = strlen($characters) - 1;
+        
+        for ($i = 0; $i < $length; $i++) {
+            $randomName .= $characters[random_int(0, $max)];
+        }
+        
+        return $randomName;
     }
 }

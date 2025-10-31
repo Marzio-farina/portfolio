@@ -1,4 +1,4 @@
-import { Component, input, OnInit, computed, effect, signal, ChangeDetectionStrategy } from '@angular/core';
+import { Component, input, OnInit, computed, signal, ChangeDetectionStrategy, inject, effect, Injector, runInInjectionContext } from '@angular/core';
 import { AvatarService } from '../../services/avatar.service';
 
 export interface AvatarData {
@@ -15,6 +15,8 @@ export interface AvatarData {
   changeDetection: ChangeDetectionStrategy.OnPush
 })
 export class Avatar implements OnInit {
+  private avatarService = inject(AvatarService);
+  private injector = inject(Injector);
 
   width = input<number>(120);
   highlighted = input<boolean>(false);
@@ -40,23 +42,24 @@ export class Avatar implements OnInit {
     return null;
   });
 
-  constructor(private avatarService: AvatarService) {
-    // Effect: carica gli avatar di default se non è passato avatarData
-    effect(() => {
-      const data = this.avatarData();
-      // Se avatarData non è passato, carica gli avatar di default
-      if (!data) {
-        this.avatarService.getAvatars().subscribe((avatars: AvatarData[]) => {
-          this.avatars.set(avatars);
-        });
-      }
-      // ogni volta che cambia la sorgente avatar, resetta lo skeleton
-      this.imageLoaded.set(false);
+  constructor() {
+    // Usa runInInjectionContext nel constructor per creare l'effect nel contesto corretto
+    runInInjectionContext(this.injector, () => {
+      effect(() => {
+        const data = this.avatarData();
+        // Quando avatarData cambia, resetta lo skeleton
+        this.imageLoaded.set(false);
+      });
     });
   }
 
   ngOnInit(): void {
-    // Non fare niente qui - l'effect si occupa di tutto
+    // Carica gli avatar di default solo se avatarData non è passato
+    if (!this.avatarData() && this.avatars().length === 0) {
+      this.avatarService.getAvatars().subscribe((avatars: AvatarData[]) => {
+        this.avatars.set(avatars);
+      });
+    }
   }
 
   onImgLoad() {
