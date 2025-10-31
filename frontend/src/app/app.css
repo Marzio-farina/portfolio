@@ -204,8 +204,15 @@
   display: flex;
   justify-content: center;   /* centra orizzontalmente */
   align-items: flex-start;    /* allinea in alto */
-  padding-top: 10vh;           /* distanza dal bordo superiore: 30% */
+  padding-top: 10vh;           /* distanza dal bordo superiore: 10vh */
   z-index: 1201;
+}
+
+/* Per dispositivi piccoli, il modal degli attestati ha solo 10% di margin dal bordo superiore */
+@media (max-width: 768px) {
+  .mf-modal:has(.attestato-detail-modal) {
+    padding-top: 5vh; /* 10% dell'altezza del viewport */
+  }
 }
 
 .mf-modal__content {

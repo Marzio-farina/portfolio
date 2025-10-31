@@ -8,7 +8,7 @@ import { Attestato } from '../../models/attestato.model';
   standalone: true,
   imports: [NgOptimizedImage],
   templateUrl: './attestato-detail-modal.html',
-  styleUrls: ['./attestato-detail-modal.css']
+  styleUrls: ['./attestato-detail-modal.css', './attestato-detail-modal.responsive.css']
 })
 export class AttestatoDetailModal {
   private attestatoDetailModalService = inject(AttestatoDetailModalService);
@@ -28,6 +28,9 @@ export class AttestatoDetailModal {
   
   // Larghezza calcolata dinamicamente basata sull'aspect ratio
   containerWidth = signal<number | null>(null);
+
+  // Indica se l'immagine è verticale (height > width)
+  isVerticalImage = signal<boolean>(false);
 
   /**
    * Chiude la modal
@@ -56,6 +59,9 @@ export class AttestatoDetailModal {
       
       // Calcola aspect ratio
       this.aspectRatio.set(`${width} / ${height}`);
+      
+      // Determina se l'immagine è verticale (height > width)
+      this.isVerticalImage.set(height > width);
       
       // Calcola la larghezza del contenitore basata sull'altezza fissa e l'aspect ratio
       // Larghezza = Altezza contenitore * (larghezza immagine / altezza immagine)

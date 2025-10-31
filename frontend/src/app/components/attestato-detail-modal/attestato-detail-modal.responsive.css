@@ -1,0 +1,50 @@
+/* Media query esistente spostata dal file principale */
+@media (max-width: 768px) {
+  .attestato-detail-modal {
+    width: 95vw;
+    max-width: 350px; /* Mantiene il limite anche su mobile */
+  }
+
+  .attestato-detail-modal__image-container {
+    width: 250px; /* Contenitore più piccolo su mobile */
+    height: 420px;
+  }
+
+  .attestato-detail-modal__title {
+    font-size: 1.5rem;
+  }
+
+  .attestato-detail-modal__content {
+    padding: 1rem;
+    gap: 1rem;
+  }
+}
+
+/* Layout per dispositivi grandi (> 500px) */
+@media (min-width: 500.02px) {
+  .attestato-detail-modal__info {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 1rem;
+    column-gap: 1.5rem;
+  }
+
+  /* Prima riga: Ente rilasciante (colonna 1) - primo campo */
+  .attestato-detail-modal__info .attestato-detail-modal__field:nth-child(1) {
+    grid-column: 1;
+    grid-row: 1;
+  }
+
+  /* Prima riga: Data rilascio (colonna 2) - secondo campo */
+  .attestato-detail-modal__info .attestato-detail-modal__field:nth-child(2) {
+    grid-column: 2;
+    grid-row: 1;
+  }
+
+  /* Seconda riga: Credenziali (full width) - terzo campo */
+  .attestato-detail-modal__info .attestato-detail-modal__field:nth-child(3) {
+    grid-column: 1 / -1;
+    grid-row: 2;
+  }
+}
+

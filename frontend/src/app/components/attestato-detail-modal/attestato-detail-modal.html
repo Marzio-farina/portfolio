@@ -11,7 +11,7 @@
 
   <div class="attestato-detail-modal__content">
     @if (attestato().img; as img) {
-      <div class="attestato-detail-modal__image">
+      <div class="attestato-detail-modal__image" [class.image-vertical]="isVerticalImage()">
         <div 
           class="attestato-detail-modal__image-container"
           [style.width.px]="containerWidth()"
