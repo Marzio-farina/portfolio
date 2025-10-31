@@ -20,8 +20,11 @@
         <span class="field-label">Titolo *</span>
       </label>
 
-      <label class="field col-1 c2 row-1" aria-label="Categoria">
-        <select id="project-category" formControlName="category_id" (blur)="onFieldBlur('project.category_id')">
+      <label class="field col-1 c2 row-1 field--select" aria-label="Categoria">
+        <select 
+          id="project-category" 
+          formControlName="category_id" 
+          (blur)="onFieldBlur('project.category_id')">
           <option value="">Seleziona categoria</option>
           @for (cat of categories(); track cat.id) {
             <option [value]="cat.id">{{ cat.title }}</option>
@@ -42,7 +45,7 @@
           [attr.disabled]="uploading() ? '' : null"
           style="display: none;">
         
-        @if (!selectedPosterFile()) {
+        @if (!hasPoster()) {
           <button 
             type="button"
             class="add-project-modal__file-button"
@@ -58,22 +61,21 @@
             <span>Seleziona immagine</span>
           </button>
         } @else {
-          <div class="add-project-modal__file-info" 
+          <div class="add-project-modal__media-preview add-project-modal__media-preview--image"
                (dragover)="onDragOverPoster($event)" 
                (dragleave)="onDragLeavePoster($event)"
                (drop)="onFileDropPoster($event)"
                [class.is-dragover]="isDragOverPoster()">
-            <svg viewBox="0 0 24 24" aria-hidden="true">
-              <path d="M21 19V5a2 2 0 0 0-2-2H5a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2zM8.5 13.5l2.5 3.01L14.5 12l4.5 6H5l3.5-4.5z"/>
-            </svg>
-            <span class="add-project-modal__filename">{{ selectedPosterFile()?.name }}</span>
+            <img [src]="getPosterUrl()" alt="Poster progetto" class="add-project-modal__preview-img">
             <button 
               type="button"
-              class="add-project-modal__remove-file"
-              (click)="removePosterFile()"
+              class="add-project-modal__change-media"
+              (click)="openPosterPicker()"
               [disabled]="uploading()"
-              aria-label="Rimuovi file">
-              ×
+              aria-label="Cambia immagine">
+              <svg viewBox="0 0 24 24" aria-hidden="true">
+                <path d="M3 17.25V21h3.75L17.81 9.94l-3.75-3.75L3 17.25zM21.41 6.34a1.25 1.25 0 0 0 0-1.77l-2.98-2.98a1.25 1.25 0 0 0-1.77 0l-1.83 1.83 3.75 3.75 1.83-1.83z"/>
+              </svg>
             </button>
           </div>
         }
@@ -91,7 +93,7 @@
           [attr.disabled]="uploading() ? '' : null"
           style="display: none;">
         
-        @if (!selectedVideoFile()) {
+        @if (!hasVideo()) {
           <button 
             type="button"
             class="add-project-modal__file-button"
@@ -107,21 +109,28 @@
             <span>Seleziona video</span>
           </button>
         } @else {
-          <div class="add-project-modal__file-info" 
+          <div class="add-project-modal__media-preview add-project-modal__media-preview--video"
                (dragover)="onDragOverVideo($event)" 
                (dragleave)="onDragLeaveVideo($event)"
                (drop)="onFileDropVideo($event)"
                [class.is-dragover]="isDragOverVideo()">
-            <svg viewBox="0 0 24 24" aria-hidden="true">
-              <path d="M8 5v14l11-7z"/>
-            </svg>
-            <span class="add-project-modal__filename">{{ selectedVideoFile()?.name }}</span>
+            <video [src]="getVideoUrl()" class="add-project-modal__preview-video" controls></video>
             <button 
               type="button"
-              class="add-project-modal__remove-file"
+              class="add-project-modal__change-media"
+              (click)="openVideoPicker()"
+              [disabled]="uploading()"
+              aria-label="Cambia video">
+              <svg viewBox="0 0 24 24" aria-hidden="true">
+                <path d="M3 17.25V21h3.75L17.81 9.94l-3.75-3.75L3 17.25zM21.41 6.34a1.25 1.25 0 0 0 0-1.77l-2.98-2.98a1.25 1.25 0 0 0-1.77 0l-1.83 1.83 3.75 3.75 1.83-1.83z"/>
+              </svg>
+            </button>
+            <button 
+              type="button"
+              class="add-project-modal__remove-video"
               (click)="removeVideoFile()"
               [disabled]="uploading()"
-              aria-label="Rimuovi file">
+              aria-label="Rimuovi video">
               ×
             </button>
           </div>

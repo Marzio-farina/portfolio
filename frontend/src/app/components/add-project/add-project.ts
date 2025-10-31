@@ -1,6 +1,6 @@
-import { Component, ElementRef, effect, inject, signal, ViewChild } from '@angular/core';
+import { Component, ElementRef, effect, inject, signal, ViewChild, OnInit } from '@angular/core';
 import { ReactiveFormsModule, FormBuilder, FormGroup, Validators } from '@angular/forms';
-import { Router } from '@angular/router';
+import { Router, ActivatedRoute } from '@angular/router';
 import { TenantRouterService } from '../../services/tenant-router.service';
 import { TenantService } from '../../services/tenant.service';
 import { ProjectService } from '../../services/project.service';
@@ -9,6 +9,7 @@ import { HttpClient } from '@angular/common/http';
 import { Observable, map } from 'rxjs';
 import { apiUrl } from '../../core/api/api-url';
 import { environment } from '../../../environments/environment';
+import { Progetto } from '../../core/models/project';
 
 interface Category {
   id: number;
@@ -23,10 +24,11 @@ interface Category {
   templateUrl: './add-project.html',
   styleUrls: ['./add-project.css', './add-project.responsive.css']
 })
-export class AddProject {
+export class AddProject implements OnInit {
   private fb = inject(FormBuilder);
   private projectService = inject(ProjectService);
   private router = inject(Router);
+  private route = inject(ActivatedRoute);
   private tenantRouter = inject(TenantRouterService);
   private tenant = inject(TenantService);
   private http = inject(HttpClient);
@@ -41,6 +43,14 @@ export class AddProject {
   errorMsg = signal<string | null>(null);
   isDragOverPoster = signal(false);
   isDragOverVideo = signal(false);
+  
+  // Preview URLs per immagini e video esistenti (in modalità edit)
+  existingPosterUrl = signal<string | null>(null);
+  existingVideoUrl = signal<string | null>(null);
+  
+  // Preview URLs per file selezionati
+  posterPreviewUrl = signal<string | null>(null);
+  videoPreviewUrl = signal<string | null>(null);
   
   categories = signal<Category[]>([]);
   loadingCategories = signal(true);
@@ -67,6 +77,87 @@ export class AddProject {
     });
 
     this.loadCategories();
+  }
+
+  ngOnInit(): void {
+    // Verifica se c'è un progetto esistente da modificare (tramite state, query params o history state)
+    const navigation = this.router.getCurrentNavigation();
+    const historyState = (window.history.state as any)?.project;
+    const project = (navigation?.extras?.state?.['project'] || historyState) as Progetto | undefined;
+    
+    if (project) {
+      // Modalità edit: carica i dati esistenti
+      this.loadExistingProject(project);
+    } else {
+      // Verifica anche se c'è un ID progetto nei query params
+      const projectId = this.route.snapshot.queryParams['projectId'];
+      if (projectId) {
+        this.loadProjectById(Number(projectId));
+      }
+    }
+  }
+
+  private loadProjectById(projectId: number): void {
+    this.http.get<Progetto>(apiUrl(`projects/${projectId}`)).subscribe({
+      next: (project) => {
+        this.loadExistingProject(project);
+      },
+      error: (err) => {
+        console.error('Errore nel caricamento del progetto:', err);
+      }
+    });
+  }
+
+  private loadExistingProject(project: Progetto): void {
+    console.log('Caricamento progetto esistente:', project);
+    
+    // Trova l'ID della categoria basandosi sul nome
+    const categoryId = this.findCategoryIdByName(project.category);
+    
+    // Popola il form con i dati esistenti
+    this.addProjectForm.patchValue({
+      title: project.title || '',
+      category_id: categoryId || '',
+      description: project.description || ''
+    });
+
+    // Carica gli URL esistenti per preview
+    if (project.poster) {
+      console.log('Impostato existingPosterUrl:', project.poster);
+      this.existingPosterUrl.set(project.poster);
+    }
+    if (project.video) {
+      console.log('Impostato existingVideoUrl:', project.video);
+      this.existingVideoUrl.set(project.video);
+    }
+
+    // Debug per verificare gli URL
+    console.log('existingPosterUrl dopo set:', this.existingPosterUrl());
+    console.log('existingVideoUrl dopo set:', this.existingVideoUrl());
+    console.log('hasPoster():', this.hasPoster());
+    console.log('hasVideo():', this.hasVideo());
+
+    // Rimuovi validazione required per poster_file se c'è già un'immagine esistente
+    if (this.existingPosterUrl()) {
+      const posterCtrl = this.addProjectForm.get('poster_file');
+      if (posterCtrl) {
+        posterCtrl.clearValidators();
+        posterCtrl.updateValueAndValidity();
+      }
+    }
+  }
+
+  /**
+   * Trova l'ID della categoria basandosi sul nome
+   */
+  private findCategoryIdByName(categoryName: string | undefined | null): number | null {
+    if (!categoryName) return null;
+    
+    const category = this.categories().find(cat => 
+      cat.title.toLowerCase() === categoryName.toLowerCase()
+    );
+    
+    return category?.id || null;
   }
 
   private loadCategories(): void {
@@ -147,6 +238,13 @@ export class AddProject {
     this.addProjectForm.get('poster_file')?.updateValueAndValidity();
     this.removeNotification('project.poster_file');
     this.errorMsg.set(null);
+    
+    // Crea preview URL per il file
+    const reader = new FileReader();
+    reader.onload = (e) => {
+      this.posterPreviewUrl.set(e.target?.result as string);
+    };
+    reader.readAsDataURL(file);
   }
 
   private handleSelectedVideoFile(file: File): void {
@@ -179,6 +277,13 @@ export class AddProject {
     this.addProjectForm.get('video_file')?.updateValueAndValidity();
     this.removeNotification('project.video_file');
     this.errorMsg.set(null);
+    
+    // Crea preview URL per il video
+    const reader = new FileReader();
+    reader.onload = (e) => {
+      this.videoPreviewUrl.set(e.target?.result as string);
+    };
+    reader.readAsDataURL(file);
   }
 
   onDragOverPoster(event: DragEvent): void {
@@ -230,6 +335,7 @@ export class AddProject {
 
   removePosterFile(): void {
     this.selectedPosterFile.set(null);
+    this.posterPreviewUrl.set(null);
     this.addProjectForm.patchValue({ poster_file: null });
     const posterCtrl = this.addProjectForm.get('poster_file');
     posterCtrl?.updateValueAndValidity();
@@ -240,11 +346,30 @@ export class AddProject {
 
   removeVideoFile(): void {
     this.selectedVideoFile.set(null);
+    this.videoPreviewUrl.set(null);
+    this.existingVideoUrl.set(null);
     this.addProjectForm.patchValue({ video_file: null });
     const videoCtrl = this.addProjectForm.get('video_file');
     videoCtrl?.updateValueAndValidity();
     if (this.videoInputRef?.nativeElement) this.videoInputRef.nativeElement.value = '';
     this.removeNotification('project.video_file');
+  }
+  
+  // Ottieni URL da mostrare (preview o esistente)
+  getPosterUrl(): string | null {
+    return this.posterPreviewUrl() || this.existingPosterUrl();
+  }
+  
+  getVideoUrl(): string | null {
+    return this.videoPreviewUrl() || this.existingVideoUrl();
+  }
+  
+  hasPoster(): boolean {
+    return !!(this.getPosterUrl() || this.selectedPosterFile());
+  }
+  
+  hasVideo(): boolean {
+    return !!(this.getVideoUrl() || this.selectedVideoFile());
   }
 
   onSubmit(): void {

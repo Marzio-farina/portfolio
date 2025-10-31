@@ -1,4 +1,4 @@
-import { Component, inject, input, output, signal, computed, effect, afterNextRender } from '@angular/core';
+import { Component, inject, input, output, signal, computed, effect, afterNextRender, ViewChild, ElementRef } from '@angular/core';
 import { ReactiveFormsModule, FormBuilder, FormGroup, Validators } from '@angular/forms';
 import { HttpClient } from '@angular/common/http';
 import { ProjectDetailModalService } from '../../services/project-detail-modal.service';
@@ -51,6 +51,18 @@ export class ProjectDetailModal {
 
   // Indica se c'è stato un errore nel caricamento dell'immagine
   imageLoadError = signal<boolean>(false);
+
+  // File input per modificare immagine e video
+  @ViewChild('posterInput') posterInputRef?: ElementRef<HTMLInputElement>;
+  @ViewChild('videoInput') videoInputRef?: ElementRef<HTMLInputElement>;
+  
+  // File selezionati per upload
+  selectedPosterFile = signal<File | null>(null);
+  selectedVideoFile = signal<File | null>(null);
+  posterPreviewUrl = signal<string | null>(null);
+  videoPreviewUrl = signal<string | null>(null);
+  isDragOverPoster = signal(false);
+  isDragOverVideo = signal(false);
 
   // Form per l'editing
   editForm!: FormGroup;
@@ -280,6 +292,66 @@ export class ProjectDetailModal {
       updateData.technology_ids = newTechIds;
     }
 
+    // Gestisci upload file se presenti
+    const hasPosterFile = this.selectedPosterFile();
+    const hasVideoFile = this.selectedVideoFile();
+    
+    if (hasPosterFile || hasVideoFile) {
+      // Se ci sono file, usa FormData
+      const formData = new FormData();
+      
+      // Aggiungi i dati esistenti
+      Object.keys(updateData).forEach(key => {
+        if (key === 'technology_ids') {
+          // Le tecnologie devono essere inviate come array
+          updateData.technology_ids.forEach((id: number, index: number) => {
+            formData.append(`technology_ids[${index}]`, String(id));
+          });
+        } else {
+          formData.append(key, updateData[key]);
+        }
+      });
+      
+      // Aggiungi i file se presenti
+      if (hasPosterFile) {
+        formData.append('poster_file', hasPosterFile);
+      }
+      if (hasVideoFile) {
+        formData.append('video_file', hasVideoFile);
+      }
+      
+      this.projectService.updateWithFiles$(this.project().id, formData).subscribe({
+        next: (updatedProject: Progetto) => {
+          this.saving.set(false);
+          this.addNotification('success', 'Progetto aggiornato con successo!');
+          
+          // Aggiorna i preview
+          if (updatedProject.poster) {
+            this.posterPreviewUrl.set(null);
+          }
+          if (updatedProject.video) {
+            this.videoPreviewUrl.set(null);
+          }
+          
+          // Pulisci i file selezionati
+          this.selectedPosterFile.set(null);
+          this.selectedVideoFile.set(null);
+          if (this.posterInputRef?.nativeElement) this.posterInputRef.nativeElement.value = '';
+          if (this.videoInputRef?.nativeElement) this.videoInputRef.nativeElement.value = '';
+          
+          this.projectDetailModalService.selectedProject.set(updatedProject);
+          this.projectDetailModalService.markAsModified(updatedProject);
+        },
+        error: (err: any) => {
+          this.saving.set(false);
+          const message = err?.error?.message || err?.error?.errors?.message?.[0] || 'Errore durante il salvataggio';
+          this.addNotification('error', message);
+        }
+      });
+      return;
+    }
+
+    // Se non ci sono file, usa il metodo normale
     this.projectService.update$(this.project().id, updateData).subscribe({
       next: (updatedProject) => {
         this.saving.set(false);
@@ -316,6 +388,143 @@ export class ProjectDetailModal {
     const proj = this.project();
     this.updateFormValues(proj);
     this.notifications.set([]);
+    
+    // Ripristina anche i file selezionati
+    this.selectedPosterFile.set(null);
+    this.selectedVideoFile.set(null);
+    this.posterPreviewUrl.set(null);
+    this.videoPreviewUrl.set(null);
+    if (this.posterInputRef?.nativeElement) this.posterInputRef.nativeElement.value = '';
+    if (this.videoInputRef?.nativeElement) this.videoInputRef.nativeElement.value = '';
+  }
+  
+  // ================== Gestione upload file ==================
+  
+  openPosterPicker(): void {
+    this.posterInputRef?.nativeElement?.click();
+  }
+  
+  openVideoPicker(): void {
+    this.videoInputRef?.nativeElement?.click();
+  }
+  
+  onPosterFileSelected(event: Event): void {
+    const input = event.target as HTMLInputElement;
+    const file = input.files?.[0];
+    if (!file) return;
+    this.handleSelectedPosterFile(file);
+  }
+  
+  onVideoFileSelected(event: Event): void {
+    const input = event.target as HTMLInputElement;
+    const file = input.files?.[0];
+    if (!file) return;
+    this.handleSelectedVideoFile(file);
+  }
+  
+  private handleSelectedPosterFile(file: File): void {
+    const validTypes = ['image/jpeg', 'image/png', 'image/jpg', 'image/gif', 'image/webp'];
+    if (!validTypes.includes(file.type)) {
+      this.addNotification('error', 'Formato file non supportato. Usa JPEG, PNG, GIF o WEBP.');
+      return;
+    }
+    
+    const maxSize = 5 * 1024 * 1024; // 5MB
+    if (file.size > maxSize) {
+      this.addNotification('error', 'Il file è troppo grande. Dimensione massima: 5MB.');
+      return;
+    }
+    
+    this.selectedPosterFile.set(file);
+    
+    // Crea preview URL
+    const reader = new FileReader();
+    reader.onload = (e) => {
+      this.posterPreviewUrl.set(e.target?.result as string);
+    };
+    reader.readAsDataURL(file);
+  }
+  
+  private handleSelectedVideoFile(file: File): void {
+    const validTypes = ['video/mp4', 'video/webm', 'video/ogg'];
+    if (!validTypes.includes(file.type)) {
+      this.addNotification('error', 'Formato video non supportato. Usa MP4, WEBM o OGG.');
+      return;
+    }
+    
+    const maxSize = 50 * 1024 * 1024; // 50MB
+    if (file.size > maxSize) {
+      this.addNotification('error', 'Il video è troppo grande. Dimensione massima: 50MB.');
+      return;
+    }
+    
+    this.selectedVideoFile.set(file);
+    
+    // Crea preview URL
+    const reader = new FileReader();
+    reader.onload = (e) => {
+      this.videoPreviewUrl.set(e.target?.result as string);
+    };
+    reader.readAsDataURL(file);
+  }
+  
+  onDragOverPoster(event: DragEvent): void {
+    event.preventDefault();
+    event.stopPropagation();
+    this.isDragOverPoster.set(true);
+  }
+  
+  onDragLeavePoster(event: DragEvent): void {
+    event.preventDefault();
+    event.stopPropagation();
+    this.isDragOverPoster.set(false);
+  }
+  
+  onFileDropPoster(event: DragEvent): void {
+    event.preventDefault();
+    event.stopPropagation();
+    this.isDragOverPoster.set(false);
+    const dt = event.dataTransfer;
+    const file = dt?.files?.[0];
+    if (!file) return;
+    this.handleSelectedPosterFile(file);
+  }
+  
+  onDragOverVideo(event: DragEvent): void {
+    event.preventDefault();
+    event.stopPropagation();
+    this.isDragOverVideo.set(true);
+  }
+  
+  onDragLeaveVideo(event: DragEvent): void {
+    event.preventDefault();
+    event.stopPropagation();
+    this.isDragOverVideo.set(false);
+  }
+  
+  onFileDropVideo(event: DragEvent): void {
+    event.preventDefault();
+    event.stopPropagation();
+    this.isDragOverVideo.set(false);
+    const dt = event.dataTransfer;
+    const file = dt?.files?.[0];
+    if (!file) return;
+    this.handleSelectedVideoFile(file);
+  }
+  
+  removeVideo(): void {
+    this.selectedVideoFile.set(null);
+    this.videoPreviewUrl.set(null);
+    if (this.videoInputRef?.nativeElement) this.videoInputRef.nativeElement.value = '';
+    this.addNotification('info', 'Video rimosso. Ricorda di salvare per applicare le modifiche.');
+  }
+  
+  getPosterUrl(): string | null {
+    return this.posterPreviewUrl() || this.project().poster || null;
+  }
+  
+  getVideoUrl(): string | null {
+    return this.videoPreviewUrl() || this.project().video || null;
   }
 
 

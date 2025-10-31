@@ -122,6 +122,24 @@ export class ProjectService {
   }
 
   /**
+   * Aggiorna un progetto esistente con upload di file
+   * 
+   * @param id ID del progetto da aggiornare
+   * @param formData FormData contenente dati e file
+   * @returns Observable del progetto aggiornato
+   */
+  updateWithFiles$(id: number, formData: FormData): Observable<Progetto> {
+    const url = apiUrl(`projects/${id}`);
+    return this.http.put<{ ok: boolean; data: any }>(url, formData).pipe(
+      map(response => {
+        // Converti il DTO ricevuto in Progetto
+        const dto = response.data;
+        return this.dtoToProgetto(dto);
+      })
+    );
+  }
+
+  /**
    * Aggiorna un progetto esistente
    * 
    * @param id ID del progetto da aggiornare

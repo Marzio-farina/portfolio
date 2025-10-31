@@ -9,24 +9,15 @@
   display: flex;
   flex-direction: column;
   overflow: hidden; /* Il contenitore principale non scrolla */
-}
-
-.project-detail-modal__header {
-  flex-shrink: 0; /* Header fisso, non si rimpicciolisce */
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  padding: 1.5rem;
-  border-bottom: 1px solid var(--border-primary);
-  position: relative;
+  position: relative; /* Per posizionare il pulsante chiusura */
 }
 
 .project-detail-modal__title {
-  margin: 0;
+  margin: 0 0 1.5rem 0; /* Aggiunge spazio sotto il titolo */
   font-size: 1.75rem;
   font-weight: 600;
   color: var(--text-primary);
-  padding-right: 2.5rem;
+  padding-right: 2.5rem; /* Spazio per il pulsante chiusura */
   line-height: 1.3;
 }
 
@@ -42,7 +33,7 @@
   cursor: pointer;
   padding: 0.25rem;
   transition: color var(--transition-1);
-  z-index: 1;
+  z-index: 10; /* Assicura che il pulsante sia sopra il contenuto scrollabile */
 }
 
 .project-detail-modal__close:hover {
@@ -87,6 +78,30 @@
   flex-shrink: 0; /* Impedisce che il contenitore si rimpicciolisca */
 }
 
+/* In edit mode: area tratteggiata intorno all'immagine */
+.project-detail-modal__image--editable .project-detail-modal__image-container {
+  border: 2px dashed var(--border-primary);
+  border-radius: 8px;
+  padding: 10px;
+  background: var(--bg-card);
+  transition: all var(--transition-1);
+  cursor: pointer;
+  overflow: visible; /* Permette al padding di essere visibile */
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.project-detail-modal__image--editable .project-detail-modal__image-container:hover {
+  border-color: var(--accent-primary);
+  background: rgba(var(--accent-primary-rgb, 99, 102, 241), 0.03);
+}
+
+.project-detail-modal__image--editable .project-detail-modal__image-container.is-dragover {
+  border-color: var(--accent-primary);
+  background: var(--accent-primary-alpha);
+}
+
 .project-detail-modal__image-container img,
 .project-detail-modal__image-img {
   position: absolute;
@@ -95,6 +110,17 @@
   width: 100%;
   height: 100%;
   object-fit: contain; /* Mantiene le proporzioni senza ritagliare */
+}
+
+/* In edit mode: l'immagine deve rispettare il padding */
+.project-detail-modal__image--editable .project-detail-modal__image-container img,
+.project-detail-modal__image--editable .project-detail-modal__image-img {
+  position: relative;
+  max-width: 100%;
+  max-height: 100%;
+  width: auto;
+  height: auto;
+  object-fit: contain;
 }
 
 .project-detail-modal__image-error {
@@ -112,6 +138,144 @@
   margin: 0;
 }
 
+/* Area per aggiungere immagini/video se non presenti (edit mode) */
+.project-detail-modal__add-image-area,
+.project-detail-modal__add-video-area {
+  width: 100%;
+  padding: 3rem 1.5rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.project-detail-modal__add-media-btn {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.75rem;
+  padding: 2rem;
+  border: 2px dashed var(--border-primary);
+  border-radius: 8px;
+  background: transparent;
+  color: var(--text-secondary);
+  cursor: pointer;
+  transition: all var(--transition-1);
+  width: 100%;
+  max-width: 400px;
+}
+
+.project-detail-modal__add-media-btn:hover,
+.project-detail-modal__add-media-btn.is-dragover {
+  border-color: var(--accent-primary);
+  color: var(--accent-primary);
+  background: rgba(var(--accent-primary-rgb, 99, 102, 241), 0.05);
+}
+
+.project-detail-modal__add-media-btn svg {
+  width: 48px;
+  height: 48px;
+  stroke: currentColor;
+  fill: none;
+  stroke-width: 1.5;
+}
+
+/* Icona per cambiare media (come nell'avatar) */
+.project-detail-modal__change-media {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  width: 40px;
+  height: 40px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 50%;
+  border: 1px solid var(--border-primary);
+  background: var(--bg-card);
+  color: var(--accent-primary);
+  box-shadow: var(--shadow-2);
+  cursor: pointer;
+  opacity: 0;
+  transition: all var(--transition-1);
+  z-index: 10;
+  pointer-events: none;
+}
+
+.project-detail-modal__image--editable .project-detail-modal__image-container:hover .project-detail-modal__change-media,
+.project-detail-modal__video--editable .project-detail-modal__video-container:hover .project-detail-modal__change-media {
+  opacity: 1;
+  pointer-events: auto;
+  transform: translate(-50%, -50%) scale(1.05);
+}
+
+.project-detail-modal__change-media:hover {
+  background: var(--accent-primary);
+  color: var(--text-inverse);
+  border-color: var(--accent-primary);
+  transform: translate(-50%, -50%) scale(1.1);
+}
+
+.project-detail-modal__change-media:active {
+  transform: translate(-50%, -50%) scale(0.95);
+}
+
+.project-detail-modal__change-media svg {
+  width: 18px;
+  height: 18px;
+  fill: currentColor;
+}
+
+.project-detail-modal__change-media:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+/* Icona X per rimuovere video (solo per video) */
+.project-detail-modal__remove-video {
+  position: absolute;
+  top: 8px;
+  right: 8px;
+  width: 28px;
+  height: 28px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 50%;
+  border: 1px solid var(--border-primary);
+  background: var(--bg-card);
+  color: var(--text-secondary);
+  box-shadow: var(--shadow-1);
+  cursor: pointer;
+  opacity: 0;
+  transition: all var(--transition-1);
+  z-index: 10;
+  font-size: 18px;
+  line-height: 1;
+  pointer-events: none;
+}
+
+.project-detail-modal__video--editable .project-detail-modal__video-container:hover .project-detail-modal__remove-video {
+  opacity: 1;
+  pointer-events: auto;
+}
+
+.project-detail-modal__remove-video:hover {
+  background: #ef4444;
+  color: white;
+  border-color: #ef4444;
+  transform: scale(1.1);
+}
+
+.project-detail-modal__remove-video:active {
+  transform: scale(0.95);
+}
+
+.project-detail-modal__remove-video:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
 .project-detail-modal__video {
   width: 100%;
   flex-shrink: 0;
@@ -119,10 +283,39 @@
   justify-content: center;
 }
 
+.project-detail-modal__video--editable {
+  position: relative;
+}
+
+.project-detail-modal__video-container {
+  position: relative;
+  width: 100%;
+  border-radius: 8px;
+  overflow: hidden;
+}
+
+.project-detail-modal__video--editable .project-detail-modal__video-container {
+  border: 2px dashed var(--border-primary);
+  padding: 20px;
+  background: var(--bg-card);
+  transition: all var(--transition-1);
+  cursor: pointer;
+}
+
+.project-detail-modal__video--editable .project-detail-modal__video-container:hover {
+  border-color: var(--accent-primary);
+  background: rgba(var(--accent-primary-rgb, 99, 102, 241), 0.03);
+}
+
+.project-detail-modal__video--editable .project-detail-modal__video-container.is-dragover {
+  border-color: var(--accent-primary);
+  background: var(--accent-primary-alpha);
+}
+
 .project-detail-modal__video-element {
   width: 100%;
   max-width: 100%;
-  border-radius: 8px;
+  border-radius: 4px;
   background: var(--bg-secondary);
 }
 
@@ -168,6 +361,8 @@
 
 /* Input titolo */
 .project-detail-modal__title-input {
+  margin-right: 10px;
+  margin-bottom: 1.5rem; /* Aggiunge spazio sotto l'input titolo */
   width: 100%;
   background: transparent;
   border: 2px dashed var(--border-primary);

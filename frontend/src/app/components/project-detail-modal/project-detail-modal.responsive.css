@@ -37,10 +37,6 @@
     max-width: 800px;
   }
 
-  .project-detail-modal__header {
-    padding: 2rem;
-  }
-
   .project-detail-modal__scrollable {
     padding: 2rem;
     gap: 2rem;

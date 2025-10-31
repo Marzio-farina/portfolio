@@ -5,8 +5,18 @@
 </app-notification>
 
 <div class="project-detail-modal">
-  <!-- Header fisso (non scrollabile) -->
-  <div class="project-detail-modal__header">
+  <!-- Pulsante chiusura posizionato in modo assoluto -->
+  <button 
+    type="button"
+    class="project-detail-modal__close" 
+    (click)="onClose()" 
+    aria-label="Chiudi">
+    ×
+  </button>
+
+  <!-- Contenuto scrollabile unico -->
+  <div class="project-detail-modal__scrollable">
+    <!-- Titolo all'interno del contenuto scrollabile -->
     @if (canEdit()) {
       <input 
         type="text"
@@ -17,48 +27,146 @@
     } @else {
       <h2 class="project-detail-modal__title">{{ project().title }}</h2>
     }
-    <button 
-      type="button"
-      class="project-detail-modal__close" 
-      (click)="onClose()" 
-      aria-label="Chiudi">
-      ×
-    </button>
-  </div>
-
-  <!-- Contenuto scrollabile unico -->
-  <div class="project-detail-modal__scrollable">
     <form [formGroup]="editForm">
+      <!-- Input file nascosti per upload immagine e video -->
+      @if (canEdit()) {
+        <input 
+          #posterInput
+          type="file" 
+          accept="image/jpeg,image/png,image/jpg,image/gif,image/webp"
+          (change)="onPosterFileSelected($event)"
+          style="display: none;">
+        <input 
+          #videoInput
+          type="file" 
+          accept="video/mp4,video/webm,video/ogg"
+          (change)="onVideoFileSelected($event)"
+          style="display: none;">
+      }
+
+      <!-- Immagine con area tratteggiata in edit mode -->
       @if (project().poster && !imageLoadError()) {
-        <div class="project-detail-modal__image" [class.image-vertical]="isVerticalImage()">
+        <div 
+          class="project-detail-modal__image" 
+          [class.image-vertical]="isVerticalImage()"
+          [class.project-detail-modal__image--editable]="canEdit()">
           <div 
             class="project-detail-modal__image-container"
             [style.width.px]="containerWidth()"
-            [style.height.px]="containerHeight">
+            [style.height.px]="containerHeight"
+            (dragover)="onDragOverPoster($event)"
+            (dragleave)="onDragLeavePoster($event)"
+            (drop)="onFileDropPoster($event)"
+            [class.is-dragover]="isDragOverPoster()">
             <img
-              [src]="project().poster"
+              [src]="getPosterUrl()"
               [alt]="project().title"
               (load)="onImgLoad($event)"
               (error)="onImgError($event)"
               class="project-detail-modal__image-img"
             />
+            @if (canEdit()) {
+              <button 
+                type="button"
+                class="project-detail-modal__change-media"
+                (click)="openPosterPicker()"
+                [disabled]="saving()"
+                aria-label="Cambia immagine">
+                <svg viewBox="0 0 24 24" aria-hidden="true">
+                  <path d="M3 17.25V21h3.75L17.81 9.94l-3.75-3.75L3 17.25zM21.41 6.34a1.25 1.25 0 0 0 0-1.77l-2.98-2.98a1.25 1.25 0 0 0-1.77 0l-1.83 1.83 3.75 3.75 1.83-1.83z"/>
+                </svg>
+              </button>
+            }
           </div>
         </div>
       } @else if (imageLoadError()) {
         <div class="project-detail-modal__image-error">
           <p>Immagine non disponibile</p>
+          @if (canEdit()) {
+            <button 
+              type="button"
+              class="project-detail-modal__add-media-btn"
+              (click)="openPosterPicker()">
+              <svg viewBox="0 0 24 24" aria-hidden="true">
+                <path d="M21 19V5a2 2 0 0 0-2-2H5a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2zM8.5 13.5l2.5 3.01L14.5 12l4.5 6H5l3.5-4.5z"/>
+              </svg>
+              <span>Carica immagine</span>
+            </button>
+          }
+        </div>
+      } @else if (canEdit() && !project().poster) {
+        <div class="project-detail-modal__add-image-area">
+          <button 
+            type="button"
+            class="project-detail-modal__add-media-btn"
+            (click)="openPosterPicker()"
+            (dragover)="onDragOverPoster($event)"
+            (dragleave)="onDragLeavePoster($event)"
+            (drop)="onFileDropPoster($event)"
+            [class.is-dragover]="isDragOverPoster()">
+            <svg viewBox="0 0 24 24" aria-hidden="true">
+              <path d="M21 19V5a2 2 0 0 0-2-2H5a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2zM8.5 13.5l2.5 3.01L14.5 12l4.5 6H5l3.5-4.5z"/>
+            </svg>
+            <span>Carica immagine</span>
+          </button>
         </div>
       }
 
-      @if (project().video) {
-        <div class="project-detail-modal__video">
-          <video
-            [src]="project().video"
-            controls
-            class="project-detail-modal__video-element"
-            (click)="onVideoClick($event)">
-            Il tuo browser non supporta il tag video.
-          </video>
+      <!-- Video con area tratteggiata in edit mode -->
+      @if (project().video || getVideoUrl()) {
+        <div 
+          class="project-detail-modal__video"
+          [class.project-detail-modal__video--editable]="canEdit()">
+          <div 
+            class="project-detail-modal__video-container"
+            (dragover)="onDragOverVideo($event)"
+            (dragleave)="onDragLeaveVideo($event)"
+            (drop)="onFileDropVideo($event)"
+            [class.is-dragover]="isDragOverVideo()">
+            <video
+              [src]="getVideoUrl() || project().video"
+              controls
+              class="project-detail-modal__video-element"
+              (click)="onVideoClick($event)">
+              Il tuo browser non supporta il tag video.
+            </video>
+            @if (canEdit()) {
+              <button 
+                type="button"
+                class="project-detail-modal__change-media"
+                (click)="openVideoPicker()"
+                [disabled]="saving()"
+                aria-label="Cambia video">
+                <svg viewBox="0 0 24 24" aria-hidden="true">
+                  <path d="M3 17.25V21h3.75L17.81 9.94l-3.75-3.75L3 17.25zM21.41 6.34a1.25 1.25 0 0 0 0-1.77l-2.98-2.98a1.25 1.25 0 0 0-1.77 0l-1.83 1.83 3.75 3.75 1.83-1.83z"/>
+                </svg>
+              </button>
+              <button 
+                type="button"
+                class="project-detail-modal__remove-video"
+                (click)="removeVideo()"
+                [disabled]="saving()"
+                aria-label="Rimuovi video">
+                ×
+              </button>
+            }
+          </div>
+        </div>
+      } @else if (canEdit()) {
+        <div class="project-detail-modal__add-video-area">
+          <button 
+            type="button"
+            class="project-detail-modal__add-media-btn"
+            (click)="openVideoPicker()"
+            (dragover)="onDragOverVideo($event)"
+            (dragleave)="onDragLeaveVideo($event)"
+            (drop)="onFileDropVideo($event)"
+            [class.is-dragover]="isDragOverVideo()">
+            <svg viewBox="0 0 24 24" aria-hidden="true">
+              <path d="M8 5v14l11-7z"/>
+            </svg>
+            <span>Carica video</span>
+          </button>
         </div>
       }
 

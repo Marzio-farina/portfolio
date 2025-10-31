@@ -192,13 +192,63 @@
   padding-right: 28px;
 }
 
-.field select {
-  appearance: none;
-  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 12 12'%3E%3Cpath fill='%23666' d='M6 9L1 4h10z'/%3E%3C/svg%3E");
-  background-repeat: no-repeat;
-  background-position: right 8px center;
-  padding-right: 32px;
+/* Select personalizzata accattivante */
+.field--select {
+  position: relative;
   cursor: pointer;
+}
+
+.field--select::after {
+  content: '';
+  position: absolute;
+  right: 14px;
+  top: 50%;
+  transform: translateY(-50%);
+  width: 0;
+  height: 0;
+  border-left: 6px solid transparent;
+  border-right: 6px solid transparent;
+  border-top: 8px solid var(--text-secondary);
+  pointer-events: none;
+  transition: transform var(--transition-1), border-top-color var(--transition-1);
+  z-index: 2;
+}
+
+.field--select:focus-within::after {
+  border-top-color: var(--accent-primary);
+  transform: translateY(-50%) rotate(180deg);
+}
+
+.field--select select {
+  appearance: none;
+  -webkit-appearance: none;
+  -moz-appearance: none;
+  cursor: pointer;
+  padding-right: 36px;
+  background: transparent;
+  transition: all var(--transition-1);
+}
+
+.field--select select:focus {
+  color: var(--text-primary);
+}
+
+.field--select select option {
+  background: var(--bg-card);
+  color: var(--text-primary);
+  padding: 0.5rem;
+}
+
+.field--select select option:hover {
+  background: var(--accent-primary-alpha);
+}
+
+.field--select:focus-within .field-label,
+.field--select select:not([value=""]) + .field-label {
+  top: 0;
+  font-size: 0.85rem;
+  color: var(--accent-primary);
+  transform: translateY(-50%);
 }
 
 .field textarea {
@@ -246,5 +296,155 @@
 
 .field--textarea:focus-within .field-label { color: var(--accent-primary); }
 .field--textarea textarea:not(:placeholder-shown) + .field-label { opacity: 0; }
+
+/* ================== Preview Media (Immagine e Video) ================== */
+
+.add-project-modal__media-preview {
+  position: relative;
+  width: 100%;
+  border: 2px dashed var(--border-primary);
+  border-radius: 8px;
+  padding: 12px;
+  background: var(--bg-card);
+  transition: all var(--transition-1);
+  cursor: pointer;
+  overflow: hidden;
+}
+
+.add-project-modal__media-preview:hover {
+  border-color: var(--accent-primary);
+  background: rgba(var(--accent-primary-rgb, 99, 102, 241), 0.03);
+}
+
+.add-project-modal__media-preview.is-dragover {
+  border-color: var(--accent-primary);
+  background: var(--accent-primary-alpha);
+}
+
+/* Preview Immagine */
+.add-project-modal__media-preview--image {
+  aspect-ratio: 16 / 9;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.add-project-modal__preview-img {
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+  border-radius: 4px;
+}
+
+/* Preview Video */
+.add-project-modal__media-preview--video {
+  aspect-ratio: 16 / 9;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.add-project-modal__preview-video {
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+  border-radius: 4px;
+}
+
+/* Icona per cambiare media (come nell'avatar) */
+.add-project-modal__change-media {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  width: 40px;
+  height: 40px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 50%;
+  border: 1px solid var(--border-primary);
+  background: var(--bg-card);
+  color: var(--accent-primary);
+  box-shadow: var(--shadow-2);
+  cursor: pointer;
+  opacity: 0;
+  transition: all var(--transition-1);
+  z-index: 10;
+  pointer-events: none;
+}
+
+.add-project-modal__media-preview:hover .add-project-modal__change-media {
+  opacity: 1;
+  pointer-events: auto;
+  transform: translate(-50%, -50%) scale(1.05);
+}
+
+.add-project-modal__change-media:hover {
+  background: var(--accent-primary);
+  color: var(--text-inverse);
+  border-color: var(--accent-primary);
+  transform: translate(-50%, -50%) scale(1.1);
+}
+
+.add-project-modal__change-media:active {
+  transform: translate(-50%, -50%) scale(0.95);
+}
+
+.add-project-modal__change-media svg {
+  width: 18px;
+  height: 18px;
+  fill: currentColor;
+}
+
+.add-project-modal__change-media:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+/* Icona X per rimuovere video (solo per video) */
+.add-project-modal__remove-video {
+  position: absolute;
+  top: 8px;
+  right: 8px;
+  width: 28px;
+  height: 28px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 50%;
+  border: 1px solid var(--border-primary);
+  background: var(--bg-card);
+  color: var(--text-secondary);
+  box-shadow: var(--shadow-1);
+  cursor: pointer;
+  opacity: 0;
+  transition: all var(--transition-1);
+  z-index: 10;
+  font-size: 18px;
+  line-height: 1;
+  pointer-events: none;
+}
+
+.add-project-modal__media-preview--video:hover .add-project-modal__remove-video {
+  opacity: 1;
+  pointer-events: auto;
+}
+
+.add-project-modal__remove-video:hover {
+  background: #ef4444;
+  color: white;
+  border-color: #ef4444;
+  transform: scale(1.1);
+}
+
+.add-project-modal__remove-video:active {
+  transform: scale(0.95);
+}
+
+.add-project-modal__remove-video:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
 
 
