@@ -130,7 +130,24 @@ export class Aside {
   });
 
   // Stato autenticazione per mostrare icona matita
-  isAuthed = computed(() => !!this.auth.token());
+  // L'utente può modificare solo il proprio profilo
+  // Verifica che sia autenticato E che corrisponda al tenant corrente
+  isAuthed = computed(() => {
+    // Deve essere autenticato
+    if (!this.auth.isAuthenticated()) {
+      return false;
+    }
+    
+    // Se non c'è uno slug nel tenant, l'autenticazione è valida (path generico)
+    const tenantUserId = this.tenant.userId();
+    if (!tenantUserId) {
+      return true; // Autenticazione valida su path senza slug
+    }
+    
+    // Verifica che l'utente autenticato corrisponda al tenant corrente
+    const authUserId = this.auth.authenticatedUserId();
+    return authUserId !== null && authUserId === tenantUserId;
+  });
 
   constructor(@Inject(PLATFORM_ID) platformId: Object) {
     this.isBrowser = isPlatformBrowser(platformId);
