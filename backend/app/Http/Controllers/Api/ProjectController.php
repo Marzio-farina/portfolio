@@ -66,77 +66,307 @@ class ProjectController extends Controller
      */
     public function store(Request $request): JsonResponse
     {
+        // Log alternativo per debugging
+        $debugFile = storage_path('logs/project_debug.log');
+        $logData = [
+            'timestamp' => date('Y-m-d H:i:s'),
+            'user_id' => Auth::id(),
+            'request_method' => $request->method(),
+            'content_type' => $request->header('Content-Type'),
+            'has_files' => $request->hasFile('poster_file') || $request->hasFile('video_file'),
+            'all_input_keys' => array_keys($request->all()),
+        ];
+        file_put_contents($debugFile, "=== INIZIO CREAZIONE PROGETTO ===\n" . json_encode($logData, JSON_PRETTY_PRINT) . "\n", FILE_APPEND);
+        
+        Log::info('=== INIZIO CREAZIONE PROGETTO ===', $logData);
+
         // Verifica autenticazione
         $user = Auth::user();
         if (!$user) {
+            Log::warning('Creazione progetto: utente non autenticato');
             return response()->json(['ok' => false, 'message' => 'Non autenticato'], 401);
         }
 
-        $validated = $request->validate([
-            'title' => 'required|string|max:50',
-            'category_id' => 'required|integer|exists:categories,id',
-            'description' => 'nullable|string|max:1000',
-            'poster_file' => 'required|image|mimes:jpeg,png,jpg,gif,webp|max:5120', // 5MB
-            'video_file' => 'nullable|mimes:mp4,webm,ogg|max:51200', // 50MB
+        Log::info('Utente autenticato', ['user_id' => $user->id, 'email' => $user->email]);
+
+        // Log dati ricevuti PRIMA della validazione
+        Log::info('Dati ricevuti PRIMA validazione', [
+            'title' => $request->input('title'),
+            'category_id' => $request->input('category_id'),
+            'description' => $request->input('description'),
+            'description_type' => gettype($request->input('description')),
+            'description_is_null' => $request->input('description') === null,
+            'has_poster_file' => $request->hasFile('poster_file'),
+            'has_video_file' => $request->hasFile('video_file'),
         ]);
 
         try {
-            $project = new Project();
-            $project->title = $validated['title'];
-            $project->category_id = $validated['category_id'];
-            $project->description = $validated['description'] ?? '';
-            $project->user_id = $user->id;
+            $validated = $request->validate([
+                'title' => 'required|string|max:50',
+                'category_id' => 'required|integer|exists:categories,id',
+                'description' => 'required|string|max:1000', // Required perché il database non accetta NULL
+                'poster_file' => 'required|image|mimes:jpeg,png,jpg,gif,webp|max:5120', // 5MB
+                'video_file' => 'nullable|mimes:mp4,webm,ogg|max:51200', // 50MB
+            ]);
 
-            // Gestione poster file
-            if ($request->hasFile('poster_file')) {
-                $posterFile = $request->file('poster_file');
-                $extension = $posterFile->getClientOriginalExtension();
-                $filename = 'poster_' . Str::uuid() . '.' . $extension;
-                $relativePath = 'projects/posters/' . $filename;
+            Log::info('Validazione completata con successo', [
+                'validated_keys' => array_keys($validated),
+                'title' => $validated['title'] ?? 'NON PRESENTE',
+                'category_id' => $validated['category_id'] ?? 'NON PRESENTE',
+                'description' => $validated['description'] ?? 'NON PRESENTE',
+                'description_type' => isset($validated['description']) ? gettype($validated['description']) : 'NON PRESENTE',
+                'description_is_null' => isset($validated['description']) ? ($validated['description'] === null) : 'NON PRESENTE',
+                'description_length' => isset($validated['description']) ? strlen($validated['description']) : 'NON PRESENTE',
+            ]);
+        } catch (\Illuminate\Validation\ValidationException $e) {
+            $debugFile = storage_path('logs/project_debug.log');
+            $errorData = [
+                'errors' => $e->errors(),
+                'message' => $e->getMessage(),
+            ];
+            file_put_contents($debugFile, "=== ERRORE VALIDAZIONE ===\n" . json_encode($errorData, JSON_PRETTY_PRINT) . "\n", FILE_APPEND);
+            
+            Log::error('Errore validazione', $errorData);
+            throw $e; // Rilancia per la gestione standard di Laravel
+        } catch (\Exception $validationError) {
+            // Cattura qualsiasi altro errore prima della validazione
+            $debugFile = storage_path('logs/project_debug.log');
+            $errorData = [
+                'error_message' => $validationError->getMessage(),
+                'error_class' => get_class($validationError),
+                'error_file' => $validationError->getFile(),
+                'error_line' => $validationError->getLine(),
+                'trace' => $validationError->getTraceAsString(),
+            ];
+            file_put_contents($debugFile, "=== ERRORE PRIMA DELLA VALIDAZIONE ===\n" . json_encode($errorData, JSON_PRETTY_PRINT) . "\n", FILE_APPEND);
+            
+            Log::error('Errore prima della validazione', $errorData);
+            throw $validationError;
+        }
 
-                if (app()->environment('production')) {
+        try {
+            // Prepara i dati base del progetto
+            // Il mutator setDescriptionAttribute garantisce che description non sia mai null
+            $descriptionRaw = $validated['description'] ?? '';
+            $descriptionTrimmed = trim($descriptionRaw);
+            
+            Log::info('Preparazione description', [
+                'description_raw' => $descriptionRaw,
+                'description_raw_type' => gettype($descriptionRaw),
+                'description_trimmed' => $descriptionTrimmed,
+                'description_trimmed_type' => gettype($descriptionTrimmed),
+                'description_trimmed_length' => strlen($descriptionTrimmed),
+            ]);
+
+            $projectData = [
+                'title' => trim($validated['title']),
+                'category_id' => $validated['category_id'],
+                'user_id' => $user->id,
+                'description' => $descriptionTrimmed // Il mutator converte null/empty in ''
+            ];
+
+            Log::info('projectData preparato', [
+                'project_data' => $projectData,
+                'description_in_array' => $projectData['description'],
+                'description_in_array_type' => gettype($projectData['description']),
+                'description_in_array_is_null' => $projectData['description'] === null,
+            ]);
+
+            // Prepara la struttura cartelle: project/{id_utente}{nome_utente}/{nome_project}
+            $userFolder = $this->generateUserFolderName($user);
+            $projectFolder = $this->slugifyProjectName($validated['title']);
+            $baseFolder = "project/{$userFolder}/{$projectFolder}";
+
+            // Gestione poster file (OBBLIGATORIO)
+            $posterFile = $request->file('poster_file');
+            Log::info('Gestione poster file', [
+                'poster_file_exists' => $posterFile !== null,
+                'poster_file_size' => $posterFile ? $posterFile->getSize() : 'N/A',
+                'poster_file_extension' => $posterFile ? $posterFile->getClientOriginalExtension() : 'N/A',
+                'base_folder' => $baseFolder,
+            ]);
+
+            $extension = $posterFile->getClientOriginalExtension();
+            $filename = 'poster.' . $extension;
+            $relativePath = "{$baseFolder}/{$filename}";
+
+            // Verifica se siamo in produzione o se abbiamo configurato Supabase
+            $isProduction = app()->environment('production');
+            $hasSupabaseConfig = !empty(config('filesystems.disks.src.key')) && 
+                                !empty(config('filesystems.disks.src.secret')) &&
+                                !empty(config('filesystems.disks.src.endpoint'));
+            
+            Log::info('Controllo ambiente per salvataggio poster', [
+                'is_production' => $isProduction,
+                'app_env' => app()->environment(),
+                'has_supabase_config' => $hasSupabaseConfig,
+                'should_use_supabase' => $isProduction || $hasSupabaseConfig,
+            ]);
+
+            if ($isProduction || $hasSupabaseConfig) {
+                Log::info('Salvataggio poster su SUPABASE', [
+                    'relative_path' => $relativePath,
+                    'base_folder' => $baseFolder,
+                    'disk_config' => [
+                        'driver' => config('filesystems.disks.src.driver'),
+                        'bucket' => config('filesystems.disks.src.bucket'),
+                        'endpoint' => config('filesystems.disks.src.endpoint'),
+                        'has_key' => !empty(config('filesystems.disks.src.key')),
+                        'has_secret' => !empty(config('filesystems.disks.src.secret')),
+                        'region' => config('filesystems.disks.src.region'),
+                    ]
+                ]);
+                
+                try {
                     // PRODUZIONE: salva su Supabase
                     $binary = file_get_contents($posterFile->getRealPath());
+                    $binarySize = strlen($binary);
+                    Log::info('Binary caricato', ['size' => $binarySize]);
+                    
+                    // Prova a salvare il file
                     $ok = Storage::disk('src')->put($relativePath, $binary);
+                    
                     if (!$ok) {
-                        throw new \RuntimeException('Failed writing poster to src disk');
+                        Log::error('Errore salvataggio poster su Supabase - put() ritorna false', [
+                            'relative_path' => $relativePath,
+                            'binary_size' => $binarySize,
+                        ]);
+                        throw new \RuntimeException('Failed writing poster to src disk - put() returned false');
                     }
+                    
+                    // Verifica che il file sia stato effettivamente salvato
+                    $exists = Storage::disk('src')->exists($relativePath);
+                    if (!$exists) {
+                        Log::error('File non trovato dopo il salvataggio', [
+                            'relative_path' => $relativePath,
+                        ]);
+                        throw new \RuntimeException('File not found after upload - verification failed');
+                    }
+                    
+                    Log::info('Poster salvato e verificato su Supabase', [
+                        'relative_path' => $relativePath,
+                        'file_exists' => $exists,
+                    ]);
+                    
                     $baseUrl = rtrim(config('filesystems.disks.src.url') ?: env('SUPABASE_PUBLIC_URL'), '/');
-                    $project->poster = $baseUrl . '/' . $relativePath;
-                } else {
-                    // LOCALE: salva su storage locale
-                    $posterFile->storeAs('public/projects/posters', $filename);
-                    $project->poster = 'storage/projects/posters/' . $filename;
+                    $projectData['poster'] = $baseUrl . '/' . $relativePath;
+                    Log::info('Poster URL generato', ['poster_url' => $projectData['poster']]);
+                    
+                } catch (\Exception $e) {
+                    Log::error('Eccezione durante salvataggio poster su Supabase', [
+                        'error' => $e->getMessage(),
+                        'trace' => $e->getTraceAsString(),
+                        'relative_path' => $relativePath,
+                    ]);
+                    throw $e;
                 }
+            } else {
+                Log::info('Salvataggio poster in LOCALE', ['filename' => $filename, 'base_folder' => $baseFolder]);
+                // LOCALE: salva su storage locale mantenendo la stessa struttura
+                $localPath = "public/{$baseFolder}";
+                $posterFile->storeAs($localPath, $filename);
+                $projectData['poster'] = "storage/{$baseFolder}/{$filename}";
+                Log::info('Poster salvato in locale', ['poster_path' => $projectData['poster']]);
             }
 
-            // Gestione video file (opzionale)
+            // Gestione video file (OPZIONALE)
             if ($request->hasFile('video_file')) {
+                Log::info('Gestione video file presente');
                 $videoFile = $request->file('video_file');
                 $extension = $videoFile->getClientOriginalExtension();
-                $filename = 'video_' . Str::uuid() . '.' . $extension;
-                $relativePath = 'projects/videos/' . $filename;
+                $filename = 'video.' . $extension;
+                $relativePath = "{$baseFolder}/{$filename}";
 
-                if (app()->environment('production')) {
-                    // PRODUZIONE: salva su Supabase
-                    $binary = file_get_contents($videoFile->getRealPath());
-                    $ok = Storage::disk('src')->put($relativePath, $binary);
-                    if (!$ok) {
-                        throw new \RuntimeException('Failed writing video to src disk');
+                // Verifica se siamo in produzione o se abbiamo configurato Supabase
+                $isProduction = app()->environment('production');
+                $hasSupabaseConfig = !empty(config('filesystems.disks.src.key')) && 
+                                    !empty(config('filesystems.disks.src.secret')) &&
+                                    !empty(config('filesystems.disks.src.endpoint'));
+                
+                if ($isProduction || $hasSupabaseConfig) {
+                    Log::info('Salvataggio video su SUPABASE', [
+                        'relative_path' => $relativePath,
+                        'is_production' => $isProduction,
+                        'has_supabase_config' => $hasSupabaseConfig,
+                    ]);
+                    
+                    try {
+                        // PRODUZIONE: salva su Supabase
+                        $binary = file_get_contents($videoFile->getRealPath());
+                        $binarySize = strlen($binary);
+                        Log::info('Video binary caricato', ['size' => $binarySize]);
+                        
+                        $ok = Storage::disk('src')->put($relativePath, $binary);
+                        if (!$ok) {
+                            Log::error('Errore salvataggio video su Supabase - put() ritorna false', [
+                                'relative_path' => $relativePath,
+                                'binary_size' => $binarySize,
+                            ]);
+                            throw new \RuntimeException('Failed writing video to src disk - put() returned false');
+                        }
+                        
+                        // Verifica che il file sia stato effettivamente salvato
+                        $exists = Storage::disk('src')->exists($relativePath);
+                        if (!$exists) {
+                            Log::error('Video non trovato dopo il salvataggio', [
+                                'relative_path' => $relativePath,
+                            ]);
+                            throw new \RuntimeException('Video file not found after upload - verification failed');
+                        }
+                        
+                        Log::info('Video salvato e verificato su Supabase', [
+                            'relative_path' => $relativePath,
+                            'file_exists' => $exists,
+                        ]);
+                        
+                        $baseUrl = rtrim(config('filesystems.disks.src.url') ?: env('SUPABASE_PUBLIC_URL'), '/');
+                        $projectData['video'] = $baseUrl . '/' . $relativePath;
+                        
+                    } catch (\Exception $e) {
+                        Log::error('Eccezione durante salvataggio video su Supabase', [
+                            'error' => $e->getMessage(),
+                            'trace' => $e->getTraceAsString(),
+                            'relative_path' => $relativePath,
+                        ]);
+                        throw $e;
                     }
-                    $baseUrl = rtrim(config('filesystems.disks.src.url') ?: env('SUPABASE_PUBLIC_URL'), '/');
-                    $project->video = $baseUrl . '/' . $relativePath;
                 } else {
-                    // LOCALE: salva su storage locale
-                    $videoFile->storeAs('public/projects/videos', $filename);
-                    $project->video = 'storage/projects/videos/' . $filename;
+                    Log::info('Salvataggio video in LOCALE', ['filename' => $filename, 'base_folder' => $baseFolder]);
+                    // LOCALE: salva su storage locale mantenendo la stessa struttura
+                    $localPath = "public/{$baseFolder}";
+                    $videoFile->storeAs($localPath, $filename);
+                    $projectData['video'] = "storage/{$baseFolder}/{$filename}";
                 }
+            } else {
+                Log::info('Nessun file video presente');
             }
 
-            $project->save();
+            Log::info('projectData finale PRIMA di Project::create', [
+                'project_data' => $projectData,
+                'description_value' => $projectData['description'],
+                'description_type' => gettype($projectData['description']),
+                'description_is_null' => $projectData['description'] === null,
+            ]);
+
+            // Crea il progetto con tutti i dati insieme
+            // Il mutator garantisce che description non sia mai null
+            Log::info('Chiamata Project::create()');
+            $project = Project::create($projectData);
+            
+            Log::info('Project::create() completato', [
+                'project_id' => $project->id,
+                'project_description' => $project->description,
+                'project_description_type' => gettype($project->description),
+                'project_description_is_null' => $project->description === null,
+            ]);
 
             // Carica le relazioni per la risposta
             $project->load(['category:id,title', 'technologies:id,title,description']);
+
+            Log::info('=== CREAZIONE PROGETTO COMPLETATA CON SUCCESSO ===', [
+                'project_id' => $project->id,
+                'title' => $project->title,
+            ]);
 
             return response()->json([
                 'ok' => true,
@@ -144,15 +374,30 @@ class ProjectController extends Controller
             ], 201, [], JSON_UNESCAPED_UNICODE);
 
         } catch (\Exception $e) {
-            Log::error('Errore creazione progetto', [
-                'user_id' => $user->id,
-                'error' => $e->getMessage(),
-                'trace' => $e->getTraceAsString()
-            ]);
+            $errorData = [
+                'user_id' => $user->id ?? 'N/A',
+                'error_message' => $e->getMessage(),
+                'error_class' => get_class($e),
+                'error_file' => $e->getFile(),
+                'error_line' => $e->getLine(),
+                'trace' => $e->getTraceAsString(),
+                'validated_data' => $validated ?? null,
+            ];
+            
+            // Log alternativo
+            $debugFile = storage_path('logs/project_debug.log');
+            file_put_contents($debugFile, "=== ERRORE CREAZIONE PROGETTO ===\n" . json_encode($errorData, JSON_PRETTY_PRINT) . "\n", FILE_APPEND);
+            
+            Log::error('=== ERRORE CREAZIONE PROGETTO ===', $errorData);
 
             return response()->json([
                 'ok' => false,
-                'message' => 'Errore durante la creazione del progetto. Riprova più tardi.'
+                'message' => 'Errore durante la creazione del progetto. Riprova più tardi.',
+                'debug' => app()->environment('local') ? [
+                    'error' => $e->getMessage(),
+                    'file' => $e->getFile(),
+                    'line' => $e->getLine(),
+                ] : null
             ], 500, [], JSON_UNESCAPED_UNICODE);
         }
     }
@@ -188,39 +433,118 @@ class ProjectController extends Controller
             ], 403);
         }
 
-        $validated = $request->validate([
-            'title' => 'sometimes|required|string|max:50',
-            'category_id' => 'sometimes|required|integer|exists:categories,id',
-            'description' => 'nullable|string|max:1000',
-            'technology_ids' => 'sometimes|array',
-            'technology_ids.*' => 'integer|exists:technologies,id',
+        // Log della richiesta per debugging
+        Log::info('Aggiornamento progetto richiesto', [
+            'project_id' => $project->id,
+            'user_id' => $user->id,
+            'request_data' => $request->all()
         ]);
 
         try {
+            $validated = $request->validate([
+                'title' => 'sometimes|required|string|max:50',
+                'category_id' => 'sometimes|required|integer|exists:categories,id',
+                'description' => 'nullable|string|max:1000',
+                'technology_ids' => 'sometimes|array',
+                'technology_ids.*' => 'integer|exists:technologies,id',
+            ]);
+            
+            Log::info('Validazione progetto completata', [
+                'project_id' => $project->id,
+                'validated_data' => $validated
+            ]);
+            // Verifica se ci sono modifiche da applicare
+            $hasChanges = false;
+
             // Aggiorna solo i campi validati
             if (isset($validated['title'])) {
-                $project->title = $validated['title'];
+                if ($project->title !== $validated['title']) {
+                    $project->title = $validated['title'];
+                    $hasChanges = true;
+                }
             }
             if (isset($validated['category_id'])) {
-                $project->category_id = $validated['category_id'];
+                if ($project->category_id != $validated['category_id']) {
+                    $project->category_id = $validated['category_id'];
+                    $hasChanges = true;
+                }
             }
             if (isset($validated['description'])) {
-                $project->description = $validated['description'] ?? '';
+                // Il mutator garantisce che description non sia mai null
+                $newDescription = trim($validated['description'] ?? '');
+                if ($project->description !== $newDescription) {
+                    $project->description = $newDescription;
+                    $hasChanges = true;
+                }
             }
 
-            $project->save();
+            // Salva solo se ci sono modifiche
+            if ($hasChanges) {
+                $project->save();
+            }
 
             // Aggiorna le tecnologie se presenti nel request
+            // Gestisci anche il caso di array vuoto (rimuove tutte le tecnologie)
             if (isset($validated['technology_ids'])) {
-                $project->technologies()->sync($validated['technology_ids']);
+                // Carica le tecnologie attuali del progetto per il confronto
+                $project->load('technologies:id');
+                
+                $technologyIds = is_array($validated['technology_ids']) 
+                    ? array_filter($validated['technology_ids'], fn($id) => is_numeric($id)) // Filtra valori non numerici
+                    : [];
+                
+                // Converti tutti gli ID in interi
+                $technologyIds = array_map('intval', $technologyIds);
+                $technologyIds = array_unique($technologyIds); // Rimuovi duplicati
+                
+                // Verifica che tutti gli ID esistano prima di sincronizzare
+                if (!empty($technologyIds)) {
+                    $existingTechIds = \App\Models\Technology::whereIn('id', $technologyIds)->pluck('id')->map(fn($id) => (int)$id)->toArray();
+                    $missingIds = array_diff($technologyIds, $existingTechIds);
+                    
+                    if (!empty($missingIds)) {
+                        Log::warning('Alcuni technology_ids non esistono nel database', [
+                            'project_id' => $project->id,
+                            'missing_ids' => $missingIds,
+                            'requested_ids' => $technologyIds,
+                            'existing_ids' => $existingTechIds
+                        ]);
+                        // Usa solo gli ID esistenti
+                        $technologyIds = $existingTechIds;
+                    }
+                }
+                
+                // Ottieni gli ID attuali delle tecnologie del progetto
+                $currentTechIds = $project->technologies->pluck('id')->map(fn($id) => (int)$id)->toArray();
+                
+                // Sincronizza solo se ci sono differenze
+                if (count($currentTechIds) !== count($technologyIds) || 
+                    !empty(array_diff($currentTechIds, $technologyIds)) || 
+                    !empty(array_diff($technologyIds, $currentTechIds))) {
+                    try {
+                        $project->technologies()->sync($technologyIds);
+                        $hasChanges = true;
+                    } catch (\Exception $syncException) {
+                        Log::error('Errore durante sync delle tecnologie', [
+                            'project_id' => $project->id,
+                            'technology_ids' => $technologyIds,
+                            'error' => $syncException->getMessage(),
+                            'trace' => $syncException->getTraceAsString()
+                        ]);
+                        throw $syncException; // Rilancia l'eccezione per essere gestita dal catch principale
+                    }
+                }
             }
 
+            // Se non ci sono modifiche, ritorna comunque il progetto aggiornato
             // Carica le relazioni per la risposta
+            $project->refresh(); // Assicura che i dati siano aggiornati dal database
             $project->load(['category:id,title', 'technologies:id,title,description']);
 
             return response()->json([
                 'ok' => true,
-                'data' => new ProjectResource($project)
+                'data' => new ProjectResource($project),
+                'message' => $hasChanges ? 'Progetto aggiornato con successo' : 'Nessuna modifica rilevata'
             ], 200, [], JSON_UNESCAPED_UNICODE);
 
         } catch (\Exception $e) {
@@ -228,7 +552,9 @@ class ProjectController extends Controller
                 'project_id' => $project->id,
                 'user_id' => $user->id,
                 'error' => $e->getMessage(),
-                'trace' => $e->getTraceAsString()
+                'trace' => $e->getTraceAsString(),
+                'request_data' => $request->all(),
+                'validated_data' => $validated ?? []
             ]);
 
             return response()->json([
@@ -326,5 +652,54 @@ class ProjectController extends Controller
     {
         $perPage = (int) $perPage;
         return max(1, min($perPage, 100));
+    }
+
+    /**
+     * Genera il nome della cartella utente: {id_utente}{nome_utente}
+     * 
+     * Esempio: 1marziofarina
+     * 
+     * @param \App\Models\User $user
+     * @return string
+     */
+    private function generateUserFolderName($user): string
+    {
+        $username = $user->name ?? $user->email ?? 'user';
+        // Rimuovi spazi e caratteri speciali, mantieni solo alfanumerici
+        $username = preg_replace('/[^a-zA-Z0-9]/', '', $username);
+        return $user->id . $username;
+    }
+
+    /**
+     * Genera uno slug dal nome del progetto per la cartella
+     * 
+     * Esempio: "Mio Progetto" -> "mio-progetto"
+     * 
+     * @param string $projectName
+     * @return string
+     */
+    private function slugifyProjectName(string $projectName): string
+    {
+        // Converte in minuscolo
+        $slug = mb_strtolower($projectName, 'UTF-8');
+        
+        // Sostituisce spazi e caratteri speciali con trattini
+        $slug = preg_replace('/[^a-z0-9]+/', '-', $slug);
+        
+        // Rimuove trattini multipli
+        $slug = preg_replace('/-+/', '-', $slug);
+        
+        // Rimuove trattini iniziali/finali
+        $slug = trim($slug, '-');
+        
+        // Limita la lunghezza (max 50 caratteri)
+        $slug = mb_substr($slug, 0, 50);
+        
+        // Se vuoto, usa un fallback
+        if (empty($slug)) {
+            $slug = 'project-' . time();
+        }
+        
+        return $slug;
     }
 }

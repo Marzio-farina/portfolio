@@ -19,6 +19,9 @@ export class ProjectDetailModalService {
   /** Signal che contiene il progetto appena aggiornato (per aggiornamento immediato della lista) */
   updatedProject = signal<Progetto | null>(null);
 
+  /** Flag per indicare che la cache dei progetti deve essere invalidata alla prossima chiamata */
+  invalidateCacheOnNextLoad = signal(false);
+
   /**
    * Apre la modal di dettaglio progetto con il progetto specificato
    */
@@ -50,6 +53,11 @@ export class ProjectDetailModalService {
   markAsModified(updatedProject: Progetto): void {
     this.hasChanges.set(true);
     this.updatedProject.set(updatedProject); // Salva il progetto aggiornato per aggiornamento immediato
+    this.invalidateCacheOnNextLoad.set(true); // Marca che la cache deve essere invalidata
+    
+    // Invalida il timestamp di sessione per forzare il bypass della cache in tutte le chiamate successive
+    // Questo assicura che anche dopo il primo refresh, le chiamate successive useranno dati freschi
+    sessionStorage.removeItem('projects_session_timestamp');
   }
 
   /**
@@ -58,6 +66,17 @@ export class ProjectDetailModalService {
   resetChanges(): void {
     this.hasChanges.set(false);
     this.updatedProject.set(null); // Reset anche il progetto aggiornato
+    // NON resettiamo invalidateCacheOnNextLoad qui: deve rimanere true per tutta la sessione
+    // dopo una modifica, fino a quando l'utente non ricarica la pagina manualmente
+  }
+
+  /**
+   * Resetta il flag di invalidazione cache (chiamato solo al ricaricamento della pagina)
+   */
+  resetCacheInvalidation(): void {
+    this.invalidateCacheOnNextLoad.set(false);
+    // Ricrea anche un nuovo timestamp di sessione per permettere la cache normale
+    sessionStorage.removeItem('projects_session_timestamp');
   }
 }
 

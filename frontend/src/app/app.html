@@ -69,8 +69,8 @@
 }
 
 @if (isProjectDetailModalOpen() && selectedProject()) {
-  <div class="mf-modal-backdrop" (click)="onProjectDetailClosed()"></div>
-  <div class="mf-modal mf-modal--project" role="dialog" aria-modal="true" aria-label="Dettaglio Progetto" (click)="onProjectDetailClosed()">
+  <div class="mf-modal-backdrop"></div>
+  <div class="mf-modal mf-modal--project" role="dialog" aria-modal="true" aria-label="Dettaglio Progetto">
     <div class="mf-modal__content" (click)="$event.stopPropagation()">
       <app-project-detail-modal
         [project]="selectedProject()!"

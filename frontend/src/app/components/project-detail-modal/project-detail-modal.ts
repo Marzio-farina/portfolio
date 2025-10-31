@@ -49,6 +49,9 @@ export class ProjectDetailModal {
   // Indica se l'immagine è verticale (height > width)
   isVerticalImage = signal<boolean>(false);
 
+  // Indica se c'è stato un errore nel caricamento dell'immagine
+  imageLoadError = signal<boolean>(false);
+
   // Form per l'editing
   editForm!: FormGroup;
   isEditing = computed(() => this.editModeService.isEditing());
@@ -71,7 +74,7 @@ export class ProjectDetailModal {
     this.editForm = this.fb.group({
       title: ['', [Validators.required, Validators.maxLength(50)]],
       category_id: ['', [Validators.required]],
-      description: ['', [Validators.maxLength(1000)]]
+      description: ['', [Validators.required, Validators.maxLength(1000)]]
     });
 
     // Carica le categorie e le tecnologie
@@ -84,6 +87,8 @@ export class ProjectDetailModal {
       if (proj && this.editForm) {
         // Popola immediatamente il form
         this.updateFormValues(proj);
+        // Reset errore immagine quando cambia il progetto
+        this.imageLoadError.set(false);
       }
     });
 
@@ -214,7 +219,18 @@ export class ProjectDetailModal {
       // Calcola la larghezza del contenitore basata sull'altezza fissa e l'aspect ratio
       const calculatedWidth = this.containerHeight * (width / height);
       this.containerWidth.set(calculatedWidth);
+      
+      // Reset errore se l'immagine si carica correttamente
+      this.imageLoadError.set(false);
     }
+  }
+
+  /**
+   * Gestisce l'errore di caricamento dell'immagine
+   */
+  onImgError(ev: Event): void {
+    this.imageLoadError.set(true);
+    console.warn('Errore caricamento immagine progetto:', this.project().poster);
   }
 
   /**

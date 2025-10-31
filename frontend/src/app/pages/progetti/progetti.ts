@@ -1,4 +1,4 @@
-import { Component, computed, inject, signal, effect } from '@angular/core';
+import { Component, computed, inject, signal, effect, OnDestroy } from '@angular/core';
 import { toSignal } from '@angular/core/rxjs-interop';
 import { ActivatedRoute, Router } from '@angular/router';
 import { map } from 'rxjs';
@@ -30,7 +30,7 @@ export interface NotificationItem {
   templateUrl: './progetti.html',
   styleUrl: './progetti.css'
 })
-export class Progetti {
+export class Progetti implements OnDestroy {
   private route = inject(ActivatedRoute);
   private router = inject(Router);
   private api   = inject(ProjectService);
@@ -75,6 +75,10 @@ export class Progetti {
   private isUpdatingProject = false;
 
   constructor() {
+    // Resetta l'invalidazione cache solo se non c'è stato un refresh della pagina dopo una modifica
+    // Se siamo arrivati qui dopo una navigazione normale, mantieni il flag se era già impostato
+    // (viene controllato automaticamente in loadProjects)
+    
     // Verifica se siamo arrivati da add-project con successo
     const queryParams = this.route.snapshot.queryParams;
     if (queryParams['created'] === 'true') {
@@ -134,10 +138,29 @@ export class Progetti {
     });
   }
 
+  ngOnDestroy(): void {
+    // Il flag invalidateCacheOnNextLoad nel ProjectDetailModalService
+    // verrà controllato automaticamente alla prossima chiamata di loadProjects()
+    // quando il componente viene ricreato, quindi non serve fare nulla qui
+  }
+
   private loadProjects(forceRefresh = false): void {
     this.loading.set(true);
     const uid = this.tenant.userId();
-    this.api.listAll$(1000, uid ?? undefined, forceRefresh).subscribe({
+    
+    // Se il servizio indica di invalidare la cache, forza il refresh
+    const shouldInvalidateCache = this.projectDetailModal.invalidateCacheOnNextLoad();
+    const finalForceRefresh = forceRefresh || shouldInvalidateCache;
+    
+    // Se abbiamo usato l'invalidazione, resetta il flag DOPO la chiamata
+    // ma NON resettare invalidateCacheOnNextLoad, perché vogliamo che tutte le chiamate successive
+    // in questa sessione usino dati freschi (il timestamp di sessione è già stato invalidato in markAsModified)
+    if (shouldInvalidateCache) {
+      // Il flag viene mantenuto true per assicurare che tutte le chiamate successive usino forceRefresh
+      // fino a quando non si ricarica la pagina o si naviga via
+    }
+    
+    this.api.listAll$(1000, uid ?? undefined, finalForceRefresh).subscribe({
       next: data => { 
         if (!data || data.length === 0) {
           // Seed demo: 6 card stile YouTube con poster random

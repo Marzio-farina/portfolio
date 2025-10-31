@@ -38,21 +38,40 @@ export class ProjectService {
     const params: any = { page, per_page: perPage };
     if (userId) params.user_id = String(userId);
     
-    // Aggiungi timestamp per bypassare la cache quando si forza il refresh
-    if (forceRefresh) {
+    // Verifica se il timestamp di sessione è stato invalidato (rimosso dopo una modifica)
+    const existingSessionTimestamp = sessionStorage.getItem('projects_session_timestamp');
+    const hasInvalidatedSession = !existingSessionTimestamp;
+    
+    // Se forceRefresh è true O se la sessione è stata invalidata, usa timestamp unico
+    // Questo garantisce che dopo una modifica, TUTTE le chiamate successive usino dati freschi
+    if (forceRefresh || hasInvalidatedSession) {
+      // Timestamp unico per ogni chiamata - bypassa completamente la cache
       params['_t'] = Date.now();
+      params['_nocache'] = '1';
+      // NON ricreare il timestamp di sessione finché non viene esplicitamente resettato
+    } else {
+      // Timestamp di sessione (cambia solo quando si ricarica la pagina)
+      // Questo permette la cache durante la stessa sessione (quando non ci sono modifiche)
+      const sessionTimestamp = existingSessionTimestamp || Date.now().toString();
+      sessionStorage.setItem('projects_session_timestamp', sessionTimestamp);
+      params['_s'] = sessionTimestamp;
     }
     
-    // Headers per disabilitare cache quando si forza il refresh
-    const headers = forceRefresh ? new HttpHeaders({
-      'Cache-Control': 'no-cache, no-store, must-revalidate',
+    // Headers per disabilitare completamente la cache quando si forza il refresh o sessione invalidata
+    const shouldBypassCache = forceRefresh || hasInvalidatedSession;
+    const headers = shouldBypassCache ? new HttpHeaders({
+      'Cache-Control': 'no-cache, no-store, must-revalidate, max-age=0',
       'Pragma': 'no-cache',
-      'Expires': '0'
+      'Expires': '0',
+      'If-Modified-Since': '0',
+      'If-None-Match': '*'
     }) : undefined;
     
     return this.http.get<Paginated<ProjectDto>>(url, { 
       params,
-      headers
+      headers,
+      // Forza il bypass della cache del browser quando necessario
+      observe: 'body' as const
     }).pipe(
       map(response => ({
         ...response,
@@ -82,6 +101,23 @@ export class ProjectService {
    */
   create$(data: FormData): Observable<any> {
     const url = apiUrl('projects');
+    
+    // Log FormData (non possiamo ispezionare direttamente, ma loggiamo ciò che possiamo)
+    console.log('=== ProjectService.create$ ===', {
+      url,
+      formData_keys: Array.from(data.keys()),
+      has_title: data.has('title'),
+      has_category_id: data.has('category_id'),
+      has_description: data.has('description'),
+      has_poster_file: data.has('poster_file'),
+      has_video_file: data.has('video_file'),
+      // Prova a leggere i valori testuali (non i file)
+      title: data.get('title'),
+      category_id: data.get('category_id'),
+      description: data.get('description'),
+      description_type: typeof data.get('description'),
+    });
+    
     return this.http.post<any>(url, data);
   }
 

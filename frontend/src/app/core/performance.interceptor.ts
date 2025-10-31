@@ -33,10 +33,17 @@ export class PerformanceInterceptor implements HttpInterceptor {
     
     this.requestTimings.set(requestId, startTime);
     
+    // Controlla se la richiesta ha già headers per il bypass della cache
+    const hasNoCacheHeader = req.headers.has('Cache-Control') && 
+                             req.headers.get('Cache-Control')?.includes('no-cache');
+    
     const optimizedReq = req.clone({
       setHeaders: {
-        'Cache-Control': 'no-cache',
-        'Pragma': 'no-cache',
+        // Se la richiesta ha già headers no-cache, non sovrascriverli
+        ...(hasNoCacheHeader ? {} : {
+          'Cache-Control': 'no-cache',
+          'Pragma': 'no-cache'
+        }),
         'Connection': 'keep-alive'
       }
     });

@@ -29,7 +29,7 @@
   <!-- Contenuto scrollabile unico -->
   <div class="project-detail-modal__scrollable">
     <form [formGroup]="editForm">
-      @if (project().poster) {
+      @if (project().poster && !imageLoadError()) {
         <div class="project-detail-modal__image" [class.image-vertical]="isVerticalImage()">
           <div 
             class="project-detail-modal__image-container"
@@ -39,9 +39,14 @@
               [src]="project().poster"
               [alt]="project().title"
               (load)="onImgLoad($event)"
+              (error)="onImgError($event)"
               class="project-detail-modal__image-img"
             />
           </div>
+        </div>
+      } @else if (imageLoadError()) {
+        <div class="project-detail-modal__image-error">
+          <p>Immagine non disponibile</p>
         </div>
       }
 
@@ -113,7 +118,7 @@
         </div>
 
         <div class="project-detail-modal__field">
-          <span class="project-detail-modal__label">Descrizione:</span>
+          <span class="project-detail-modal__label">Descrizione: <span class="project-detail-modal__required">*</span></span>
           @if (canEdit()) {
             <textarea 
               formControlName="description"
