@@ -86,6 +86,16 @@ export class App {
     this.setupAuthenticationEffect();
     this.setupIdleTimeoutHandler();
     this.checkPasswordResetParams();
+    
+    // Blocca lo scroll del body quando qualsiasi modale è aperto
+    effect(() => {
+      const isModalOpen = this.isAttestatoDetailModalOpen() || this.isLoginOpen() || this.isCvUploadModalOpen() || this.isCvPreviewModalOpen();
+      if (isModalOpen) {
+        document.body.style.overflow = 'hidden';
+      } else {
+        document.body.style.overflow = '';
+      }
+    });
   }
 
   /**

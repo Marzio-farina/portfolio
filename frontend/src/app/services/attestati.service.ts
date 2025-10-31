@@ -47,6 +47,24 @@ export class AttestatiService {
   }
 
   /**
+   * Aggiorna un attestato esistente
+   */
+  update$(id: number, data: Partial<{
+    title: string;
+    description: string;
+    issuer: string;
+    issued_at: string;
+    expires_at: string;
+    credential_id: string;
+    credential_url: string;
+    status: string;
+    is_featured: boolean;
+  }>): Observable<Attestato> {
+    const url = apiUrl(`attestati/${id}`);
+    return this.http.put<Attestato>(url, data);
+  }
+
+  /**
    * Soft-delete di un attestato
    */
   delete$(id: number) {

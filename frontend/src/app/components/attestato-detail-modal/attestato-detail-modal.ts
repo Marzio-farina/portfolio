@@ -1,17 +1,26 @@
-import { Component, inject, input, output, signal } from '@angular/core';
+import { Component, inject, input, output, signal, computed, effect, afterNextRender } from '@angular/core';
+import { ReactiveFormsModule, FormBuilder, FormGroup, Validators, AbstractControl, ValidationErrors } from '@angular/forms';
 import { NgOptimizedImage } from '@angular/common';
 import { AttestatoDetailModalService } from '../../services/attestato-detail-modal.service';
 import { Attestato } from '../../models/attestato.model';
+import { EditModeService } from '../../services/edit-mode.service';
+import { AuthService } from '../../services/auth.service';
+import { AttestatiService } from '../../services/attestati.service';
+import { Notification, NotificationType } from '../notification/notification';
 
 @Component({
   selector: 'app-attestato-detail-modal',
   standalone: true,
-  imports: [NgOptimizedImage],
+  imports: [NgOptimizedImage, ReactiveFormsModule, Notification],
   templateUrl: './attestato-detail-modal.html',
   styleUrls: ['./attestato-detail-modal.css', './attestato-detail-modal.responsive.css']
 })
 export class AttestatoDetailModal {
   private attestatoDetailModalService = inject(AttestatoDetailModalService);
+  private editModeService = inject(EditModeService);
+  private authService = inject(AuthService);
+  private attestatiService = inject(AttestatiService);
+  private fb = inject(FormBuilder);
 
   // Riceve l'attestato dal servizio tramite computed
   attestato = input.required<Attestato>();
@@ -31,6 +40,20 @@ export class AttestatoDetailModal {
 
   // Indica se l'immagine è verticale (height > width)
   isVerticalImage = signal<boolean>(false);
+
+  // Form per l'editing
+  editForm!: FormGroup;
+  isEditing = computed(() => this.editModeService.isEditing());
+  isAuthenticated = computed(() => this.authService.isAuthenticated());
+  canEdit = computed(() => this.isAuthenticated() && this.isEditing());
+  saving = signal(false);
+  notifications = signal<{ id: string; message: string; type: NotificationType; timestamp: number; fieldId: string; }[]>([]);
+  
+  // Data per formattazione date
+  readonly todayStr = (() => {
+    const d = new Date();
+    return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`;
+  })();
 
   /**
    * Chiude la modal
@@ -70,6 +93,79 @@ export class AttestatoDetailModal {
     }
   }
 
+  constructor() {
+    // Inizializza il form
+    this.editForm = this.fb.group({
+      title: ['', [Validators.required, Validators.maxLength(150)]],
+      issuer: ['', [Validators.maxLength(150)]],
+      issued_at: [''],
+      expires_at: [''],
+      credential_url: ['', [
+        (control: AbstractControl): ValidationErrors | null => {
+          const value = control.value;
+          if (!value || value.trim() === '') return null; // Campo opzionale, valido se vuoto
+          const urlPattern = /^https?:\/\/.+/;
+          return urlPattern.test(value) ? null : { pattern: true };
+        },
+        Validators.maxLength(255)
+      ]],
+      description: ['', [Validators.maxLength(1000)]]
+    });
+
+    // Aggiorna il form quando cambia l'attestato
+    effect(() => {
+      const att = this.attestato();
+      if (att && this.editForm) {
+        // Popola immediatamente il form
+        this.updateFormValues(att);
+      }
+    });
+
+    // Assicura che il form sia aggiornato anche dopo il primo render
+    afterNextRender(() => {
+      const att = this.attestato();
+      if (att && this.editForm) {
+        this.updateFormValues(att);
+      }
+    });
+  }
+
+  /**
+   * Aggiorna i valori del form con i dati dell'attestato
+   */
+  private updateFormValues(att: Attestato): void {
+    if (!this.editForm) return;
+    
+    // Usa setTimeout per assicurarsi che il form sia completamente inizializzato nel DOM
+    setTimeout(() => {
+      if (this.editForm) {
+        this.editForm.patchValue({
+          title: att.title || '',
+          issuer: att.issuer || '',
+          issued_at: att.date ? this.formatDateForInput(att.date) : '',
+          expires_at: '', // Non presente nel modello frontend attuale
+          credential_url: att.badgeUrl || '',
+          description: '' // Non presente nel modello frontend attuale
+        }, { emitEvent: false });
+      }
+    }, 0);
+  }
+
+  /**
+   * Converte una data dal formato stringa al formato input (yyyy-mm-dd)
+   */
+  formatDateForInput(dateString: string): string {
+    try {
+      const date = new Date(dateString);
+      const year = date.getFullYear();
+      const month = String(date.getMonth() + 1).padStart(2, '0');
+      const day = String(date.getDate()).padStart(2, '0');
+      return `${year}-${month}-${day}`;
+    } catch {
+      return '';
+    }
+  }
+
   /**
    * Formatta la data in formato italiano
    */
@@ -86,6 +182,99 @@ export class AttestatoDetailModal {
     } catch {
       return dateString;
     }
+  }
+
+  /**
+   * Salva le modifiche all'attestato
+   */
+  onSave(): void {
+    if (this.saving() || this.editForm.invalid) return;
+
+    this.saving.set(true);
+    this.notifications.set([]);
+
+    const formValue = this.editForm.getRawValue();
+    const updateData: any = {};
+
+    // Invia solo i campi modificati
+    if (formValue.title && formValue.title !== this.attestato().title) {
+      updateData.title = formValue.title.trim();
+    }
+    if (formValue.issuer !== (this.attestato().issuer || '')) {
+      updateData.issuer = formValue.issuer?.trim() || null;
+    }
+    if (formValue.issued_at) {
+      updateData.issued_at = formValue.issued_at;
+    }
+    if (formValue.expires_at) {
+      updateData.expires_at = formValue.expires_at;
+    }
+    if (formValue.credential_url !== (this.attestato().badgeUrl || '')) {
+      updateData.credential_url = formValue.credential_url?.trim() || null;
+    }
+    if (formValue.description !== undefined) {
+      updateData.description = formValue.description?.trim() || null;
+    }
+
+    this.attestatiService.update$(this.attestato().id, updateData).subscribe({
+      next: (updatedAttestato) => {
+        this.saving.set(false);
+        this.addNotification('success', 'Attestato aggiornato con successo!');
+        
+        // IMPORTANTE: Aggiorna prima selectedAttestato per aggiornare il dialog
+        // POI marca come modificato per aggiornare la lista (questo evita conflitti)
+        this.attestatoDetailModalService.selectedAttestato.set(updatedAttestato);
+        
+        // Poi marca come modificato per triggerare l'aggiornamento della lista
+        // Questo permette all'effect nella pagina attestati di processare l'aggiornamento
+        this.attestatoDetailModalService.markAsModified(updatedAttestato);
+      },
+      error: (err) => {
+        this.saving.set(false);
+        const message = err?.error?.message || err?.error?.errors?.message?.[0] || 'Errore durante il salvataggio';
+        this.addNotification('error', message);
+      }
+    });
+  }
+
+  /**
+   * Annulla le modifiche
+   */
+  onCancel(): void {
+    // Ripristina i valori originali
+    const att = this.attestato();
+    this.editForm.patchValue({
+      title: att.title || '',
+      issuer: att.issuer || '',
+      issued_at: att.date ? this.formatDateForInput(att.date) : '',
+      expires_at: '',
+      credential_url: att.badgeUrl || '',
+      description: ''
+    }, { emitEvent: false });
+    this.notifications.set([]);
+  }
+
+  /**
+   * Gestisce le notifiche
+   */
+  private addNotification(type: NotificationType, message: string): void {
+    this.notifications.update(list => [
+      ...list.filter(n => n.fieldId !== 'global'),
+      {
+        id: `global-${Date.now()}`,
+        message,
+        type,
+        timestamp: Date.now(),
+        fieldId: 'global'
+      }
+    ]);
+  }
+
+  getMostSevereNotification() {
+    const list = this.notifications();
+    if (!list.length) return null;
+    const order: NotificationType[] = ['error', 'warning', 'info', 'success'];
+    return [...list].sort((a, b) => order.indexOf(a.type) - order.indexOf(b.type))[0];
   }
 }
 

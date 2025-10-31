@@ -156,8 +156,9 @@ Route::middleware(['api', "throttle:{$throttleLimit}", 'db.connection'])
             Route::post('cv-files/upload', [CvFileController::class, 'upload']);
             Route::delete('cv-files/{id}', [CvFileController::class, 'delete']);
             
-            // Attestati - creazione richiede autenticazione
+            // Attestati - creazione, aggiornamento ed eliminazione richiedono autenticazione
             Route::post('attestati', [AttestatiController::class, 'store']);
+            Route::put('attestati/{attestato}', [AttestatiController::class, 'update']);
             Route::delete('attestati/{attestato}', [AttestatiController::class, 'destroy']);
             
             // Projects - creazione ed eliminazione richiedono autenticazione

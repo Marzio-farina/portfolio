@@ -58,7 +58,7 @@
 
 @if (isAttestatoDetailModalOpen() && selectedAttestato()) {
   <div class="mf-modal-backdrop" (click)="onAttestatoDetailClosed()"></div>
-  <div class="mf-modal" role="dialog" aria-modal="true" aria-label="Dettaglio Attestato" (click)="onAttestatoDetailClosed()">
+  <div class="mf-modal mf-modal--attestato" role="dialog" aria-modal="true" aria-label="Dettaglio Attestato" (click)="onAttestatoDetailClosed()">
     <div class="mf-modal__content" (click)="$event.stopPropagation()" style="width: auto; max-width: 800px;">
       <app-attestato-detail-modal
         [attestato]="selectedAttestato()!"

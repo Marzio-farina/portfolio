@@ -1,7 +1,24 @@
+<app-notification
+  [notifications]="notifications()"
+  [showMultiple]="false"
+  [mostSevereNotification]="getMostSevereNotification()">
+</app-notification>
+
 <div class="attestato-detail-modal">
+  <!-- Header fisso (non scrollabile) -->
   <div class="attestato-detail-modal__header">
-    <h2 class="attestato-detail-modal__title">{{ attestato().title }}</h2>
+    @if (canEdit()) {
+      <input 
+        type="text"
+        [formControl]="$any(editForm.get('title'))"
+        class="attestato-detail-modal__title-input"
+        placeholder="Titolo attestato"
+        maxlength="150">
+    } @else {
+      <h2 class="attestato-detail-modal__title">{{ attestato().title }}</h2>
+    }
     <button 
+      type="button"
       class="attestato-detail-modal__close" 
       (click)="onClose()" 
       aria-label="Chiudi">
@@ -9,60 +26,142 @@
     </button>
   </div>
 
-  <div class="attestato-detail-modal__content">
-    @if (attestato().img; as img) {
-      <div class="attestato-detail-modal__image" [class.image-vertical]="isVerticalImage()">
-        <div 
-          class="attestato-detail-modal__image-container"
-          [style.width.px]="containerWidth()"
-          [style.height.px]="containerHeight">
-          <img
-            [ngSrc]="img.src"
-            fill
-            [alt]="img.alt || attestato().title"
-            [sizes]="img.sizes || '100vw'"
-            [priority]="true"
-            (load)="onImgLoad($event)"
-            class="attestato-detail-modal__image-img"
-          />
+  <!-- Contenuto scrollabile unico -->
+  <div class="attestato-detail-modal__scrollable">
+    <form [formGroup]="editForm">
+      @if (attestato().img; as img) {
+        <div class="attestato-detail-modal__image" [class.image-vertical]="isVerticalImage()">
+          <div 
+            class="attestato-detail-modal__image-container"
+            [style.width.px]="containerWidth()"
+            [style.height.px]="containerHeight">
+            <img
+              [ngSrc]="img.src"
+              fill
+              [alt]="img.alt || attestato().title"
+              [sizes]="img.sizes || '100vw'"
+              [priority]="true"
+              (load)="onImgLoad($event)"
+              class="attestato-detail-modal__image-img"
+            />
+          </div>
+        </div>
+      }
+
+      <div class="attestato-detail-modal__info">
+        <div class="attestato-detail-modal__field">
+          <span class="attestato-detail-modal__label">
+            Ente rilasciante:
+          </span>
+          @if (canEdit()) {
+            <input 
+              type="text"
+              formControlName="issuer"
+              class="attestato-detail-modal__value-input"
+              placeholder="Ente rilasciante"
+              maxlength="150">
+          } @else {
+            @if (attestato().issuer) {
+              <span class="attestato-detail-modal__value">{{ attestato().issuer }}</span>
+            }
+          }
+        </div>
+
+        <div class="attestato-detail-modal__field">
+          <span class="attestato-detail-modal__label">
+            Data rilascio:
+          </span>
+          @if (canEdit()) {
+            <input 
+              type="date"
+              formControlName="issued_at"
+              class="attestato-detail-modal__value-input"
+              [max]="todayStr">
+          } @else {
+            @if (attestato().date) {
+              <span class="attestato-detail-modal__value">{{ formatDate(attestato().date) }}</span>
+            }
+          }
+        </div>
+
+        <div class="attestato-detail-modal__field">
+          <span class="attestato-detail-modal__label">
+            Credenziale:
+          </span>
+          @if (canEdit()) {
+            <input 
+              type="url"
+              formControlName="credential_url"
+              class="attestato-detail-modal__value-input"
+              placeholder="https://..."
+              maxlength="255">
+          } @else {
+            @if (attestato().badgeUrl) {
+              <a 
+                [href]="attestato().badgeUrl" 
+                target="_blank" 
+                rel="noopener noreferrer"
+                class="attestato-detail-modal__link"
+                (click)="onBadgeClick($event)">
+                Visualizza credenziale esterna
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                  <path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"></path>
+                  <polyline points="15 3 21 3 21 9"></polyline>
+                  <line x1="10" y1="14" x2="21" y2="3"></line>
+                </svg>
+              </a>
+            }
+          }
         </div>
       </div>
-    }
 
-    <div class="attestato-detail-modal__info">
-      @if (attestato().issuer) {
-        <div class="attestato-detail-modal__field">
-          <span class="attestato-detail-modal__label">Ente rilasciante:</span>
-          <span class="attestato-detail-modal__value">{{ attestato().issuer }}</span>
+      @if (canEdit()) {
+        <div class="attestato-detail-modal__actions attestato-detail-modal__actions--mobile">
+          <button 
+            type="button"
+            class="attestato-detail-modal__btn attestato-detail-modal__btn--cancel"
+            (click)="onCancel()"
+            [disabled]="saving()">
+            Annulla
+          </button>
+          <button 
+            type="button"
+            class="attestato-detail-modal__btn attestato-detail-modal__btn--save"
+            (click)="onSave()"
+            [disabled]="saving() || editForm.invalid">
+            @if (saving()) {
+              <span>Salvataggio...</span>
+            } @else {
+              <span>Salva</span>
+            }
+          </button>
         </div>
       }
-
-      @if (attestato().date) {
-        <div class="attestato-detail-modal__field">
-          <span class="attestato-detail-modal__label">Data rilascio:</span>
-          <span class="attestato-detail-modal__value">{{ formatDate(attestato().date) }}</span>
-        </div>
-      }
-
-      @if (attestato().badgeUrl) {
-        <div class="attestato-detail-modal__field">
-          <span class="attestato-detail-modal__label">Credenziale:</span>
-          <a 
-            [href]="attestato().badgeUrl" 
-            target="_blank" 
-            rel="noopener noreferrer"
-            class="attestato-detail-modal__link"
-            (click)="onBadgeClick($event)">
-            Visualizza credenziale esterna
-            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-              <path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"></path>
-              <polyline points="15 3 21 3 21 9"></polyline>
-              <line x1="10" y1="14" x2="21" y2="3"></line>
-            </svg>
-          </a>
-        </div>
-      }
-    </div>
+    </form>
   </div>
+
+  <!-- Versione desktop: pulsanti fuori dal dialog -->
+  @if (canEdit()) {
+    <div class="attestato-detail-modal__actions attestato-detail-modal__actions--desktop">
+      <button 
+        type="button"
+        class="attestato-detail-modal__btn attestato-detail-modal__btn--cancel"
+        (click)="onCancel()"
+        [disabled]="saving()">
+        Annulla
+      </button>
+      <button 
+        type="button"
+        class="attestato-detail-modal__btn attestato-detail-modal__btn--save"
+        (click)="onSave()"
+        [disabled]="saving() || editForm.invalid">
+        @if (saving()) {
+          <span>Salvataggio...</span>
+        } @else {
+          <span>Salva</span>
+        }
+      </button>
+    </div>
+  }
 </div>
 

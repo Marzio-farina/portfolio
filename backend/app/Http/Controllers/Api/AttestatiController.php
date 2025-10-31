@@ -170,6 +170,68 @@ class AttestatiController extends Controller
     }
 
     /**
+     * PUT /api/attestati/{attestato}
+     * Aggiorna un attestato esistente
+     */
+    public function update(Request $request, Attestato $attestato): JsonResponse
+    {
+        $userId = Auth::id();
+        if (!$userId) {
+            return response()->json(['ok' => false, 'message' => 'Non autenticato'], 401);
+        }
+
+        // Verifica che l'utente sia il proprietario
+        if ($attestato->user_id !== $userId) {
+            return response()->json(['ok' => false, 'message' => 'Non autorizzato'], 403);
+        }
+
+        $validated = $request->validate([
+            'title' => 'sometimes|string|max:150',
+            'description' => 'nullable|string|max:1000',
+            'issuer' => 'nullable|string|max:150',
+            'issued_at' => 'nullable|date',
+            'expires_at' => 'nullable|date',
+            'credential_id' => 'nullable|string|max:100',
+            'credential_url' => 'nullable|string|url|max:255',
+            'status' => 'nullable|string|in:draft,published',
+            'is_featured' => 'nullable|boolean',
+        ]);
+
+        // Valida l'ordine delle date se entrambe sono presenti
+        if (isset($validated['issued_at']) && isset($validated['expires_at'])) {
+            if ($validated['issued_at'] && $validated['expires_at']) {
+                $issued = new \DateTime($validated['issued_at']);
+                $expires = new \DateTime($validated['expires_at']);
+                if ($issued > $expires) {
+                    return response()->json([
+                        'ok' => false,
+                        'message' => 'La data di scadenza non può essere precedente alla data di rilascio',
+                    ], 422);
+                }
+            }
+        }
+
+        // Aggiorna solo i campi validati
+        if (array_key_exists('title', $validated)) $attestato->title = $validated['title'];
+        if (array_key_exists('description', $validated)) $attestato->description = $validated['description'];
+        if (array_key_exists('issuer', $validated)) $attestato->issuer = $validated['issuer'];
+        if (array_key_exists('issued_at', $validated)) $attestato->issued_at = $validated['issued_at'];
+        if (array_key_exists('expires_at', $validated)) $attestato->expires_at = $validated['expires_at'];
+        if (array_key_exists('credential_id', $validated)) $attestato->credential_id = $validated['credential_id'];
+        if (array_key_exists('credential_url', $validated)) $attestato->credential_url = $validated['credential_url'];
+        if (array_key_exists('status', $validated)) $attestato->status = $validated['status'];
+        if (array_key_exists('is_featured', $validated)) {
+            $attestato->is_featured = filter_var($validated['is_featured'], FILTER_VALIDATE_BOOLEAN);
+        }
+
+        $attestato->save();
+
+        return response()->json(
+            new AttestatoResource($attestato)
+        );
+    }
+
+    /**
      * DELETE /api/attestati/{attestato}
      * Soft-delete (popola deleted_at) e ritorna 204.
      */

@@ -1,7 +1,6 @@
 /* Media query esistente spostata dal file principale */
 @media (max-width: 768px) {
   .attestato-detail-modal {
-    width: 95vw;
     max-width: 350px; /* Mantiene il limite anche su mobile */
   }
 
@@ -14,9 +13,46 @@
     font-size: 1.5rem;
   }
 
-  .attestato-detail-modal__content {
+  /* Aggiornato per la nuova struttura con scrollable */
+  .attestato-detail-modal__scrollable form {
     padding: 1rem;
     gap: 1rem;
+  }
+
+  /* Assicura che i pulsanti mobile siano sempre visibili su dispositivi piccoli */
+  .attestato-detail-modal__actions--mobile {
+    display: flex !important;
+    margin-top: 24px;
+    padding-top: 20px;
+    padding-bottom: 1rem;
+    border-top: 1px solid var(--border-primary);
+    justify-content: flex-end;
+  }
+}
+
+/* Dispositivi molto piccoli (< 500px) - i pulsanti devono essere sempre dentro il dialog */
+@media (max-width: 499.98px) {
+  /* Assicura che i pulsanti siano sempre dentro il dialog */
+  .attestato-detail-modal {
+    max-height: 95vh; /* Dà più spazio per i pulsanti */
+    /* Lo scroll è gestito dal contenitore scrollable, non dal modale stesso */
+  }
+
+  /* I pulsanti mobile devono essere sempre visibili */
+  .attestato-detail-modal__actions--mobile {
+    display: flex !important;
+    position: relative; /* Dentro il dialog, non fixed */
+    margin-top: 24px;
+    padding-top: 20px;
+    padding-bottom: 1.5rem; /* Più padding per visibilità */
+    border-top: 1px solid var(--border-primary);
+    justify-content: flex-end;
+    flex-shrink: 0; /* Non si rimpicciolisce */
+  }
+
+  /* I pulsanti desktop devono essere sempre nascosti */
+  .attestato-detail-modal__actions--desktop {
+    display: none !important;
   }
 }
 
@@ -45,6 +81,46 @@
   .attestato-detail-modal__info .attestato-detail-modal__field:nth-child(3) {
     grid-column: 1 / -1;
     grid-row: 2;
+  }
+}
+
+/* Nascondi i pulsanti desktop di default (su mobile) */
+.attestato-detail-modal__actions--desktop {
+  display: none;
+}
+
+/* Pulsanti azioni fuori dal dialog per dispositivi grandi (> 768px) */
+@media (min-width: 768.02px) {
+  /* Aumenta la larghezza del dialog per dispositivi grandi */
+  .attestato-detail-modal {
+    max-width: 700px;
+    width: 380px;
+  }
+
+  /* Aumenta lo spazio tra le colonne per evitare il ritorno a capo */
+  .attestato-detail-modal__info {
+    column-gap: 2.5rem;
+  }
+
+  /* Previeni il ritorno a capo del label */
+  .attestato-detail-modal__label {
+    white-space: nowrap;
+  }
+
+  /* Nascondi i pulsanti mobile su schermi grandi */
+  .attestato-detail-modal__actions--mobile {
+    display: none;
+  }
+
+  /* Mostra e posiziona i pulsanti desktop fuori dal dialog */
+  .attestato-detail-modal__actions--desktop {
+    display: flex;
+    gap: 12px;
+    position: fixed;
+    top: 20px;
+    right: 20px;
+    z-index: 1202;
+    pointer-events: auto;
   }
 }
 

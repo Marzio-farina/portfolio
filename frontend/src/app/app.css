@@ -206,6 +206,7 @@
   align-items: flex-start;    /* allinea in alto */
   padding-top: 10vh;           /* distanza dal bordo superiore: 10vh */
   z-index: 1201;
+  overflow: hidden; /* Previene lo scroll del container del modale */
 }
 
 /* Per dispositivi piccoli, il modal degli attestati ha solo 10% di margin dal bordo superiore */
@@ -220,11 +221,18 @@
   width: 335px;            /* larghezza fissa richiesta */
   max-width: 92vw;         /* prevenzione overflow su viewport stretti */
   max-height: 88vh;
-  overflow: auto;
+  overflow: visible; /* Il contenuto interno gestisce lo scroll */
   border: 1px solid var(--border-primary);
   border-radius: 16px;
   background: var(--bg-card);
   box-shadow: var(--shadow-1);
+}
+
+/* Per il modale degli attestati, il contenuto interno gestisce lo scroll */
+.mf-modal--attestato .mf-modal__content {
+  overflow: visible;
+  max-height: none; /* Rimuove il limite di altezza, è gestito dal modale stesso */
+  width: auto; /* Permette al modale di gestire la sua larghezza */
 }
 
 .mf-modal__close {
