@@ -121,7 +121,13 @@ export class AddAttestato {
   }
 
   goBack(): void {
-    this.tenantRouter.navigate(['attestati']);
+    // Naviga alla pagina corretta: con userSlug se presente, altrimenti /attestati
+    const userSlug = this.tenant.userSlug();
+    if (userSlug) {
+      this.router.navigate([`/${userSlug}/attestati`]);
+    } else {
+      this.tenantRouter.navigate(['attestati']);
+    }
   }
 
   onFileSelected(event: Event): void {
@@ -232,7 +238,13 @@ export class AddAttestato {
       next: () => {
         this.uploading.set(false);
         this.notifications.set([]);
-        this.tenantRouter.navigate(['attestati'], { queryParams: { refresh: '1', t: Date.now() } });
+        // Naviga alla pagina corretta: con userSlug se presente, altrimenti /attestati
+        const userSlug = this.tenant.userSlug();
+        if (userSlug) {
+          this.router.navigate([`/${userSlug}/attestati`], { queryParams: { refresh: '1', t: Date.now() } });
+        } else {
+          this.tenantRouter.navigate(['attestati'], { queryParams: { refresh: '1', t: Date.now() } });
+        }
       },
       error: (err: any) => {
         let message = 'Errore durante la creazione dell\'attestato';
@@ -270,7 +282,13 @@ export class AddAttestato {
   onCancel(): void {
     if (!this.uploading()) {
       this.notifications.set([]);
-      this.tenantRouter.navigate(['attestati']);
+      // Naviga alla pagina corretta: con userSlug se presente, altrimenti /attestati
+      const userSlug = this.tenant.userSlug();
+      if (userSlug) {
+        this.router.navigate([`/${userSlug}/attestati`]);
+      } else {
+        this.tenantRouter.navigate(['attestati']);
+      }
     }
   }
 

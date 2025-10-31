@@ -48,7 +48,13 @@ class AttestatiController extends Controller
         $q = Attestato::query();
 
         if ($userId) {
+            // Se user_id è specificato, mostra solo gli attestati di quell'utente
             $q->where('user_id', $userId);
+        } else {
+            // Se user_id NON è specificato, mostra solo gli attestati dell'utente principale (ID 1)
+            // Questo garantisce che sul path senza slug si vedano solo gli attestati dell'utente principale
+            $publicUserId = (int) (env('PUBLIC_USER_ID') ?? 1); // Default a 1 se non configurato
+            $q->where('user_id', $publicUserId);
         }
 
         if ($status !== 'all') {
@@ -325,18 +331,32 @@ class AttestatiController extends Controller
     /**
      * DELETE /api/attestati/{attestato}
      * Soft-delete (popola deleted_at) e ritorna 204.
+     * L'utente deve essere il proprietario dell'attestato o admin.
      */
     public function destroy(Attestato $attestato): JsonResponse
     {
-        // opzionale: verifica proprietà dell'utente
-        $userId = Auth::id();
-        if (!$userId) {
+        $user = Auth::user();
+        if (!$user) {
             return response()->json(['ok' => false, 'message' => 'Non autenticato'], 401);
         }
 
-        // Se vuoi restringere al proprietario: (commenta se non necessario)
-        if ($attestato->user_id !== $userId) {
-            return response()->json(['ok' => false, 'message' => 'Non autorizzato'], 403);
+        $userId = $user->id;
+        $userEmail = $user->email;
+        $attestatoUserId = $attestato->user_id;
+
+        // Verifica se l'utente è admin (stesso controllo usato per i progetti)
+        $isAdmin = $userEmail === env('PUBLIC_USER_EMAIL', 'marziofarina@icloud.com');
+
+        // Autorizzazione:
+        // - L'utente è il proprietario dell'attestato OPPURE
+        // - L'utente è admin (può eliminare qualsiasi attestato)
+        $isAuthorized = ($attestatoUserId === $userId) || $isAdmin;
+
+        if (!$isAuthorized) {
+            return response()->json([
+                'ok' => false,
+                'message' => 'Non autorizzato',
+            ], 403);
         }
 
         $attestato->delete(); // SoftDeletes

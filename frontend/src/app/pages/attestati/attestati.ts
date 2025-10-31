@@ -142,6 +142,12 @@ export class Attestati {
   }
 
   ngOnInit(): void {
+    // Se stiamo navigando a una rotta senza slug, assicuriamoci che il tenant sia pulito
+    // Questo garantisce che non vediamo attestati di utenti specifici quando non dovremmo
+    if (!this.route.snapshot.paramMap.has('userSlug')) {
+      this.tenant.clear();
+    }
+    
     // Carica gli attestati al primo init
     if (!this.hasLoadedOnce) {
       this.loadAttestati();
@@ -187,7 +193,10 @@ export class Attestati {
 
   private loadAttestati(forceRefresh = false): void {
     this.loading.set(true);
-    const uid = this.tenant.userId();
+    // Usa userId solo se siamo su una rotta con slug utente
+    // Se non c'è slug, non passare user_id per mostrare solo gli attestati dell'utente principale (ID 1)
+    const hasSlug = this.route.snapshot.paramMap.has('userSlug');
+    const uid = hasSlug ? this.tenant.userId() : null;
     this.api.listAll$(1000, {}, forceRefresh, uid ?? undefined).subscribe({
       next: data => { 
         this.attestati.set(data); 
