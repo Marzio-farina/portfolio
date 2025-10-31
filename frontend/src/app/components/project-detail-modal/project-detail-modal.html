@@ -1,0 +1,180 @@
+<app-notification
+  [notifications]="notifications()"
+  [showMultiple]="false"
+  [mostSevereNotification]="getMostSevereNotification()">
+</app-notification>
+
+<div class="project-detail-modal">
+  <!-- Header fisso (non scrollabile) -->
+  <div class="project-detail-modal__header">
+    @if (canEdit()) {
+      <input 
+        type="text"
+        [formControl]="$any(editForm.get('title'))"
+        class="project-detail-modal__title-input"
+        placeholder="Titolo progetto"
+        maxlength="50">
+    } @else {
+      <h2 class="project-detail-modal__title">{{ project().title }}</h2>
+    }
+    <button 
+      type="button"
+      class="project-detail-modal__close" 
+      (click)="onClose()" 
+      aria-label="Chiudi">
+      ×
+    </button>
+  </div>
+
+  <!-- Contenuto scrollabile unico -->
+  <div class="project-detail-modal__scrollable">
+    <form [formGroup]="editForm">
+      @if (project().poster) {
+        <div class="project-detail-modal__image" [class.image-vertical]="isVerticalImage()">
+          <div 
+            class="project-detail-modal__image-container"
+            [style.width.px]="containerWidth()"
+            [style.height.px]="containerHeight">
+            <img
+              [src]="project().poster"
+              [alt]="project().title"
+              (load)="onImgLoad($event)"
+              class="project-detail-modal__image-img"
+            />
+          </div>
+        </div>
+      }
+
+      @if (project().video) {
+        <div class="project-detail-modal__video">
+          <video
+            [src]="project().video"
+            controls
+            class="project-detail-modal__video-element"
+            (click)="onVideoClick($event)">
+            Il tuo browser non supporta il tag video.
+          </video>
+        </div>
+      }
+
+      <div class="project-detail-modal__info">
+        <div class="project-detail-modal__field">
+          <span class="project-detail-modal__label">Categoria:</span>
+          @if (canEdit()) {
+            <select 
+              formControlName="category_id"
+              class="project-detail-modal__value-input">
+              <option value="">Seleziona categoria</option>
+              @for (cat of categories(); track cat.id) {
+                <option [value]="cat.id">{{ cat.title }}</option>
+              }
+            </select>
+          } @else {
+            @if (project().category) {
+              <span class="project-detail-modal__value">{{ project().category }}</span>
+            }
+          }
+        </div>
+
+        <div class="project-detail-modal__field">
+          <span class="project-detail-modal__label">Tecnologie:</span>
+          @if (canEdit()) {
+            @if (loadingTechnologies()) {
+              <span class="project-detail-modal__value">Caricamento tecnologie...</span>
+            } @else {
+              @if (availableTechnologies().length > 0) {
+                <div class="project-detail-modal__technologies-selector">
+                  @for (tech of availableTechnologies(); track tech.id) {
+                    <label class="project-detail-modal__tech-checkbox">
+                      <input 
+                        type="checkbox"
+                        [checked]="isTechnologySelected(tech.id)"
+                        (change)="toggleTechnology(tech.id)"
+                        class="project-detail-modal__tech-input">
+                      <span class="project-detail-modal__tech-label">{{ tech.title }}</span>
+                    </label>
+                  }
+                </div>
+              } @else {
+                <span class="project-detail-modal__value project-detail-modal__value--empty">Nessuna tecnologia disponibile</span>
+              }
+            }
+          } @else {
+            @if (project().technologies && project().technologies.length > 0) {
+              <div class="project-detail-modal__tags">
+                @for (tech of project().technologies; track tech.id) {
+                  <span class="project-detail-modal__tag">{{ tech.title }}</span>
+                }
+              </div>
+            } @else {
+              <span class="project-detail-modal__value project-detail-modal__value--empty">Nessuna tecnologia specificata</span>
+            }
+          }
+        </div>
+
+        <div class="project-detail-modal__field">
+          <span class="project-detail-modal__label">Descrizione:</span>
+          @if (canEdit()) {
+            <textarea 
+              formControlName="description"
+              class="project-detail-modal__value-input project-detail-modal__textarea"
+              placeholder="Descrizione progetto"
+              maxlength="1000"
+              rows="4"></textarea>
+          } @else {
+            @if (project().description) {
+              <p class="project-detail-modal__description">{{ project().description }}</p>
+            }
+          }
+        </div>
+      </div>
+
+      @if (canEdit()) {
+        <div class="project-detail-modal__actions project-detail-modal__actions--mobile">
+          <button 
+            type="button"
+            class="project-detail-modal__btn project-detail-modal__btn--cancel"
+            (click)="onCancel()"
+            [disabled]="saving()">
+            Annulla
+          </button>
+          <button 
+            type="button"
+            class="project-detail-modal__btn project-detail-modal__btn--save"
+            (click)="onSave()"
+            [disabled]="saving() || editForm.invalid">
+            @if (saving()) {
+              <span>Salvataggio...</span>
+            } @else {
+              <span>Salva</span>
+            }
+          </button>
+        </div>
+      }
+    </form>
+  </div>
+
+  <!-- Versione desktop: pulsanti fuori dal dialog -->
+  @if (canEdit()) {
+    <div class="project-detail-modal__actions project-detail-modal__actions--desktop">
+      <button 
+        type="button"
+        class="project-detail-modal__btn project-detail-modal__btn--cancel"
+        (click)="onCancel()"
+        [disabled]="saving()">
+        Annulla
+      </button>
+      <button 
+        type="button"
+        class="project-detail-modal__btn project-detail-modal__btn--save"
+        (click)="onSave()"
+        [disabled]="saving() || editForm.invalid">
+        @if (saving()) {
+          <span>Salvataggio...</span>
+        } @else {
+          <span>Salva</span>
+        }
+      </button>
+    </div>
+  }
+</div>

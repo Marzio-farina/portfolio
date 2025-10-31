@@ -83,10 +83,18 @@
   font-size: 0; /* gestiamo la dimensione sulla span interna */
   line-height: 1;
   font-weight: 800;
-  transition: transform var(--transition-1), box-shadow var(--transition-1);
+  transition: transform var(--transition-1), box-shadow var(--transition-1), opacity var(--transition-1);
   z-index: 2;
   padding: 0;
   cursor: pointer;
+  opacity: 0; /* Nascosto di default */
+  pointer-events: none; /* Non intercetta eventi quando nascosto */
+}
+
+/* Mostra il bottone solo quando si fa hover sulla card specifica */
+.attestato-card:hover .admin-x-btn {
+  opacity: 1;
+  pointer-events: auto; /* Riabilita gli eventi quando visibile */
 }
 
 .attestato-card .admin-x-btn:hover {

@@ -84,7 +84,7 @@ class ProjectController extends Controller
             $project = new Project();
             $project->title = $validated['title'];
             $project->category_id = $validated['category_id'];
-            $project->description = $validated['description'] ?? null;
+            $project->description = $validated['description'] ?? '';
             $project->user_id = $user->id;
 
             // Gestione poster file
@@ -153,6 +153,87 @@ class ProjectController extends Controller
             return response()->json([
                 'ok' => false,
                 'message' => 'Errore durante la creazione del progetto. Riprova più tardi.'
+            ], 500, [], JSON_UNESCAPED_UNICODE);
+        }
+    }
+
+    /**
+     * PUT /api/projects/{project}
+     * Aggiorna un progetto esistente.
+     */
+    public function update(Request $request, Project $project): JsonResponse
+    {
+        // Verifica autenticazione
+        $user = Auth::user();
+        if (!$user) {
+            return response()->json(['ok' => false, 'message' => 'Non autenticato'], 401);
+        }
+
+        // Verifica autorizzazione: l'utente deve essere il proprietario o admin
+        $userId = $user->id;
+        $userEmail = $user->email;
+        $isAdmin = $userEmail === env('PUBLIC_USER_EMAIL', 'marziofarina@icloud.com');
+        $projectUserId = $project->user_id ?? null;
+
+        $canUpdate = (
+            $projectUserId === $userId || 
+            ($projectUserId === null && $isAdmin) ||
+            $isAdmin
+        );
+
+        if (!$canUpdate) {
+            return response()->json([
+                'ok' => false, 
+                'message' => 'Non autorizzato'
+            ], 403);
+        }
+
+        $validated = $request->validate([
+            'title' => 'sometimes|required|string|max:50',
+            'category_id' => 'sometimes|required|integer|exists:categories,id',
+            'description' => 'nullable|string|max:1000',
+            'technology_ids' => 'sometimes|array',
+            'technology_ids.*' => 'integer|exists:technologies,id',
+        ]);
+
+        try {
+            // Aggiorna solo i campi validati
+            if (isset($validated['title'])) {
+                $project->title = $validated['title'];
+            }
+            if (isset($validated['category_id'])) {
+                $project->category_id = $validated['category_id'];
+            }
+            if (isset($validated['description'])) {
+                $project->description = $validated['description'] ?? '';
+            }
+
+            $project->save();
+
+            // Aggiorna le tecnologie se presenti nel request
+            if (isset($validated['technology_ids'])) {
+                $project->technologies()->sync($validated['technology_ids']);
+            }
+
+            // Carica le relazioni per la risposta
+            $project->load(['category:id,title', 'technologies:id,title,description']);
+
+            return response()->json([
+                'ok' => true,
+                'data' => new ProjectResource($project)
+            ], 200, [], JSON_UNESCAPED_UNICODE);
+
+        } catch (\Exception $e) {
+            Log::error('Errore aggiornamento progetto', [
+                'project_id' => $project->id,
+                'user_id' => $user->id,
+                'error' => $e->getMessage(),
+                'trace' => $e->getTraceAsString()
+            ]);
+
+            return response()->json([
+                'ok' => false,
+                'message' => 'Errore durante l\'aggiornamento del progetto. Riprova più tardi.'
             ], 500, [], JSON_UNESCAPED_UNICODE);
         }
     }

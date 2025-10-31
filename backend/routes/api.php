@@ -10,9 +10,11 @@
 
 use App\Http\Controllers\Api\AttestatiController;
 use App\Http\Controllers\Api\AvatarController;
+use App\Http\Controllers\Api\CategoryController;
 use App\Http\Controllers\Api\CvController;
 use App\Http\Controllers\Api\CvFileController;
 use App\Http\Controllers\Api\ProjectController;
+use App\Http\Controllers\Api\TechnologyController;
 use App\Http\Controllers\Api\TestimonialController;
 use App\Http\Controllers\Api\UserPublicController;
 use App\Http\Controllers\Api\WhatIDoController;
@@ -101,6 +103,8 @@ Route::middleware(['api', "throttle:{$throttleLimit}", 'db.connection'])
                 Route::get('testimonials/icons', [TestimonialController::class, 'getIcons']); // Tutte le icone
                 Route::get('testimonials/default-avatars', [TestimonialController::class, 'getDefaultAvatars']); // Solo avatar predefiniti
                 Route::get('projects', [ProjectController::class, 'index']);
+                Route::get('categories', [CategoryController::class, 'index']);
+                Route::get('technologies', [TechnologyController::class, 'index']);
                 Route::get('cv', [CvController::class, 'index']);
                 Route::get('what-i-do', [WhatIDoController::class, 'index']);
                 Route::get('attestati', [AttestatiController::class, 'index']);
@@ -161,8 +165,9 @@ Route::middleware(['api', "throttle:{$throttleLimit}", 'db.connection'])
             Route::put('attestati/{attestato}', [AttestatiController::class, 'update']);
             Route::delete('attestati/{attestato}', [AttestatiController::class, 'destroy']);
             
-            // Projects - creazione ed eliminazione richiedono autenticazione
+            // Projects - creazione, aggiornamento ed eliminazione richiedono autenticazione
             Route::post('projects', [ProjectController::class, 'store']);
+            Route::put('projects/{project}', [ProjectController::class, 'update']);
             Route::delete('projects/{project}', [ProjectController::class, 'destroy']);
         });
 

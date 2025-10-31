@@ -6,7 +6,7 @@ export interface ProjectDto {
   poster?: string | null;
   video?: string | null;
   category?: { id: number; name?: string | null } | null; // name o title lato API
-  technologies?: { id: number; name?: string | null; icon?: string | null }[] | null;
+  technologies?: { id: number; name?: string | null; title?: string | null; description?: string | null; icon?: string | null }[] | null;
   created_at?: string | null;
 }
 
@@ -28,5 +28,12 @@ export type Progetto = {
   description: string;
   poster: string;       // url o data uri
   video: string;        // url video
-  technologies: string; // lista resa in stringa (es. "Angular, Laravel")
+  technologies: Technology[]; // array di tecnologie per i tag
+  technologiesString?: string; // stringa per retrocompatibilità (opzionale)
 };
+
+export interface Technology {
+  id: number;
+  title: string;
+  description?: string | null;
+}

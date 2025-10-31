@@ -1,4 +1,4 @@
-import { Component, computed, inject, signal } from '@angular/core';
+import { Component, computed, inject, signal, effect } from '@angular/core';
 import { toSignal } from '@angular/core/rxjs-interop';
 import { ActivatedRoute, Router } from '@angular/router';
 import { map } from 'rxjs';
@@ -10,6 +10,7 @@ import { AuthService } from '../../services/auth.service';
 import { EditModeService } from '../../services/edit-mode.service';
 import { TenantRouterService } from '../../services/tenant-router.service';
 import { Notification, NotificationType } from '../../components/notification/notification';
+import { ProjectDetailModalService } from '../../services/project-detail-modal.service';
 
 export interface NotificationItem {
   id: string;
@@ -37,6 +38,7 @@ export class Progetti {
   private auth = inject(AuthService);
   private edit = inject(EditModeService);
   private tenantRouter = inject(TenantRouterService);
+  private projectDetailModal = inject(ProjectDetailModalService);
 
   title = toSignal(this.route.data.pipe(map(d => d['title'] as string)), { initialValue: '' });
 
@@ -69,6 +71,9 @@ export class Progetti {
   isAuthenticated = computed(() => this.auth.isAuthenticated());
   showEmptyAddCard = computed(() => this.isAuthenticated() && this.edit.isEditing());
 
+  // Flag per prevenire re-entry nell'effect di aggiornamento
+  private isUpdatingProject = false;
+
   constructor() {
     // Verifica se siamo arrivati da add-project con successo
     const queryParams = this.route.snapshot.queryParams;
@@ -96,6 +101,37 @@ export class Progetti {
     } else {
       this.loadProjects();
     }
+
+    // Effect per aggiornare immediatamente la lista quando un progetto viene modificato
+    effect(() => {
+      const updatedProject = this.projectDetailModal.updatedProject();
+      
+      if (updatedProject && !this.isUpdatingProject) {
+        this.isUpdatingProject = true;
+        
+        // Trova il progetto nella lista e aggiornalo con una nuova referenza
+        const currentProjects = this.projects();
+        const index = currentProjects.findIndex(p => p.id === updatedProject.id);
+        
+        if (index !== -1) {
+          // Crea una nuova referenza per triggerare il change detection
+          const updatedList = [...currentProjects];
+          updatedList[index] = { ...updatedProject };
+          this.projects.set(updatedList);
+        }
+        
+        // Reset dopo un breve delay per evitare re-trigger
+        setTimeout(() => {
+          this.isUpdatingProject = false;
+          // Reset del signal dopo aver processato l'aggiornamento
+          setTimeout(() => {
+            if (this.projectDetailModal.updatedProject()?.id === updatedProject.id) {
+              this.projectDetailModal.updatedProject.set(null);
+            }
+          }, 0);
+        }, 0);
+      }
+    });
   }
 
   private loadProjects(forceRefresh = false): void {
@@ -114,7 +150,10 @@ export class Progetti {
               description: 'Demo project to showcase card UI',
               poster: `https://picsum.photos/seed/${seed}/800/450`,
               video: '',
-              technologies: 'Angular, TypeScript'
+              technologies: [
+                { id: 1, title: 'Angular' },
+                { id: 2, title: 'TypeScript' }
+              ]
             } as Progetto;
           });
           this.projects.set(seeds);
@@ -130,12 +169,46 @@ export class Progetti {
   onProjectDeleted(id: number): void {
     // Rimuovi immediatamente la card dalla vista
     this.projects.set(this.projects().filter(p => p.id !== id));
+    
+    // Aggiungi notifica di successo
+    this.addNotification('success', 'Progetto rimosso con successo.', `progetto-deleted-${id}`);
+    
     // Ricarica i progetti bypassando la cache
     this.loadProjects(true);
   }
 
+  onProjectDeleteError(event: { id: number; error: any }): void {
+    // Estrai il messaggio di errore dall'errore HTTP
+    // L'interceptor formatta gli errori in modo specifico
+    let errorMessage = 'Errore durante l\'eliminazione del progetto.';
+    
+    if (event.error) {
+      // Prova diversi percorsi per estrarre il messaggio
+      if (typeof event.error === 'string') {
+        errorMessage = event.error;
+      } else if (event.error.message) {
+        errorMessage = event.error.message;
+      } else if (event.error.error?.message) {
+        errorMessage = event.error.error.message;
+      } else if (event.error.status === 404) {
+        errorMessage = 'Progetto non trovato. Potrebbe essere già stato eliminato.';
+      } else if (event.error.status === 403) {
+        errorMessage = 'Non hai i permessi per eliminare questo progetto.';
+      } else if (event.error.status) {
+        errorMessage = `Errore ${event.error.status}: Impossibile eliminare il progetto.`;
+      }
+    }
+    
+    // Aggiungi notifica di errore
+    this.addNotification('error', errorMessage, `progetto-delete-error-${event.id}`);
+  }
+
   goToAddProgetto(): void {
     this.tenantRouter.navigate(['progetti', 'nuovo']);
+  }
+
+  onProjectClicked(project: Progetto): void {
+    this.projectDetailModal.open(project);
   }
   
   onSelectCategory(c: string) {
@@ -148,5 +221,41 @@ export class Progetti {
     if (!currentNotifications.length) return null;
     const order: NotificationType[] = ['error', 'warning', 'info', 'success'];
     return [...currentNotifications].sort((a, b) => order.indexOf(a.type) - order.indexOf(b.type))[0];
+  }
+
+  /**
+   * Aggiunge una notifica alla lista
+   */
+  private addNotification(type: NotificationType, message: string, fieldId: string): void {
+    const currentNotifications = this.notifications();
+    
+    // Controlla se esiste già una notifica con lo stesso messaggio e tipo (per evitare duplicati identici)
+    const duplicate = currentNotifications.some(n => 
+      n.message === message && 
+      n.type === type && 
+      // Per i fieldId con timestamp, confronta solo il prefisso
+      (n.fieldId === fieldId || (fieldId.includes('-') && n.fieldId.startsWith(fieldId.split('-').slice(0, -1).join('-'))))
+    );
+    
+    if (!duplicate) {
+      const newNotification: NotificationItem = {
+        id: `${fieldId}-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`,
+        message: message,
+        type: type,
+        timestamp: Date.now(),
+        fieldId: fieldId
+      };
+      
+      // Per fieldId fissi (come 'progetto-create'), rimuovi le notifiche precedenti con lo stesso fieldId
+      // Per fieldId con timestamp, mantieni tutte le notifiche
+      const hasTimestamp = /-\d+$/.test(fieldId);
+      const filteredNotifications = hasTimestamp
+        ? currentNotifications // Mantieni tutte le notifiche se il fieldId ha un timestamp
+        : currentNotifications.filter(n => n.fieldId !== fieldId); // Rimuovi quelle con lo stesso fieldId se è fisso
+      
+      // Aggiungi la nuova notifica
+      this.notifications.set([...filteredNotifications, newNotification]);
+      this.showMultipleNotifications = true;
+    }
   }
 }

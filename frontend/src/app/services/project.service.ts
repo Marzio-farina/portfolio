@@ -86,6 +86,29 @@ export class ProjectService {
   }
 
   /**
+   * Aggiorna un progetto esistente
+   * 
+   * @param id ID del progetto da aggiornare
+   * @param data Dati parziali da aggiornare
+   * @returns Observable del progetto aggiornato
+   */
+  update$(id: number, data: Partial<{
+    title: string;
+    category_id: number;
+    description: string;
+    technology_ids: number[];
+  }>): Observable<Progetto> {
+    const url = apiUrl(`projects/${id}`);
+    return this.http.put<{ ok: boolean; data: any }>(url, data).pipe(
+      map(response => {
+        // Converti il DTO ricevuto in Progetto
+        const dto = response.data;
+        return this.dtoToProgetto(dto);
+      })
+    );
+  }
+
+  /**
    * Soft-delete di un progetto
    * 
    * @param id ID del progetto da eliminare
@@ -108,7 +131,8 @@ export class ProjectService {
    */
   private dtoToProgetto(dto: ProjectDto): Progetto {
     const categoryName = this.extractCategoryName(dto);
-    const technologiesString = this.extractTechnologiesString(dto);
+    const technologies = this.extractTechnologies(dto);
+    const technologiesString = technologies.map(t => t.title).join(', ');
 
     return {
       id: dto.id,
@@ -117,7 +141,8 @@ export class ProjectService {
       poster: dto.poster ?? '',
       video: dto.video ?? '',
       category: categoryName,
-      technologies: technologiesString
+      technologies: technologies,
+      technologiesString: technologiesString // Manteniamo anche la stringa per retrocompatibilità
     };
   }
 
@@ -134,15 +159,18 @@ export class ProjectService {
   }
 
   /**
-   * Extract technologies as comma-separated string
+   * Extract technologies as array of Technology objects
    * 
    * @param dto Project DTO
-   * @returns Technologies string
+   * @returns Technologies array
    */
-  private extractTechnologiesString(dto: ProjectDto): string {
+  private extractTechnologies(dto: ProjectDto): Array<{ id: number; title: string; description?: string | null }> {
     return (dto.technologies ?? [])
-      .map(tech => (tech as any).title ?? tech.name ?? '')
-      .filter(Boolean)
-      .join(', ');
+      .map(tech => ({
+        id: tech.id,
+        title: (tech as any).title ?? tech.name ?? '',
+        description: tech.description ?? null
+      }))
+      .filter(tech => tech.title); // Filtra solo tecnologie con titolo valido
   }
 }

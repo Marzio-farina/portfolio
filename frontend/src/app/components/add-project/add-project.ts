@@ -78,7 +78,7 @@ export class AddProject {
         this.categories.set(cats);
         this.loadingCategories.set(false);
       },
-      error: () => {
+      error: (err) => {
         // Se non esiste l'endpoint, usiamo categorie di default
         this.categories.set([
           { id: 1, title: 'Web' },
@@ -86,6 +86,13 @@ export class AddProject {
           { id: 3, title: 'Design' }
         ]);
         this.loadingCategories.set(false);
+        
+        // Per 404, non mostriamo notifica (endpoint previsto come opzionale)
+        // Per altri errori, mostriamo un warning
+        if (err?.status && err.status !== 404) {
+          const errorMsg = typeof err?.message === 'string' ? err.message : 'Impossibile caricare le categorie dal server. Usando categorie di default.';
+          this.addNotification('categories-load-warning', errorMsg, 'warning');
+        }
       }
     });
   }
@@ -266,33 +273,52 @@ export class AddProject {
         this.tenantRouter.navigate(['progetti'], { queryParams: { created: 'true', refresh: '1', t: Date.now() } });
       },
       error: (err: any) => {
+        this.uploading.set(false);
+        
         let message = 'Errore durante la creazione del progetto';
         const details: string[] = [];
-        if (err?.error?.errors) {
-          Object.entries(err.error.errors).forEach(([field, messages]) => {
+        
+        // L'interceptor formatta gli errori e li mette in err.message
+        // Il payload originale è in err.payload (se presente)
+        const payload = err?.payload || err?.error;
+        
+        // Estrai messaggi di validazione dal payload
+        if (payload?.errors) {
+          Object.entries(payload.errors).forEach(([field, messages]) => {
             const list = Array.isArray(messages) ? messages : [messages];
             list.forEach(msg => details.push(`${field}: ${msg}`));
           });
         }
-        if (details.length) message = details.join('; ');
-        else if (err?.error?.message) message = err.error.message;
-
-        if (!environment.production) {
-          console.error('Errore creazione progetto:', err);
+        
+        // Estrai messaggio di errore generale
+        if (details.length) {
+          message = details.join('; ');
+        } else if (payload?.message) {
+          // Messaggio dal server
+          message = payload.message;
+        } else if (typeof err?.message === 'string' && err.message) {
+          // Messaggio formattato dall'interceptor
+          message = err.message;
+        } else if (err?.status === 500) {
+          message = 'Errore del server durante la creazione del progetto. Riprova più tardi.';
+        } else if (err?.status === 403) {
+          message = 'Non hai i permessi per creare progetti.';
+        } else if (err?.status === 401) {
+          message = 'Sessione scaduta. Effettua il login e riprova.';
         }
 
-        this.errorMsg.set(message);
-        this.uploading.set(false);
-        if (err?.error?.errors) {
-          Object.entries(err.error.errors).forEach(([field, messages]) => {
+        // Mostra notifica di errore principale
+        this.addNotification('project-create-error', message, 'error');
+
+        // Aggiungi notifiche specifiche per ogni campo con errore di validazione
+        if (payload?.errors) {
+          Object.entries(payload.errors).forEach(([field, messages]) => {
             const list = Array.isArray(messages) ? messages : [messages];
             list.forEach(msg => {
               const fid = `project.${field}`;
               this.addNotification(fid, `${field}: ${msg}`, 'error');
             });
           });
-        } else {
-          this.notifications.update(list => [...list, { id: `global-${Date.now()}`, message, type: 'error', timestamp: Date.now(), fieldId: 'global' }]);
         }
       }
     });

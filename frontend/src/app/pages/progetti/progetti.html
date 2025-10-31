@@ -81,7 +81,11 @@
             </div>
         }
         @for (p of filtered(); track p.id) {
-            <app-progetti-card [progetto]="p" (deleted)="onProjectDeleted($event)" />
+            <app-progetti-card 
+              [progetto]="p" 
+              (deleted)="onProjectDeleted($event)"
+              (deletedError)="onProjectDeleteError($event)"
+              (clicked)="onProjectClicked($event)" />
         }
     }    
 </div>

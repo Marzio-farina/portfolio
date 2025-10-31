@@ -41,10 +41,10 @@ export class ErrorHandlerInterceptor implements HttpInterceptor {
       }),
       catchError((error: HttpErrorResponse) => {
         // Riduci il logging per errori 404 previsti (risorse non trovate)
-        // In particolare, non loggare 404 per cv-files/default che è normale quando l'utente non ha CV
+        // In particolare, non loggare 404 per cv-files/default e categories che sono previsti come opzionali
         const isExpected404 = error.status === 404 && (
-          !environment.production || 
-          req.url.includes('/cv-files/default')
+          req.url.includes('/cv-files/default') ||
+          req.url.includes('/categories')
         );
         
         if (!environment.production && !isExpected404) {

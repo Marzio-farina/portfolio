@@ -1,0 +1,75 @@
+/* Per dispositivi più grandi di 500px */
+@media (min-width: 500.02px) {
+  .project-detail-modal {
+    max-width: 700px;
+  }
+
+  .project-detail-modal__info {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 1.5rem;
+  }
+
+  .project-detail-modal__field:nth-child(1) {
+    grid-column: 1;
+    grid-row: 1;
+  }
+
+  .project-detail-modal__field:nth-child(2) {
+    grid-column: 2;
+    grid-row: 1;
+  }
+
+  .project-detail-modal__field:nth-child(3) {
+    grid-column: 1 / -1; /* Occupa tutte le colonne */
+    grid-row: 2;
+  }
+}
+
+/* Nascondi i pulsanti desktop di default (su mobile) */
+.project-detail-modal__actions--desktop {
+  display: none;
+}
+
+/* Per dispositivi più grandi di 768px */
+@media (min-width: 768.02px) {
+  .project-detail-modal {
+    max-width: 800px;
+  }
+
+  .project-detail-modal__header {
+    padding: 2rem;
+  }
+
+  .project-detail-modal__scrollable {
+    padding: 2rem;
+    gap: 2rem;
+  }
+
+  /* Aumenta lo spazio tra le colonne per evitare il ritorno a capo */
+  .project-detail-modal__info {
+    column-gap: 2.5rem;
+  }
+
+  /* Previeni il ritorno a capo del label */
+  .project-detail-modal__label {
+    white-space: nowrap;
+  }
+
+  /* Nascondi i pulsanti mobile su schermi grandi */
+  .project-detail-modal__actions--mobile {
+    display: none;
+  }
+
+  /* Mostra e posiziona i pulsanti desktop fuori dal dialog */
+  .project-detail-modal__actions--desktop {
+    display: flex;
+    gap: 12px;
+    position: fixed;
+    top: 20px;
+    right: 20px;
+    z-index: 1202;
+    pointer-events: auto;
+  }
+}
+

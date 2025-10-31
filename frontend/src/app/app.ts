@@ -15,6 +15,8 @@ import { CvUploadModal } from './components/cv-upload-modal/cv-upload-modal';
  
 import { AttestatoDetailModalService } from './services/attestato-detail-modal.service';
 import { AttestatoDetailModal } from './components/attestato-detail-modal/attestato-detail-modal';
+import { ProjectDetailModalService } from './services/project-detail-modal.service';
+import { ProjectDetailModal } from './components/project-detail-modal/project-detail-modal';
 import { Notification, NotificationItem, NotificationType } from './components/notification/notification';
 import { CvPreviewModalService } from './services/cv-preview-modal.service';
 import { CvPreviewModal } from './components/cv-preview-modal/cv-preview-modal';
@@ -28,7 +30,7 @@ import { filter, map } from 'rxjs/operators';
  */
 @Component({
   selector: 'app-root',
-  imports: [Aside, Navbar, Dashboard, Auth, ParticlesBgComponent, CvUploadModal, AttestatoDetailModal, CvPreviewModal, Notification],
+  imports: [Aside, Navbar, Dashboard, Auth, ParticlesBgComponent, CvUploadModal, AttestatoDetailModal, ProjectDetailModal, CvPreviewModal, Notification],
   templateUrl: './app.html',
   styleUrl: './app.css'
 })
@@ -52,6 +54,7 @@ export class App {
   private readonly destroyRef = inject(DestroyRef);
   private readonly cvUploadModal = inject(CvUploadModalService);
   private readonly attestatoDetailModal = inject(AttestatoDetailModalService);
+  private readonly projectDetailModal = inject(ProjectDetailModalService);
   private readonly cvPreviewModal = inject(CvPreviewModalService);
 
   @ViewChild(Auth) authComponent?: Auth;
@@ -68,6 +71,10 @@ export class App {
   // Modal Attestato Detail (gestita dal servizio)
   isAttestatoDetailModalOpen = this.attestatoDetailModal.isOpen;
   selectedAttestato = this.attestatoDetailModal.selectedAttestato;
+
+  // Modal Project Detail (gestita dal servizio)
+  isProjectDetailModalOpen = this.projectDetailModal.isOpen;
+  selectedProject = this.projectDetailModal.selectedProject;
 
   // Modal CV Preview (gestita dal servizio)
   isCvPreviewModalOpen = this.cvPreviewModal.isOpen;
@@ -89,7 +96,7 @@ export class App {
     
     // Blocca lo scroll del body quando qualsiasi modale è aperto
     effect(() => {
-      const isModalOpen = this.isAttestatoDetailModalOpen() || this.isLoginOpen() || this.isCvUploadModalOpen() || this.isCvPreviewModalOpen();
+      const isModalOpen = this.isAttestatoDetailModalOpen() || this.isProjectDetailModalOpen() || this.isLoginOpen() || this.isCvUploadModalOpen() || this.isCvPreviewModalOpen();
       if (isModalOpen) {
         document.body.style.overflow = 'hidden';
       } else {
@@ -257,6 +264,11 @@ export class App {
       if (this.isAttestatoDetailModalOpen()) {
         this.onAttestatoDetailClosed();
       }
+
+      // Chiudi il dialog di dettaglio progetto se aperto
+      if (this.isProjectDetailModalOpen()) {
+        this.onProjectDetailClosed();
+      }
       
       // Chiudi il dialog di CV upload se aperto
       if (this.isCvUploadModalOpen()) {
@@ -280,6 +292,11 @@ export class App {
   // Gestione modal Attestato Detail
   onAttestatoDetailClosed(): void {
     this.attestatoDetailModal.close();
+  }
+
+  // Gestione modal Project Detail
+  onProjectDetailClosed(): void {
+    this.projectDetailModal.close();
   }
 
   // Click sul pulsante in alto a destra: Accedi/Logout dinamico

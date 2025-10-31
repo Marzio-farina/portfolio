@@ -235,6 +235,19 @@
   width: auto; /* Permette al modale di gestire la sua larghezza */
 }
 
+/* Per il modale dei progetti: larghezza responsive */
+.mf-modal--project .mf-modal__content {
+  overflow: visible;
+  max-height: none;
+  width: 100%; /* Dispositivi < 500px: larghezza completa */
+}
+
+@media (min-width: 500.02px) {
+  .mf-modal--project .mf-modal__content {
+    width: 85%; /* Dispositivi >= 500px: larghezza 85% */
+  }
+}
+
 .mf-modal__close {
   position: absolute;
   top: 0;

@@ -4,15 +4,9 @@ import { AuthService } from '../../services/auth.service';
 import { EditModeService } from '../../services/edit-mode.service';
 import { ProjectService } from '../../services/project.service';
 
-export type Progetto = {
-  id: number;
-  title: string;
-  category: string;
-  description: string;
-  poster: string; // data URI o url immagine
-  video: string;  // url mp4/webm locale
-  technologies : string;
-};
+import { Progetto } from '../../core/models/project';
+
+export type { Progetto };
 
 @Component({
   selector: 'app-progetti-card',
@@ -32,6 +26,8 @@ export class ProgettiCard {
   isEditing = computed(() => this.editModeService.isEditing());
   
   deleted = output<number>();
+  deletedError = output<{ id: number; error: any }>();
+  clicked = output<Progetto>();
 
   // Valori randomici per hover, generati al mount
   hoverRotate = signal<string>('0deg');
@@ -191,8 +187,14 @@ export class ProgettiCard {
         this.deleted.emit(id);
       },
       error: (err) => {
-        console.error('Errore eliminazione progetto', err);
+        // Emetti l'errore al componente parent per mostrare una notifica
+        this.deletedError.emit({ id, error: err });
       }
     });
+  }
+
+  onCardClick(): void {
+    // Emetti il progetto per aprire il modal
+    this.clicked.emit(this.progetto());
   }
 }
