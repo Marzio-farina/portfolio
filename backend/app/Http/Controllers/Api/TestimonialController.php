@@ -70,6 +70,7 @@ class TestimonialController extends Controller
     public function store(Request $request): JsonResponse
     {
         $validated = $request->validate([
+            'user_id' => 'nullable|integer|exists:users,id', // ID utente per recensioni specifiche per utente
             'author_name' => 'required|string|max:100',
             'author_surname' => 'nullable|string|max:100',
             'avatar_url' => 'nullable|url|max:500',
@@ -121,6 +122,8 @@ class TestimonialController extends Controller
         }
 
         // Cattura automatica IP e User-Agent
+        // Se user_id è presente, la recensione è specifica per quell'utente
+        // Altrimenti è una recensione generica da visitatore
         $testimonial = Testimonial::create([
             'author_name' => $validated['author_name'],
             'author_surname' => $validated['author_surname'] ?? null,
@@ -130,7 +133,7 @@ class TestimonialController extends Controller
             'role_company' => $validated['role_company'] ?? null,
             'company' => $validated['company'] ?? null,
             'rating' => $validated['rating'],
-            'user_id' => null, // Visitatori non hanno user_id
+            'user_id' => $validated['user_id'] ?? null, // Se presente, recensione specifica per utente
             'ip_address' => $request->ip(),
             'user_agent' => $request->userAgent(),
         ]);

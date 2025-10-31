@@ -22,9 +22,11 @@ export const routes: Routes = [
   { path: 'contatti',  component: Contatti,  data: { title: 'Contatti' } },
   // Rotte con prefisso slug utente
   { path: ':userSlug/about',     component: About,     resolve: { tenant: tenantResolver }, data: { title: 'Chi sono' } },
+  { path: ':userSlug/nuova-recensione', component: AddTestimonial, resolve: { tenant: tenantResolver }, data: { title: 'Nuova Recensione' } },
   { path: ':userSlug/curriculum',component: Curriculum,resolve: { tenant: tenantResolver }, data: { title: 'Curriculum' } },
   { path: ':userSlug/progetti',  component: Progetti,  resolve: { tenant: tenantResolver }, data: { title: 'Progetti' } },
   { path: ':userSlug/attestati', component: Attestati, resolve: { tenant: tenantResolver }, data: { title: 'Attestati' } },
+  { path: ':userSlug/attestati/nuovo', component: AddAttestato, resolve: { tenant: tenantResolver }, data: { title: 'Nuovo Attestato' } },
   { path: ':userSlug/progetti/nuovo', component: AddProject, resolve: { tenant: tenantResolver }, data: { title: 'Nuovo Progetto' } },
   { path: ':userSlug/contatti',  component: Contatti,  resolve: { tenant: tenantResolver }, data: { title: 'Contatti' } },
   { path: '**', redirectTo: 'about' },

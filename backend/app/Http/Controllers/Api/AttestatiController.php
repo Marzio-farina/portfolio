@@ -88,6 +88,7 @@ class AttestatiController extends Controller
     public function store(Request $request): JsonResponse
     {
         $validated = $request->validate([
+            'user_id' => 'nullable|integer|exists:users,id', // ID utente per attestati specifici per utente
             'title' => 'required|string|max:150',
             'description' => 'nullable|string|max:1000',
             'issuer' => 'nullable|string|max:150',
@@ -100,9 +101,11 @@ class AttestatiController extends Controller
             'is_featured' => 'nullable|boolean',
         ]);
 
-        // Determina user_id (autenticato o public fallback)
-        $userId = Auth::id();
-        if (!$userId) {
+        // Se user_id è presente nel request, usa quello (attestato specifico per utente)
+        // Altrimenti usa l'utente autenticato o public fallback
+        $targetUserId = $validated['user_id'] ?? Auth::id();
+        
+        if (!$targetUserId) {
             // Fallback a PUBLIC_USER_ID se configurato, altrimenti errore
             $publicUserId = env('PUBLIC_USER_ID');
             if (!$publicUserId) {
@@ -111,19 +114,38 @@ class AttestatiController extends Controller
                     'message' => 'Autenticazione richiesta per creare attestati',
                 ], 401);
             }
-            $userId = (int) $publicUserId;
+            $targetUserId = (int) $publicUserId;
         }
 
-        // Gestione upload poster
+        // Carica l'utente target per generare il nome della cartella
+        $targetUser = User::find($targetUserId);
+        if (!$targetUser) {
+            return response()->json([
+                'ok' => false,
+                'message' => 'Utente non valido.',
+            ], 422);
+        }
+
+        // Gestione upload poster con struttura organizzata per utente
         $posterPath = null;
         if ($request->hasFile('poster_file')) {
             $file = $request->file('poster_file');
             $extension = $file->getClientOriginalExtension();
-            $filename = Str::slug($validated['title']) . '-' . time() . '.' . $extension;
             
-            if (app()->environment('production')) {
+            // Prepara la struttura cartelle: attestati/{id_utente}{nome_utente}/{slug_attestato}/
+            $userFolder = $this->generateUserFolderName($targetUser);
+            $attestatoFolder = $this->slugifyAttestatoTitle($validated['title']);
+            $baseFolder = "attestati/{$userFolder}/{$attestatoFolder}";
+            $filename = 'poster.' . $extension;
+            $relativePath = "{$baseFolder}/{$filename}";
+
+            $isProduction = app()->environment('production');
+            $hasSupabaseConfig = !empty(config('filesystems.disks.src.key')) && 
+                                !empty(config('filesystems.disks.src.secret')) &&
+                                !empty(config('filesystems.disks.src.endpoint'));
+            
+            if ($isProduction || $hasSupabaseConfig) {
                 // Salva su Supabase
-                $relativePath = 'attestati/' . $filename;
                 $binary = file_get_contents($file->getRealPath());
                 $ok = Storage::disk('src')->put($relativePath, $binary);
                 
@@ -134,14 +156,22 @@ class AttestatiController extends Controller
                     ], 500);
                 }
 
+                // Verifica che il file sia stato salvato
+                $exists = Storage::disk('src')->exists($relativePath);
+                if (!$exists) {
+                    return response()->json([
+                        'ok' => false,
+                        'message' => 'File non trovato dopo il salvataggio',
+                    ], 500);
+                }
+
                 $baseUrl = rtrim(config('filesystems.disks.src.url') ?: env('SUPABASE_PUBLIC_URL'), '/');
-                $posterPath = $baseUrl . '/' . ltrim($relativePath, '/');
+                $posterPath = $baseUrl . '/' . $relativePath;
             } else {
                 // Salva localmente sul disco 'public'.
-                // In DB memorizziamo SOLO il path relativo (es. "attestati/filename.webp").
-                // L'URL finale sarà costruito dalla Resource come /storage/<path>.
-                $storedPath = $file->storeAs('attestati', $filename, 'public');
-                $posterPath = ltrim($storedPath, '/');
+                $localPath = "public/{$baseFolder}";
+                $file->storeAs($localPath, $filename);
+                $posterPath = "storage/{$baseFolder}/{$filename}";
             }
         }
 
@@ -149,7 +179,7 @@ class AttestatiController extends Controller
         $featuredBool = filter_var($validated['is_featured'] ?? false, FILTER_VALIDATE_BOOLEAN);
 
         $attestato = Attestato::create([
-            'user_id' => $userId,
+            'user_id' => $targetUserId, // Usa l'user_id dal request se presente, altrimenti l'utente autenticato/fallback
             'title' => $validated['title'],
             'description' => $validated['description'] ?? null,
             'poster' => $posterPath,
@@ -193,6 +223,7 @@ class AttestatiController extends Controller
             'expires_at' => 'nullable|date',
             'credential_id' => 'nullable|string|max:100',
             'credential_url' => 'nullable|string|url|max:255',
+            'poster_file' => 'nullable|image|mimes:jpeg,png,jpg,gif,webp|max:5120', // Supporta upload poster nell'update
             'status' => 'nullable|string|in:draft,published',
             'is_featured' => 'nullable|boolean',
         ]);
@@ -208,6 +239,66 @@ class AttestatiController extends Controller
                         'message' => 'La data di scadenza non può essere precedente alla data di rilascio',
                     ], 422);
                 }
+            }
+        }
+
+        // Gestione upload poster se presente nell'update
+        if ($request->hasFile('poster_file')) {
+            $file = $request->file('poster_file');
+            $extension = $file->getClientOriginalExtension();
+            
+            // Carica l'utente per generare il nome della cartella
+            $targetUser = User::find($attestato->user_id);
+            if (!$targetUser) {
+                return response()->json([
+                    'ok' => false,
+                    'message' => 'Utente non valido.',
+                ], 422);
+            }
+            
+            // Usa il titolo attuale se non è stato modificato, altrimenti usa quello nuovo
+            $attestatoTitle = array_key_exists('title', $validated) ? $validated['title'] : $attestato->title;
+            
+            // Prepara la struttura cartelle: attestati/{id_utente}{nome_utente}/{slug_attestato}/
+            $userFolder = $this->generateUserFolderName($targetUser);
+            $attestatoFolder = $this->slugifyAttestatoTitle($attestatoTitle);
+            $baseFolder = "attestati/{$userFolder}/{$attestatoFolder}";
+            $filename = 'poster.' . $extension;
+            $relativePath = "{$baseFolder}/{$filename}";
+
+            $isProduction = app()->environment('production');
+            $hasSupabaseConfig = !empty(config('filesystems.disks.src.key')) && 
+                                !empty(config('filesystems.disks.src.secret')) &&
+                                !empty(config('filesystems.disks.src.endpoint'));
+            
+            if ($isProduction || $hasSupabaseConfig) {
+                // Salva su Supabase
+                $binary = file_get_contents($file->getRealPath());
+                $ok = Storage::disk('src')->put($relativePath, $binary);
+                
+                if (!$ok) {
+                    return response()->json([
+                        'ok' => false,
+                        'message' => 'Errore durante il caricamento dell\'immagine',
+                    ], 500);
+                }
+
+                // Verifica che il file sia stato salvato
+                $exists = Storage::disk('src')->exists($relativePath);
+                if (!$exists) {
+                    return response()->json([
+                        'ok' => false,
+                        'message' => 'File non trovato dopo il salvataggio',
+                    ], 500);
+                }
+
+                $baseUrl = rtrim(config('filesystems.disks.src.url') ?: env('SUPABASE_PUBLIC_URL'), '/');
+                $attestato->poster = $baseUrl . '/' . $relativePath;
+            } else {
+                // Salva localmente sul disco 'public'.
+                $localPath = "public/{$baseFolder}";
+                $file->storeAs($localPath, $filename);
+                $attestato->poster = "storage/{$baseFolder}/{$filename}";
             }
         }
 
@@ -250,5 +341,37 @@ class AttestatiController extends Controller
 
         $attestato->delete(); // SoftDeletes
         return response()->json(null, 204);
+    }
+
+    /**
+     * Genera il nome della cartella utente: {id_utente}{nome_utente}
+     * 
+     * @param User $user
+     * @return string
+     */
+    private function generateUserFolderName($user): string
+    {
+        $username = $user->name ?? $user->email ?? 'user';
+        $username = preg_replace('/[^a-zA-Z0-9]/', '', $username);
+        return $user->id . $username;
+    }
+
+    /**
+     * Crea uno slug dal titolo dell'attestato
+     * 
+     * @param string $title
+     * @return string
+     */
+    private function slugifyAttestatoTitle(string $title): string
+    {
+        $slug = mb_strtolower($title, 'UTF-8');
+        $slug = preg_replace('/[^a-z0-9]+/', '-', $slug);
+        $slug = preg_replace('/-+/', '-', $slug);
+        $slug = trim($slug, '-');
+        $slug = mb_substr($slug, 0, 50);
+        if (empty($slug)) {
+            $slug = 'attestato-' . time();
+        }
+        return $slug;
     }
 }

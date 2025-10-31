@@ -50,7 +50,7 @@
 
 <div class="certificates">
   @if (!loading() && !errorMsg()) {
-    @if (showEmptyAddCard()) {
+    @if (showEmptyAddCard() && attestati().length > 0) {
       <div class="attestato-card skeleton-card add-card" (click)="goToAddAttestato()" role="button" tabindex="0" aria-label="Aggiungi attestato">
         <div class="add-card-circle" aria-hidden="true">
           <svg class="add-card-plus" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round">

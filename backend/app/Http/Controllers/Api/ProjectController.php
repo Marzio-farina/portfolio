@@ -6,6 +6,7 @@ use App\Http\Controllers\Controller;
 use App\Http\Resources\ProjectResource;
 use App\Models\Project;
 use App\Models\Category;
+use App\Models\User;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
@@ -102,6 +103,7 @@ class ProjectController extends Controller
 
         try {
             $validated = $request->validate([
+                'user_id' => 'nullable|integer|exists:users,id', // ID utente per progetti specifici per utente
                 'title' => 'required|string|max:50',
                 'category_id' => 'required|integer|exists:categories,id',
                 'description' => 'required|string|max:1000', // Required perché il database non accetta NULL
@@ -158,22 +160,41 @@ class ProjectController extends Controller
                 'description_trimmed_length' => strlen($descriptionTrimmed),
             ]);
 
+            // Se user_id è presente nel request, usa quello (progetto specifico per utente)
+            // Altrimenti usa l'utente autenticato
+            $targetUserId = $validated['user_id'] ?? $user->id;
+            
+            // Carica l'utente target per generare il nome della cartella
+            $targetUser = User::find($targetUserId);
+            if (!$targetUser) {
+                Log::error('Utente target non trovato', ['user_id' => $targetUserId]);
+                return response()->json([
+                    'ok' => false,
+                    'message' => 'Utente non valido.',
+                ], 422, [], JSON_UNESCAPED_UNICODE);
+            }
+
             $projectData = [
                 'title' => trim($validated['title']),
                 'category_id' => $validated['category_id'],
-                'user_id' => $user->id,
+                'user_id' => $targetUserId, // Usa l'user_id dal request se presente, altrimenti l'utente autenticato
                 'description' => $descriptionTrimmed // Il mutator converte null/empty in ''
             ];
 
             Log::info('projectData preparato', [
                 'project_data' => $projectData,
+                'target_user_id' => $targetUserId,
+                'target_user_email' => $targetUser->email,
+                'request_user_id' => $validated['user_id'] ?? 'NON PRESENTE (usa autenticato)',
+                'authenticated_user_id' => $user->id,
                 'description_in_array' => $projectData['description'],
                 'description_in_array_type' => gettype($projectData['description']),
                 'description_in_array_is_null' => $projectData['description'] === null,
             ]);
 
             // Prepara la struttura cartelle: project/{id_utente}{nome_utente}/{nome_project}
-            $userFolder = $this->generateUserFolderName($user);
+            // Usa l'utente target (non sempre l'utente autenticato)
+            $userFolder = $this->generateUserFolderName($targetUser);
             $projectFolder = $this->slugifyProjectName($validated['title']);
             $baseFolder = "project/{$userFolder}/{$projectFolder}";
 

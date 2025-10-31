@@ -3,6 +3,7 @@ import { FormBuilder, FormGroup, ReactiveFormsModule, Validators } from '@angula
 import { Router } from '@angular/router';
 import { TestimonialService } from '../../services/testimonial.service';
 import { DefaultAvatarService } from '../../services/default-avatar.service';
+import { TenantService } from '../../services/tenant.service';
 import { AvatarData } from '../avatar/avatar';
 import { Notification, NotificationType } from '../../components/notification/notification';
 import { AvatarEditor, AvatarSelection } from '../avatar-editor/avatar-editor';
@@ -35,6 +36,7 @@ export class AddTestimonial {
   private router = inject(Router);
   private testimonialApi = inject(TestimonialService);
   private defaultAvatarService = inject(DefaultAvatarService);
+  private tenant = inject(TenantService);
 
   @ViewChild('avatarFileInput') avatarFileInputRef?: ElementRef<HTMLInputElement>;
 
@@ -311,15 +313,26 @@ export class AddTestimonial {
     }
 
     this.sending.set(true);
-    this.testimonialApi.create$(this.form.value as any).subscribe({
+    
+    // Prepara i dati del form includendo user_id se presente (recensione specifica per utente)
+    const formData: any = { ...this.form.value };
+    const userId = this.tenant.userId();
+    if (userId) {
+      formData.user_id = userId;
+    }
+    
+    this.testimonialApi.create$(formData).subscribe({
       next: () => {
         this.sent.set(true);
         this.sending.set(false);
         
         // Emetti notifica di successo
         this.onSuccessChange('Recensione inviata con successo!');
-        // Naviga alla pagina about passando notifica via navigation state
-        this.router.navigate(['/about'], { state: { toast: { message: 'Recensione inviata con successo!', type: 'success' } } });
+        
+        // Naviga alla pagina corretta: con userSlug se presente, altrimenti /about
+        const userSlug = this.tenant.userSlug();
+        const navigateTo = userSlug ? [`/${userSlug}/about`] : ['/about'];
+        this.router.navigate(navigateTo, { state: { toast: { message: 'Recensione inviata con successo!', type: 'success' } } });
       },
       error: (err: any) => {
         console.error('[add-testimonial] error', err);
@@ -448,7 +461,10 @@ export class AddTestimonial {
 
   // Navigazione indietro
   goBack() {
-    this.router.navigate(['/about']);
+    // Naviga alla pagina corretta: con userSlug se presente, altrimenti /about
+    const userSlug = this.tenant.userSlug();
+    const navigateTo = userSlug ? [`/${userSlug}/about`] : ['/about'];
+    this.router.navigate(navigateTo);
   }
 
   // Ottiene i campi nascosti in base alla larghezza dello schermo

@@ -295,9 +295,12 @@ export class TestimonialCarouselCard {
 
     /**
    * Navigate to add testimonial page
+   * Se c'è uno userSlug, naviga al path specifico per utente
    */
     openAddTestimonial(): void {
-        this.router.navigate(['/nuova-recensione']);
+        const userSlug = this.tenant.userSlug();
+        const navigateTo = userSlug ? [`/${userSlug}/nuova-recensione`] : ['/nuova-recensione'];
+        this.router.navigate(navigateTo);
     }
 }
 

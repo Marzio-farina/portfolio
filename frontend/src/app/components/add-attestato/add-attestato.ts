@@ -2,6 +2,7 @@ import { Component, ElementRef, effect, inject, signal, ViewChild } from '@angul
 import { ReactiveFormsModule, FormBuilder, FormGroup, Validators, ValidatorFn, AbstractControl } from '@angular/forms';
 import { Router } from '@angular/router';
 import { TenantRouterService } from '../../services/tenant-router.service';
+import { TenantService } from '../../services/tenant.service';
 import { AttestatiService } from '../../services/attestati.service';
 import { Notification, NotificationType } from '../notification/notification';
 import { environment } from '../../../environments/environment';
@@ -18,6 +19,7 @@ export class AddAttestato {
   private attestatiService = inject(AttestatiService);
   private router = inject(Router);
   private tenantRouter = inject(TenantRouterService);
+  private tenant = inject(TenantService);
 
   @ViewChild('fileInput') fileInputRef?: ElementRef<HTMLInputElement>;
 
@@ -211,6 +213,13 @@ export class AddAttestato {
     const v = this.addAttestatoForm.getRawValue();
     const formData = new FormData();
     formData.append('title', v.title);
+    
+    // Includi user_id se presente (attestato specifico per utente)
+    const userId = this.tenant.userId();
+    if (userId) {
+      formData.append('user_id', String(userId));
+    }
+    
     if (v.description?.trim()) formData.append('description', v.description.trim());
     if (v.issuer?.trim()) formData.append('issuer', v.issuer.trim());
     if (v.issued_at?.toString().trim()) formData.append('issued_at', v.issued_at);

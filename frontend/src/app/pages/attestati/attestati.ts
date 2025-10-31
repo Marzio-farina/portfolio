@@ -203,7 +203,14 @@ export class Attestati {
   }
 
   goToAddAttestato(): void {
-    this.tenantRouter.navigate(['attestati','nuovo']);
+    // Se c'è uno userSlug, naviga al path specifico per utente
+    // Altrimenti usa il path generico
+    const userSlug = this.tenant.userSlug();
+    if (userSlug) {
+      this.router.navigate([`/${userSlug}/attestati/nuovo`]);
+    } else {
+      this.tenantRouter.navigate(['attestati','nuovo']);
+    }
   }
 
   onCardDeleted(id: number): void {

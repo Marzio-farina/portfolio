@@ -2,6 +2,7 @@ import { Component, ElementRef, effect, inject, signal, ViewChild } from '@angul
 import { ReactiveFormsModule, FormBuilder, FormGroup, Validators } from '@angular/forms';
 import { Router } from '@angular/router';
 import { TenantRouterService } from '../../services/tenant-router.service';
+import { TenantService } from '../../services/tenant.service';
 import { ProjectService } from '../../services/project.service';
 import { Notification, NotificationType } from '../notification/notification';
 import { HttpClient } from '@angular/common/http';
@@ -27,6 +28,7 @@ export class AddProject {
   private projectService = inject(ProjectService);
   private router = inject(Router);
   private tenantRouter = inject(TenantRouterService);
+  private tenant = inject(TenantService);
   private http = inject(HttpClient);
 
   @ViewChild('posterInput') posterInputRef?: ElementRef<HTMLInputElement>;
@@ -290,6 +292,13 @@ export class AddProject {
     const formData = new FormData();
     formData.append('title', v.title.trim());
     formData.append('category_id', String(v.category_id));
+    
+    // Includi user_id se presente (progetto specifico per utente)
+    const userId = this.tenant.userId();
+    if (userId) {
+      formData.append('user_id', String(userId));
+      console.log('user_id aggiunto al FormData:', userId);
+    }
     
     // Description è OBBLIGATORIO - invia sempre, anche se vuoto
     const descriptionValue = v.description?.trim() || '';
