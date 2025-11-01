@@ -61,21 +61,21 @@
   gap: 1rem;
 }
 
-/* Azioni/Pulsanti mobile */
+/* Azioni/Pulsanti mobile - dentro il dialog */
 .project-detail-modal__actions--mobile {
-  position: sticky;
-  bottom: 0;
-  padding: 1rem 1.5rem;
-  background: var(--bg-card);
-  border-top: 1px solid var(--border-primary);
   display: flex;
-  gap: 0.75rem;
-  z-index: 10;
+  gap: 12px;
+  margin-top: 24px;
+  padding-top: 20px;
+  border-top: 1px solid var(--border-primary);
+  justify-content: flex-end;
+  width: 100%;
+  flex-shrink: 0;
 }
 
-/* Azioni/Pulsanti desktop */
+/* Azioni/Pulsanti desktop - nascosti di default, mostrati sopra 768px */
 .project-detail-modal__actions--desktop {
-  display: flex;
+  display: none;
   flex-direction: column;
   gap: 12px;
   align-items: stretch;
