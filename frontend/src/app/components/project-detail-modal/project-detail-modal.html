@@ -407,6 +407,17 @@
       <div class="project-detail-modal__actions project-detail-modal__actions--mobile">
         <button 
           type="button"
+          class="project-detail-modal__btn project-detail-modal__btn--preview project-detail-modal__btn--preview-mobile"
+          (click)="togglePreviewMode()"
+          title="Anteprima senza modalità edit">
+          @if (isPreviewMode()) {
+            <span>🔙 Edit</span>
+          } @else {
+            <span>👁️</span>
+          }
+        </button>
+        <button 
+          type="button"
           class="project-detail-modal__btn project-detail-modal__btn--cancel"
           (click)="onCancel()"
           [disabled]="saving()">

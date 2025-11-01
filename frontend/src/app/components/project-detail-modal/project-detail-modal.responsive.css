@@ -115,13 +115,18 @@
   }
 }
 
-/* Nascondi i pulsanti desktop di default (su mobile) */
+/* Nascondi i pulsanti desktop di default (sotto 1250px) */
 .project-detail-modal__actions--desktop {
   display: none;
 }
 
-/* Per dispositivi più grandi di 768px */
-@media (min-width: 768.02px) {
+/* Pulsanti mobile visibili di default - dentro il dialog */
+.project-detail-modal__actions--mobile {
+  display: flex;
+}
+
+/* Per dispositivi più grandi di 768px ma minori di 1250px */
+@media (min-width: 768.02px) and (max-width: 1249.99px) {
   .project-detail-modal {
     max-width: 800px;
   }
@@ -131,37 +136,77 @@
     gap: 2rem;
   }
 
-  /* Aumenta lo spazio tra le colonne per evitare il ritorno a capo */
   .project-detail-modal__info {
     column-gap: 2.5rem;
   }
 
-  /* Previeni il ritorno a capo del label */
   .project-detail-modal__label {
     white-space: nowrap;
   }
 
-  /* Nascondi i pulsanti mobile su schermi grandi */
+  /* Pulsanti mobile dentro il dialog, più grandi */
+  .project-detail-modal__actions--mobile {
+    display: flex;
+    justify-content: flex-end;
+  }
+
+  .project-detail-modal__actions--mobile .project-detail-modal__btn {
+    padding: 10px 24px;
+    font-size: 0.95rem;
+    min-width: 120px;
+  }
+}
+
+/* Per dispositivi più grandi di 1250px */
+@media (min-width: 1250px) {
+  .project-detail-modal {
+    max-width: 800px;
+  }
+
+  .project-detail-modal__scrollable {
+    padding: 2rem;
+    gap: 2rem;
+  }
+
+  .project-detail-modal__info {
+    column-gap: 2.5rem;
+  }
+
+  .project-detail-modal__label {
+    white-space: nowrap;
+  }
+
+  /* Nascondi pulsanti mobile su schermi molto grandi */
   .project-detail-modal__actions--mobile {
     display: none;
   }
 
-  /* Mostra e posiziona i pulsanti desktop fuori dal dialog */
+  /* Nascondi anche preview mobile sopra 1250px */
+  .project-detail-modal__btn--preview-mobile {
+    display: none !important;
+  }
+
+  /* Mostra pulsanti desktop in posizione fixed (compatti) */
   .project-detail-modal__actions--desktop {
     display: flex;
-    gap: 12px;
+    flex-direction: column;
+    gap: 8px;
     position: fixed;
     top: 20px;
     right: 20px;
     z-index: 1202;
     pointer-events: auto;
   }
-}
 
-/* Per dispositivi più grandi di 1250px */
-@media (min-width: 1250px) {
-  /* Mostra pulsante Preview */
-  .project-detail-modal__btn--preview {
+  /* Pulsanti desktop compatti */
+  .project-detail-modal__actions--desktop .project-detail-modal__btn {
+    padding: 8px 16px;
+    font-size: 0.85rem;
+    min-width: 100px;
+  }
+
+  /* Mostra pulsante Preview desktop */
+  .project-detail-modal__actions--desktop .project-detail-modal__btn--preview {
     display: flex !important;
   }
 }

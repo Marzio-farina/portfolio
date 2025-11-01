@@ -109,18 +109,20 @@
   box-shadow: 0 0 0 3px var(--accent-primary-alpha);
 }
 
-/* Buttons */
+/* Buttons - dimensioni compatte per posizionamento assoluto */
 .project-detail-modal__btn {
-  padding: 10px 24px;
-  border-radius: 8px;
+  padding: 8px 16px;
+  border-radius: 6px;
   font-weight: 600;
-  font-size: 0.95rem;
+  font-size: 0.85rem;
   cursor: pointer;
   transition: all var(--transition-1);
   border: 0;
   display: inline-flex;
   align-items: center;
   justify-content: center;
+  white-space: nowrap;
+  min-width: 100px;
 }
 
 .project-detail-modal__btn--cancel {
@@ -150,9 +152,15 @@
 .project-detail-modal__btn--preview {
   background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
   color: white;
-  display: none;
   font-weight: 600;
   transition: all var(--transition-1);
+}
+
+/* Preview mobile - visibile sotto 1250px */
+.project-detail-modal__btn--preview-mobile {
+  display: flex;
+  min-width: auto;
+  padding: 8px 12px;
 }
 
 .project-detail-modal__btn--preview:hover:not(:disabled) {
