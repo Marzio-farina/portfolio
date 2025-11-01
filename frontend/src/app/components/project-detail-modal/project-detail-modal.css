@@ -634,3 +634,284 @@
   font-style: italic;
 }
 
+/* ================== Canvas System con Absolute Positioning ==================  */
+
+/* Canvas scrollabile - sempre con positioning context */
+.project-detail-modal__canvas {
+  position: relative;
+  min-height: 800px;
+  width: 100%;
+  padding: 20px;
+  box-sizing: border-box;
+}
+
+/* Griglia visiva SOLO in modalità edit */
+.project-detail-modal__canvas.edit-mode {
+  background-image: 
+    repeating-linear-gradient(
+      90deg,
+      var(--border-primary) 0,
+      var(--border-primary) 1px,
+      transparent 1px,
+      transparent 25%
+    ),
+    repeating-linear-gradient(
+      0deg,
+      var(--border-primary) 0,
+      var(--border-primary) 1px,
+      transparent 1px,
+      transparent 160px
+    );
+  background-size: 100% 100%;
+  border: 2px dashed var(--accent-primary);
+  border-radius: 12px;
+}
+
+/* Elementi con absolute positioning - SEMPRE absolute */
+.canvas-item {
+  position: absolute;
+  background: transparent;
+  border: none;
+  border-radius: 12px;
+  padding: 12px;
+  box-sizing: border-box;
+  transition: box-shadow var(--transition-1), border-color var(--transition-1), background var(--transition-1);
+  overflow: hidden;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 150px;
+  min-height: 100px;
+}
+
+/* Bordi e background SOLO in edit mode */
+.edit-mode .canvas-item {
+  cursor: move;
+  user-select: none;
+  background: var(--bg-card);
+  border: 2px solid var(--border-primary);
+}
+
+.edit-mode .canvas-item:hover {
+  box-shadow: 0 6px 16px rgba(0, 0, 0, 0.2);
+  border-color: var(--accent-primary);
+  z-index: 5;
+}
+
+/* Stati drag e resize */
+.canvas-item.is-dragging {
+  opacity: 0.8;
+  cursor: grabbing;
+  z-index: 100;
+  box-shadow: 0 12px 30px rgba(0, 0, 0, 0.35);
+  transform: scale(1.02);
+}
+
+.canvas-item.is-resizing {
+  user-select: none;
+  transition: none;
+  z-index: 99;
+}
+
+/* Contenuto dentro canvas-item */
+.canvas-item > * {
+  width: 100%;
+  height: 100%;
+  overflow: hidden;
+}
+
+/* Field dentro canvas-item */
+.canvas-item .project-detail-modal__field {
+  width: 100%;
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  overflow: hidden;
+}
+
+/* Input e textarea dentro canvas-item */
+.canvas-item .project-detail-modal__value-input,
+.canvas-item .project-detail-modal__textarea {
+  flex: 1;
+  min-height: 0;
+  overflow-y: auto;
+  resize: none;
+}
+
+/* Technologies selector */
+.canvas-item .project-detail-modal__technologies-selector {
+  flex: 1;
+  overflow-y: auto;
+  min-height: 0;
+}
+
+/* Tags */
+.canvas-item .project-detail-modal__tags {
+  flex-wrap: wrap;
+  overflow: hidden;
+}
+
+/* Resize handles sui bordi - SOLO visibili in edit mode */
+.resize-handle {
+  position: absolute;
+  z-index: 15;
+  opacity: 0;
+  background: var(--accent-primary);
+  transition: opacity var(--transition-1), background var(--transition-1);
+  display: none; /* Nascosti di default */
+}
+
+/* Mostra handle solo in edit mode */
+.edit-mode .resize-handle {
+  display: block;
+}
+
+.edit-mode .canvas-item:hover .resize-handle {
+  opacity: 0.6;
+}
+
+.edit-mode .resize-handle:hover {
+  opacity: 1 !important;
+  background: var(--accent-primary);
+}
+
+/* Bordi laterali */
+.resize-handle.resize-n {
+  top: -3px;
+  left: 10%;
+  right: 10%;
+  height: 6px;
+  cursor: ns-resize;
+  border-radius: 3px;
+}
+
+.resize-handle.resize-s {
+  bottom: -3px;
+  left: 10%;
+  right: 10%;
+  height: 6px;
+  cursor: ns-resize;
+  border-radius: 3px;
+}
+
+.resize-handle.resize-e {
+  right: -3px;
+  top: 10%;
+  bottom: 10%;
+  width: 6px;
+  cursor: ew-resize;
+  border-radius: 3px;
+}
+
+.resize-handle.resize-w {
+  left: -3px;
+  top: 10%;
+  bottom: 10%;
+  width: 6px;
+  cursor: ew-resize;
+  border-radius: 3px;
+}
+
+/* Angoli */
+.resize-handle.resize-ne {
+  top: -4px;
+  right: -4px;
+  width: 14px;
+  height: 14px;
+  cursor: nesw-resize;
+  border-radius: 50%;
+}
+
+.resize-handle.resize-nw {
+  top: -4px;
+  left: -4px;
+  width: 14px;
+  height: 14px;
+  cursor: nwse-resize;
+  border-radius: 50%;
+}
+
+.resize-handle.resize-se {
+  bottom: -4px;
+  right: -4px;
+  width: 14px;
+  height: 14px;
+  cursor: nwse-resize;
+  border-radius: 50%;
+}
+
+.resize-handle.resize-sw {
+  bottom: -4px;
+  left: -4px;
+  width: 14px;
+  height: 14px;
+  cursor: nesw-resize;
+  border-radius: 50%;
+}
+
+/* Scrollable container */
+.project-detail-modal__scrollable {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  overflow-y: auto;
+  max-height: 90vh;
+}
+
+/* Titolo wrapper */
+.project-detail-modal__title-wrapper {
+  width: 100%;
+  flex-shrink: 0;
+}
+
+/* Azioni mobile - sempre visibili sotto il canvas */
+.project-detail-modal__actions--mobile {
+  width: 100%;
+  flex-shrink: 0;
+  margin-top: 16px;
+}
+
+/* Immagini e video dentro canvas-item */
+.canvas-item .project-detail-modal__image,
+.canvas-item .project-detail-modal__video {
+  width: 100%;
+  height: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  overflow: hidden;
+}
+
+.canvas-item .project-detail-modal__image-container,
+.canvas-item .project-detail-modal__video-container {
+  width: 100%;
+  height: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  overflow: hidden;
+}
+
+.canvas-item .project-detail-modal__image-img,
+.canvas-item .project-detail-modal__video-element {
+  max-width: 100%;
+  max-height: 100%;
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+}
+
+/* Aree di aggiunta immagine/video */
+.canvas-item .project-detail-modal__add-image-area,
+.canvas-item .project-detail-modal__add-video-area,
+.canvas-item .project-detail-modal__image-error {
+  width: 100%;
+  height: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  overflow: hidden;
+}
+
+

@@ -442,8 +442,6 @@ span, div, a { font-size: 0.85rem !important; }
 /* Prevenzione overflow per immagini */
 img, svg {
   max-width: 100% !important;
-  height: auto !important;
-  object-fit: contain !important;
 }
 
 /* Prevenzione overflow per liste */

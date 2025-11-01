@@ -1,4 +1,4 @@
-import { Component, inject, input, output, signal, computed, effect, afterNextRender, ViewChild, ElementRef } from '@angular/core';
+import { Component, inject, input, output, signal, computed, effect, afterNextRender, ViewChild, ElementRef, untracked, OnDestroy } from '@angular/core';
 import { ReactiveFormsModule, FormBuilder, FormGroup, Validators } from '@angular/forms';
 import { HttpClient } from '@angular/common/http';
 import { ProjectDetailModalService } from '../../services/project-detail-modal.service';
@@ -15,6 +15,35 @@ interface Category {
   title: string;
 }
 
+interface CanvasItem {
+  id: string;
+  left: number;    // posizione X in pixel
+  top: number;     // posizione Y in pixel
+  width: number;   // larghezza in pixel
+  height: number;  // altezza in pixel
+}
+
+interface DragState {
+  isDragging: boolean;
+  draggedItemId: string | null;
+  startX: number;
+  startY: number;
+  startItemX: number;
+  startItemY: number;
+}
+
+interface ResizeState {
+  isResizing: boolean;
+  itemId: string | null;
+  handle: string | null;
+  startX: number;
+  startY: number;
+  startLeft: number;
+  startTop: number;
+  startWidth: number;
+  startHeight: number;
+}
+
 @Component({
   selector: 'app-project-detail-modal',
   standalone: true,
@@ -22,7 +51,7 @@ interface Category {
   templateUrl: './project-detail-modal.html',
   styleUrls: ['./project-detail-modal.css', './project-detail-modal.responsive.css']
 })
-export class ProjectDetailModal {
+export class ProjectDetailModal implements OnDestroy {
   private projectDetailModalService = inject(ProjectDetailModalService);
   private projectService = inject(ProjectService);
   private editModeService = inject(EditModeService);
@@ -86,12 +115,68 @@ export class ProjectDetailModal {
   loadingTechnologies = signal(false);
   selectedTechnologyIds = signal<number[]>([]);
 
+  // Gestione canvas con absolute positioning - Attiva automaticamente quando canEdit() è true
+  isEditMode = computed(() => this.canEdit());
+  
+  // Traccia progetti già caricati per evitare loop
+  private loadedProjectIds = new Set<number>();
+  private saveLayoutTimeout: any = null;
+  
+  // Dimensioni griglia per snap (4 colonne x 5 righe, griglia di riferimento)
+  gridCols = 4;
+  gridRows = 5;
+  gridCellSize = 160; // altezza approssimativa di una cella in px
+  
+  // Posizioni elementi in pixel (layout predefinito)
+  canvasItems = signal<Map<string, CanvasItem>>(new Map([
+    ['image', { id: 'image', left: 20, top: 20, width: 400, height: 320 }],
+    ['video', { id: 'video', left: 440, top: 20, width: 400, height: 320 }],
+    ['category', { id: 'category', left: 20, top: 360, width: 200, height: 120 }],
+    ['technologies', { id: 'technologies', left: 240, top: 360, width: 200, height: 120 }],
+    ['description', { id: 'description', left: 460, top: 360, width: 380, height: 240 }]
+  ]));
+
+  dragState = signal<DragState>({
+    isDragging: false,
+    draggedItemId: null,
+    startX: 0,
+    startY: 0,
+    startItemX: 0,
+    startItemY: 0
+  });
+
+  resizeState = signal<ResizeState>({
+    isResizing: false,
+    itemId: null,
+    handle: null,
+    startX: 0,
+    startY: 0,
+    startLeft: 0,
+    startTop: 0,
+    startWidth: 0,
+    startHeight: 0
+  });
+
   constructor() {
     // Inizializza il form
     this.editForm = this.fb.group({
       title: ['', [Validators.required, Validators.maxLength(50)]],
       category_id: ['', [Validators.required]],
       description: ['', [Validators.required, Validators.maxLength(1000)]]
+    });
+
+    // Carica il layout personalizzato quando il progetto cambia (solo ID progetto come dipendenza)
+    effect(() => {
+      const projectId = this.project().id;
+      const layoutConfig = this.project().layout_config;
+      
+      // Carica solo se non è già stato caricato per questo progetto
+      if (layoutConfig && !this.loadedProjectIds.has(projectId)) {
+        untracked(() => {
+          this.loadCanvasLayout(layoutConfig);
+          this.loadedProjectIds.add(projectId);
+        });
+      }
     });
 
     // Carica le categorie e le tecnologie
@@ -622,5 +707,374 @@ export class ProjectDetailModal {
     if (!list.length) return null;
     const order: NotificationType[] = ['error', 'warning', 'info', 'success'];
     return [...list].sort((a, b) => order.indexOf(a.type) - order.indexOf(b.type))[0];
+  }
+
+  // ================== Metodi per Canvas con Absolute Positioning ==================
+
+  /**
+   * Ottiene lo stile inline per un elemento del canvas
+   */
+  getItemStyle(itemId: string): { left: number; top: number; width: number; height: number } {
+    const item = this.canvasItems().get(itemId);
+    return item || { left: 0, top: 0, width: 200, height: 150 };
+  }
+
+  /**
+   * Gestisce il mousedown su un elemento per iniziare il drag
+   */
+  onItemMouseDown(event: MouseEvent, itemId: string): void {
+    if (!this.isEditMode()) return;
+    
+    // Se clicca su un resize handle, non fare drag
+    const target = event.target as HTMLElement;
+    if (target.classList.contains('resize-handle')) return;
+    
+    event.preventDefault();
+    event.stopPropagation();
+
+    const item = this.canvasItems().get(itemId);
+    if (!item) return;
+
+    this.dragState.set({
+      isDragging: true,
+      draggedItemId: itemId,
+      startX: event.clientX,
+      startY: event.clientY,
+      startItemX: item.left,
+      startItemY: item.top
+    });
+
+    // Aggiungi event listeners globali
+    document.addEventListener('mousemove', this.handleDragMoveGlobal);
+    document.addEventListener('mouseup', this.handleMouseUpGlobal);
+  }
+
+  /**
+   * Handler globale per mousemove (bound function)
+   */
+  private handleDragMoveGlobal = (event: MouseEvent): void => {
+    if (this.dragState().isDragging) {
+      this.handleDragMove(event);
+    } else if (this.resizeState().isResizing) {
+      this.handleResizeMove(event);
+    }
+  };
+
+  /**
+   * Handler globale per mouseup (bound function)
+   */
+  private handleMouseUpGlobal = (event: MouseEvent): void => {
+    if (this.dragState().isDragging) {
+      this.finalizeDrag();
+    } else if (this.resizeState().isResizing) {
+      this.finalizeResize();
+    }
+    
+    // Rimuovi event listeners
+    document.removeEventListener('mousemove', this.handleDragMoveGlobal);
+    document.removeEventListener('mouseup', this.handleMouseUpGlobal);
+  };
+
+  /**
+   * Movimento durante il drag
+   */
+  private handleDragMove(event: MouseEvent): void {
+    const state = this.dragState();
+    if (!state.draggedItemId) return;
+
+    const deltaX = event.clientX - state.startX;
+    const deltaY = event.clientY - state.startY;
+
+    const newLeft = state.startItemX + deltaX;
+    const newTop = state.startItemY + deltaY;
+
+    // Aggiorna posizione in tempo reale
+    const items = new Map(this.canvasItems());
+    const item = items.get(state.draggedItemId);
+    if (!item) return;
+
+    items.set(state.draggedItemId, {
+      ...item,
+      left: Math.max(0, newLeft),
+      top: Math.max(0, newTop)
+    });
+
+    this.canvasItems.set(items);
+  }
+
+  /**
+   * Finalizza il drag con snap-to-grid
+   */
+  private finalizeDrag(): void {
+    const state = this.dragState();
+    if (!state.draggedItemId) return;
+
+    const item = this.canvasItems().get(state.draggedItemId);
+    if (!item) return;
+
+    // Snap alla griglia più vicina
+    const snappedLeft = this.snapToGrid(item.left);
+    const snappedTop = this.snapToGrid(item.top);
+
+    const items = new Map(this.canvasItems());
+    items.set(state.draggedItemId, {
+      ...item,
+      left: snappedLeft,
+      top: snappedTop
+    });
+
+    this.canvasItems.set(items);
+
+    // Reset stato drag
+    this.dragState.set({
+      isDragging: false,
+      draggedItemId: null,
+      startX: 0,
+      startY: 0,
+      startItemX: 0,
+      startItemY: 0
+    });
+
+    // Salva layout
+    this.saveCanvasLayout();
+  }
+
+  /**
+   * Snap a multipli di 20px (griglia fine)
+   */
+  private snapToGrid(value: number): number {
+    const snapSize = 20;
+    return Math.round(value / snapSize) * snapSize;
+  }
+
+  // ================== Metodi per Resize con Absolute Positioning ==================
+
+  /**
+   * Gestisce il mousedown su un resize handle
+   */
+  onResizeHandleMouseDown(event: MouseEvent, itemId: string, handle: string): void {
+    if (!this.isEditMode()) return;
+    event.preventDefault();
+    event.stopPropagation();
+
+    const item = this.canvasItems().get(itemId);
+    if (!item) return;
+
+    this.resizeState.set({
+      isResizing: true,
+      itemId,
+      handle,
+      startX: event.clientX,
+      startY: event.clientY,
+      startLeft: item.left,
+      startTop: item.top,
+      startWidth: item.width,
+      startHeight: item.height
+    });
+
+    // Aggiungi event listeners globali
+    document.addEventListener('mousemove', this.handleDragMoveGlobal);
+    document.addEventListener('mouseup', this.handleMouseUpGlobal);
+  }
+
+  /**
+   * Gestisce il movimento durante il resize
+   */
+  private handleResizeMove(event: MouseEvent): void {
+    const state = this.resizeState();
+    if (!state.itemId) return;
+
+    const item = this.canvasItems().get(state.itemId);
+    if (!item) return;
+
+    const deltaX = event.clientX - state.startX;
+    const deltaY = event.clientY - state.startY;
+
+    let newLeft = state.startLeft;
+    let newTop = state.startTop;
+    let newWidth = state.startWidth;
+    let newHeight = state.startHeight;
+
+    const minWidth = 150;  // Larghezza minima
+    const minHeight = 100; // Altezza minima
+
+    // Calcola nuove dimensioni in base all'handle
+    switch (state.handle) {
+      case 'e': // East (destra)
+        newWidth = Math.max(minWidth, state.startWidth + deltaX);
+        break;
+      case 'w': // West (sinistra)
+        newWidth = Math.max(minWidth, state.startWidth - deltaX);
+        newLeft = state.startLeft + (state.startWidth - newWidth);
+        break;
+      case 's': // South (sotto)
+        newHeight = Math.max(minHeight, state.startHeight + deltaY);
+        break;
+      case 'n': // North (sopra)
+        newHeight = Math.max(minHeight, state.startHeight - deltaY);
+        newTop = state.startTop + (state.startHeight - newHeight);
+        break;
+      case 'se': // South-East
+        newWidth = Math.max(minWidth, state.startWidth + deltaX);
+        newHeight = Math.max(minHeight, state.startHeight + deltaY);
+        break;
+      case 'sw': // South-West
+        newWidth = Math.max(minWidth, state.startWidth - deltaX);
+        newLeft = state.startLeft + (state.startWidth - newWidth);
+        newHeight = Math.max(minHeight, state.startHeight + deltaY);
+        break;
+      case 'ne': // North-East
+        newWidth = Math.max(minWidth, state.startWidth + deltaX);
+        newHeight = Math.max(minHeight, state.startHeight - deltaY);
+        newTop = state.startTop + (state.startHeight - newHeight);
+        break;
+      case 'nw': // North-West
+        newWidth = Math.max(minWidth, state.startWidth - deltaX);
+        newLeft = state.startLeft + (state.startWidth - newWidth);
+        newHeight = Math.max(minHeight, state.startHeight - deltaY);
+        newTop = state.startTop + (state.startHeight - newHeight);
+        break;
+    }
+
+    // Aggiorna in tempo reale
+    const items = new Map(this.canvasItems());
+    items.set(state.itemId, {
+      ...item,
+      left: Math.max(0, newLeft),
+      top: Math.max(0, newTop),
+      width: newWidth,
+      height: newHeight
+    });
+
+    this.canvasItems.set(items);
+  }
+
+  /**
+   * Finalizza il resize con snap
+   */
+  private finalizeResize(): void {
+    const state = this.resizeState();
+    if (!state.itemId) return;
+
+    const item = this.canvasItems().get(state.itemId);
+    if (!item) return;
+
+    // Snap posizioni e dimensioni
+    const snappedLeft = this.snapToGrid(item.left);
+    const snappedTop = this.snapToGrid(item.top);
+    const snappedWidth = this.snapToGrid(item.width);
+    const snappedHeight = this.snapToGrid(item.height);
+
+    const items = new Map(this.canvasItems());
+    items.set(state.itemId, {
+      ...item,
+      left: snappedLeft,
+      top: snappedTop,
+      width: snappedWidth,
+      height: snappedHeight
+    });
+
+    this.canvasItems.set(items);
+
+    // Reset stato
+    this.resizeState.set({
+      isResizing: false,
+      itemId: null,
+      handle: null,
+      startX: 0,
+      startY: 0,
+      startLeft: 0,
+      startTop: 0,
+      startWidth: 0,
+      startHeight: 0
+    });
+
+    // Salva layout
+    this.saveCanvasLayout();
+  }
+
+  // ================== Metodi per Persistenza Layout ==================
+
+  /**
+   * Carica il layout dal progetto
+   */
+  private loadCanvasLayout(layoutConfig: Record<string, { left: number; top: number; width: number; height: number }> | null): void {
+    if (!layoutConfig) {
+      return;
+    }
+
+    console.log('Caricamento layout personalizzato:', layoutConfig);
+
+    const items = new Map(this.canvasItems());
+    
+    Object.entries(layoutConfig).forEach(([key, config]) => {
+      if (items.has(key)) {
+        items.set(key, {
+          id: key,
+          left: config.left,
+          top: config.top,
+          width: config.width,
+          height: config.height
+        });
+        console.log(`Elemento ${key} posizionato a:`, config);
+      }
+    });
+
+    this.canvasItems.set(items);
+    console.log('Layout caricato, items aggiornati');
+  }
+
+  /**
+   * Salva il layout nel backend con debouncing
+   */
+  private saveCanvasLayout(): void {
+    // Cancella il timeout precedente
+    if (this.saveLayoutTimeout) {
+      clearTimeout(this.saveLayoutTimeout);
+    }
+
+    // Debounce di 500ms - salva solo dopo che l'utente ha finito di muovere/ridimensionare
+    this.saveLayoutTimeout = setTimeout(() => {
+      const items = this.canvasItems();
+      const layoutConfig: Record<string, { left: number; top: number; width: number; height: number }> = {};
+
+      items.forEach((item, key) => {
+        layoutConfig[key] = {
+          left: item.left,
+          top: item.top,
+          width: item.width,
+          height: item.height
+        };
+      });
+
+      console.log('Salvataggio layout nel backend:', layoutConfig);
+
+      // Salva nel backend (non aggiorna il progetto locale per evitare loop)
+      const projectId = this.project().id;
+      this.http.patch(apiUrl(`projects/${projectId}/layout`), {
+        layout_config: JSON.stringify(layoutConfig)
+      }).subscribe({
+        next: () => {
+          console.log('Layout salvato con successo nel database');
+        },
+        error: (err) => {
+          console.error('Errore nel salvataggio del layout:', err);
+        }
+      });
+    }, 500);
+  }
+
+  /**
+   * Cleanup quando il componente viene distrutto
+   */
+  ngOnDestroy(): void {
+    // Pulisci event listeners globali se esistono
+    document.removeEventListener('mousemove', this.handleDragMoveGlobal);
+    document.removeEventListener('mouseup', this.handleMouseUpGlobal);
+    
+    // Pulisci timeout
+    if (this.saveLayoutTimeout) {
+      clearTimeout(this.saveLayoutTimeout);
+    }
   }
 }

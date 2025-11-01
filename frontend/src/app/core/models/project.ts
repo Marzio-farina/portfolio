@@ -8,6 +8,7 @@ export interface ProjectDto {
   category?: { id: number; name?: string | null } | null; // name o title lato API
   technologies?: { id: number; name?: string | null; title?: string | null; description?: string | null; icon?: string | null }[] | null;
   created_at?: string | null;
+  layout_config?: string | null; // Configurazione JSON per il layout della griglia
 }
 
 export interface Paginated<T> {
@@ -30,6 +31,7 @@ export type Progetto = {
   video: string;        // url video
   technologies: Technology[]; // array di tecnologie per i tag
   technologiesString?: string; // stringa per retrocompatibilità (opzionale)
+  layout_config?: Record<string, { left: number; top: number; width: number; height: number }> | null; // Configurazione layout con absolute positioning
 };
 
 export interface Technology {

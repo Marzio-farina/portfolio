@@ -42,7 +42,7 @@
           type="file" 
           accept="image/jpeg,image/png,image/jpg,image/gif,image/webp"
           (change)="onPosterFileSelected($event)"
-          [attr.disabled]="uploading() ? '' : null"
+          [disabled]="uploading()"
           style="display: none;">
         
         @if (!hasPoster()) {
@@ -90,7 +90,7 @@
           type="file" 
           accept="video/mp4,video/webm,video/ogg"
           (change)="onVideoFileSelected($event)"
-          [attr.disabled]="uploading() ? '' : null"
+          [disabled]="uploading()"
           style="display: none;">
         
         @if (!hasVideo()) {

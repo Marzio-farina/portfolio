@@ -5,7 +5,7 @@
 </app-notification>
 
 <div class="project-detail-modal">
-  <!-- Pulsante chiusura posizionato in modo assoluto -->
+  <!-- Pulsante chiusura -->
   <button 
     type="button"
     class="project-detail-modal__close" 
@@ -14,185 +14,246 @@
     ×
   </button>
 
-  <!-- Contenuto scrollabile unico -->
+  <!-- Input file nascosti -->
+  @if (canEdit()) {
+    <input 
+      #posterInput
+      type="file" 
+      accept="image/jpeg,image/png,image/jpg,image/gif,image/webp"
+      (change)="onPosterFileSelected($event)"
+      style="display: none;">
+    <input 
+      #videoInput
+      type="file" 
+      accept="video/mp4,video/webm,video/ogg"
+      (change)="onVideoFileSelected($event)"
+      style="display: none;">
+  }
+
+  <!-- Contenuto scrollabile -->
   <div class="project-detail-modal__scrollable">
-    <!-- Titolo all'interno del contenuto scrollabile -->
-    @if (canEdit()) {
-      <input 
-        type="text"
-        [formControl]="$any(editForm.get('title'))"
-        class="project-detail-modal__title-input"
-        placeholder="Titolo progetto"
-        maxlength="50">
-    } @else {
-      <h2 class="project-detail-modal__title">{{ project().title }}</h2>
-    }
-    <form [formGroup]="editForm">
-      <!-- Input file nascosti per upload immagine e video -->
+    <!-- Titolo fisso (non movibile) -->
+    <div class="project-detail-modal__title-wrapper">
       @if (canEdit()) {
         <input 
-          #posterInput
-          type="file" 
-          accept="image/jpeg,image/png,image/jpg,image/gif,image/webp"
-          (change)="onPosterFileSelected($event)"
-          style="display: none;">
-        <input 
-          #videoInput
-          type="file" 
-          accept="video/mp4,video/webm,video/ogg"
-          (change)="onVideoFileSelected($event)"
-          style="display: none;">
+          type="text"
+          [formControl]="$any(editForm.get('title'))"
+          class="project-detail-modal__title-input"
+          placeholder="Titolo progetto"
+          maxlength="50">
+      } @else {
+        <h2 class="project-detail-modal__title">{{ project().title }}</h2>
       }
+    </div>
 
-      <!-- Immagine con area tratteggiata in edit mode -->
-      @if (project().poster && !imageLoadError()) {
-        <div 
-          class="project-detail-modal__image" 
-          [class.image-vertical]="isVerticalImage()"
-          [class.project-detail-modal__image--editable]="canEdit()">
+    <!-- Canvas con griglia per elementi posizionabili -->
+    <div 
+      class="project-detail-modal__canvas"
+      [class.edit-mode]="isEditMode()">
+      
+      <!-- ELEMENTO 1: Immagine -->
+      <div 
+        class="canvas-item"
+        [class.is-dragging]="dragState().isDragging && dragState().draggedItemId === 'image'"
+        [class.is-resizing]="resizeState().isResizing && resizeState().itemId === 'image'"
+        [style.left.px]="getItemStyle('image').left"
+        [style.top.px]="getItemStyle('image').top"
+        [style.width.px]="getItemStyle('image').width"
+        [style.height.px]="getItemStyle('image').height"
+        (mousedown)="onItemMouseDown($event, 'image')">
+        
+        @if (project().poster && !imageLoadError()) {
           <div 
-            class="project-detail-modal__image-container"
-            [style.width.px]="containerWidth()"
-            [style.height.px]="containerHeight"
-            (dragover)="onDragOverPoster($event)"
-            (dragleave)="onDragLeavePoster($event)"
-            (drop)="onFileDropPoster($event)"
-            [class.is-dragover]="isDragOverPoster()">
-            <img
-              [src]="getPosterUrl()"
-              [alt]="project().title"
-              (load)="onImgLoad($event)"
-              (error)="onImgError($event)"
-              class="project-detail-modal__image-img"
-            />
+            class="project-detail-modal__image"
+            [class.image-vertical]="isVerticalImage()"
+            [class.project-detail-modal__image--editable]="canEdit()">
+            <div 
+              class="project-detail-modal__image-container"
+              (dragover)="onDragOverPoster($event)"
+              (dragleave)="onDragLeavePoster($event)"
+              (drop)="onFileDropPoster($event)"
+              [class.is-dragover]="isDragOverPoster()">
+              <img
+                [src]="getPosterUrl()"
+                [alt]="project().title"
+                (load)="onImgLoad($event)"
+                (error)="onImgError($event)"
+                class="project-detail-modal__image-img" />
+              @if (canEdit()) {
+                <button 
+                  type="button"
+                  class="project-detail-modal__change-media"
+                  (click)="openPosterPicker()"
+                  [disabled]="saving()"
+                  aria-label="Cambia immagine">
+                  <svg viewBox="0 0 24 24" aria-hidden="true">
+                    <path d="M3 17.25V21h3.75L17.81 9.94l-3.75-3.75L3 17.25zM21.41 6.34a1.25 1.25 0 0 0 0-1.77l-2.98-2.98a1.25 1.25 0 0 0-1.77 0l-1.83 1.83 3.75 3.75 1.83-1.83z"/>
+                  </svg>
+                </button>
+              }
+            </div>
+          </div>
+        } @else if (imageLoadError()) {
+          <div class="project-detail-modal__image-error">
+            <p>Immagine non disponibile</p>
             @if (canEdit()) {
               <button 
                 type="button"
-                class="project-detail-modal__change-media"
-                (click)="openPosterPicker()"
-                [disabled]="saving()"
-                aria-label="Cambia immagine">
+                class="project-detail-modal__add-media-btn"
+                (click)="openPosterPicker()">
                 <svg viewBox="0 0 24 24" aria-hidden="true">
-                  <path d="M3 17.25V21h3.75L17.81 9.94l-3.75-3.75L3 17.25zM21.41 6.34a1.25 1.25 0 0 0 0-1.77l-2.98-2.98a1.25 1.25 0 0 0-1.77 0l-1.83 1.83 3.75 3.75 1.83-1.83z"/>
+                  <path d="M21 19V5a2 2 0 0 0-2-2H5a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2zM8.5 13.5l2.5 3.01L14.5 12l4.5 6H5l3.5-4.5z"/>
                 </svg>
+                <span>Carica immagine</span>
               </button>
             }
           </div>
-        </div>
-      } @else if (imageLoadError()) {
-        <div class="project-detail-modal__image-error">
-          <p>Immagine non disponibile</p>
-          @if (canEdit()) {
+        } @else if (canEdit() && !project().poster) {
+          <div class="project-detail-modal__add-image-area">
             <button 
               type="button"
               class="project-detail-modal__add-media-btn"
-              (click)="openPosterPicker()">
+              (click)="openPosterPicker()"
+              (dragover)="onDragOverPoster($event)"
+              (dragleave)="onDragLeavePoster($event)"
+              (drop)="onFileDropPoster($event)"
+              [class.is-dragover]="isDragOverPoster()">
               <svg viewBox="0 0 24 24" aria-hidden="true">
                 <path d="M21 19V5a2 2 0 0 0-2-2H5a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2zM8.5 13.5l2.5 3.01L14.5 12l4.5 6H5l3.5-4.5z"/>
               </svg>
               <span>Carica immagine</span>
             </button>
+          </div>
+        }
+
+        <!-- Resize handles -->
+        @if (isEditMode()) {
+          <div class="resize-handle resize-e" (mousedown)="onResizeHandleMouseDown($event, 'image', 'e')"></div>
+          <div class="resize-handle resize-s" (mousedown)="onResizeHandleMouseDown($event, 'image', 's')"></div>
+          <div class="resize-handle resize-w" (mousedown)="onResizeHandleMouseDown($event, 'image', 'w')"></div>
+          <div class="resize-handle resize-n" (mousedown)="onResizeHandleMouseDown($event, 'image', 'n')"></div>
+          <div class="resize-handle resize-ne" (mousedown)="onResizeHandleMouseDown($event, 'image', 'ne')"></div>
+          <div class="resize-handle resize-nw" (mousedown)="onResizeHandleMouseDown($event, 'image', 'nw')"></div>
+          <div class="resize-handle resize-se" (mousedown)="onResizeHandleMouseDown($event, 'image', 'se')"></div>
+          <div class="resize-handle resize-sw" (mousedown)="onResizeHandleMouseDown($event, 'image', 'sw')"></div>
+        }
+      </div>
+
+      <!-- ELEMENTO 2: Video (opzionale) -->
+      @if (project().video || getVideoUrl() || canEdit()) {
+        <div 
+          class="canvas-item"
+          [class.is-dragging]="dragState().isDragging && dragState().draggedItemId === 'video'"
+          [class.is-resizing]="resizeState().isResizing && resizeState().itemId === 'video'"
+          [style.left.px]="getItemStyle('video').left"
+          [style.top.px]="getItemStyle('video').top"
+          [style.width.px]="getItemStyle('video').width"
+          [style.height.px]="getItemStyle('video').height"
+          (mousedown)="onItemMouseDown($event, 'video')">
+          
+          @if (project().video || getVideoUrl()) {
+            <div 
+              class="project-detail-modal__video"
+              [class.project-detail-modal__video--editable]="canEdit()">
+              <div 
+                class="project-detail-modal__video-container"
+                (dragover)="onDragOverVideo($event)"
+                (dragleave)="onDragLeaveVideo($event)"
+                (drop)="onFileDropVideo($event)"
+                [class.is-dragover]="isDragOverVideo()">
+                <div class="project-detail-modal__video-wrapper">
+                  <video
+                    [src]="getVideoUrl() || project().video"
+                    controls
+                    class="project-detail-modal__video-element"
+                    (click)="onVideoClick($event)"
+                    (loadstart)="onVideoLoadStart($event)"
+                    (progress)="onVideoProgress($event)"
+                    (loadeddata)="onVideoLoadedData($event)"
+                    (error)="onVideoError($event)">
+                    Il tuo browser non supporta il tag video.
+                  </video>
+                  @if (videoLoading()) {
+                    <div class="project-detail-modal__video-loading">
+                      <div class="project-detail-modal__video-progress-bar">
+                        <div 
+                          class="project-detail-modal__video-progress-fill"
+                          [style.width.%]="videoLoadProgress()">
+                        </div>
+                      </div>
+                      <span class="project-detail-modal__video-progress-text">{{ videoLoadProgress() }}%</span>
+                    </div>
+                  }
+                </div>
+                @if (canEdit()) {
+                  <button 
+                    type="button"
+                    class="project-detail-modal__change-media"
+                    (click)="openVideoPicker()"
+                    [disabled]="saving()"
+                    aria-label="Cambia video">
+                    <svg viewBox="0 0 24 24" aria-hidden="true">
+                      <path d="M3 17.25V21h3.75L17.81 9.94l-3.75-3.75L3 17.25zM21.41 6.34a1.25 1.25 0 0 0 0-1.77l-2.98-2.98a1.25 1.25 0 0 0-1.77 0l-1.83 1.83 3.75 3.75 1.83-1.83z"/>
+                    </svg>
+                  </button>
+                  <button 
+                    type="button"
+                    class="project-detail-modal__remove-video admin-x-btn"
+                    (click)="removeVideo()"
+                    [disabled]="saving()"
+                    aria-label="Rimuovi video">
+                    <span aria-hidden="true">×</span>
+                  </button>
+                }
+              </div>
+            </div>
+          } @else if (canEdit()) {
+            <div class="project-detail-modal__add-video-area">
+              <button 
+                type="button"
+                class="project-detail-modal__add-media-btn"
+                (click)="openVideoPicker()"
+                (dragover)="onDragOverVideo($event)"
+                (dragleave)="onDragLeaveVideo($event)"
+                (drop)="onFileDropVideo($event)"
+                [class.is-dragover]="isDragOverVideo()">
+                <svg viewBox="0 0 24 24" aria-hidden="true">
+                  <path d="M8 5v14l11-7z"/>
+                </svg>
+                <span>Carica video</span>
+              </button>
+            </div>
+          }
+
+          @if (isEditMode()) {
+            <div class="resize-handle resize-e" (mousedown)="onResizeHandleMouseDown($event, 'video', 'e')"></div>
+            <div class="resize-handle resize-s" (mousedown)="onResizeHandleMouseDown($event, 'video', 's')"></div>
+            <div class="resize-handle resize-w" (mousedown)="onResizeHandleMouseDown($event, 'video', 'w')"></div>
+            <div class="resize-handle resize-n" (mousedown)="onResizeHandleMouseDown($event, 'video', 'n')"></div>
+            <div class="resize-handle resize-ne" (mousedown)="onResizeHandleMouseDown($event, 'video', 'ne')"></div>
+            <div class="resize-handle resize-nw" (mousedown)="onResizeHandleMouseDown($event, 'video', 'nw')"></div>
+            <div class="resize-handle resize-se" (mousedown)="onResizeHandleMouseDown($event, 'video', 'se')"></div>
+            <div class="resize-handle resize-sw" (mousedown)="onResizeHandleMouseDown($event, 'video', 'sw')"></div>
           }
         </div>
-      } @else if (canEdit() && !project().poster) {
-        <div class="project-detail-modal__add-image-area">
-          <button 
-            type="button"
-            class="project-detail-modal__add-media-btn"
-            (click)="openPosterPicker()"
-            (dragover)="onDragOverPoster($event)"
-            (dragleave)="onDragLeavePoster($event)"
-            (drop)="onFileDropPoster($event)"
-            [class.is-dragover]="isDragOverPoster()">
-            <svg viewBox="0 0 24 24" aria-hidden="true">
-              <path d="M21 19V5a2 2 0 0 0-2-2H5a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2zM8.5 13.5l2.5 3.01L14.5 12l4.5 6H5l3.5-4.5z"/>
-            </svg>
-            <span>Carica immagine</span>
-          </button>
-        </div>
       }
 
-      <!-- Video con area tratteggiata in edit mode -->
-      @if (project().video || getVideoUrl()) {
-        <div 
-          class="project-detail-modal__video"
-          [class.project-detail-modal__video--editable]="canEdit()">
-          <div 
-            class="project-detail-modal__video-container"
-            (dragover)="onDragOverVideo($event)"
-            (dragleave)="onDragLeaveVideo($event)"
-            (drop)="onFileDropVideo($event)"
-            [class.is-dragover]="isDragOverVideo()">
-            <div class="project-detail-modal__video-wrapper">
-              <video
-                [src]="getVideoUrl() || project().video"
-                controls
-                class="project-detail-modal__video-element"
-                (click)="onVideoClick($event)"
-                (loadstart)="onVideoLoadStart($event)"
-                (progress)="onVideoProgress($event)"
-                (loadeddata)="onVideoLoadedData($event)"
-                (error)="onVideoError($event)">
-                Il tuo browser non supporta il tag video.
-              </video>
-              @if (videoLoading()) {
-                <div class="project-detail-modal__video-loading">
-                  <div class="project-detail-modal__video-progress-bar">
-                    <div 
-                      class="project-detail-modal__video-progress-fill"
-                      [style.width.%]="videoLoadProgress()">
-                    </div>
-                  </div>
-                  <span class="project-detail-modal__video-progress-text">{{ videoLoadProgress() }}%</span>
-                </div>
-              }
-            </div>
-            @if (canEdit()) {
-              <button 
-                type="button"
-                class="project-detail-modal__change-media"
-                (click)="openVideoPicker()"
-                [disabled]="saving()"
-                aria-label="Cambia video">
-                <svg viewBox="0 0 24 24" aria-hidden="true">
-                  <path d="M3 17.25V21h3.75L17.81 9.94l-3.75-3.75L3 17.25zM21.41 6.34a1.25 1.25 0 0 0 0-1.77l-2.98-2.98a1.25 1.25 0 0 0-1.77 0l-1.83 1.83 3.75 3.75 1.83-1.83z"/>
-                </svg>
-              </button>
-              <button 
-                type="button"
-                class="project-detail-modal__remove-video admin-x-btn"
-                (click)="removeVideo()"
-                [disabled]="saving()"
-                aria-label="Rimuovi video">
-                <span aria-hidden="true">×</span>
-              </button>
-            }
-          </div>
-        </div>
-      } @else if (canEdit()) {
-        <div class="project-detail-modal__add-video-area">
-          <button 
-            type="button"
-            class="project-detail-modal__add-media-btn"
-            (click)="openVideoPicker()"
-            (dragover)="onDragOverVideo($event)"
-            (dragleave)="onDragLeaveVideo($event)"
-            (drop)="onFileDropVideo($event)"
-            [class.is-dragover]="isDragOverVideo()">
-            <svg viewBox="0 0 24 24" aria-hidden="true">
-              <path d="M8 5v14l11-7z"/>
-            </svg>
-            <span>Carica video</span>
-          </button>
-        </div>
-      }
-
-      <div class="project-detail-modal__info">
+      <!-- ELEMENTO 3: Categoria -->
+      <div 
+        class="canvas-item"
+        [class.is-dragging]="dragState().isDragging && dragState().draggedItemId === 'category'"
+        [class.is-resizing]="resizeState().isResizing && resizeState().itemId === 'category'"
+        [style.left.px]="getItemStyle('category').left"
+        [style.top.px]="getItemStyle('category').top"
+        [style.width.px]="getItemStyle('category').width"
+        [style.height.px]="getItemStyle('category').height"
+        (mousedown)="onItemMouseDown($event, 'category')">
+        
         <div class="project-detail-modal__field">
           <span class="project-detail-modal__label">Categoria:</span>
           @if (canEdit()) {
             <select 
-              formControlName="category_id"
+              [formControl]="$any(editForm.get('category_id'))"
               class="project-detail-modal__value-input">
               <option value="">Seleziona categoria</option>
               @for (cat of categories(); track cat.id) {
@@ -206,6 +267,29 @@
           }
         </div>
 
+        @if (isEditMode()) {
+          <div class="resize-handle resize-e" (mousedown)="onResizeHandleMouseDown($event, 'category', 'e')"></div>
+          <div class="resize-handle resize-s" (mousedown)="onResizeHandleMouseDown($event, 'category', 's')"></div>
+          <div class="resize-handle resize-w" (mousedown)="onResizeHandleMouseDown($event, 'category', 'w')"></div>
+          <div class="resize-handle resize-n" (mousedown)="onResizeHandleMouseDown($event, 'category', 'n')"></div>
+          <div class="resize-handle resize-ne" (mousedown)="onResizeHandleMouseDown($event, 'category', 'ne')"></div>
+          <div class="resize-handle resize-nw" (mousedown)="onResizeHandleMouseDown($event, 'category', 'nw')"></div>
+          <div class="resize-handle resize-se" (mousedown)="onResizeHandleMouseDown($event, 'category', 'se')"></div>
+          <div class="resize-handle resize-sw" (mousedown)="onResizeHandleMouseDown($event, 'category', 'sw')"></div>
+        }
+      </div>
+
+      <!-- ELEMENTO 4: Tecnologie -->
+      <div 
+        class="canvas-item"
+        [class.is-dragging]="dragState().isDragging && dragState().draggedItemId === 'technologies'"
+        [class.is-resizing]="resizeState().isResizing && resizeState().itemId === 'technologies'"
+        [style.left.px]="getItemStyle('technologies').left"
+        [style.top.px]="getItemStyle('technologies').top"
+        [style.width.px]="getItemStyle('technologies').width"
+        [style.height.px]="getItemStyle('technologies').height"
+        (mousedown)="onItemMouseDown($event, 'technologies')">
+        
         <div class="project-detail-modal__field">
           <span class="project-detail-modal__label">Tecnologie:</span>
           @if (canEdit()) {
@@ -242,11 +326,34 @@
           }
         </div>
 
+        @if (isEditMode()) {
+          <div class="resize-handle resize-e" (mousedown)="onResizeHandleMouseDown($event, 'technologies', 'e')"></div>
+          <div class="resize-handle resize-s" (mousedown)="onResizeHandleMouseDown($event, 'technologies', 's')"></div>
+          <div class="resize-handle resize-w" (mousedown)="onResizeHandleMouseDown($event, 'technologies', 'w')"></div>
+          <div class="resize-handle resize-n" (mousedown)="onResizeHandleMouseDown($event, 'technologies', 'n')"></div>
+          <div class="resize-handle resize-ne" (mousedown)="onResizeHandleMouseDown($event, 'technologies', 'ne')"></div>
+          <div class="resize-handle resize-nw" (mousedown)="onResizeHandleMouseDown($event, 'technologies', 'nw')"></div>
+          <div class="resize-handle resize-se" (mousedown)="onResizeHandleMouseDown($event, 'technologies', 'se')"></div>
+          <div class="resize-handle resize-sw" (mousedown)="onResizeHandleMouseDown($event, 'technologies', 'sw')"></div>
+        }
+      </div>
+
+      <!-- ELEMENTO 5: Descrizione -->
+      <div 
+        class="canvas-item"
+        [class.is-dragging]="dragState().isDragging && dragState().draggedItemId === 'description'"
+        [class.is-resizing]="resizeState().isResizing && resizeState().itemId === 'description'"
+        [style.left.px]="getItemStyle('description').left"
+        [style.top.px]="getItemStyle('description').top"
+        [style.width.px]="getItemStyle('description').width"
+        [style.height.px]="getItemStyle('description').height"
+        (mousedown)="onItemMouseDown($event, 'description')">
+        
         <div class="project-detail-modal__field">
           <span class="project-detail-modal__label">Descrizione: <span class="project-detail-modal__required">*</span></span>
           @if (canEdit()) {
             <textarea 
-              formControlName="description"
+              [formControl]="$any(editForm.get('description'))"
               class="project-detail-modal__value-input project-detail-modal__textarea"
               placeholder="Descrizione progetto"
               maxlength="1000"
@@ -257,34 +364,46 @@
             }
           }
         </div>
-      </div>
 
-      @if (canEdit()) {
-        <div class="project-detail-modal__actions project-detail-modal__actions--mobile">
-          <button 
-            type="button"
-            class="project-detail-modal__btn project-detail-modal__btn--cancel"
-            (click)="onCancel()"
-            [disabled]="saving()">
-            Annulla
-          </button>
-          <button 
-            type="button"
-            class="project-detail-modal__btn project-detail-modal__btn--save"
-            (click)="onSave()"
-            [disabled]="saving() || editForm.invalid">
-            @if (saving()) {
-              <span>Salvataggio...</span>
-            } @else {
-              <span>Salva</span>
-            }
-          </button>
-        </div>
-      }
-    </form>
+        @if (isEditMode()) {
+          <div class="resize-handle resize-e" (mousedown)="onResizeHandleMouseDown($event, 'description', 'e')"></div>
+          <div class="resize-handle resize-s" (mousedown)="onResizeHandleMouseDown($event, 'description', 's')"></div>
+          <div class="resize-handle resize-w" (mousedown)="onResizeHandleMouseDown($event, 'description', 'w')"></div>
+          <div class="resize-handle resize-n" (mousedown)="onResizeHandleMouseDown($event, 'description', 'n')"></div>
+          <div class="resize-handle resize-ne" (mousedown)="onResizeHandleMouseDown($event, 'description', 'ne')"></div>
+          <div class="resize-handle resize-nw" (mousedown)="onResizeHandleMouseDown($event, 'description', 'nw')"></div>
+          <div class="resize-handle resize-se" (mousedown)="onResizeHandleMouseDown($event, 'description', 'se')"></div>
+          <div class="resize-handle resize-sw" (mousedown)="onResizeHandleMouseDown($event, 'description', 'sw')"></div>
+        }
+      </div>
+    </div>
+
+    <!-- Pulsanti azioni mobile (fissi, non movibili) -->
+    @if (canEdit()) {
+      <div class="project-detail-modal__actions project-detail-modal__actions--mobile">
+        <button 
+          type="button"
+          class="project-detail-modal__btn project-detail-modal__btn--cancel"
+          (click)="onCancel()"
+          [disabled]="saving()">
+          Annulla
+        </button>
+        <button 
+          type="button"
+          class="project-detail-modal__btn project-detail-modal__btn--save"
+          (click)="onSave()"
+          [disabled]="saving() || editForm.invalid">
+          @if (saving()) {
+            <span>Salvataggio...</span>
+          } @else {
+            <span>Salva</span>
+          }
+        </button>
+      </div>
+    }
   </div>
 
-  <!-- Versione desktop: pulsanti fuori dal dialog -->
+  <!-- Pulsanti azioni desktop (fuori dal dialog) -->
   @if (canEdit()) {
     <div class="project-detail-modal__actions project-detail-modal__actions--desktop">
       <button 

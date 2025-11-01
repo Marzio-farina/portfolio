@@ -16,21 +16,7 @@
     </button>
   }
   <div class="card" [class.no-video]="!progetto().video">
-    <div class="media">
-        <!-- poster visibile di default -->
-        <img class="poster" [src]="progetto().poster" alt="{{ progetto().title }}" />
-
-        <!-- video visibile solo in hover -->
-        <video
-            #videoEl
-            class="video"
-            [src]="progetto().video"
-            muted
-            playsinline
-            preload="metadata"
-            loop>
-        </video>
-    </div>
+    <div class="media"><img class="poster" [src]="progetto().poster" alt="{{ progetto().title }}"><video #videoEl class="video" [src]="progetto().video" muted playsinline preload="metadata" loop></video></div>
   </div>
   <div class="meta">
     <h3 class="title">{{ progetto().title }}</h3>
