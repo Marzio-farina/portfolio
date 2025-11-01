@@ -486,6 +486,19 @@
           <span>Salva</span>
         }
       </button>
+
+      <!-- Pulsante Preview (solo sopra 1250px) -->
+      <button 
+        type="button"
+        class="project-detail-modal__btn project-detail-modal__btn--preview"
+        (click)="togglePreviewMode()"
+        title="Anteprima senza modalità edit">
+        @if (isPreviewMode()) {
+          <span>🔙 Torna Edit</span>
+        } @else {
+          <span>👁️ Preview</span>
+        }
+      </button>
     </div>
   }
 

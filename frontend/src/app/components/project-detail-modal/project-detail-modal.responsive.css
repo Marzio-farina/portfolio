@@ -16,7 +16,6 @@
     height: auto !important;
     left: auto !important;
     top: auto !important;
-    min-height: 150px;
   }
 
   /* Container immagini e video devono avere altezza su mobile */
@@ -156,6 +155,14 @@
     right: 20px;
     z-index: 1202;
     pointer-events: auto;
+  }
+}
+
+/* Per dispositivi più grandi di 1250px */
+@media (min-width: 1250px) {
+  /* Mostra pulsante Preview */
+  .project-detail-modal__btn--preview {
+    display: flex !important;
   }
 }
 

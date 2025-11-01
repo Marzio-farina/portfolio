@@ -62,7 +62,12 @@ interface ResizeState {
   standalone: true,
   imports: [ReactiveFormsModule, Notification],
   templateUrl: './project-detail-modal.html',
-  styleUrls: ['./project-detail-modal.css', './project-detail-modal.responsive.css']
+  styleUrls: [
+    './project-detail-modal-base.css',
+    './project-detail-modal-form.css',
+    './project-detail-modal-canvas-devices.css',
+    './project-detail-modal.responsive.css'
+  ]
 })
 export class ProjectDetailModal implements OnDestroy {
   private projectDetailModalService = inject(ProjectDetailModalService);
@@ -129,7 +134,8 @@ export class ProjectDetailModal implements OnDestroy {
   selectedTechnologyIds = signal<number[]>([]);
 
   // Gestione canvas con absolute positioning - Attiva automaticamente quando canEdit() è true
-  isEditMode = computed(() => this.canEdit());
+  isPreviewMode = signal(false);
+  isEditMode = computed(() => this.canEdit() && !this.isPreviewMode());
   
   // Traccia progetti già caricati per evitare loop
   private loadedProjectIds = new Set<number>();
@@ -1104,6 +1110,13 @@ export class ProjectDetailModal implements OnDestroy {
     this.saveCanvasLayout();
   }
 
+  /**
+   * Toggle modalità preview per vedere il risultato senza edit mode
+   */
+  togglePreviewMode(): void {
+    this.isPreviewMode.update(prev => !prev);
+  }
+
   // ================== Metodi per Canvas con Absolute Positioning ==================
 
   /**
@@ -1458,14 +1471,13 @@ export class ProjectDetailModal implements OnDestroy {
   private validateItemBounds(config: { left: number; top: number; width: number; height: number }): { left: number; top: number; width: number; height: number } {
     let { left, top, width, height } = config;
     
-    // Assicura dimensioni minime
+    // Assicura larghezza minima
     width = Math.max(150, width);
-    height = Math.max(100, height);
     
     // Assicura posizioni non negative
     left = Math.max(0, left);
     top = Math.max(0, top);
-    
+
     return { left, top, width, height };
   }
 
