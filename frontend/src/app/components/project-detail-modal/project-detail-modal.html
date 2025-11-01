@@ -99,6 +99,17 @@
                 (load)="onImgLoad($event)"
                 (error)="onImgError($event)"
                 class="project-detail-modal__image-img" />
+              
+              <!-- Overlay drag drop -->
+              @if (isDragOverPoster() && isEditMode()) {
+                <div class="drag-drop-overlay">
+                  <svg class="drag-drop-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12"/>
+                  </svg>
+                  <span>Rilascia per caricare</span>
+                </div>
+              }
+              
               @if (isEditMode()) {
                 <button 
                   type="button"
@@ -129,15 +140,27 @@
             }
           </div>
         } @else if (isEditMode() && !project().poster) {
-          <div class="project-detail-modal__add-image-area">
+          <div 
+            class="project-detail-modal__add-image-area"
+            (dragover)="onDragOverPoster($event)"
+            (dragleave)="onDragLeavePoster($event)"
+            (drop)="onFileDropPoster($event)"
+            [class.is-dragover]="isDragOverPoster()">
+            
+            <!-- Overlay drag drop -->
+            @if (isDragOverPoster()) {
+              <div class="drag-drop-overlay">
+                <svg class="drag-drop-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12"/>
+                </svg>
+                <span>Rilascia per caricare</span>
+              </div>
+            }
+            
             <button 
               type="button"
               class="project-detail-modal__add-media-btn"
-              (click)="openPosterPicker()"
-              (dragover)="onDragOverPoster($event)"
-              (dragleave)="onDragLeavePoster($event)"
-              (drop)="onFileDropPoster($event)"
-              [class.is-dragover]="isDragOverPoster()">
+              (click)="openPosterPicker()">
               <svg viewBox="0 0 24 24" aria-hidden="true">
                 <path d="M21 19V5a2 2 0 0 0-2-2H5a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2zM8.5 13.5l2.5 3.01L14.5 12l4.5 6H5l3.5-4.5z"/>
               </svg>
@@ -470,6 +493,16 @@
                       [alt]="'Immagine custom ' + item.key"
                       class="custom-image-display">
                     
+                    <!-- Overlay drag drop -->
+                    @if (customImageDragOver().get(item.key) && isEditMode()) {
+                      <div class="drag-drop-overlay">
+                        <svg class="drag-drop-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor">
+                          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12"/>
+                        </svg>
+                        <span>Rilascia per caricare</span>
+                      </div>
+                    }
+                    
                     @if (isEditMode()) {
                       <button 
                         type="button"
@@ -483,6 +516,16 @@
                       </button>
                     }
                   } @else if (isEditMode()) {
+                    <!-- Overlay drag drop per area vuota -->
+                    @if (customImageDragOver().get(item.key)) {
+                      <div class="drag-drop-overlay">
+                        <svg class="drag-drop-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor">
+                          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12"/>
+                        </svg>
+                        <span>Rilascia per caricare</span>
+                      </div>
+                    }
+                    
                     <button 
                       type="button"
                       class="project-detail-modal__add-media-btn"

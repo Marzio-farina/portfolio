@@ -685,6 +685,59 @@
   background: var(--accent-primary-alpha);
 }
 
+/* Overlay drag & drop */
+.drag-drop-overlay {
+  position: absolute;
+  inset: 0;
+  background: rgba(var(--accent-primary-rgb), 0.95);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 12px;
+  z-index: 100;
+  pointer-events: none;
+  animation: fadeIn 0.2s ease;
+}
+
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+    transform: scale(0.95);
+  }
+  to {
+    opacity: 1;
+    transform: scale(1);
+  }
+}
+
+/* Icona drag & drop */
+.drag-drop-icon {
+  width: 64px;
+  height: 64px;
+  color: white;
+  filter: drop-shadow(0 2px 8px rgba(0, 0, 0, 0.2));
+  animation: bounce 1s ease infinite;
+}
+
+@keyframes bounce {
+  0%, 100% {
+    transform: translateY(0);
+  }
+  50% {
+    transform: translateY(-10px);
+  }
+}
+
+/* Testo overlay */
+.drag-drop-overlay > span {
+  color: white;
+  font-size: 1.1rem;
+  font-weight: 600;
+  text-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+  letter-spacing: 0.5px;
+}
+
 /* Immagine custom */
 .custom-image-display {
   width: 100%;
