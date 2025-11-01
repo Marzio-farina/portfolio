@@ -27,7 +27,9 @@ class GitHubProxyController extends Controller
         
         $stats = Cache::remember($cacheKey, 3600, function () use ($owner, $repo) {
             try {
+                \Log::info("[GitHubProxy] Richiesta stats per {$owner}/{$repo}");
                 $token = env('GITHUB_TOKEN'); // Token opzionale in .env
+                \Log::info("[GitHubProxy] Token presente: " . ($token ? 'SI' : 'NO'));
                 
                 // Headers per la richiesta
                 $headers = [
@@ -41,10 +43,14 @@ class GitHubProxyController extends Controller
                 }
                 
                 // Ottiene info repository
+                \Log::info("[GitHubProxy] Chiamata API: https://api.github.com/repos/{$owner}/{$repo}");
                 $repoResponse = Http::withHeaders($headers)
                     ->get("https://api.github.com/repos/{$owner}/{$repo}");
                 
+                \Log::info("[GitHubProxy] Risposta repo - Status: " . $repoResponse->status());
+                
                 if (!$repoResponse->successful()) {
+                    \Log::error("[GitHubProxy] Errore repo response: " . $repoResponse->body());
                     return null;
                 }
                 
@@ -76,7 +82,8 @@ class GitHubProxyController extends Controller
                 ];
                 
             } catch (\Exception $e) {
-                \Log::error('Errore GitHub API: ' . $e->getMessage());
+                \Log::error('[GitHubProxy] Errore GitHub API: ' . $e->getMessage());
+                \Log::error('[GitHubProxy] Stack trace: ' . $e->getTraceAsString());
                 return null;
             }
         });
@@ -88,6 +95,80 @@ class GitHubProxyController extends Controller
         }
         
         return response()->json($stats);
+    }
+
+    /**
+     * Ottiene il totale di commit di tutti i repository pubblici di un utente GitHub
+     * 
+     * @param string $username Username GitHub dell'utente
+     * @return JsonResponse
+     */
+    public function getUserTotalCommits(string $username): JsonResponse
+    {
+        // Usa cache per ridurre le chiamate a GitHub (cache di 30 minuti)
+        $cacheKey = "github_user_total_commits_{$username}";
+        
+        $totalCommits = Cache::remember($cacheKey, 1800, function () use ($username) {
+            try {
+                $token = env('GITHUB_TOKEN');
+                
+                $headers = [
+                    'Accept' => 'application/vnd.github.v3+json',
+                    'User-Agent' => 'Portfolio-App'
+                ];
+                
+                if ($token) {
+                    $headers['Authorization'] = "Bearer {$token}";
+                }
+                
+                // Ottiene tutti i repository pubblici dell'utente
+                $reposResponse = Http::withHeaders($headers)
+                    ->get("https://api.github.com/users/{$username}/repos?per_page=100&type=owner");
+                
+                if (!$reposResponse->successful()) {
+                    return null;
+                }
+                
+                $repos = $reposResponse->json();
+                $totalCommits = 0;
+                
+                // Per ogni repository, ottiene il numero di commit
+                foreach ($repos as $repo) {
+                    $repoName = $repo['name'];
+                    
+                    // Chiamata per ottenere i commit
+                    $commitsResponse = Http::withHeaders($headers)
+                        ->get("https://api.github.com/repos/{$username}/{$repoName}/commits?per_page=1");
+                    
+                    if ($commitsResponse->successful()) {
+                        $linkHeader = $commitsResponse->header('Link');
+                        
+                        if ($linkHeader && preg_match('/page=(\d+)>; rel="last"/', $linkHeader, $matches)) {
+                            $totalCommits += (int) $matches[1];
+                        } else {
+                            $commits = $commitsResponse->json();
+                            $totalCommits += is_array($commits) ? count($commits) : 1;
+                        }
+                    }
+                }
+                
+                return $totalCommits;
+                
+            } catch (\Exception $e) {
+                \Log::error('Errore GitHub API (user commits): ' . $e->getMessage());
+                return null;
+            }
+        });
+        
+        if ($totalCommits === null) {
+            return response()->json([
+                'error' => 'Impossibile recuperare i dati da GitHub'
+            ], 500);
+        }
+        
+        return response()->json([
+            'total_commits' => $totalCommits
+        ]);
     }
 }
 

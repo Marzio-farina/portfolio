@@ -33,6 +33,7 @@ class DatabaseSeeder extends Seeder
             TestimonialSeeder::class,
             WhatIDoSeeder::class,
             UserProfileAndSocialSeeder::class,
+            GitHubRepositorySeeder::class,
             AttestatiSeeder::class,
         ]);
     }

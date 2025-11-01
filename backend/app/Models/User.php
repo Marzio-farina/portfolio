@@ -115,6 +115,16 @@ class User extends Authenticatable
     }
 
     /**
+     * Get the user's GitHub repositories
+     *
+     * @return \Illuminate\Database\Eloquent\Relations\HasMany
+     */
+    public function githubRepositories()
+    {
+        return $this->hasMany(GitHubRepository::class);
+    }
+
+    /**
      * Link all testimonials from a visitor (identified by IP and/or User-Agent) to this user
      * This is called when a visitor registers after leaving testimonials
      *

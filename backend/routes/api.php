@@ -14,6 +14,7 @@ use App\Http\Controllers\Api\CategoryController;
 use App\Http\Controllers\Api\CvController;
 use App\Http\Controllers\Api\CvFileController;
 use App\Http\Controllers\Api\GitHubProxyController;
+use App\Http\Controllers\Api\GitHubRepositoryController;
 use App\Http\Controllers\Api\ProjectController;
 use App\Http\Controllers\Api\SocialAccountController;
 use App\Http\Controllers\Api\TechnologyController;
@@ -123,6 +124,7 @@ Route::middleware(['api', "throttle:{$throttleLimit}", 'db.connection'])
 
         // GitHub Proxy - statistiche repository (pubblico, con cache)
         Route::get('github/{owner}/{repo}/stats', [GitHubProxyController::class, 'getRepoStats']);
+        Route::get('github/user/{username}/total-commits', [GitHubProxyController::class, 'getUserTotalCommits']);
 
         // CV Files - download pubblico (utente identificato opzionalmente)
         // Spostato fuori da gruppi con http.cache/throttle
@@ -164,6 +166,12 @@ Route::middleware(['api', "throttle:{$throttleLimit}", 'db.connection'])
             // Social Accounts - gestione link social
             Route::post('social-accounts', [SocialAccountController::class, 'upsert']);
             Route::delete('social-accounts/{provider}', [SocialAccountController::class, 'delete']);
+            
+            // GitHub Repositories - gestione repository GitHub (supporta multiple repository)
+            Route::get('github-repositories', [GitHubRepositoryController::class, 'index']);
+            Route::post('github-repositories', [GitHubRepositoryController::class, 'store']);
+            Route::put('github-repositories/reorder', [GitHubRepositoryController::class, 'updateOrder']);
+            Route::delete('github-repositories/{id}', [GitHubRepositoryController::class, 'delete']);
             
             // CV Files - gestione completa (richiede autenticazione)
             Route::get('cv-files', [CvFileController::class, 'index']);

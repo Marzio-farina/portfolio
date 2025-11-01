@@ -7,10 +7,18 @@
 <app-particles-bg></app-particles-bg>
 <main class="layout bg-primary">
 
-  <!-- ASIDE -->
-  <aside class="layout__aside surface bg-card border-primary">
-    <app-aside></app-aside>
-  </aside>
+  <!-- Contenitore per aside principale e secondario -->
+  <div class="layout__aside-wrapper">
+    <!-- ASIDE -->
+    <aside class="layout__aside surface bg-card border-primary">
+      <app-aside></app-aside>
+    </aside>
+
+    <!-- ASIDE SECONDARIO (visibile solo >= 1250px) -->
+    <div class="layout__aside-secondary">
+      <app-aside-secondary></app-aside-secondary>
+    </div>
+  </div>
 
   <!-- CONTENUTO -->
   <section class="dashboard">

@@ -56,7 +56,7 @@ Il mio obiettivo è quello di trasformare le idee in applicazioni concrete, funz
         $socials = [
             [
                 'provider' => 'github',
-                'handle'   => 'MarzioFarina',
+                'handle'   => 'Marzio-farina',
                 'url'      => 'https://github.com/Marzio-farina',
             ],
             [

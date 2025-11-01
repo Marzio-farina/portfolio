@@ -3,6 +3,7 @@ import { Router, ActivatedRoute } from '@angular/router';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 
 import { Aside } from './components/aside/aside';
+import { AsideSecondary } from './components/aside-secondary/aside-secondary';
 import { Dashboard } from './components/dashboard/dashboard';
 import { Navbar } from './components/navbar/navbar';
 import { Auth } from './components/auth/auth';
@@ -30,7 +31,7 @@ import { filter, map } from 'rxjs/operators';
  */
 @Component({
   selector: 'app-root',
-  imports: [Aside, Navbar, Dashboard, Auth, ParticlesBgComponent, CvUploadModal, AttestatoDetailModal, ProjectDetailModal, CvPreviewModal, Notification],
+  imports: [Aside, AsideSecondary, Navbar, Dashboard, Auth, ParticlesBgComponent, CvUploadModal, AttestatoDetailModal, ProjectDetailModal, CvPreviewModal, Notification],
   templateUrl: './app.html',
   styleUrl: './app.css'
 })

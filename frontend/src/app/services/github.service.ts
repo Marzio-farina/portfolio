@@ -63,5 +63,22 @@ export class GitHubService {
       })
     );
   }
+
+  /**
+   * Ottiene il totale dei commit di tutti i repository pubblici di un utente
+   * @param username Username GitHub (es: "Marzio-farina")
+   * @returns Observable con il numero totale di commit
+   */
+  getUserTotalCommits$(username: string): Observable<number> {
+    return this.http.get<{ total_commits: number }>(
+      apiUrl(`/github/user/${username}/total-commits`)
+    ).pipe(
+      map(response => response.total_commits),
+      catchError(err => {
+        console.error('Errore nel recupero totale commit utente:', err);
+        return of(0);
+      })
+    );
+  }
 }
 
