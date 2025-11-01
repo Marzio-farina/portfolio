@@ -18,6 +18,7 @@ class ProjectResource extends JsonResource
             'description' => $this->description,
             'poster'      => $this->poster,
             'video'       => $this->video,
+            'layout_config' => $this->layout_config,
             'category'    => $this->whenLoaded('category', function () {
                 return $this->category ? [
                     'id'   => $this->category->id,

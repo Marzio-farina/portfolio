@@ -1197,4 +1197,54 @@ class ProjectController extends Controller
         
         return $randomName;
     }
+
+    /**
+     * Aggiorna il layout della griglia per un progetto
+     * 
+     * @param Request $request
+     * @param Project $project
+     * @return JsonResponse
+     */
+    public function updateLayout(Request $request, Project $project): JsonResponse
+    {
+        // Verifica autenticazione
+        $user = Auth::user();
+        if (!$user) {
+            return response()->json(['ok' => false, 'message' => 'Non autenticato'], 401);
+        }
+
+        // Verifica autorizzazione
+        $userId = $user->id;
+        $userEmail = $user->email;
+        $isAdmin = $userEmail === env('PUBLIC_USER_EMAIL', 'marziofarina@icloud.com');
+        $projectUserId = $project->user_id ?? null;
+
+        $canUpdate = (
+            $projectUserId === $userId || 
+            ($projectUserId === null && $isAdmin) ||
+            $isAdmin
+        );
+
+        if (!$canUpdate) {
+            return response()->json([
+                'ok' => false, 
+                'message' => 'Non autorizzato'
+            ], 403);
+        }
+
+        // Valida il layout_config
+        $validated = $request->validate([
+            'layout_config' => 'required|string'
+        ]);
+
+        // Aggiorna solo il layout_config
+        $project->layout_config = $validated['layout_config'];
+        $project->save();
+
+        return response()->json([
+            'ok' => true,
+            'message' => 'Layout aggiornato con successo',
+            'data' => new ProjectResource($project)
+        ]);
+    }
 }

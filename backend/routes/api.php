@@ -204,6 +204,7 @@ Route::middleware(['api', "throttle:{$throttleLimit}", 'db.connection'])
             });
             Route::put('projects/{project}', [ProjectController::class, 'update']);
             Route::post('projects/{project}', [ProjectController::class, 'update']); // POST per supportare FormData con file
+            Route::patch('projects/{project}/layout', [ProjectController::class, 'updateLayout']); // Aggiorna solo il layout
             Route::delete('projects/{project}', [ProjectController::class, 'destroy']);
         });
 

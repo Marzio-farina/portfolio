@@ -27,7 +27,17 @@ class Project extends Model
         'user_id',
         'description',
         'poster',
-        'video'
+        'video',
+        'layout_config'
+    ];
+
+    /**
+     * The attributes that should be cast.
+     *
+     * @var array<string, string>
+     */
+    protected $casts = [
+        'layout_config' => 'json'
     ];
 
     // ========================================================================
