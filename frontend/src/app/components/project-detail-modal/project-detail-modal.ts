@@ -188,6 +188,11 @@ export class ProjectDetailModal implements OnDestroy {
   // Counter per ID univoci di elementi custom
   private customElementCounter = 0;
 
+  // File caricati per immagini custom (Map<elementId, File>)
+  customImageFiles = signal<Map<string, File>>(new Map());
+  customImagePreviews = signal<Map<string, string>>(new Map());
+  customImageDragOver = signal<Map<string, boolean>>(new Map());
+
   // Layout attuale basato sul dispositivo selezionato
   canvasItems = computed(() => {
     const deviceId = this.selectedDevice().id;
@@ -1201,6 +1206,102 @@ export class ProjectDetailModal implements OnDestroy {
       this.updateCurrentDeviceLayout(items);
       this.saveCanvasLayout();
     }
+  }
+
+  /**
+   * Gestisce drag over immagine custom
+   */
+  onDragOverCustomImage(event: DragEvent, itemId: string): void {
+    event.preventDefault();
+    event.stopPropagation();
+    const dragMap = new Map(this.customImageDragOver());
+    dragMap.set(itemId, true);
+    this.customImageDragOver.set(dragMap);
+  }
+
+  /**
+   * Gestisce drag leave immagine custom
+   */
+  onDragLeaveCustomImage(event: DragEvent, itemId: string): void {
+    event.preventDefault();
+    const dragMap = new Map(this.customImageDragOver());
+    dragMap.set(itemId, false);
+    this.customImageDragOver.set(dragMap);
+  }
+
+  /**
+   * Gestisce drop file su immagine custom
+   */
+  onFileDropCustomImage(event: DragEvent, itemId: string): void {
+    event.preventDefault();
+    event.stopPropagation();
+    
+    const dragMap = new Map(this.customImageDragOver());
+    dragMap.set(itemId, false);
+    this.customImageDragOver.set(dragMap);
+    
+    const files = event.dataTransfer?.files;
+    if (files && files.length > 0) {
+      const file = files[0];
+      if (file.type.startsWith('image/')) {
+        this.setCustomImageFile(itemId, file);
+      }
+    }
+  }
+
+  /**
+   * Gestisce selezione file immagine custom
+   */
+  onCustomImageFileSelected(event: Event, itemId: string): void {
+    const input = event.target as HTMLInputElement;
+    if (input.files && input.files.length > 0) {
+      const file = input.files[0];
+      this.setCustomImageFile(itemId, file);
+    }
+  }
+
+  /**
+   * Imposta file e preview per immagine custom
+   */
+  private setCustomImageFile(itemId: string, file: File): void {
+    const filesMap = new Map(this.customImageFiles());
+    filesMap.set(itemId, file);
+    this.customImageFiles.set(filesMap);
+    
+    // Crea preview URL
+    const reader = new FileReader();
+    reader.onload = (e) => {
+      const previewsMap = new Map(this.customImagePreviews());
+      previewsMap.set(itemId, e.target?.result as string);
+      this.customImagePreviews.set(previewsMap);
+      
+      // Aggiorna anche il content con un placeholder temporaneo
+      this.updateCustomElementContent(itemId, e.target?.result as string);
+    };
+    reader.readAsDataURL(file);
+  }
+
+  /**
+   * Rimuove file immagine custom
+   */
+  removeCustomImageFile(itemId: string): void {
+    const filesMap = new Map(this.customImageFiles());
+    filesMap.delete(itemId);
+    this.customImageFiles.set(filesMap);
+    
+    const previewsMap = new Map(this.customImagePreviews());
+    previewsMap.delete(itemId);
+    this.customImagePreviews.set(previewsMap);
+    
+    this.updateCustomElementContent(itemId, '');
+  }
+
+  /**
+   * Apre il file picker per immagine custom
+   */
+  openCustomImagePicker(itemId: string): void {
+    const input = document.getElementById(`customImageInput-${itemId}`) as HTMLInputElement;
+    input?.click();
   }
 
   // ================== Metodi per Canvas con Absolute Positioning ==================

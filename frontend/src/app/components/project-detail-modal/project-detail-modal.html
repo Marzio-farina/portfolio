@@ -447,22 +447,52 @@
               
               <!-- Elemento immagine custom -->
               @if (item.value.type === 'custom-image') {
-                <div class="custom-image-wrapper">
+                <!-- Input file nascosto per questa immagine -->
+                @if (isEditMode()) {
+                  <input 
+                    type="file"
+                    accept="image/jpeg,image/png,image/jpg,image/gif,image/webp"
+                    (change)="onCustomImageFileSelected($event, item.key)"
+                    style="display: none;"
+                    [id]="'customImageInput-' + item.key">
+                }
+                
+                <div 
+                  class="custom-image-wrapper"
+                  (dragover)="onDragOverCustomImage($event, item.key)"
+                  (dragleave)="onDragLeaveCustomImage($event, item.key)"
+                  (drop)="onFileDropCustomImage($event, item.key)"
+                  [class.is-dragover]="customImageDragOver().get(item.key)">
+                  
                   @if (item.value.content) {
                     <img 
                       [src]="item.value.content" 
                       [alt]="'Immagine custom ' + item.key"
                       class="custom-image-display">
+                    
+                    @if (isEditMode()) {
+                      <button 
+                        type="button"
+                        class="project-detail-modal__change-media"
+                        (click)="openCustomImagePicker(item.key)"
+                        (mousedown)="$event.stopPropagation()"
+                        title="Cambia immagine">
+                        <svg viewBox="0 0 24 24" aria-hidden="true">
+                          <path d="M3 17.25V21h3.75L17.81 9.94l-3.75-3.75L3 17.25zM21.41 6.34a1.25 1.25 0 0 0 0-1.77l-2.98-2.98a1.25 1.25 0 0 0-1.77 0l-1.83 1.83 3.75 3.75 1.83-1.83z"/>
+                        </svg>
+                      </button>
+                    }
                   } @else if (isEditMode()) {
-                    <div class="custom-image-placeholder">
-                      <span>🖼️ Aggiungi URL immagine</span>
-                      <input 
-                        type="url"
-                        class="custom-image-url-input"
-                        placeholder="https://..."
-                        (input)="updateCustomElementContent(item.key, $any($event.target).value)"
-                        (mousedown)="$event.stopPropagation()">
-                    </div>
+                    <button 
+                      type="button"
+                      class="project-detail-modal__add-media-btn"
+                      (click)="openCustomImagePicker(item.key)"
+                      (mousedown)="$event.stopPropagation()">
+                      <svg viewBox="0 0 24 24" aria-hidden="true">
+                        <path d="M21 19V5a2 2 0 0 0-2-2H5a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2zM8.5 13.5l2.5 3.01L14.5 12l4.5 6H5l3.5-4.5z"/>
+                      </svg>
+                      <span>Carica immagine</span>
+                    </button>
                   }
                 </div>
               }

@@ -677,6 +677,12 @@
   align-items: center;
   justify-content: center;
   box-sizing: border-box;
+  transition: background var(--transition-1);
+}
+
+/* Stato drag over */
+.custom-image-wrapper.is-dragover {
+  background: var(--accent-primary-alpha);
 }
 
 /* Immagine custom */
@@ -684,6 +690,17 @@
   width: 100%;
   height: 100%;
   object-fit: contain;
+}
+
+/* Pulsante cambia immagine custom (appare all'hover) */
+.custom-image-wrapper .project-detail-modal__change-media {
+  opacity: 0;
+  pointer-events: none;
+}
+
+.custom-image-wrapper:hover .project-detail-modal__change-media {
+  opacity: 1;
+  pointer-events: auto;
 }
 
 /* Placeholder per immagine custom */
