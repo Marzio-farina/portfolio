@@ -409,7 +409,12 @@
         (mousedown)="onItemMouseDown($event, 'description')">
         
         <div class="project-detail-modal__field">
-          <span class="project-detail-modal__label">Descrizione: <span class="project-detail-modal__required">*</span></span>
+          <span class="project-detail-modal__label">
+            Descrizione: 
+            @if (isEditMode()) {
+              <span class="project-detail-modal__required">*</span>
+            }
+          </span>
           @if (isEditMode()) {
             <textarea 
               [formControl]="$any(editForm.get('description'))"
