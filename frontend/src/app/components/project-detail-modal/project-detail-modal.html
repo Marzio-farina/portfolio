@@ -400,6 +400,95 @@
           <div class="resize-handle resize-sw" (mousedown)="onResizeHandleMouseDown($event, 'description', 'sw')"></div>
         }
       </div>
+
+      <!-- ELEMENTI CUSTOM: Renderizzati dinamicamente -->
+      @for (item of canvasItems() | keyvalue; track item.key) {
+        @if (item.value.type === 'custom-text' || item.value.type === 'custom-image') {
+          <div 
+            class="canvas-item canvas-item--custom"
+            [class.is-dragging]="dragState().isDragging && dragState().draggedItemId === item.key"
+            [class.is-resizing]="resizeState().isResizing && resizeState().itemId === item.key"
+            [class.outside-viewport]="isItemOutsideViewport(item.key)"
+            [style.left.px]="item.value.left"
+            [style.top.px]="item.value.top"
+            [style.width.px]="item.value.width"
+            [style.height.px]="item.value.height"
+            (mousedown)="onItemMouseDown($event, item.key)">
+            
+            <!-- Elemento testo custom -->
+            @if (item.value.type === 'custom-text') {
+              @if (isEditMode()) {
+                <textarea 
+                  class="custom-text-input"
+                  [value]="item.value.content || 'Nuovo testo'"
+                  (input)="updateCustomElementContent(item.key, $any($event.target).value)"
+                  (mousedown)="$event.stopPropagation()"
+                  placeholder="Inserisci testo..."></textarea>
+              } @else {
+                <div class="custom-text-display">{{ item.value.content }}</div>
+              }
+            }
+            
+            <!-- Elemento immagine custom -->
+            @if (item.value.type === 'custom-image') {
+              <div class="custom-image-wrapper">
+                @if (item.value.content) {
+                  <img 
+                    [src]="item.value.content" 
+                    [alt]="'Immagine custom ' + item.key"
+                    class="custom-image-display">
+                  
+                  <!-- X per rimuovere immagine custom (solo in edit mode) -->
+                  @if (isEditMode()) {
+                    <button 
+                      type="button"
+                      class="remove-custom-image"
+                      (click)="updateCustomElementContent(item.key, '')"
+                      (mousedown)="$event.stopPropagation()"
+                      title="Rimuovi immagine">
+                      ×
+                    </button>
+                  }
+                } @else if (isEditMode()) {
+                  <div class="custom-image-placeholder">
+                    <span>🖼️ Aggiungi URL immagine</span>
+                    <input 
+                      type="url"
+                      class="custom-image-url-input"
+                      placeholder="https://..."
+                      (input)="updateCustomElementContent(item.key, $any($event.target).value)"
+                      (mousedown)="$event.stopPropagation()">
+                  </div>
+                }
+              </div>
+            }
+            
+            <!-- Pulsante rimozione elemento custom (solo in edit mode) -->
+            @if (isEditMode()) {
+              <button 
+                type="button"
+                class="remove-custom-element"
+                (click)="removeCustomElement(item.key)"
+                (mousedown)="$event.stopPropagation()"
+                title="Rimuovi elemento">
+                ×
+              </button>
+            }
+            
+            <!-- Resize handles (solo in edit mode) -->
+            @if (isEditMode()) {
+              <div class="resize-handle resize-e" (mousedown)="onResizeHandleMouseDown($event, item.key, 'e')"></div>
+              <div class="resize-handle resize-s" (mousedown)="onResizeHandleMouseDown($event, item.key, 's')"></div>
+              <div class="resize-handle resize-w" (mousedown)="onResizeHandleMouseDown($event, item.key, 'w')"></div>
+              <div class="resize-handle resize-n" (mousedown)="onResizeHandleMouseDown($event, item.key, 'n')"></div>
+              <div class="resize-handle resize-ne" (mousedown)="onResizeHandleMouseDown($event, item.key, 'ne')"></div>
+              <div class="resize-handle resize-nw" (mousedown)="onResizeHandleMouseDown($event, item.key, 'nw')"></div>
+              <div class="resize-handle resize-se" (mousedown)="onResizeHandleMouseDown($event, item.key, 'se')"></div>
+              <div class="resize-handle resize-sw" (mousedown)="onResizeHandleMouseDown($event, item.key, 'sw')"></div>
+            }
+          </div>
+        }
+      }
     </div>
 
     <!-- Pulsanti azioni mobile (fissi, non movibili) -->
@@ -478,6 +567,24 @@
           </button>
         </div>
       }
+
+      <!-- Pulsanti per aggiungere elementi custom -->
+      <div class="add-elements-toolbar">
+        <button 
+          type="button"
+          class="add-element-btn"
+          (click)="addCustomText()"
+          title="Aggiungi testo">
+          📝
+        </button>
+        <button 
+          type="button"
+          class="add-element-btn"
+          (click)="addCustomImage()"
+          title="Aggiungi immagine">
+          🖼️
+        </button>
+      </div>
     </div>
   }
 

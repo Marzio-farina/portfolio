@@ -1,6 +1,7 @@
 import { Component, inject, input, output, signal, computed, effect, afterNextRender, ViewChild, ElementRef, untracked, OnDestroy } from '@angular/core';
 import { ReactiveFormsModule, FormBuilder, FormGroup, Validators } from '@angular/forms';
 import { HttpClient } from '@angular/common/http';
+import { KeyValuePipe } from '@angular/common';
 import { ProjectDetailModalService } from '../../services/project-detail-modal.service';
 import { ProjectService } from '../../services/project.service';
 import { EditModeService } from '../../services/edit-mode.service';
@@ -21,6 +22,8 @@ interface CanvasItem {
   top: number;     // posizione Y in pixel
   width: number;   // larghezza in pixel
   height: number;  // altezza in pixel
+  type?: 'image' | 'video' | 'category' | 'technologies' | 'description' | 'custom-text' | 'custom-image';
+  content?: string; // Contenuto per elementi custom (testo o URL immagine)
 }
 
 interface DevicePreset {
@@ -60,7 +63,7 @@ interface ResizeState {
 @Component({
   selector: 'app-project-detail-modal',
   standalone: true,
-  imports: [ReactiveFormsModule, Notification],
+  imports: [ReactiveFormsModule, KeyValuePipe, Notification],
   templateUrl: './project-detail-modal.html',
   styleUrls: [
     './project-detail-modal-base.css',
@@ -175,12 +178,15 @@ export class ProjectDetailModal implements OnDestroy {
   
   // Layout predefinito per il dispositivo corrente
   private defaultLayout = new Map<string, CanvasItem>([
-    ['image', { id: 'image', left: 20, top: 20, width: 400, height: 320 }],
-    ['video', { id: 'video', left: 440, top: 20, width: 400, height: 320 }],
-    ['category', { id: 'category', left: 20, top: 360, width: 200, height: 120 }],
-    ['technologies', { id: 'technologies', left: 240, top: 360, width: 200, height: 120 }],
-    ['description', { id: 'description', left: 460, top: 360, width: 380, height: 240 }]
+    ['image', { id: 'image', type: 'image', left: 20, top: 20, width: 400, height: 320 }],
+    ['video', { id: 'video', type: 'video', left: 440, top: 20, width: 400, height: 320 }],
+    ['category', { id: 'category', type: 'category', left: 20, top: 360, width: 200, height: 120 }],
+    ['technologies', { id: 'technologies', type: 'technologies', left: 240, top: 360, width: 200, height: 120 }],
+    ['description', { id: 'description', type: 'description', left: 460, top: 360, width: 380, height: 240 }]
   ]);
+
+  // Counter per ID univoci di elementi custom
+  private customElementCounter = 0;
 
   // Layout attuale basato sul dispositivo selezionato
   canvasItems = computed(() => {
@@ -300,7 +306,9 @@ export class ProjectDetailModal implements OnDestroy {
         left: validated.left,
         top: validated.top,
         width: validated.width,
-        height: validated.height
+        height: validated.height,
+        type: item.type,
+        content: item.content
       });
     });
 
@@ -1117,6 +1125,84 @@ export class ProjectDetailModal implements OnDestroy {
     this.isPreviewMode.update(prev => !prev);
   }
 
+  /**
+   * Aggiunge un nuovo elemento di testo al canvas
+   */
+  addCustomText(): void {
+    if (!this.isEditMode()) return;
+    
+    this.customElementCounter++;
+    const newId = `custom-text-${this.customElementCounter}`;
+    
+    const newItem: CanvasItem = {
+      id: newId,
+      type: 'custom-text',
+      left: 100,
+      top: 100,
+      width: 300,
+      height: 100,
+      content: 'Nuovo testo'
+    };
+    
+    const items = new Map(this.canvasItems());
+    items.set(newId, newItem);
+    this.updateCurrentDeviceLayout(items);
+    this.saveCanvasLayout();
+  }
+
+  /**
+   * Aggiunge un nuovo elemento immagine al canvas
+   */
+  addCustomImage(): void {
+    if (!this.isEditMode()) return;
+    
+    this.customElementCounter++;
+    const newId = `custom-image-${this.customElementCounter}`;
+    
+    const newItem: CanvasItem = {
+      id: newId,
+      type: 'custom-image',
+      left: 100,
+      top: 250,
+      width: 300,
+      height: 200,
+      content: '' // URL immagine verrà impostato dall'utente
+    };
+    
+    const items = new Map(this.canvasItems());
+    items.set(newId, newItem);
+    this.updateCurrentDeviceLayout(items);
+    this.saveCanvasLayout();
+  }
+
+  /**
+   * Rimuove un elemento custom dal canvas
+   */
+  removeCustomElement(itemId: string): void {
+    if (!this.isEditMode()) return;
+    if (!itemId.startsWith('custom-')) return; // Proteggi elementi base
+    
+    const items = new Map(this.canvasItems());
+    items.delete(itemId);
+    this.updateCurrentDeviceLayout(items);
+    this.saveCanvasLayout();
+  }
+
+  /**
+   * Aggiorna il contenuto di un elemento custom
+   */
+  updateCustomElementContent(itemId: string, content: string): void {
+    if (!this.isEditMode()) return;
+    
+    const items = new Map(this.canvasItems());
+    const item = items.get(itemId);
+    if (item) {
+      items.set(itemId, { ...item, content });
+      this.updateCurrentDeviceLayout(items);
+      this.saveCanvasLayout();
+    }
+  }
+
   // ================== Metodi per Canvas con Absolute Positioning ==================
 
   /**
@@ -1438,7 +1524,9 @@ export class ProjectDetailModal implements OnDestroy {
             left: validatedConfig.left,
             top: validatedConfig.top,
             width: validatedConfig.width,
-            height: validatedConfig.height
+            height: validatedConfig.height,
+            type: config.type,
+            content: config.content
           });
         });
         
@@ -1450,12 +1538,15 @@ export class ProjectDetailModal implements OnDestroy {
       
       Object.entries(layoutConfig).forEach(([key, config]) => {
         const validatedConfig = this.validateItemBounds(config as any);
+        const cfg = config as any;
         itemsMap.set(key, {
           id: key,
           left: validatedConfig.left,
           top: validatedConfig.top,
           width: validatedConfig.width,
-          height: validatedConfig.height
+          height: validatedConfig.height,
+          type: cfg.type,
+          content: cfg.content
         });
       });
       
@@ -1497,14 +1588,16 @@ export class ProjectDetailModal implements OnDestroy {
 
       // Salva layout per ogni dispositivo
       layouts.forEach((itemsMap, deviceId) => {
-        const deviceConfig: Record<string, { left: number; top: number; width: number; height: number }> = {};
+        const deviceConfig: Record<string, any> = {};
         
         itemsMap.forEach((item, key) => {
           deviceConfig[key] = {
             left: item.left,
             top: item.top,
             width: item.width,
-            height: item.height
+            height: item.height,
+            ...(item.type && { type: item.type }),
+            ...(item.content !== undefined && { content: item.content })
           };
         });
         
