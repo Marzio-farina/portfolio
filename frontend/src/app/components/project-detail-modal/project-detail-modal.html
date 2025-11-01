@@ -161,16 +161,21 @@
 
       <!-- ELEMENTO 2: Video (opzionale) -->
       @if (project().video || getVideoUrl() || isEditMode()) {
+        <!-- Wrapper esterno per posizionamento -->
         <div 
-          class="canvas-item"
+          class="canvas-item-wrapper canvas-item-wrapper--video"
           [class.is-dragging]="dragState().isDragging && dragState().draggedItemId === 'video'"
-          [class.is-resizing]="resizeState().isResizing && resizeState().itemId === 'video'"
           [class.outside-viewport]="isItemOutsideViewport('video')"
           [style.left.px]="getItemStyle('video').left"
           [style.top.px]="getItemStyle('video').top"
           [style.width.px]="getItemStyle('video').width"
-          [style.height.px]="getItemStyle('video').height"
-          (mousedown)="onItemMouseDown($event, 'video')">
+          [style.height.px]="getItemStyle('video').height">
+          
+          <!-- Canvas item interno con bordi -->
+          <div 
+            class="canvas-item"
+            [class.is-resizing]="resizeState().isResizing && resizeState().itemId === 'video'"
+            (mousedown)="onItemMouseDown($event, 'video')">
           
           @if (project().video || getVideoUrl()) {
             <div 
@@ -217,14 +222,6 @@
                       <path d="M3 17.25V21h3.75L17.81 9.94l-3.75-3.75L3 17.25zM21.41 6.34a1.25 1.25 0 0 0 0-1.77l-2.98-2.98a1.25 1.25 0 0 0-1.77 0l-1.83 1.83 3.75 3.75 1.83-1.83z"/>
                     </svg>
                   </button>
-                  <button 
-                    type="button"
-                    class="project-detail-modal__remove-video admin-x-btn"
-                    (click)="removeVideo()"
-                    [disabled]="saving()"
-                    aria-label="Rimuovi video">
-                    <span aria-hidden="true">×</span>
-                  </button>
                 }
               </div>
             </div>
@@ -245,7 +242,22 @@
               </button>
             </div>
           }
+        </div>
 
+          <!-- X rimozione video (fuori canvas-item, dentro wrapper) -->
+          @if (isEditMode() && (project().video || getVideoUrl())) {
+            <button 
+              type="button"
+              class="project-detail-modal__remove-video admin-x-btn"
+              (click)="removeVideo()"
+              (mousedown)="$event.stopPropagation()"
+              [disabled]="saving()"
+              aria-label="Rimuovi video">
+              <span aria-hidden="true">×</span>
+            </button>
+          }
+
+          <!-- Resize handles sul wrapper -->
           @if (isEditMode()) {
             <div class="resize-handle resize-e" (mousedown)="onResizeHandleMouseDown($event, 'video', 'e')"></div>
             <div class="resize-handle resize-s" (mousedown)="onResizeHandleMouseDown($event, 'video', 's')"></div>

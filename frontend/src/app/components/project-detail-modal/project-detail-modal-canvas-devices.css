@@ -521,6 +521,12 @@
   align-items: center;
   justify-content: center;
   overflow: hidden;
+  position: relative;
+}
+
+/* Video container senza overflow problemi (è nel wrapper) */
+.canvas-item .project-detail-modal__video-container {
+  overflow: hidden;
 }
 
 .canvas-item .project-detail-modal__image-img,
@@ -591,24 +597,28 @@
   z-index: 100;
 }
 
-/* Stato outside-viewport sul wrapper */
-.edit-mode .canvas-item-wrapper.outside-viewport .canvas-item--custom {
+/* Stato outside-viewport sul wrapper (custom e video) */
+.edit-mode .canvas-item-wrapper.outside-viewport .canvas-item--custom,
+.edit-mode .canvas-item-wrapper--video.outside-viewport .canvas-item {
   opacity: 0.3;
   filter: grayscale(70%);
 }
 
-.edit-mode .canvas-item-wrapper.outside-viewport:hover .canvas-item--custom {
+.edit-mode .canvas-item-wrapper.outside-viewport:hover .canvas-item--custom,
+.edit-mode .canvas-item-wrapper--video.outside-viewport:hover .canvas-item {
   opacity: 0.5;
   filter: grayscale(50%);
 }
 
-.edit-mode .canvas-item-wrapper.is-dragging.outside-viewport .canvas-item--custom {
+.edit-mode .canvas-item-wrapper.is-dragging.outside-viewport .canvas-item--custom,
+.edit-mode .canvas-item-wrapper--video.is-dragging.outside-viewport .canvas-item {
   opacity: 0.6;
   filter: grayscale(30%);
 }
 
 /* Canvas item dentro wrapper - occupa 100% senza overflow */
-.canvas-item--custom {
+.canvas-item--custom,
+.canvas-item-wrapper--video > .canvas-item {
   position: relative !important;
   width: 100% !important;
   height: 100% !important;
@@ -753,12 +763,67 @@
   transform: scale(1.0);
 }
 
-/* Resize handles sul wrapper */
-.edit-mode .canvas-item-wrapper .resize-handle {
+/* Resize handles sul wrapper (custom e video) */
+.edit-mode .canvas-item-wrapper .resize-handle,
+.edit-mode .canvas-item-wrapper--video .resize-handle {
   display: block;
 }
 
-.edit-mode .canvas-item-wrapper:hover .resize-handle {
+.edit-mode .canvas-item-wrapper:hover .resize-handle,
+.edit-mode .canvas-item-wrapper--video:hover .resize-handle {
   opacity: 0.6;
+}
+
+/* ==================== X RIMOZIONE VIDEO ==================== */
+
+/* X per rimuovere video - stesso stile della X elementi custom */
+.project-detail-modal__remove-video.admin-x-btn {
+  position: absolute;
+  top: -8px;
+  right: -8px;
+  width: 20px;
+  height: 20px;
+  border-radius: 50%;
+  border: 2px solid #ef4444;
+  background: var(--bg-card);
+  color: #ef4444;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 14px;
+  line-height: 1;
+  font-weight: 700;
+  cursor: pointer;
+  transition: all var(--transition-1);
+  z-index: 30;
+  padding: 0;
+  opacity: 0;
+  pointer-events: none;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2);
+}
+
+/* Mostra X video all'hover del wrapper */
+.edit-mode .canvas-item-wrapper--video:hover .project-detail-modal__remove-video.admin-x-btn {
+  opacity: 1;
+  pointer-events: auto;
+}
+
+.project-detail-modal__remove-video.admin-x-btn:hover {
+  background: #ef4444;
+  color: white;
+  transform: scale(1.2);
+  box-shadow: 0 4px 12px rgba(239, 68, 68, 0.4);
+}
+
+.project-detail-modal__remove-video.admin-x-btn:active {
+  transform: scale(1.0);
+}
+
+/* Span interno della X video */
+.project-detail-modal__remove-video.admin-x-btn > span {
+  display: block;
+  font-size: 14px;
+  line-height: 1;
+  font-weight: 700;
 }
 
