@@ -1,5 +1,5 @@
 import { Injectable, inject, signal } from '@angular/core';
-import { HttpClient } from '@angular/common/http';
+import { HttpClient, HttpErrorResponse } from '@angular/common/http';
 import { Observable, ReplaySubject } from 'rxjs';
 import { shareReplay, switchMap } from 'rxjs/operators';
 
@@ -106,10 +106,15 @@ export class AuthService {
       next: (user) => {
         this.authenticatedUserId.set(user.id);
       },
-      error: () => {
-        // Se il token non è valido, pulisci tutto
-        this.setToken(null);
-        this.authenticatedUserId.set(null);
+      error: (err: HttpErrorResponse | any) => {
+        // Fa logout SOLO se il token non è valido (401)
+        // Non fare logout per errori temporanei di rete o timeout
+        const status = err?.status || err?.originalError?.status;
+        if (status === 401) {
+          this.setToken(null);
+          this.authenticatedUserId.set(null);
+        }
+        // Per altri errori (timeout, rete, 500, ecc.) mantieni il token
       }
     });
   }
