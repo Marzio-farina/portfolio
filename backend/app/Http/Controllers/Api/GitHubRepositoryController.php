@@ -16,7 +16,9 @@ use Illuminate\Support\Facades\Validator;
 class GitHubRepositoryController extends Controller
 {
     /**
-     * Ottiene tutte le repository GitHub dell'utente autenticato
+     * Ottiene tutte le repository GitHub (pubblico)
+     * Se l'utente è autenticato, restituisce solo le sue repository
+     * Se l'utente non è autenticato, restituisce tutte le repository pubbliche
      * 
      * @return JsonResponse
      */
@@ -25,23 +27,29 @@ class GitHubRepositoryController extends Controller
         /** @var User|null $user */
         $user = Auth::guard('sanctum')->user();
         
-        if (!$user instanceof User) {
-            return response()->json(['message' => 'Unauthenticated'], 401);
+        // Se l'utente è autenticato, mostra solo le sue repository
+        if ($user instanceof User) {
+            $repositories = GitHubRepository::where('user_id', $user->id)
+                ->orderBy('order', 'asc')
+                ->orderBy('created_at', 'desc')
+                ->get();
+        } else {
+            // Se l'utente non è autenticato, mostra tutte le repository pubbliche
+            // (assumendo che questo sia un portfolio personale)
+            $repositories = GitHubRepository::orderBy('order', 'asc')
+                ->orderBy('created_at', 'desc')
+                ->get();
         }
 
-        $repositories = GitHubRepository::where('user_id', $user->id)
-            ->orderBy('order', 'asc')
-            ->orderBy('created_at', 'desc')
-            ->get()
-            ->map(fn($repo) => [
-                'id' => $repo->id,
-                'owner' => $repo->owner,
-                'repo' => $repo->repo,
-                'url' => $repo->url,
-                'order' => $repo->order,
-            ]);
+        $data = $repositories->map(fn($repo) => [
+            'id' => $repo->id,
+            'owner' => $repo->owner,
+            'repo' => $repo->repo,
+            'url' => $repo->url,
+            'order' => $repo->order,
+        ]);
 
-        return response()->json($repositories);
+        return response()->json($data);
     }
 
     /**

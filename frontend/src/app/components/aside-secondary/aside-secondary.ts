@@ -80,7 +80,7 @@ export class AsideSecondary {
       }
     });
 
-    // Carica tutte le repository GitHub dell'utente
+    // Carica tutte le repository GitHub (pubbliche)
     this.loadRepositories();
 
     // Effect per caricare il totale commit dell'utente (da social_accounts)

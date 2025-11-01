@@ -114,17 +114,20 @@ Route::middleware(['api', "throttle:{$throttleLimit}", 'db.connection'])
                 Route::get('attestati', [AttestatiController::class, 'index']);
             });
 
+        // GitHub Repositories - lista repository (pubblico, read-only)
+        Route::get('github-repositories', [GitHubRepositoryController::class, 'index']);
+        
+        // GitHub Proxy - statistiche repository (pubblico, con cache)
+        Route::get('github/{owner}/{repo}/stats', [GitHubProxyController::class, 'getRepoStats']);
+        Route::get('github/user/{username}/total-commits', [GitHubProxyController::class, 'getUserTotalCommits']);
+
         // Profilo pubblico
         Route::get('public-profile', [UserPublicController::class, 'me']);
         // Compatibilità: vecchia rotta usata dal frontend
         Route::get('users/slug/{slug}/public-profile', [UserPublicController::class, 'showBySlug']);
         // Rotta slug-based "pulita" (preferita): /{slug}/public-profile
         Route::get('{slug}/public-profile', [UserPublicController::class, 'showBySlug'])
-            ->where('slug', '^(?!api$|users$|testimonials$|projects$|cv$|what-i-do$|attestati$|avatars$|contact$|login$|register$)[A-Za-z0-9-]+$');
-
-        // GitHub Proxy - statistiche repository (pubblico, con cache)
-        Route::get('github/{owner}/{repo}/stats', [GitHubProxyController::class, 'getRepoStats']);
-        Route::get('github/user/{username}/total-commits', [GitHubProxyController::class, 'getUserTotalCommits']);
+            ->where('slug', '^(?!api$|users$|testimonials$|projects$|cv$|what-i-do$|attestati$|avatars$|contact$|login$|register$|github$|github-repositories$)[A-Za-z0-9-]+$');
 
         // CV Files - download pubblico (utente identificato opzionalmente)
         // Spostato fuori da gruppi con http.cache/throttle
@@ -167,8 +170,7 @@ Route::middleware(['api', "throttle:{$throttleLimit}", 'db.connection'])
             Route::post('social-accounts', [SocialAccountController::class, 'upsert']);
             Route::delete('social-accounts/{provider}', [SocialAccountController::class, 'delete']);
             
-            // GitHub Repositories - gestione repository GitHub (supporta multiple repository)
-            Route::get('github-repositories', [GitHubRepositoryController::class, 'index']);
+            // GitHub Repositories - gestione repository GitHub (richiede autenticazione)
             Route::post('github-repositories', [GitHubRepositoryController::class, 'store']);
             Route::put('github-repositories/reorder', [GitHubRepositoryController::class, 'updateOrder']);
             Route::delete('github-repositories/{id}', [GitHubRepositoryController::class, 'delete']);
