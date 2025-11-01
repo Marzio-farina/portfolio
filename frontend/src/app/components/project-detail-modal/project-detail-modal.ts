@@ -23,6 +23,19 @@ interface CanvasItem {
   height: number;  // altezza in pixel
 }
 
+interface DevicePreset {
+  id: string;
+  name: string;
+  width: number;
+  height: number;
+  icon?: string;
+}
+
+interface DeviceLayout {
+  deviceId: string;
+  items: Map<string, CanvasItem>;
+}
+
 interface DragState {
   isDragging: boolean;
   draggedItemId: string | null;
@@ -121,20 +134,308 @@ export class ProjectDetailModal implements OnDestroy {
   // Traccia progetti già caricati per evitare loop
   private loadedProjectIds = new Set<number>();
   private saveLayoutTimeout: any = null;
+
+  // Presets dispositivi standard
+  devicePresets: DevicePreset[] = [
+    { id: 'mobile-small', name: 'Mobile S', width: 375, height: 667, icon: '📱' },
+    { id: 'mobile', name: 'Mobile', width: 414, height: 896, icon: '📱' },
+    { id: 'tablet', name: 'Tablet', width: 768, height: 1024, icon: '📱' },
+    { id: 'desktop', name: 'Desktop', width: 1920, height: 1080, icon: '💻' },
+    { id: 'desktop-wide', name: 'Wide', width: 2560, height: 1440, icon: '🖥️' }
+  ];
+
+  // Dispositivo attualmente selezionato
+  selectedDevice = signal<DevicePreset>(this.devicePresets[3]); // Default: desktop
   
-  // Dimensioni griglia per snap (4 colonne x 5 righe, griglia di riferimento)
+  // Dialog per custom size
+  showCustomSizeDialog = signal(false);
+  customWidth = signal(1920);
+  customHeight = signal(1080);
+
+  // Layout multipli per dispositivi diversi
+  deviceLayouts = signal<Map<string, Map<string, CanvasItem>>>(new Map());
+
+  // Verifica se il layout corrente è adattato automaticamente (non salvato)
+  isLayoutAdapted = computed(() => {
+    const deviceId = this.selectedDevice().id;
+    const layouts = this.deviceLayouts();
+    return !layouts.has(deviceId);
+  });
+
+  // Dimensioni griglia per snap
   gridCols = 4;
   gridRows = 5;
-  gridCellSize = 160; // altezza approssimativa di una cella in px
+  gridCellSize = 160;
   
-  // Posizioni elementi in pixel (layout predefinito)
-  canvasItems = signal<Map<string, CanvasItem>>(new Map([
+  // Layout predefinito per il dispositivo corrente
+  private defaultLayout = new Map<string, CanvasItem>([
     ['image', { id: 'image', left: 20, top: 20, width: 400, height: 320 }],
     ['video', { id: 'video', left: 440, top: 20, width: 400, height: 320 }],
     ['category', { id: 'category', left: 20, top: 360, width: 200, height: 120 }],
     ['technologies', { id: 'technologies', left: 240, top: 360, width: 200, height: 120 }],
     ['description', { id: 'description', left: 460, top: 360, width: 380, height: 240 }]
-  ]));
+  ]);
+
+  // Layout attuale basato sul dispositivo selezionato
+  canvasItems = computed(() => {
+    const deviceId = this.selectedDevice().id;
+    const layouts = this.deviceLayouts();
+    
+    const deviceLayout = layouts.get(deviceId);
+    
+    // Se esiste un layout per questo dispositivo, usalo
+    if (deviceLayout) {
+      return deviceLayout;
+    }
+    
+    // Altrimenti, cerca un layout di un dispositivo più largo e scalalo
+    // In modalità visualizzazione, usa la larghezza reale dello schermo
+    const targetWidth = !this.isEditMode() ? window.innerWidth : this.selectedDevice().width;
+    const adaptedLayout = this.getAdaptedLayoutForDevice(deviceId, layouts, targetWidth);
+    if (adaptedLayout) {
+      return adaptedLayout;
+    }
+    
+    // Fallback al layout default
+    return this.defaultLayout;
+  });
+
+  // Calcola altezza dinamica del canvas in base agli elementi
+  canvasHeight = computed(() => {
+    const items = this.canvasItems();
+    let maxBottom = 800; // Minimo 800px
+    
+    items.forEach(item => {
+      const bottom = item.top + item.height + 40;
+      if (bottom > maxBottom) {
+        maxBottom = bottom;
+      }
+    });
+    
+    return maxBottom;
+  });
+
+  // Calcola altezza dinamica del viewport (si espande se necessario)
+  viewportHeight = computed(() => {
+    const deviceHeight = this.selectedDevice().height;
+    const contentHeight = this.canvasHeight();
+    
+    // Usa il maggiore tra l'altezza del dispositivo e quella necessaria per il contenuto
+    return Math.max(deviceHeight, contentHeight);
+  });
+
+  /**
+   * Adatta il layout di un altro dispositivo al dispositivo corrente scalandolo proporzionalmente
+   */
+  private getAdaptedLayoutForDevice(
+    targetDeviceId: string, 
+    layouts: Map<string, Map<string, CanvasItem>>,
+    customTargetWidth?: number
+  ): Map<string, CanvasItem> | null {
+    const targetDevice = this.devicePresets.find(d => d.id === targetDeviceId);
+    if (!targetDevice) return null;
+    
+    // Usa la larghezza personalizzata se fornita, altrimenti quella del dispositivo
+    const targetWidth = customTargetWidth || targetDevice.width;
+    const targetHeight = targetDevice.height;
+
+    // Ordina i dispositivi per larghezza (dal più largo al più stretto)
+    const devicesByWidth = [...this.devicePresets]
+      .sort((a, b) => b.width - a.width);
+
+    // Trova il primo dispositivo più largo del target che ha un layout salvato
+    let sourceDevice: DevicePreset | undefined;
+    let sourceLayout: Map<string, CanvasItem> | undefined;
+
+    for (const device of devicesByWidth) {
+      // Cerca solo dispositivi più larghi o uguali al target
+      if (device.width >= targetWidth && device.id !== targetDeviceId) {
+        const layout = layouts.get(device.id);
+        if (layout && layout.size > 0) {
+          sourceDevice = device;
+          sourceLayout = layout;
+          break;
+        }
+      }
+    }
+
+    // Se non troviamo un layout da cui partire, ritorna null
+    if (!sourceDevice || !sourceLayout) {
+      return null;
+    }
+
+    // Calcola il fattore di scala
+    const scaleX = targetWidth / sourceDevice.width;
+    const scaleY = targetHeight / sourceDevice.height;
+
+    // Crea il nuovo layout scalato
+    const adaptedLayout = new Map<string, CanvasItem>();
+
+    // Prima passa: scala tutti gli elementi
+    const scaledItems: CanvasItem[] = [];
+    
+    sourceLayout.forEach((item, itemId) => {
+      // Calcola dimensioni scalate
+      let scaledLeft = Math.round(item.left * scaleX);
+      let scaledTop = Math.round(item.top * scaleY);
+      let scaledWidth = Math.round(item.width * scaleX);
+      let scaledHeight = Math.round(item.height * scaleY);
+
+      // Valida limiti minimi
+      const validated = this.validateItemBounds({
+        left: scaledLeft,
+        top: scaledTop,
+        width: scaledWidth,
+        height: scaledHeight
+      });
+
+      scaledItems.push({
+        id: itemId,
+        left: validated.left,
+        top: validated.top,
+        width: validated.width,
+        height: validated.height
+      });
+    });
+
+    // Seconda passa: reflow per elementi che escono orizzontalmente
+    const reflowedItems = this.reflowItems(scaledItems, targetWidth);
+
+    // Terza passa: crea la mappa finale
+    reflowedItems.forEach(item => {
+      adaptedLayout.set(item.id, item);
+    });
+
+    return adaptedLayout;
+  }
+
+  /**
+   * Riposiziona gli elementi che escono dal dispositivo, spostandoli sotto l'elemento alla loro sinistra
+   */
+  private reflowItems(items: CanvasItem[], maxWidth: number): CanvasItem[] {
+    const MARGIN = 20; // Margine minimo dai bordi
+    const GAP = 20; // Spazio tra elementi
+    
+    // Ordina gli elementi per posizione verticale, poi orizzontale
+    const sortedItems = [...items].sort((a, b) => {
+      if (Math.abs(a.top - b.top) < 30) {
+        // Sono sulla stessa "riga" (con tolleranza di 30px)
+        return a.left - b.left;
+      }
+      return a.top - b.top;
+    });
+
+    const reflowedItems: CanvasItem[] = [];
+    const rows: CanvasItem[][] = [];
+    let currentRow: CanvasItem[] = [];
+    let currentRowTop = 0;
+
+    // Raggruppa elementi per riga (elementi con top simile)
+    sortedItems.forEach((item, index) => {
+      if (index === 0) {
+        currentRowTop = item.top;
+        currentRow.push(item);
+      } else {
+        // Se l'elemento è sulla stessa riga (tolleranza 30px)
+        if (Math.abs(item.top - currentRowTop) < 30) {
+          currentRow.push(item);
+        } else {
+          // Nuova riga
+          rows.push([...currentRow]);
+          currentRow = [item];
+          currentRowTop = item.top;
+        }
+      }
+    });
+    
+    // Aggiungi l'ultima riga
+    if (currentRow.length > 0) {
+      rows.push(currentRow);
+    }
+
+    let currentTop = MARGIN;
+
+    // Processa ogni riga
+    rows.forEach((row) => {
+      let currentLeft = MARGIN;
+      let maxHeightInRow = 0;
+
+      row.forEach((item) => {
+        const itemWidth = item.width;
+        const itemHeight = item.height;
+
+        // Verifica se l'elemento esce dal dispositivo
+        if (currentLeft + itemWidth > maxWidth - MARGIN) {
+          // Se è il primo elemento della riga e non entra, riduci la larghezza
+          if (currentLeft === MARGIN) {
+            const newItem: CanvasItem = {
+              ...item,
+              left: MARGIN,
+              top: currentTop,
+              width: maxWidth - (MARGIN * 2)
+            };
+            reflowedItems.push(newItem);
+            maxHeightInRow = Math.max(maxHeightInRow, itemHeight);
+            currentTop += itemHeight + GAP;
+            currentLeft = MARGIN; // Reset per prossimo elemento
+            return;
+          }
+          
+          // Altrimenti, sposta l'elemento alla riga successiva
+          currentTop += maxHeightInRow + GAP;
+          currentLeft = MARGIN;
+          maxHeightInRow = 0;
+        }
+
+        // Posiziona l'elemento
+        const newItem: CanvasItem = {
+          ...item,
+          left: currentLeft,
+          top: currentTop
+        };
+
+        reflowedItems.push(newItem);
+        maxHeightInRow = Math.max(maxHeightInRow, itemHeight);
+        currentLeft += itemWidth + GAP;
+      });
+
+      // Vai alla riga successiva
+      currentTop += maxHeightInRow + GAP;
+    });
+
+    return reflowedItems;
+  }
+
+  /**
+   * Determina se un elemento è parzialmente o totalmente fuori dall'area visibile del dispositivo
+   */
+  isItemOutsideViewport(itemId: string): boolean {
+    if (!this.isEditMode()) return false;
+    
+    const items = this.canvasItems();
+    const item = items.get(itemId);
+    if (!item) return false;
+    
+    const device = this.selectedDevice();
+    const viewportWidth = device.width;
+    const viewportHeight = device.height;
+    
+    // Considera il padding del canvas (20px)
+    const padding = 20;
+    
+    // Controlla se l'elemento è parzialmente o totalmente fuori dall'area visibile
+    const itemRight = item.left + item.width;
+    const itemBottom = item.top + item.height;
+    
+    return (
+      item.left >= viewportWidth || // completamente a destra
+      item.top >= viewportHeight || // completamente sotto
+      itemRight <= 0 || // completamente a sinistra
+      itemBottom <= 0 || // completamente sopra
+      itemRight > viewportWidth || // parte destra fuori
+      itemBottom > viewportHeight // parte inferiore fuori
+    );
+  }
 
   dragState = signal<DragState>({
     isDragging: false,
@@ -175,6 +476,17 @@ export class ProjectDetailModal implements OnDestroy {
         untracked(() => {
           this.loadCanvasLayout(layoutConfig);
           this.loadedProjectIds.add(projectId);
+        });
+      }
+    });
+
+    // Seleziona automaticamente il dispositivo giusto in base alla larghezza dello schermo (solo in non-edit mode)
+    effect(() => {
+      const isEdit = this.isEditMode();
+      
+      if (!isEdit) {
+        untracked(() => {
+          this.selectDeviceByScreenWidth();
         });
       }
     });
@@ -426,16 +738,6 @@ export class ProjectDetailModal implements OnDestroy {
     const hasVideoFile = this.selectedVideoFile();
     const videoRemoved = this.videoRemoved();
     
-    console.log('onSave - File selezionati:', {
-      hasPosterFile: !!hasPosterFile,
-      hasVideoFile: !!hasVideoFile,
-      videoRemoved: videoRemoved,
-      posterFileName: hasPosterFile?.name,
-      videoFileName: hasVideoFile?.name,
-      videoFileSize: hasVideoFile?.size,
-      existingVideo: this.project().video,
-    });
-    
     // Se ci sono file da caricare O un video da rimuovere, usa FormData
     if (hasPosterFile || hasVideoFile || videoRemoved) {
       // Se ci sono file, usa FormData
@@ -455,24 +757,16 @@ export class ProjectDetailModal implements OnDestroy {
       
       // Aggiungi i file se presenti
       if (hasPosterFile) {
-        console.log('Aggiungo poster_file al FormData:', hasPosterFile.name, hasPosterFile.size);
         formData.append('poster_file', hasPosterFile);
       }
       if (hasVideoFile) {
-        console.log('Aggiungo video_file al FormData:', hasVideoFile.name, hasVideoFile.size);
         formData.append('video_file', hasVideoFile);
       }
       
       // Se il video è stato rimosso, invia un flag speciale
       if (videoRemoved && !hasVideoFile) {
-        console.log('Video rimosso - invio flag per rimuovere dal database');
         formData.append('remove_video', 'true');
       }
-      
-      // Verifica che i file siano stati aggiunti
-      console.log('FormData contiene poster_file:', formData.has('poster_file'));
-      console.log('FormData contiene video_file:', formData.has('video_file'));
-      console.log('FormData contiene remove_video:', formData.has('remove_video'));
       
       this.projectService.updateWithFiles$(this.project().id, formData).subscribe({
         next: (updatedProject: Progetto) => {
@@ -709,6 +1003,107 @@ export class ProjectDetailModal implements OnDestroy {
     return [...list].sort((a, b) => order.indexOf(a.type) - order.indexOf(b.type))[0];
   }
 
+  // ================== Metodi per Gestione Dispositivi ==================
+
+  /**
+   * Seleziona un dispositivo preset
+   */
+  selectDevice(device: DevicePreset): void {
+    this.selectedDevice.set(device);
+  }
+
+  /**
+   * Seleziona automaticamente il dispositivo in base alla larghezza dello schermo
+   * Cerca il dispositivo con layout salvato più vicino alla larghezza corrente
+   */
+  private selectDeviceByScreenWidth(): void {
+    const screenWidth = window.innerWidth;
+    const layouts = this.deviceLayouts();
+    
+    // Se ci sono layout salvati, trova quello più adatto
+    if (layouts.size > 0) {
+      let closestDevice: DevicePreset | undefined = undefined;
+      let smallestDifference = Infinity;
+      
+      // Cerca il dispositivo con layout salvato più vicino alla larghezza attuale
+      this.devicePresets.forEach((preset: DevicePreset) => {
+        if (layouts.has(preset.id)) {
+          const difference = Math.abs(preset.width - screenWidth);
+          if (difference < smallestDifference) {
+            smallestDifference = difference;
+            closestDevice = preset;
+          }
+        }
+      });
+      
+      if (closestDevice !== undefined) {
+        this.selectedDevice.set(closestDevice);
+        return;
+      }
+    }
+    
+    // Fallback: selezione basata su range standard
+    let selectedPreset: DevicePreset;
+    
+    if (screenWidth <= 414) {
+      selectedPreset = this.devicePresets.find(d => d.id === 'mobile') || this.devicePresets[1];
+    } else if (screenWidth <= 768) {
+      selectedPreset = this.devicePresets.find(d => d.id === 'tablet') || this.devicePresets[2];
+    } else if (screenWidth <= 1920) {
+      selectedPreset = this.devicePresets.find(d => d.id === 'desktop') || this.devicePresets[3];
+    } else {
+      selectedPreset = this.devicePresets.find(d => d.id === 'desktop-wide') || this.devicePresets[4];
+    }
+    
+    this.selectedDevice.set(selectedPreset);
+  }
+
+  /**
+   * Apre dialog per custom size
+   */
+  openCustomSizeDialog(): void {
+    this.showCustomSizeDialog.set(true);
+  }
+
+  /**
+   * Applica dimensioni custom
+   */
+  applyCustomSize(): void {
+    const customDevice: DevicePreset = {
+      id: 'custom',
+      name: `Custom ${this.customWidth()}×${this.customHeight()}`,
+      width: this.customWidth(),
+      height: this.customHeight(),
+      icon: '⚙️'
+    };
+    
+    this.selectedDevice.set(customDevice);
+    this.showCustomSizeDialog.set(false);
+  }
+
+  /**
+   * Aggiorna il layout per il dispositivo corrente
+   */
+  private updateCurrentDeviceLayout(items: Map<string, CanvasItem>): void {
+    const deviceId = this.selectedDevice().id;
+    const layouts = new Map(this.deviceLayouts());
+    layouts.set(deviceId, new Map(items));
+    this.deviceLayouts.set(layouts);
+  }
+
+  /**
+   * Salva il layout adattato corrente come configurazione per questo dispositivo
+   */
+  saveAdaptedLayoutForCurrentDevice(): void {
+    if (!this.isEditMode()) return;
+    
+    const currentItems = this.canvasItems();
+    this.updateCurrentDeviceLayout(currentItems);
+    
+    // Salva immediatamente
+    this.saveCanvasLayout();
+  }
+
   // ================== Metodi per Canvas con Absolute Positioning ==================
 
   /**
@@ -724,6 +1119,9 @@ export class ProjectDetailModal implements OnDestroy {
    */
   onItemMouseDown(event: MouseEvent, itemId: string): void {
     if (!this.isEditMode()) return;
+    
+    // Disabilita drag su mobile (< 768px)
+    if (window.innerWidth <= 768) return;
     
     // Se clicca su un resize handle, non fare drag
     const target = event.target as HTMLElement;
@@ -793,13 +1191,15 @@ export class ProjectDetailModal implements OnDestroy {
     const item = items.get(state.draggedItemId);
     if (!item) return;
 
+    // Limita solo a valori positivi, il canvas si espanderà automaticamente
     items.set(state.draggedItemId, {
       ...item,
       left: Math.max(0, newLeft),
       top: Math.max(0, newTop)
     });
 
-    this.canvasItems.set(items);
+    // Aggiorna layout del dispositivo corrente
+    this.updateCurrentDeviceLayout(items);
   }
 
   /**
@@ -812,9 +1212,9 @@ export class ProjectDetailModal implements OnDestroy {
     const item = this.canvasItems().get(state.draggedItemId);
     if (!item) return;
 
-    // Snap alla griglia più vicina
-    const snappedLeft = this.snapToGrid(item.left);
-    const snappedTop = this.snapToGrid(item.top);
+    // Snap alla griglia più vicina (solo valori positivi)
+    const snappedLeft = Math.max(0, this.snapToGrid(item.left));
+    const snappedTop = Math.max(0, this.snapToGrid(item.top));
 
     const items = new Map(this.canvasItems());
     items.set(state.draggedItemId, {
@@ -823,7 +1223,8 @@ export class ProjectDetailModal implements OnDestroy {
       top: snappedTop
     });
 
-    this.canvasItems.set(items);
+    // Aggiorna layout del dispositivo corrente
+    this.updateCurrentDeviceLayout(items);
 
     // Reset stato drag
     this.dragState.set({
@@ -854,6 +1255,10 @@ export class ProjectDetailModal implements OnDestroy {
    */
   onResizeHandleMouseDown(event: MouseEvent, itemId: string, handle: string): void {
     if (!this.isEditMode()) return;
+    
+    // Disabilita resize su mobile (< 768px)
+    if (window.innerWidth <= 768) return;
+    
     event.preventDefault();
     event.stopPropagation();
 
@@ -936,7 +1341,7 @@ export class ProjectDetailModal implements OnDestroy {
         break;
     }
 
-    // Aggiorna in tempo reale
+    // Aggiorna in tempo reale (il canvas si espanderà automaticamente)
     const items = new Map(this.canvasItems());
     items.set(state.itemId, {
       ...item,
@@ -946,7 +1351,8 @@ export class ProjectDetailModal implements OnDestroy {
       height: newHeight
     });
 
-    this.canvasItems.set(items);
+    // Aggiorna layout del dispositivo corrente
+    this.updateCurrentDeviceLayout(items);
   }
 
   /**
@@ -959,11 +1365,11 @@ export class ProjectDetailModal implements OnDestroy {
     const item = this.canvasItems().get(state.itemId);
     if (!item) return;
 
-    // Snap posizioni e dimensioni
-    const snappedLeft = this.snapToGrid(item.left);
-    const snappedTop = this.snapToGrid(item.top);
-    const snappedWidth = this.snapToGrid(item.width);
-    const snappedHeight = this.snapToGrid(item.height);
+    // Snap posizioni e dimensioni (solo valori positivi e minimi)
+    const snappedLeft = Math.max(0, this.snapToGrid(item.left));
+    const snappedTop = Math.max(0, this.snapToGrid(item.top));
+    const snappedWidth = Math.max(150, this.snapToGrid(item.width));
+    const snappedHeight = Math.max(100, this.snapToGrid(item.height));
 
     const items = new Map(this.canvasItems());
     items.set(state.itemId, {
@@ -974,7 +1380,8 @@ export class ProjectDetailModal implements OnDestroy {
       height: snappedHeight
     });
 
-    this.canvasItems.set(items);
+    // Aggiorna layout del dispositivo corrente
+    this.updateCurrentDeviceLayout(items);
 
     // Reset stato
     this.resizeState.set({
@@ -996,36 +1403,74 @@ export class ProjectDetailModal implements OnDestroy {
   // ================== Metodi per Persistenza Layout ==================
 
   /**
-   * Carica il layout dal progetto
+   * Carica il layout dal progetto (supporta layout multipli per dispositivo)
    */
-  private loadCanvasLayout(layoutConfig: Record<string, { left: number; top: number; width: number; height: number }> | null): void {
+  private loadCanvasLayout(layoutConfig: Record<string, any> | null): void {
     if (!layoutConfig) {
       return;
     }
 
-    console.log('Caricamento layout personalizzato:', layoutConfig);
+    const layouts = new Map<string, Map<string, CanvasItem>>();
 
-    const items = new Map(this.canvasItems());
-    
-    Object.entries(layoutConfig).forEach(([key, config]) => {
-      if (items.has(key)) {
-        items.set(key, {
-          id: key,
-          left: config.left,
-          top: config.top,
-          width: config.width,
-          height: config.height
+    // Se layoutConfig contiene chiavi di dispositivi (multi-device)
+    if (layoutConfig['desktop'] || layoutConfig['mobile'] || layoutConfig['tablet']) {
+      // Layout multi-dispositivo
+      Object.entries(layoutConfig).forEach(([deviceId, deviceConfig]) => {
+        const itemsMap = new Map<string, CanvasItem>();
+        
+        Object.entries(deviceConfig as Record<string, any>).forEach(([itemId, config]) => {
+          const validatedConfig = this.validateItemBounds(config);
+          itemsMap.set(itemId, {
+            id: itemId,
+            left: validatedConfig.left,
+            top: validatedConfig.top,
+            width: validatedConfig.width,
+            height: validatedConfig.height
+          });
         });
-        console.log(`Elemento ${key} posizionato a:`, config);
-      }
-    });
+        
+        layouts.set(deviceId, itemsMap);
+      });
+    } else {
+      // Layout legacy (singolo, usa default per desktop)
+      const itemsMap = new Map<string, CanvasItem>();
+      
+      Object.entries(layoutConfig).forEach(([key, config]) => {
+        const validatedConfig = this.validateItemBounds(config as any);
+        itemsMap.set(key, {
+          id: key,
+          left: validatedConfig.left,
+          top: validatedConfig.top,
+          width: validatedConfig.width,
+          height: validatedConfig.height
+        });
+      });
+      
+      layouts.set('desktop', itemsMap);
+    }
 
-    this.canvasItems.set(items);
-    console.log('Layout caricato, items aggiornati');
+    this.deviceLayouts.set(layouts);
   }
 
   /**
-   * Salva il layout nel backend con debouncing
+   * Valida dimensioni e posizioni minime
+   */
+  private validateItemBounds(config: { left: number; top: number; width: number; height: number }): { left: number; top: number; width: number; height: number } {
+    let { left, top, width, height } = config;
+    
+    // Assicura dimensioni minime
+    width = Math.max(150, width);
+    height = Math.max(100, height);
+    
+    // Assicura posizioni non negative
+    left = Math.max(0, left);
+    top = Math.max(0, top);
+    
+    return { left, top, width, height };
+  }
+
+  /**
+   * Salva tutti i layout dispositivi nel backend con debouncing
    */
   private saveCanvasLayout(): void {
     // Cancella il timeout precedente
@@ -1035,27 +1480,32 @@ export class ProjectDetailModal implements OnDestroy {
 
     // Debounce di 500ms - salva solo dopo che l'utente ha finito di muovere/ridimensionare
     this.saveLayoutTimeout = setTimeout(() => {
-      const items = this.canvasItems();
-      const layoutConfig: Record<string, { left: number; top: number; width: number; height: number }> = {};
+      const layouts = this.deviceLayouts();
+      const multiDeviceConfig: Record<string, Record<string, { left: number; top: number; width: number; height: number }>> = {};
 
-      items.forEach((item, key) => {
-        layoutConfig[key] = {
-          left: item.left,
-          top: item.top,
-          width: item.width,
-          height: item.height
-        };
+      // Salva layout per ogni dispositivo
+      layouts.forEach((itemsMap, deviceId) => {
+        const deviceConfig: Record<string, { left: number; top: number; width: number; height: number }> = {};
+        
+        itemsMap.forEach((item, key) => {
+          deviceConfig[key] = {
+            left: item.left,
+            top: item.top,
+            width: item.width,
+            height: item.height
+          };
+        });
+        
+        multiDeviceConfig[deviceId] = deviceConfig;
       });
 
-      console.log('Salvataggio layout nel backend:', layoutConfig);
-
-      // Salva nel backend (non aggiorna il progetto locale per evitare loop)
+      // Salva nel backend
       const projectId = this.project().id;
       this.http.patch(apiUrl(`projects/${projectId}/layout`), {
-        layout_config: JSON.stringify(layoutConfig)
+        layout_config: JSON.stringify(multiDeviceConfig)
       }).subscribe({
         next: () => {
-          console.log('Layout salvato con successo nel database');
+          // Layout salvato con successo
         },
         error: (err) => {
           console.error('Errore nel salvataggio del layout:', err);

@@ -4,7 +4,8 @@
   [mostSevereNotification]="getMostSevereNotification()">
 </app-notification>
 
-<div class="project-detail-modal">
+<div 
+  class="project-detail-modal">
   <!-- Pulsante chiusura -->
   <button 
     type="button"
@@ -49,13 +50,32 @@
     <!-- Canvas con griglia per elementi posizionabili -->
     <div 
       class="project-detail-modal__canvas"
-      [class.edit-mode]="isEditMode()">
+      [class.edit-mode]="isEditMode()"
+      [style.min-height.px]="canvasHeight()">
+      
+      <!-- Overlay che mostra l'area visibile del dispositivo (solo in edit mode) -->
+      @if (isEditMode()) {
+        <div 
+          class="device-viewport-indicator"
+          [style.width.px]="selectedDevice().width"
+          [style.height.px]="viewportHeight()">
+          
+          <!-- Linea che indica l'altezza originale del dispositivo (se espanso) -->
+          @if (viewportHeight() > selectedDevice().height) {
+            <div 
+              class="device-original-height-line"
+              [style.top.px]="selectedDevice().height"
+              [style.width.px]="selectedDevice().width"></div>
+          }
+        </div>
+      }
       
       <!-- ELEMENTO 1: Immagine -->
       <div 
         class="canvas-item"
         [class.is-dragging]="dragState().isDragging && dragState().draggedItemId === 'image'"
         [class.is-resizing]="resizeState().isResizing && resizeState().itemId === 'image'"
+        [class.outside-viewport]="isItemOutsideViewport('image')"
         [style.left.px]="getItemStyle('image').left"
         [style.top.px]="getItemStyle('image').top"
         [style.width.px]="getItemStyle('image').width"
@@ -145,6 +165,7 @@
           class="canvas-item"
           [class.is-dragging]="dragState().isDragging && dragState().draggedItemId === 'video'"
           [class.is-resizing]="resizeState().isResizing && resizeState().itemId === 'video'"
+          [class.outside-viewport]="isItemOutsideViewport('video')"
           [style.left.px]="getItemStyle('video').left"
           [style.top.px]="getItemStyle('video').top"
           [style.width.px]="getItemStyle('video').width"
@@ -243,6 +264,7 @@
         class="canvas-item"
         [class.is-dragging]="dragState().isDragging && dragState().draggedItemId === 'category'"
         [class.is-resizing]="resizeState().isResizing && resizeState().itemId === 'category'"
+        [class.outside-viewport]="isItemOutsideViewport('category')"
         [style.left.px]="getItemStyle('category').left"
         [style.top.px]="getItemStyle('category').top"
         [style.width.px]="getItemStyle('category').width"
@@ -284,6 +306,7 @@
         class="canvas-item"
         [class.is-dragging]="dragState().isDragging && dragState().draggedItemId === 'technologies'"
         [class.is-resizing]="resizeState().isResizing && resizeState().itemId === 'technologies'"
+        [class.outside-viewport]="isItemOutsideViewport('technologies')"
         [style.left.px]="getItemStyle('technologies').left"
         [style.top.px]="getItemStyle('technologies').top"
         [style.width.px]="getItemStyle('technologies').width"
@@ -343,6 +366,7 @@
         class="canvas-item"
         [class.is-dragging]="dragState().isDragging && dragState().draggedItemId === 'description'"
         [class.is-resizing]="resizeState().isResizing && resizeState().itemId === 'description'"
+        [class.outside-viewport]="isItemOutsideViewport('description')"
         [style.left.px]="getItemStyle('description').left"
         [style.top.px]="getItemStyle('description').top"
         [style.width.px]="getItemStyle('description').width"
@@ -406,6 +430,44 @@
   <!-- Pulsanti azioni desktop (fuori dal dialog) -->
   @if (canEdit()) {
     <div class="project-detail-modal__actions project-detail-modal__actions--desktop">
+      <!-- Selettore dispositivi -->
+      <div class="device-selector">
+        <button 
+          type="button"
+          class="device-btn device-btn--custom"
+          (click)="openCustomSizeDialog()"
+          title="Dimensione personalizzata">
+          ⚙️
+        </button>
+        
+        @for (device of devicePresets; track device.id) {
+          <button 
+            type="button"
+            class="device-btn"
+            [class.active]="selectedDevice().id === device.id"
+            (click)="selectDevice(device)"
+            [title]="device.name + ' (' + device.width + '×' + device.height + ')'">
+            <span class="device-icon">{{ device.icon }}</span>
+            <span class="device-label">{{ device.name }}</span>
+          </button>
+        }
+      </div>
+
+      <!-- Indicatore layout adattato -->
+      @if (isLayoutAdapted()) {
+        <div class="layout-adapted-notice">
+          <span class="layout-adapted-notice__icon">ℹ️</span>
+          <span class="layout-adapted-notice__text">Layout adattato automaticamente</span>
+          <button 
+            type="button"
+            class="layout-adapted-notice__btn"
+            (click)="saveAdaptedLayoutForCurrentDevice()"
+            title="Salva questo layout come configurazione per {{ selectedDevice().name }}">
+            💾 Salva
+          </button>
+        </div>
+      }
+
       <button 
         type="button"
         class="project-detail-modal__btn project-detail-modal__btn--cancel"
@@ -424,6 +486,49 @@
           <span>Salva</span>
         }
       </button>
+    </div>
+  }
+
+  <!-- Dialog per dimensioni custom -->
+  @if (showCustomSizeDialog()) {
+    <div class="custom-size-overlay" (click)="showCustomSizeDialog.set(false)">
+      <div class="custom-size-dialog" (click)="$event.stopPropagation()">
+        <h3>Dimensioni Personalizzate</h3>
+        <div class="custom-size-inputs">
+          <label>
+            <span>Larghezza (px)</span>
+            <input 
+              type="number" 
+              [value]="customWidth()"
+              (input)="customWidth.set(+$any($event.target).value)"
+              min="320"
+              max="3840">
+          </label>
+          <label>
+            <span>Altezza (px)</span>
+            <input 
+              type="number"
+              [value]="customHeight()"
+              (input)="customHeight.set(+$any($event.target).value)"
+              min="480"
+              max="2160">
+          </label>
+        </div>
+        <div class="custom-size-actions">
+          <button 
+            type="button"
+            class="btn-secondary"
+            (click)="showCustomSizeDialog.set(false)">
+            Annulla
+          </button>
+          <button 
+            type="button"
+            class="btn-primary"
+            (click)="applyCustomSize()">
+            Applica
+          </button>
+        </div>
+      </div>
     </div>
   }
 </div>

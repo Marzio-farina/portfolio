@@ -634,38 +634,292 @@
   font-style: italic;
 }
 
+/* ================== Selettore Dispositivi ==================  */
+
+.device-selector {
+  display: flex;
+  gap: 8px;
+  align-items: center;
+  padding: 8px;
+  background: var(--bg-card);
+  border: 1px solid var(--border-primary);
+  border-radius: 999px;
+  margin-right: auto;
+}
+
+.device-btn {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 8px 14px;
+  background: transparent;
+  border: 1px solid transparent;
+  border-radius: 999px;
+  cursor: pointer;
+  transition: all var(--transition-1);
+  font-size: 0.85rem;
+  color: var(--text-secondary);
+  white-space: nowrap;
+}
+
+.device-btn:hover {
+  background: var(--bg-secondary);
+  border-color: var(--border-primary);
+  color: var(--text-primary);
+}
+
+.device-btn.active {
+  background: var(--accent-primary);
+  color: var(--text-inverse);
+  border-color: var(--accent-primary);
+  font-weight: 600;
+}
+
+.device-btn--custom {
+  font-size: 1.2rem;
+  padding: 8px 12px;
+}
+
+.device-icon {
+  font-size: 1.1rem;
+  display: inline-block;
+}
+
+.device-label {
+  font-size: 0.85rem;
+}
+
+/* Dialog custom size */
+.custom-size-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.5);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 2000;
+  backdrop-filter: blur(4px);
+}
+
+.custom-size-dialog {
+  background: var(--bg-card);
+  border: 1px solid var(--border-primary);
+  border-radius: 16px;
+  padding: 24px;
+  min-width: 400px;
+  box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+}
+
+.custom-size-dialog h3 {
+  margin: 0 0 20px;
+  color: var(--text-primary);
+  font-size: 1.25rem;
+}
+
+.custom-size-inputs {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  margin-bottom: 20px;
+}
+
+.custom-size-inputs label {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.custom-size-inputs label span {
+  font-size: 0.875rem;
+  color: var(--text-secondary);
+  font-weight: 500;
+}
+
+.custom-size-inputs input {
+  padding: 10px 12px;
+  border: 1px solid var(--border-primary);
+  border-radius: 8px;
+  background: var(--bg-primary);
+  color: var(--text-primary);
+  font-size: 1rem;
+}
+
+.custom-size-inputs input:focus {
+  outline: none;
+  border-color: var(--accent-primary);
+  box-shadow: 0 0 0 3px var(--accent-primary-alpha);
+}
+
+.custom-size-actions {
+  display: flex;
+  gap: 12px;
+  justify-content: flex-end;
+}
+
+.custom-size-actions .btn-primary,
+.custom-size-actions .btn-secondary {
+  padding: 10px 20px;
+  border-radius: 8px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all var(--transition-1);
+}
+
+.custom-size-actions .btn-primary {
+  background: var(--accent-primary);
+  color: var(--text-inverse);
+  border: none;
+}
+
+.custom-size-actions .btn-primary:hover {
+  transform: translateY(-1px);
+  box-shadow: 0 4px 12px rgba(var(--accent-primary-rgb, 99, 102, 241), 0.4);
+}
+
+.custom-size-actions .btn-secondary {
+  background: transparent;
+  color: var(--text-primary);
+  border: 1px solid var(--border-primary);
+}
+
+.custom-size-actions .btn-secondary:hover {
+  background: var(--bg-secondary);
+  border-color: var(--accent-primary);
+}
+
+/* Indicatore layout adattato */
+.layout-adapted-notice {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 8px 12px;
+  background: linear-gradient(135deg, rgba(59, 130, 246, 0.1), rgba(147, 51, 234, 0.1));
+  border: 1px solid rgba(59, 130, 246, 0.3);
+  border-radius: 8px;
+  font-size: 0.85rem;
+  animation: slideIn 0.3s ease-out;
+}
+
+@keyframes slideIn {
+  from {
+    opacity: 0;
+    transform: translateY(-10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.layout-adapted-notice__icon {
+  font-size: 1rem;
+}
+
+.layout-adapted-notice__text {
+  color: var(--text-secondary);
+  font-weight: 500;
+}
+
+.layout-adapted-notice__btn {
+  padding: 4px 12px;
+  background: var(--accent-primary);
+  color: white;
+  border: none;
+  border-radius: 6px;
+  cursor: pointer;
+  font-size: 0.8rem;
+  font-weight: 600;
+  transition: all var(--transition-1);
+  white-space: nowrap;
+}
+
+.layout-adapted-notice__btn:hover {
+  background: var(--accent-secondary);
+  transform: scale(1.05);
+  box-shadow: 0 2px 8px rgba(59, 130, 246, 0.3);
+}
+
+.layout-adapted-notice__btn:active {
+  transform: scale(0.98);
+}
+
+/* Overlay che indica l'area visibile del dispositivo */
+.device-viewport-indicator {
+  position: absolute;
+  top: 0;
+  left: 0;
+  pointer-events: none;
+  border: 3px solid var(--accent-primary);
+  border-radius: 8px;
+  background: transparent;
+  z-index: 1000;
+  box-shadow: 
+    0 0 0 9999px rgba(0, 0, 0, 0.12), /* Oscura tutto ciò che è fuori */
+    inset 0 0 30px rgba(99, 102, 241, 0.08); /* Leggera illuminazione interna */
+}
+
+.device-viewport-indicator::after {
+  content: '';
+  position: absolute;
+  top: -6px;
+  left: -6px;
+  right: -6px;
+  bottom: -6px;
+  border: 2px dashed var(--accent-primary);
+  border-radius: 10px;
+  opacity: 0.6;
+}
+
+/* Linea che indica l'altezza originale del dispositivo quando il viewport si espande */
+.device-original-height-line {
+  position: absolute;
+  left: 0;
+  height: 2px;
+  background: repeating-linear-gradient(
+    90deg,
+    var(--accent-primary) 0,
+    var(--accent-primary) 10px,
+    transparent 10px,
+    transparent 20px
+  );
+  pointer-events: none;
+  z-index: 1001;
+}
+
+.device-original-height-line::before {
+  content: 'Altezza originale dispositivo';
+  position: absolute;
+  left: 50%;
+  top: -25px;
+  transform: translateX(-50%);
+  background: var(--accent-primary);
+  color: white;
+  padding: 4px 12px;
+  border-radius: 4px;
+  font-size: 0.75rem;
+  white-space: nowrap;
+  pointer-events: none;
+}
+
 /* ================== Canvas System con Absolute Positioning ==================  */
 
 /* Canvas scrollabile - sempre con positioning context */
 .project-detail-modal__canvas {
   position: relative;
-  min-height: 800px;
+  min-height: 800px; /* Sarà sovrascritto dal binding dinamico */
   width: 100%;
   padding: 20px;
   box-sizing: border-box;
+  overflow: visible; /* Permette agli elementi di uscire dall'area visibile */
+  margin: 0 auto;
 }
 
-/* Griglia visiva SOLO in modalità edit */
+/* In modalità edit, il canvas non ha più bordi o griglia di fondo */
+/* L'area visibile è indicata dal device-viewport-indicator */
 .project-detail-modal__canvas.edit-mode {
-  background-image: 
-    repeating-linear-gradient(
-      90deg,
-      var(--border-primary) 0,
-      var(--border-primary) 1px,
-      transparent 1px,
-      transparent 25%
-    ),
-    repeating-linear-gradient(
-      0deg,
-      var(--border-primary) 0,
-      var(--border-primary) 1px,
-      transparent 1px,
-      transparent 160px
-    );
-  background-size: 100% 100%;
-  border: 2px dashed var(--accent-primary);
-  border-radius: 12px;
+  min-height: 1200px; /* Più spazio per muovere elementi fuori viewport */
 }
+
 
 /* Elementi con absolute positioning - SEMPRE absolute */
 .canvas-item {
@@ -673,10 +927,10 @@
   background: transparent;
   border: none;
   border-radius: 12px;
-  padding: 12px;
+  padding: 0; /* Rimuovo padding in modalità visualizzazione */
   box-sizing: border-box;
   transition: box-shadow var(--transition-1), border-color var(--transition-1), background var(--transition-1);
-  overflow: hidden;
+  overflow: visible; /* Visibile in modalità visualizzazione */
   display: flex;
   align-items: center;
   justify-content: center;
@@ -684,12 +938,14 @@
   min-height: 100px;
 }
 
-/* Bordi e background SOLO in edit mode */
+/* Bordi, background, padding e overflow SOLO in edit mode */
 .edit-mode .canvas-item {
   cursor: move;
   user-select: none;
   background: var(--bg-card);
   border: 2px solid var(--border-primary);
+  padding: 12px;
+  overflow: hidden;
 }
 
 .edit-mode .canvas-item:hover {
@@ -713,10 +969,32 @@
   z-index: 99;
 }
 
+/* Elemento fuori dall'area visibile del dispositivo - SOLO in edit mode */
+.edit-mode .canvas-item.outside-viewport {
+  opacity: 0.3;
+  filter: grayscale(70%);
+  z-index: 1; /* Porta dietro agli elementi visibili */
+}
+
+.edit-mode .canvas-item.outside-viewport:hover {
+  opacity: 0.5;
+  filter: grayscale(50%);
+}
+
+.edit-mode .canvas-item.outside-viewport.is-dragging {
+  opacity: 0.6;
+  filter: grayscale(30%);
+}
+
 /* Contenuto dentro canvas-item */
 .canvas-item > * {
   width: 100%;
   height: 100%;
+  overflow: visible; /* Visibile in modalità visualizzazione */
+}
+
+/* Overflow hidden SOLO in edit mode */
+.edit-mode .canvas-item > * {
   overflow: hidden;
 }
 
@@ -727,6 +1005,11 @@
   display: flex;
   flex-direction: column;
   gap: 8px;
+  overflow: visible; /* Visibile in modalità visualizzazione */
+}
+
+/* Overflow hidden per field SOLO in edit mode */
+.edit-mode .canvas-item .project-detail-modal__field {
   overflow: hidden;
 }
 

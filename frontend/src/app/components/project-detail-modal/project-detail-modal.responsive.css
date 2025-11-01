@@ -1,3 +1,93 @@
+/* Mobile first: canvas con layout verticale SOLO in edit mode */
+@media (max-width: 768px) {
+  /* Disabilita absolute positioning su mobile SOLO in edit mode */
+  .edit-mode .project-detail-modal__canvas {
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+    min-height: auto;
+    padding: 12px;
+  }
+
+  /* Elementi non absolute su mobile SOLO in edit mode */
+  .edit-mode .canvas-item {
+    position: relative !important;
+    width: 100% !important;
+    height: auto !important;
+    left: auto !important;
+    top: auto !important;
+    min-height: 150px;
+  }
+
+  /* Container immagini e video devono avere altezza su mobile */
+  .canvas-item .project-detail-modal__image,
+  .canvas-item .project-detail-modal__video {
+    min-height: 250px;
+    height: auto;
+    aspect-ratio: 16 / 9;
+    width: 100%;
+  }
+
+  .canvas-item .project-detail-modal__image-container,
+  .canvas-item .project-detail-modal__video-container {
+    min-height: 250px;
+    height: auto;
+    width: 100%;
+    aspect-ratio: 16 / 9;
+  }
+
+  /* Immagini e video devono essere visibili */
+  .canvas-item .project-detail-modal__image-img,
+  .canvas-item .project-detail-modal__video-element {
+    width: 100%;
+    height: auto;
+    min-height: 200px;
+    object-fit: contain;
+    display: block;
+  }
+
+  /* Area add-image deve essere visibile */
+  .canvas-item .project-detail-modal__add-image-area,
+  .canvas-item .project-detail-modal__image-error {
+    min-height: 200px;
+  }
+
+  /* Nascondi griglia e bordi tratteggiati su mobile */
+  .project-detail-modal__canvas.edit-mode {
+    background-image: none;
+    border: none;
+  }
+
+  /* Bordi visibili su mobile SOLO in edit mode */
+  .edit-mode .canvas-item {
+    background: var(--bg-card) !important;
+    border: 1px solid var(--border-primary) !important;
+  }
+
+  /* Nascondi resize handles su mobile */
+  .resize-handle {
+    display: none !important;
+  }
+
+  /* Disabilita drag su mobile */
+  .edit-mode .canvas-item {
+    cursor: default !important;
+  }
+
+  /* In modalità NON-edit, mantieni il posizionamento assoluto con le configurazioni salvate */
+  .project-detail-modal__canvas:not(.edit-mode) {
+    /* Il canvas mantiene il suo comportamento normale con absolute positioning */
+    overflow-x: auto; /* Scroll orizzontale se necessario */
+    overflow-y: visible;
+  }
+
+  /* In modalità NON-edit, rimuovi bordi e background */
+  .project-detail-modal__canvas:not(.edit-mode) .canvas-item {
+    background: transparent !important;
+    border: none !important;
+  }
+}
+
 /* Per dispositivi più grandi di 500px */
 @media (min-width: 500.02px) {
   .project-detail-modal {
