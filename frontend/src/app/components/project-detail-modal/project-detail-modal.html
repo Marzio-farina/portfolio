@@ -404,66 +404,59 @@
       <!-- ELEMENTI CUSTOM: Renderizzati dinamicamente -->
       @for (item of canvasItems() | keyvalue; track item.key) {
         @if (item.value.type === 'custom-text' || item.value.type === 'custom-image') {
+          <!-- Contenitore con posizionamento (senza bordi) -->
           <div 
-            class="canvas-item canvas-item--custom"
+            class="canvas-item-wrapper"
             [class.is-dragging]="dragState().isDragging && dragState().draggedItemId === item.key"
-            [class.is-resizing]="resizeState().isResizing && resizeState().itemId === item.key"
-            [class.outside-viewport]="isItemOutsideViewport(item.key)"
             [style.left.px]="item.value.left"
             [style.top.px]="item.value.top"
             [style.width.px]="item.value.width"
             [style.height.px]="item.value.height"
-            (mousedown)="onItemMouseDown($event, item.key)">
+            [class.outside-viewport]="isItemOutsideViewport(item.key)">
             
-            <!-- Elemento testo custom -->
-            @if (item.value.type === 'custom-text') {
-              @if (isEditMode()) {
-                <textarea 
-                  class="custom-text-input"
-                  [value]="item.value.content || 'Nuovo testo'"
-                  (input)="updateCustomElementContent(item.key, $any($event.target).value)"
-                  (mousedown)="$event.stopPropagation()"
-                  placeholder="Inserisci testo..."></textarea>
-              } @else {
-                <div class="custom-text-display">{{ item.value.content }}</div>
-              }
-            }
-            
-            <!-- Elemento immagine custom -->
-            @if (item.value.type === 'custom-image') {
-              <div class="custom-image-wrapper">
-                @if (item.value.content) {
-                  <img 
-                    [src]="item.value.content" 
-                    [alt]="'Immagine custom ' + item.key"
-                    class="custom-image-display">
-                  
-                  <!-- X per rimuovere immagine custom (solo in edit mode) -->
-                  @if (isEditMode()) {
-                    <button 
-                      type="button"
-                      class="remove-custom-image"
-                      (click)="updateCustomElementContent(item.key, '')"
-                      (mousedown)="$event.stopPropagation()"
-                      title="Rimuovi immagine">
-                      ×
-                    </button>
-                  }
-                } @else if (isEditMode()) {
-                  <div class="custom-image-placeholder">
-                    <span>🖼️ Aggiungi URL immagine</span>
-                    <input 
-                      type="url"
-                      class="custom-image-url-input"
-                      placeholder="https://..."
-                      (input)="updateCustomElementContent(item.key, $any($event.target).value)"
-                      (mousedown)="$event.stopPropagation()">
-                  </div>
+            <!-- Contenitore del contenuto con bordi -->
+            <div 
+              class="canvas-item canvas-item--custom"
+              [class.is-resizing]="resizeState().isResizing && resizeState().itemId === item.key"
+              (mousedown)="onItemMouseDown($event, item.key)">
+              <!-- Elemento testo custom -->
+              @if (item.value.type === 'custom-text') {
+                @if (isEditMode()) {
+                  <textarea 
+                    class="custom-text-input"
+                    [value]="item.value.content || 'Nuovo testo'"
+                    (input)="updateCustomElementContent(item.key, $any($event.target).value)"
+                    (mousedown)="$event.stopPropagation()"
+                    placeholder="Inserisci testo..."></textarea>
+                } @else {
+                  <div class="custom-text-display">{{ item.value.content }}</div>
                 }
-              </div>
-            }
+              }
+              
+              <!-- Elemento immagine custom -->
+              @if (item.value.type === 'custom-image') {
+                <div class="custom-image-wrapper">
+                  @if (item.value.content) {
+                    <img 
+                      [src]="item.value.content" 
+                      [alt]="'Immagine custom ' + item.key"
+                      class="custom-image-display">
+                  } @else if (isEditMode()) {
+                    <div class="custom-image-placeholder">
+                      <span>🖼️ Aggiungi URL immagine</span>
+                      <input 
+                        type="url"
+                        class="custom-image-url-input"
+                        placeholder="https://..."
+                        (input)="updateCustomElementContent(item.key, $any($event.target).value)"
+                        (mousedown)="$event.stopPropagation()">
+                    </div>
+                  }
+                </div>
+              }
+            </div>
             
-            <!-- Pulsante rimozione elemento custom (solo in edit mode) -->
+            <!-- Pulsante rimozione elemento custom (dentro wrapper, fuori contenitore interno) -->
             @if (isEditMode()) {
               <button 
                 type="button"
@@ -475,7 +468,7 @@
               </button>
             }
             
-            <!-- Resize handles (solo in edit mode) -->
+            <!-- Resize handles sul wrapper esterno -->
             @if (isEditMode()) {
               <div class="resize-handle resize-e" (mousedown)="onResizeHandleMouseDown($event, item.key, 'e')"></div>
               <div class="resize-handle resize-s" (mousedown)="onResizeHandleMouseDown($event, item.key, 's')"></div>
