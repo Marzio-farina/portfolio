@@ -35,7 +35,7 @@
   <div class="project-detail-modal__scrollable">
     <!-- Titolo fisso (non movibile) -->
     <div class="project-detail-modal__title-wrapper">
-      @if (canEdit()) {
+      @if (isEditMode()) {
         <input 
           type="text"
           [formControl]="$any(editForm.get('title'))"
@@ -86,7 +86,7 @@
           <div 
             class="project-detail-modal__image"
             [class.image-vertical]="isVerticalImage()"
-            [class.project-detail-modal__image--editable]="canEdit()">
+            [class.project-detail-modal__image--editable]="isEditMode()">
             <div 
               class="project-detail-modal__image-container"
               (dragover)="onDragOverPoster($event)"
@@ -99,7 +99,7 @@
                 (load)="onImgLoad($event)"
                 (error)="onImgError($event)"
                 class="project-detail-modal__image-img" />
-              @if (canEdit()) {
+              @if (isEditMode()) {
                 <button 
                   type="button"
                   class="project-detail-modal__change-media"
@@ -116,7 +116,7 @@
         } @else if (imageLoadError()) {
           <div class="project-detail-modal__image-error">
             <p>Immagine non disponibile</p>
-            @if (canEdit()) {
+            @if (isEditMode()) {
               <button 
                 type="button"
                 class="project-detail-modal__add-media-btn"
@@ -128,7 +128,7 @@
               </button>
             }
           </div>
-        } @else if (canEdit() && !project().poster) {
+        } @else if (isEditMode() && !project().poster) {
           <div class="project-detail-modal__add-image-area">
             <button 
               type="button"
@@ -160,7 +160,7 @@
       </div>
 
       <!-- ELEMENTO 2: Video (opzionale) -->
-      @if (project().video || getVideoUrl() || canEdit()) {
+      @if (project().video || getVideoUrl() || isEditMode()) {
         <div 
           class="canvas-item"
           [class.is-dragging]="dragState().isDragging && dragState().draggedItemId === 'video'"
@@ -175,7 +175,7 @@
           @if (project().video || getVideoUrl()) {
             <div 
               class="project-detail-modal__video"
-              [class.project-detail-modal__video--editable]="canEdit()">
+              [class.project-detail-modal__video--editable]="isEditMode()">
               <div 
                 class="project-detail-modal__video-container"
                 (dragover)="onDragOverVideo($event)"
@@ -206,7 +206,7 @@
                     </div>
                   }
                 </div>
-                @if (canEdit()) {
+                @if (isEditMode()) {
                   <button 
                     type="button"
                     class="project-detail-modal__change-media"
@@ -228,7 +228,7 @@
                 }
               </div>
             </div>
-          } @else if (canEdit()) {
+          } @else if (isEditMode()) {
             <div class="project-detail-modal__add-video-area">
               <button 
                 type="button"
@@ -273,7 +273,7 @@
         
         <div class="project-detail-modal__field">
           <span class="project-detail-modal__label">Categoria:</span>
-          @if (canEdit()) {
+          @if (isEditMode()) {
             <select 
               [formControl]="$any(editForm.get('category_id'))"
               class="project-detail-modal__value-input">
@@ -315,7 +315,7 @@
         
         <div class="project-detail-modal__field">
           <span class="project-detail-modal__label">Tecnologie:</span>
-          @if (canEdit()) {
+          @if (isEditMode()) {
             @if (loadingTechnologies()) {
               <span class="project-detail-modal__value">Caricamento tecnologie...</span>
             } @else {
@@ -375,7 +375,7 @@
         
         <div class="project-detail-modal__field">
           <span class="project-detail-modal__label">Descrizione: <span class="project-detail-modal__required">*</span></span>
-          @if (canEdit()) {
+          @if (isEditMode()) {
             <textarea 
               [formControl]="$any(editForm.get('description'))"
               class="project-detail-modal__value-input project-detail-modal__textarea"
@@ -438,9 +438,9 @@
     }
   </div>
 
-  <!-- Pulsanti azioni desktop (fuori dal dialog) -->
-  @if (canEdit()) {
-    <div class="project-detail-modal__actions project-detail-modal__actions--desktop">
+  <!-- Selettore dispositivi desktop (fuori dal dialog, in alto) -->
+  @if (canEdit() && !isPreviewMode()) {
+    <div class="project-detail-modal__devices-bar">
       <!-- Selettore dispositivi -->
       <div class="device-selector">
         <button 
@@ -468,7 +468,7 @@
       @if (isLayoutAdapted()) {
         <div class="layout-adapted-notice">
           <span class="layout-adapted-notice__icon">ℹ️</span>
-          <span class="layout-adapted-notice__text">Layout adattato automaticamente</span>
+          <span class="layout-adapted-notice__text">Layout adattato</span>
           <button 
             type="button"
             class="layout-adapted-notice__btn"
@@ -478,38 +478,44 @@
           </button>
         </div>
       }
+    </div>
+  }
 
-      <button 
-        type="button"
-        class="project-detail-modal__btn project-detail-modal__btn--cancel"
-        (click)="onCancel()"
-        [disabled]="saving()">
-        Annulla
-      </button>
-      <button 
-        type="button"
-        class="project-detail-modal__btn project-detail-modal__btn--save"
-        (click)="onSave()"
-        [disabled]="saving() || editForm.invalid">
-        @if (saving()) {
-          <span>Salvataggio...</span>
-        } @else {
-          <span>Salva</span>
-        }
-      </button>
-
-      <!-- Pulsante Preview (solo sopra 1250px) -->
-      <button 
-        type="button"
-        class="project-detail-modal__btn project-detail-modal__btn--preview"
-        (click)="togglePreviewMode()"
-        title="Anteprima senza modalità edit">
-        @if (isPreviewMode()) {
-          <span>🔙 Torna Edit</span>
-        } @else {
-          <span>👁️ Preview</span>
-        }
-      </button>
+  <!-- Pulsanti azioni desktop (fuori dal dialog, a destra) -->
+  @if (canEdit()) {
+    <div class="project-detail-modal__actions project-detail-modal__actions--desktop">
+      <!-- Riga: Preview, Annulla e Salva affiancati -->
+      <div class="project-detail-modal__actions-row">
+        <button 
+          type="button"
+          class="project-detail-modal__btn project-detail-modal__btn--preview"
+          (click)="togglePreviewMode()"
+          title="Anteprima senza modalità edit">
+          @if (isPreviewMode()) {
+            <span>🔙</span>
+          } @else {
+            <span>👁️</span>
+          }
+        </button>
+        <button 
+          type="button"
+          class="project-detail-modal__btn project-detail-modal__btn--cancel"
+          (click)="onCancel()"
+          [disabled]="saving()">
+          Annulla
+        </button>
+        <button 
+          type="button"
+          class="project-detail-modal__btn project-detail-modal__btn--save"
+          (click)="onSave()"
+          [disabled]="saving() || editForm.invalid">
+          @if (saving()) {
+            <span>Salvataggio...</span>
+          } @else {
+            <span>Salva</span>
+          }
+        </button>
+      </div>
     </div>
   }
 

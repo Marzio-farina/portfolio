@@ -1314,7 +1314,7 @@ export class ProjectDetailModal implements OnDestroy {
     let newHeight = state.startHeight;
 
     const minWidth = 150;  // Larghezza minima
-    const minHeight = 100; // Altezza minima
+    const minHeight = 30; // Altezza minima ridotta per maggiore flessibilità
 
     // Calcola nuove dimensioni in base all'handle
     switch (state.handle) {
@@ -1378,11 +1378,11 @@ export class ProjectDetailModal implements OnDestroy {
     const item = this.canvasItems().get(state.itemId);
     if (!item) return;
 
-    // Snap posizioni e dimensioni (solo valori positivi e minimi)
+    // Snap posizioni e dimensioni (solo valori positivi e larghezza minima)
     const snappedLeft = Math.max(0, this.snapToGrid(item.left));
     const snappedTop = Math.max(0, this.snapToGrid(item.top));
     const snappedWidth = Math.max(150, this.snapToGrid(item.width));
-    const snappedHeight = Math.max(100, this.snapToGrid(item.height));
+    const snappedHeight = Math.max(30, this.snapToGrid(item.height)); // Altezza minima 30px
 
     const items = new Map(this.canvasItems());
     items.set(state.itemId, {

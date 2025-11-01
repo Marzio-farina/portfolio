@@ -115,7 +115,11 @@
   }
 }
 
-/* Nascondi i pulsanti desktop di default (sotto 1250px) */
+/* Nascondi devices bar e pulsanti desktop di default (sotto 1250px) */
+.project-detail-modal__devices-bar {
+  display: none;
+}
+
 .project-detail-modal__actions--desktop {
   display: none;
 }
@@ -186,7 +190,31 @@
     display: none !important;
   }
 
-  /* Mostra pulsanti desktop in posizione fixed (compatti) */
+  /* Mostra devices bar in alto al centro */
+  .project-detail-modal__devices-bar {
+    display: flex;
+    flex-direction: row;
+    gap: 12px;
+    align-items: center;
+    position: fixed;
+    top: 20px;
+    left: 50%;
+    transform: translateX(-50%);
+    z-index: 50; /* Stesso livello dei pulsanti, sotto il dialog */
+    pointer-events: auto;
+  }
+
+  /* Device selector nel devices bar */
+  .project-detail-modal__devices-bar .device-selector {
+    margin-right: 0;
+  }
+
+  /* Layout adapted notice nel devices bar */
+  .project-detail-modal__devices-bar .layout-adapted-notice {
+    max-width: 350px;
+  }
+
+  /* Mostra pulsanti azioni desktop in posizione fixed a destra */
   .project-detail-modal__actions--desktop {
     display: flex;
     flex-direction: column;
@@ -194,20 +222,32 @@
     position: fixed;
     top: 20px;
     right: 20px;
-    z-index: 1202;
+    z-index: 50; /* Molto inferiore al dialog per non coprire nessun elemento */
     pointer-events: auto;
+    width: 200px;
   }
 
-  /* Pulsanti desktop compatti */
-  .project-detail-modal__actions--desktop .project-detail-modal__btn {
-    padding: 8px 16px;
-    font-size: 0.85rem;
-    min-width: 100px;
+  /* Riga: Preview, Annulla e Salva affiancati */
+  .project-detail-modal__actions-row {
+    display: flex;
+    flex-direction: row;
+    gap: 4px;
+    width: 100%;
   }
 
-  /* Mostra pulsante Preview desktop */
-  .project-detail-modal__actions--desktop .project-detail-modal__btn--preview {
-    display: flex !important;
+  /* Tutti i pulsanti nella riga - dimensioni compatte */
+  .project-detail-modal__actions-row .project-detail-modal__btn {
+    padding: 5px 8px;
+    font-size: 0.75rem;
+    flex: 1;
+    min-width: 0;
+  }
+
+  /* Preview mostra solo icona per risparmiare spazio */
+  .project-detail-modal__actions-row .project-detail-modal__btn--preview {
+    padding: 5px 6px;
+    min-width: 32px;
+    flex: 0 0 auto;
   }
 }
 
