@@ -13,7 +13,9 @@ use App\Http\Controllers\Api\AvatarController;
 use App\Http\Controllers\Api\CategoryController;
 use App\Http\Controllers\Api\CvController;
 use App\Http\Controllers\Api\CvFileController;
+use App\Http\Controllers\Api\GitHubProxyController;
 use App\Http\Controllers\Api\ProjectController;
+use App\Http\Controllers\Api\SocialAccountController;
 use App\Http\Controllers\Api\TechnologyController;
 use App\Http\Controllers\Api\TestimonialController;
 use App\Http\Controllers\Api\UserPublicController;
@@ -119,6 +121,9 @@ Route::middleware(['api', "throttle:{$throttleLimit}", 'db.connection'])
         Route::get('{slug}/public-profile', [UserPublicController::class, 'showBySlug'])
             ->where('slug', '^(?!api$|users$|testimonials$|projects$|cv$|what-i-do$|attestati$|avatars$|contact$|login$|register$)[A-Za-z0-9-]+$');
 
+        // GitHub Proxy - statistiche repository (pubblico, con cache)
+        Route::get('github/{owner}/{repo}/stats', [GitHubProxyController::class, 'getRepoStats']);
+
         // CV Files - download pubblico (utente identificato opzionalmente)
         // Spostato fuori da gruppi con http.cache/throttle
         Route::get('cv-files/default', [CvFileController::class, 'getDefault']);
@@ -155,6 +160,10 @@ Route::middleware(['api', "throttle:{$throttleLimit}", 'db.connection'])
             Route::post('/logout', [AuthController::class, 'logout']);
             Route::put('/profile', [AuthController::class, 'updateProfile']);
             Route::delete('avatars/{id}', [AvatarController::class, 'delete']); // Delete avatar
+            
+            // Social Accounts - gestione link social
+            Route::post('social-accounts', [SocialAccountController::class, 'upsert']);
+            Route::delete('social-accounts/{provider}', [SocialAccountController::class, 'delete']);
             
             // CV Files - gestione completa (richiede autenticazione)
             Route::get('cv-files', [CvFileController::class, 'index']);

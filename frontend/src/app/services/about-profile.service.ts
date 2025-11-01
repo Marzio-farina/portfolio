@@ -98,4 +98,11 @@ export class AboutProfileService {
     const reserved = new Set(['about','curriculum','progetti','attestati','contatti']);
     return first && !reserved.has(first) ? first : null;
   }
+
+  /**
+   * Invalida la cache del profilo per forzare un nuovo caricamento
+   */
+  clearCache(): void {
+    this.cache.clear();
+  }
 }

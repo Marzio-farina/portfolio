@@ -1,0 +1,361 @@
+/* Aside Secondary Component */
+.aside-secondary {
+  width: 100%;
+  padding: 1.5rem;
+  background: var(--bg-card);
+  border: 1px solid var(--border-primary);
+  border-radius: 1rem;
+  box-shadow: var(--shadow-1);
+  transition: background-color var(--transition-1),
+              color var(--transition-1),
+              border-color var(--transition-1);
+}
+
+/* Header con icona */
+.aside-secondary__header {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  margin-bottom: 1.25rem;
+  padding-bottom: 1rem;
+  border-bottom: 1px solid var(--border-primary);
+}
+
+.aside-secondary__icon {
+  width: 24px;
+  height: 24px;
+  color: var(--text-primary);
+  transition: color var(--transition-1);
+}
+
+.aside-secondary__title {
+  font-size: 1.125rem;
+  font-weight: 600;
+  color: var(--text-primary);
+  margin: 0;
+  transition: color var(--transition-1);
+}
+
+/* Loading state */
+.aside-secondary__loading {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 1rem;
+  padding: 2rem 0;
+}
+
+.aside-secondary__spinner {
+  width: 32px;
+  height: 32px;
+  border: 3px solid var(--border-primary);
+  border-top-color: var(--accent-primary);
+  border-radius: 50%;
+  animation: spin 0.8s linear infinite;
+}
+
+@keyframes spin {
+  to { transform: rotate(360deg); }
+}
+
+.aside-secondary__loading-text {
+  font-size: 0.875rem;
+  color: var(--text-secondary);
+  margin: 0;
+}
+
+/* Contenuto */
+.aside-secondary__content {
+  display: flex;
+  flex-direction: column;
+  gap: 1.25rem;
+}
+
+/* Statistiche Commits */
+.aside-secondary__commits {
+  width: 100%;
+}
+
+.aside-secondary__commits-card {
+  position: relative; /* Per posizionare il badge */
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  padding: 1.55rem 0 0 1.25rem;
+  background: linear-gradient(
+    to bottom right,
+    rgba(255, 255, 255, 0.03),
+    rgba(255, 255, 255, 0.01)
+  );
+  border: 1px solid var(--border-primary);
+  border-radius: 0.75rem;
+  transition: all var(--transition-1);
+}
+
+/* Badge nome repository sul bordo superiore sinistro */
+.aside-secondary__repo-badge {
+  position: absolute;
+  top: -0.625rem; /* Posizionato sul bordo */
+  left: 1rem;
+  padding: 0.25rem 0.75rem;
+  font-size: 0.75rem;
+  font-weight: 700;
+  letter-spacing: 0.5px;
+  text-transform: uppercase;
+  color: var(--text-primary);
+  background: linear-gradient(
+    to right,
+    hsl(45, 100%, 71%) 0%,
+    hsla(36, 100%, 69%, 1) 100%
+  );
+  border-radius: 0.375rem;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+  transition: all var(--transition-1);
+  z-index: 1;
+}
+
+.aside-secondary__commits-card:hover .aside-secondary__repo-badge {
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+}
+
+.aside-secondary__commits-card:hover {
+  background: linear-gradient(
+    to bottom right,
+    rgba(255, 255, 255, 0.06),
+    rgba(255, 255, 255, 0.02)
+  );
+  border-color: var(--accent-primary);
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+}
+
+.aside-secondary__commits-icon {
+  width: 32px;
+  height: 32px;
+  flex-shrink: 0;
+  color: var(--accent-primary);
+  transition: all var(--transition-1);
+}
+
+.aside-secondary__commits-card:hover .aside-secondary__commits-icon {
+  transform: scale(1.1);
+}
+
+.aside-secondary__commits-content {
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+  gap: 1rem;
+  flex: 1;
+  min-width: 0;
+}
+
+.aside-secondary__commits-value {
+  font-size: 2rem;
+  font-weight: 700;
+  color: var(--text-primary);
+  line-height: 1;
+  transition: color var(--transition-1);
+  background: linear-gradient(
+    to right,
+    var(--text-primary),
+    var(--accent-primary)
+  );
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+  flex-shrink: 0;
+}
+
+.aside-secondary__commits-label {
+  font-size: 0.875rem;
+  color: var(--text-secondary);
+  text-transform: uppercase;
+  letter-spacing: 0.8px;
+  font-weight: 600;
+  transition: color var(--transition-1);
+  white-space: nowrap;
+}
+
+/* Messaggio errore */
+.aside-secondary__error {
+  padding: 0.75rem 1rem;
+  background: rgba(239, 68, 68, 0.1);
+  border: 1px solid rgba(239, 68, 68, 0.3);
+  border-radius: 0.5rem;
+  font-size: 0.875rem;
+  color: #ef4444;
+  margin: 0;
+}
+
+/* Empty state */
+.aside-secondary__empty {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 2rem 1rem;
+}
+
+.aside-secondary__empty-text {
+  font-size: 0.875rem;
+  color: var(--text-secondary);
+  text-align: center;
+  margin: 0;
+}
+
+/* Bottone + tratteggiato per aggiungere repository */
+.aside-secondary__add-btn {
+  width: 100%;
+  padding: 2rem 1rem;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 0.75rem;
+  background: transparent;
+  border: 2px dashed var(--border-primary);
+  border-radius: 0.75rem;
+  cursor: pointer;
+  transition: all var(--transition-1);
+  color: var(--text-secondary);
+}
+
+.aside-secondary__add-btn:hover {
+  border-color: var(--accent-primary);
+  background: linear-gradient(
+    to bottom right,
+    rgba(255, 255, 255, 0.03),
+    rgba(255, 255, 255, 0.01)
+  );
+  color: var(--accent-primary);
+}
+
+.aside-secondary__add-icon {
+  width: 32px;
+  height: 32px;
+  flex-shrink: 0;
+  transition: transform var(--transition-1);
+}
+
+.aside-secondary__add-btn:hover .aside-secondary__add-icon {
+  transform: rotate(90deg);
+}
+
+.aside-secondary__add-text {
+  font-size: 0.875rem;
+  font-weight: 600;
+  letter-spacing: 0.3px;
+}
+
+/* Form per inserire URL */
+.aside-secondary__form {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+  padding: 0.5rem 0;
+}
+
+.aside-secondary__form-label {
+  font-size: 0.875rem;
+  font-weight: 600;
+  color: var(--text-primary);
+  margin: 0;
+  transition: color var(--transition-1);
+}
+
+.aside-secondary__form-input {
+  width: 100%;
+  padding: 0.75rem 1rem;
+  background: linear-gradient(
+    to bottom right,
+    rgba(255, 255, 255, 0.02),
+    rgba(255, 255, 255, 0.005)
+  );
+  border: 1px solid var(--border-primary);
+  border-radius: 0.5rem;
+  font-size: 0.875rem;
+  color: var(--text-primary);
+  transition: all var(--transition-1);
+  font-family: inherit;
+}
+
+.aside-secondary__form-input::placeholder {
+  color: var(--text-secondary);
+  opacity: 0.6;
+}
+
+.aside-secondary__form-input:focus {
+  outline: none;
+  border-color: var(--accent-primary);
+  background: linear-gradient(
+    to bottom right,
+    rgba(255, 255, 255, 0.05),
+    rgba(255, 255, 255, 0.02)
+  );
+}
+
+.aside-secondary__form-input:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.aside-secondary__form-error {
+  font-size: 0.75rem;
+  color: #ef4444;
+  margin: -0.5rem 0 0 0;
+  padding: 0;
+}
+
+.aside-secondary__form-actions {
+  display: flex;
+  gap: 0.75rem;
+  justify-content: flex-end;
+}
+
+.aside-secondary__form-btn {
+  padding: 0.625rem 1.25rem;
+  font-size: 0.875rem;
+  font-weight: 600;
+  border-radius: 0.5rem;
+  border: 1px solid var(--border-primary);
+  cursor: pointer;
+  transition: all var(--transition-1);
+  font-family: inherit;
+}
+
+.aside-secondary__form-btn:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.aside-secondary__form-btn--cancel {
+  background: transparent;
+  color: var(--text-secondary);
+}
+
+.aside-secondary__form-btn--cancel:hover:not(:disabled) {
+  background: linear-gradient(
+    to bottom right,
+    rgba(255, 255, 255, 0.05),
+    rgba(255, 255, 255, 0.02)
+  );
+  color: var(--text-primary);
+}
+
+.aside-secondary__form-btn--save {
+  background: linear-gradient(
+    to bottom right,
+    hsl(45, 100%, 71%) 0%,
+    hsla(36, 100%, 69%, 1) 50%
+  );
+  color: var(--eerie-black-1);
+  border-color: var(--accent-primary);
+}
+
+.aside-secondary__form-btn--save:hover:not(:disabled) {
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+}
+
