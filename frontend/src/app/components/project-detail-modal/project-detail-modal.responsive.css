@@ -208,7 +208,9 @@
     pointer-events: auto;
   }
 
-  /* Device selector nel devices bar */
+  /* Device selector nel devices bar 
+     NOTA: Override responsivi per il device-selector quando usato in questa modal
+     Gli stili base sono in device-selector.component.css */
   .project-detail-modal__devices-bar .device-selector {
     margin-right: 0;
     display: flex;

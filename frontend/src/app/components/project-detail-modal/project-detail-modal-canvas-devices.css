@@ -6,62 +6,7 @@
   font-style: italic;
 }
 
-/* ================== Selettore Dispositivi ==================  */
-
-.device-selector {
-  display: flex;
-  gap: 8px;
-  align-items: center;
-  padding: 8px;
-  background: var(--bg-card);
-  border: 1px solid var(--border-primary);
-  border-radius: 999px;
-  margin-right: auto;
-}
-
-.device-btn {
-  display: flex;
-  align-items: center;
-  gap: 6px;
-  padding: 8px 14px;
-  background: transparent;
-  border: 1px solid transparent;
-  border-radius: 999px;
-  cursor: pointer;
-  transition: all var(--transition-1);
-  font-size: 0.85rem;
-  color: var(--text-secondary);
-  white-space: nowrap;
-}
-
-.device-btn:hover {
-  background: var(--bg-secondary);
-  border-color: var(--border-primary);
-  color: var(--text-primary);
-}
-
-.device-btn.active {
-  background: var(--accent-primary);
-  color: var(--text-inverse);
-  border-color: var(--accent-primary);
-  font-weight: 600;
-}
-
-.device-btn--custom {
-  font-size: 1.2rem;
-  padding: 8px 12px;
-}
-
-.device-icon {
-  font-size: 1.1rem;
-  display: inline-block;
-}
-
-.device-label {
-  font-size: 0.85rem;
-}
-
-/* Dialog custom size */
+/* Dialog custom size (usato da device-selector) */
 .custom-size-overlay {
   position: fixed;
   inset: 0;
@@ -359,34 +304,12 @@
   min-width: fit-content;
 }
 
-.canvas-item .project-detail-modal__value-input,
-.canvas-item .project-detail-modal__select {
-  flex: 1;
-  min-width: 0;
-}
-
 .edit-mode .canvas-item .project-detail-modal__field {
   overflow: hidden;
 }
 
-.canvas-item .project-detail-modal__value-input,
-.canvas-item .project-detail-modal__textarea {
-  flex: 1;
-  min-height: 0;
-  overflow-y: auto;
-  resize: none;
-}
-
-.canvas-item .project-detail-modal__technologies-selector {
-  flex: 1;
-  overflow-y: auto;
-  min-height: 0;
-}
-
-.canvas-item .project-detail-modal__tags {
-  flex-wrap: wrap;
-  overflow: hidden;
-}
+/* Nota: override specifici per form components nel canvas non più necessari 
+   I componenti form gestiscono internamente layout e overflow */
 
 /* Resize handles */
 .resize-handle {
@@ -611,136 +534,13 @@
   top: 0 !important;
 }
 
-/* Textarea per testo custom */
-.custom-text-input {
-  width: 100%;
-  height: 100%;
-  padding: 0;
-  background: transparent;
-  border: none;
-  color: var(--text-primary);
-  font-size: 0.95rem;
-  line-height: 1.6;
-  resize: none;
-  font-family: inherit;
-  outline: none;
-  cursor: text;
-  z-index: 5;
-  position: relative;
-  box-sizing: border-box;
-}
+/* Nota: stili custom-text-input/display ora in custom-text-element.component.css */
+/* Nota: stili custom-image-wrapper ora in custom-image-element.component.css */
+/* Nota: stili upload-image-center-btn ora nei componenti upload (poster/video/custom-image) */
 
-.custom-text-input:focus {
-  background: rgba(var(--accent-primary-rgb, 99, 102, 241), 0.05);
-  cursor: text;
-}
-
-.custom-text-input::placeholder {
-  color: var(--text-secondary);
-  opacity: 0.6;
-}
-
-/* Display testo custom in modalità visualizzazione */
-.custom-text-display {
-  width: 100%;
-  height: 100%;
-  padding: 0;
-  color: var(--text-primary);
-  font-size: 0.95rem;
-  line-height: 1.6;
-  overflow: auto;
-  white-space: pre-wrap;
-  box-sizing: border-box;
-}
-
-/* Wrapper immagine custom */
-.custom-image-wrapper {
-  width: 100%;
-  height: 100%;
-  position: relative;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  box-sizing: border-box;
-  transition: background var(--transition-1);
-}
-
-/* Stato drag over */
-.custom-image-wrapper.is-dragover {
-  background: var(--accent-primary-alpha);
-}
-
-/* Pulsante centrale per caricare immagine (appare all'hover) */
-.upload-image-center-btn {
-  position: absolute;
-  top: 50%;
-  left: 50%;
-  transform: translate(-50%, -50%);
-  width: 140px;
-  height: 140px;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: center;
-  gap: 8px;
-  background: rgba(100, 100, 100, 0.5);
-  color: white;
-  border: 3px solid rgba(255, 255, 255, 0.8);
-  border-radius: 50%;
-  cursor: pointer;
-  opacity: 0;
-  transition: all var(--transition-1);
-  z-index: 10;
-  pointer-events: none;
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
-}
-
-/* Mostra pulsante all'hover del contenitore */
-.edit-mode .project-detail-modal__image-container:hover .upload-image-center-btn,
-.edit-mode .project-detail-modal__image-error:hover .upload-image-center-btn,
-.edit-mode .project-detail-modal__add-image-area:hover .upload-image-center-btn,
-.edit-mode .custom-image-wrapper:hover .upload-image-center-btn,
-.edit-mode .project-detail-modal__video-container:hover .upload-video-center-btn,
-.edit-mode .project-detail-modal__add-video-area:hover .upload-video-center-btn {
-  opacity: 1;
-  pointer-events: auto;
-}
-
-/* Pulsante sempre visibile quando area è vuota */
-.upload-image-center-btn--empty {
-  opacity: 1;
-  pointer-events: auto;
-  background: rgba(100, 100, 100, 0.4);
-}
-
-.upload-image-center-btn--empty:hover {
-  background: rgba(100, 100, 100, 0.6);
-  transform: translate(-50%, -50%) scale(1.05);
-  box-shadow: 0 6px 16px rgba(0, 0, 0, 0.4);
-}
-
-.upload-image-center-btn:hover {
-  background: rgba(80, 80, 80, 0.7);
-  transform: translate(-50%, -50%) scale(1.05);
-  box-shadow: 0 6px 16px rgba(0, 0, 0, 0.4);
-}
-
-.upload-image-center-btn svg {
-  width: 50px;
-  height: 50px;
-  color: white;
-}
-
-.upload-image-center-btn span {
-  font-size: 0.75rem;
-  font-weight: 600;
-  color: white;
-  text-align: center;
-  line-height: 1.2;
-  text-shadow: 0 2px 4px rgba(0, 0, 0, 0.3);
-}
-
-/* Overlay drag & drop */
+/* Overlay drag & drop 
+   NOTA: Duplicato in poster-uploader, video-uploader, custom-image-element
+   TODO futuro: creare shared-upload-styles.css */
 .drag-drop-overlay {
   position: absolute;
   inset: 0;
@@ -755,7 +555,9 @@
   animation: fadeIn 0.2s ease;
 }
 
-/* Cerchio rosso per file non validi */
+/* Cerchio rosso per file non validi 
+   NOTA: Duplicato in video-uploader.component.css
+   Usato solo per video (validazione tipo file) */
 .invalid-file-indicator {
   position: absolute;
   top: 50%;
@@ -855,58 +657,9 @@
   letter-spacing: 0.5px;
 }
 
-/* Immagine custom */
-.custom-image-display {
-  width: 100%;
-  height: 100%;
-  object-fit: contain;
-}
+/* Nota: stili custom-image-display ora in custom-image-element.component.css */
 
-/* Pulsante cambia immagine custom (appare all'hover) */
-.custom-image-wrapper .project-detail-modal__change-media {
-  opacity: 0;
-  pointer-events: none;
-}
-
-.custom-image-wrapper:hover .project-detail-modal__change-media {
-  opacity: 1;
-  pointer-events: auto;
-}
-
-/* Placeholder per immagine custom */
-.custom-image-placeholder {
-  width: 100%;
-  height: 100%;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: center;
-  gap: 12px;
-  padding: 0;
-  box-sizing: border-box;
-}
-
-.custom-image-placeholder span {
-  font-size: 0.9rem;
-  color: var(--text-secondary);
-}
-
-.custom-image-url-input {
-  width: 100%;
-  padding: 8px 12px;
-  background: var(--bg-primary);
-  border: 1px solid var(--border-primary);
-  border-radius: 6px;
-  color: var(--text-primary);
-  font-size: 0.85rem;
-  text-align: center;
-}
-
-.custom-image-url-input:focus {
-  outline: none;
-  border-color: var(--accent-primary);
-  box-shadow: 0 0 0 3px var(--accent-primary-alpha);
-}
+/* Nota: stili custom-image-placeholder non più usati (rimosso input URL) */
 
 /* Pulsante rimozione elemento custom - sul wrapper esterno */
 .edit-mode .canvas-item-wrapper .remove-custom-element {

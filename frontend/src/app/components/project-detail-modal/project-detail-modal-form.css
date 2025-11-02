@@ -25,13 +25,7 @@
   line-height: 1.5;
 }
 
-.project-detail-modal__description {
-  color: var(--text-secondary);
-  font-size: 1rem;
-  line-height: 1.6;
-  margin: 0;
-  white-space: pre-wrap;
-}
+/* Nota: stili description ora in description-field.component.css */
 
 /* Input fields */
 .project-detail-modal__title-input {
@@ -56,57 +50,11 @@
   box-shadow: 0 0 0 3px var(--accent-primary-alpha);
 }
 
-.project-detail-modal__value-input {
-  width: 100%;
-  background: var(--bg-card);
-  border: 2px dashed var(--border-primary);
-  border-radius: 6px;
-  padding: 8px 12px;
-  font-size: 1rem;
-  color: var(--text-primary);
-  font-family: inherit;
-  transition: all var(--transition-1);
-  margin-top: 4px;
-}
+/* Nota: stili value-input ora nei rispettivi componenti form fields */
 
-.project-detail-modal__value-input:focus {
-  outline: none;
-  border-color: var(--accent-primary);
-  border-style: solid;
-  box-shadow: 0 0 0 3px var(--accent-primary-alpha);
-}
+/* Nota: stili textarea ora in description-field.component.css */
 
-.project-detail-modal__value-input::placeholder {
-  color: var(--text-secondary);
-  opacity: 0.5;
-}
-
-.project-detail-modal__textarea {
-  resize: vertical;
-  font-family: inherit;
-}
-
-/* Select */
-.project-detail-modal__select {
-  width: 100%;
-  padding: 8px 12px;
-  background: var(--bg-card);
-  border: 2px dashed var(--border-primary);
-  border-radius: 6px;
-  color: var(--text-primary);
-  font-size: 1rem;
-  font-family: inherit;
-  cursor: pointer;
-  transition: all var(--transition-1);
-  margin-top: 4px;
-}
-
-.project-detail-modal__select:focus {
-  outline: none;
-  border-color: var(--accent-primary);
-  border-style: solid;
-  box-shadow: 0 0 0 3px var(--accent-primary-alpha);
-}
+/* Nota: stili select ora in category-field.component.css */
 
 /* Buttons - dimensioni compatte per posizionamento assoluto */
 .project-detail-modal__btn {
@@ -181,49 +129,5 @@
   cursor: not-allowed;
 }
 
-/* Technologies selector */
-.project-detail-modal__tags {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 0.5rem;
-  margin-top: 4px;
-}
-
-.project-detail-modal__technologies-selector {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 0.75rem;
-  margin-top: 8px;
-  padding: 12px;
-  background: var(--bg-secondary);
-  border: 2px dashed var(--border-primary);
-  border-radius: 8px;
-}
-
-.project-detail-modal__tech-checkbox {
-  display: inline-flex;
-  align-items: center;
-  gap: 8px;
-  cursor: pointer;
-  padding: 6px 12px;
-  border-radius: 6px;
-  transition: all var(--transition-1);
-  background: transparent;
-  border: 2px solid var(--border-primary);
-}
-
-.project-detail-modal__tech-checkbox:hover {
-  border-color: var(--accent-primary);
-  background: var(--accent-primary-alpha);
-}
-
-.project-detail-modal__tech-checkbox input[type="checkbox"] {
-  cursor: pointer;
-}
-
-.project-detail-modal__tech-checkbox.selected {
-  background: var(--accent-primary);
-  border-color: var(--accent-primary);
-  color: white;
-}
+/* Nota: stili technologies-selector ora in technologies-selector.component.css */
 
