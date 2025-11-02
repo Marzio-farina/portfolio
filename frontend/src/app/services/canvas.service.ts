@@ -687,6 +687,235 @@ export class CanvasService {
     }
   }
 
+  // ================== Layout Adaptation ==================
+
+  /**
+   * Valida dimensioni e posizioni minime di un singolo item
+   */
+  private validateSingleItemBounds(config: { left: number; top: number; width: number; height: number }): { left: number; top: number; width: number; height: number } {
+    let { left, top, width, height } = config;
+    
+    // Assicura larghezza minima
+    width = Math.max(150, width);
+    
+    // Assicura posizioni non negative
+    left = Math.max(0, left);
+    top = Math.max(0, top);
+
+    return { left, top, width, height };
+  }
+
+  /**
+   * Riposiziona gli elementi che escono dal dispositivo, spostandoli sotto l'elemento alla loro sinistra
+   */
+  private reflowItems(items: CanvasItem[], maxWidth: number): CanvasItem[] {
+    const MARGIN = 20; // Margine minimo dai bordi
+    const GAP = 20; // Spazio tra elementi
+    
+    // Ordina gli elementi per posizione verticale, poi orizzontale
+    const sortedItems = [...items].sort((a, b) => {
+      if (Math.abs(a.top - b.top) < 30) {
+        // Sono sulla stessa "riga" (con tolleranza di 30px)
+        return a.left - b.left;
+      }
+      return a.top - b.top;
+    });
+
+    const reflowedItems: CanvasItem[] = [];
+    const rows: CanvasItem[][] = [];
+    let currentRow: CanvasItem[] = [];
+    let currentRowTop = 0;
+
+    // Raggruppa elementi per riga (elementi con top simile)
+    sortedItems.forEach((item, index) => {
+      if (index === 0) {
+        currentRowTop = item.top;
+        currentRow.push(item);
+      } else {
+        // Se l'elemento è sulla stessa riga (tolleranza 30px)
+        if (Math.abs(item.top - currentRowTop) < 30) {
+          currentRow.push(item);
+        } else {
+          // Nuova riga
+          rows.push([...currentRow]);
+          currentRow = [item];
+          currentRowTop = item.top;
+        }
+      }
+    });
+    
+    // Aggiungi l'ultima riga
+    if (currentRow.length > 0) {
+      rows.push(currentRow);
+    }
+
+    let currentTop = MARGIN;
+
+    // Processa ogni riga
+    rows.forEach((row) => {
+      let currentLeft = MARGIN;
+      let maxHeightInRow = 0;
+
+      row.forEach((item) => {
+        const itemWidth = item.width;
+        const itemHeight = item.height;
+
+        // Verifica se l'elemento esce dal dispositivo
+        if (currentLeft + itemWidth > maxWidth - MARGIN) {
+          // Se è il primo elemento della riga e non entra, riduci la larghezza
+          if (currentLeft === MARGIN) {
+            const newItem: CanvasItem = {
+              ...item,
+              left: MARGIN,
+              top: currentTop,
+              width: maxWidth - (MARGIN * 2)
+            };
+            reflowedItems.push(newItem);
+            maxHeightInRow = Math.max(maxHeightInRow, itemHeight);
+            currentTop += itemHeight + GAP;
+            currentLeft = MARGIN; // Reset per prossimo elemento
+            return;
+          }
+          
+          // Altrimenti, sposta l'elemento alla riga successiva
+          currentTop += maxHeightInRow + GAP;
+          currentLeft = MARGIN;
+          maxHeightInRow = 0;
+        }
+
+        // Posiziona l'elemento
+        const newItem: CanvasItem = {
+          ...item,
+          left: currentLeft,
+          top: currentTop
+        };
+
+        reflowedItems.push(newItem);
+        maxHeightInRow = Math.max(maxHeightInRow, itemHeight);
+        currentLeft += itemWidth + GAP;
+      });
+
+      // Vai alla riga successiva
+      currentTop += maxHeightInRow + GAP;
+    });
+
+    return reflowedItems;
+  }
+
+  /**
+   * Adatta il layout di un altro dispositivo al dispositivo corrente scalandolo proporzionalmente
+   */
+  getAdaptedLayoutForDevice(
+    targetDeviceId: string, 
+    layouts: Map<string, Map<string, CanvasItem>>,
+    customTargetWidth?: number
+  ): Map<string, CanvasItem> | null {
+    const targetDevice = this.devicePresets.find(d => d.id === targetDeviceId);
+    if (!targetDevice) return null;
+    
+    // Usa la larghezza personalizzata se fornita, altrimenti quella del dispositivo
+    const targetWidth = customTargetWidth || targetDevice.width;
+    const targetHeight = targetDevice.height;
+
+    // Ordina i dispositivi per larghezza (dal più largo al più stretto)
+    const devicesByWidth = [...this.devicePresets]
+      .sort((a, b) => b.width - a.width);
+
+    // Trova il primo dispositivo più largo del target che ha un layout salvato
+    let sourceDevice: DevicePreset | undefined;
+    let sourceLayout: Map<string, CanvasItem> | undefined;
+
+    for (const device of devicesByWidth) {
+      // Cerca solo dispositivi più larghi o uguali al target
+      if (device.width >= targetWidth && device.id !== targetDeviceId) {
+        const layout = layouts.get(device.id);
+        if (layout && layout.size > 0) {
+          sourceDevice = device;
+          sourceLayout = layout;
+          break;
+        }
+      }
+    }
+
+    // Se non troviamo un layout da cui partire, ritorna null
+    if (!sourceDevice || !sourceLayout) {
+      return null;
+    }
+
+    // Calcola il fattore di scala
+    const scaleX = targetWidth / sourceDevice.width;
+    const scaleY = targetHeight / sourceDevice.height;
+
+    // Crea il nuovo layout scalato
+    const adaptedLayout = new Map<string, CanvasItem>();
+
+    // Prima passa: scala tutti gli elementi
+    const scaledItems: CanvasItem[] = [];
+    
+    sourceLayout.forEach((item, itemId) => {
+      // Calcola dimensioni scalate
+      let scaledLeft = Math.round(item.left * scaleX);
+      let scaledTop = Math.round(item.top * scaleY);
+      let scaledWidth = Math.round(item.width * scaleX);
+      let scaledHeight = Math.round(item.height * scaleY);
+
+      // Valida limiti minimi
+      const validated = this.validateSingleItemBounds({
+        left: scaledLeft,
+        top: scaledTop,
+        width: scaledWidth,
+        height: scaledHeight
+      });
+
+      scaledItems.push({
+        id: itemId,
+        left: validated.left,
+        top: validated.top,
+        width: validated.width,
+        height: validated.height,
+        type: item.type,
+        content: item.content
+      });
+    });
+
+    // Seconda passa: reflow per elementi che escono orizzontalmente
+    const reflowedItems = this.reflowItems(scaledItems, targetWidth);
+
+    // Terza passa: crea la mappa finale
+    reflowedItems.forEach(item => {
+      adaptedLayout.set(item.id, item);
+    });
+
+    return adaptedLayout;
+  }
+
+  /**
+   * Determina se un elemento è parzialmente o totalmente fuori dall'area visibile del dispositivo
+   */
+  isItemOutsideViewport(itemId: string): boolean {
+    const item = this.canvasItems().get(itemId);
+    if (!item) return false;
+    
+    const device = this.selectedDevice();
+    const viewportWidth = device.width;
+    const viewportHeight = device.height;
+    
+    // Controlla se l'elemento è parzialmente o totalmente fuori dall'area visibile
+    const itemRight = item.left + item.width;
+    const itemBottom = item.top + item.height;
+    
+    return (
+      item.left >= viewportWidth || // completamente a destra
+      item.top >= viewportHeight || // completamente sotto
+      itemRight <= 0 || // completamente a sinistra
+      itemBottom <= 0 || // completamente sopra
+      itemRight > viewportWidth || // parte destra fuori
+      itemBottom > viewportHeight // parte inferiore fuori
+    );
+  }
+
+  // ================== Cleanup ==================
+
   /**
    * Reset completo del servizio (per cleanup)
    */

@@ -91,8 +91,8 @@
       <!-- ELEMENTO 1: Immagine -->
       <div 
         class="canvas-item"
-        [class.is-dragging]="dragState().isDragging && dragState().draggedItemId === 'image'"
-        [class.is-resizing]="resizeState().isResizing && resizeState().itemId === 'image'"
+        [class.is-dragging]="canvasService.dragState().isDragging && canvasService.dragState().draggedItemId === 'image'"
+        [class.is-resizing]="canvasService.resizeState().isResizing && canvasService.resizeState().itemId === 'image'"
         [class.outside-viewport]="isItemOutsideViewport('image')"
         [style.left.px]="getItemStyle('image').left"
         [style.top.px]="getItemStyle('image').top"
@@ -127,7 +127,7 @@
         <!-- Wrapper esterno per posizionamento -->
         <div 
           class="canvas-item-wrapper canvas-item-wrapper--video"
-          [class.is-dragging]="dragState().isDragging && dragState().draggedItemId === 'video'"
+          [class.is-dragging]="canvasService.dragState().isDragging && canvasService.dragState().draggedItemId === 'video'"
           [class.outside-viewport]="isItemOutsideViewport('video')"
           [style.left.px]="getItemStyle('video').left"
           [style.top.px]="getItemStyle('video').top"
@@ -137,7 +137,7 @@
           <!-- Canvas item interno con bordi -->
           <div 
             class="canvas-item"
-            [class.is-resizing]="resizeState().isResizing && resizeState().itemId === 'video'"
+            [class.is-resizing]="canvasService.resizeState().isResizing && canvasService.resizeState().itemId === 'video'"
             (mousedown)="onItemMouseDown($event, 'video')">
           
           <app-video-uploader
@@ -178,8 +178,8 @@
       <!-- ELEMENTO 3: Categoria -->
       <div 
         class="canvas-item"
-        [class.is-dragging]="dragState().isDragging && dragState().draggedItemId === 'category'"
-        [class.is-resizing]="resizeState().isResizing && resizeState().itemId === 'category'"
+        [class.is-dragging]="canvasService.dragState().isDragging && canvasService.dragState().draggedItemId === 'category'"
+        [class.is-resizing]="canvasService.resizeState().isResizing && canvasService.resizeState().itemId === 'category'"
         [class.outside-viewport]="isItemOutsideViewport('category')"
         [style.left.px]="getItemStyle('category').left"
         [style.top.px]="getItemStyle('category').top"
@@ -211,8 +211,8 @@
       <!-- ELEMENTO 4: Tecnologie -->
       <div 
         class="canvas-item"
-        [class.is-dragging]="dragState().isDragging && dragState().draggedItemId === 'technologies'"
-        [class.is-resizing]="resizeState().isResizing && resizeState().itemId === 'technologies'"
+        [class.is-dragging]="canvasService.dragState().isDragging && canvasService.dragState().draggedItemId === 'technologies'"
+        [class.is-resizing]="canvasService.resizeState().isResizing && canvasService.resizeState().itemId === 'technologies'"
         [class.outside-viewport]="isItemOutsideViewport('technologies')"
         [style.left.px]="getItemStyle('technologies').left"
         [style.top.px]="getItemStyle('technologies').top"
@@ -244,8 +244,8 @@
       <!-- ELEMENTO 5: Descrizione -->
       <div 
         class="canvas-item"
-        [class.is-dragging]="dragState().isDragging && dragState().draggedItemId === 'description'"
-        [class.is-resizing]="resizeState().isResizing && resizeState().itemId === 'description'"
+        [class.is-dragging]="canvasService.dragState().isDragging && canvasService.dragState().draggedItemId === 'description'"
+        [class.is-resizing]="canvasService.resizeState().isResizing && canvasService.resizeState().itemId === 'description'"
         [class.outside-viewport]="isItemOutsideViewport('description')"
         [style.left.px]="getItemStyle('description').left"
         [style.top.px]="getItemStyle('description').top"
@@ -278,7 +278,7 @@
           <!-- Contenitore con posizionamento (senza bordi) -->
           <div 
             class="canvas-item-wrapper"
-            [class.is-dragging]="dragState().isDragging && dragState().draggedItemId === item.key"
+            [class.is-dragging]="canvasService.dragState().isDragging && canvasService.dragState().draggedItemId === item.key"
             [style.left.px]="item.value.left"
             [style.top.px]="item.value.top"
             [style.width.px]="item.value.width"
@@ -288,7 +288,7 @@
             <!-- Contenitore del contenuto con bordi -->
             <div 
               class="canvas-item canvas-item--custom"
-              [class.is-resizing]="resizeState().isResizing && resizeState().itemId === item.key"
+              [class.is-resizing]="canvasService.resizeState().isResizing && canvasService.resizeState().itemId === item.key"
               (mousedown)="onItemMouseDown($event, item.key)">
               
               <!-- Custom Text Element -->
