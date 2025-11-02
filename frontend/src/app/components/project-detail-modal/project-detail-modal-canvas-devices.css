@@ -770,13 +770,43 @@
   animation: fadeIn 0.2s ease;
 }
 
-/* Overlay per file non validi */
-.drag-drop-overlay--invalid {
-  background: rgba(220, 38, 38, 0.95);
+/* Cerchio rosso per file non validi */
+.invalid-file-indicator {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  width: 140px;
+  height: 140px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  background: rgba(220, 38, 38, 0.9);
+  color: white;
+  border: 3px solid rgba(255, 255, 255, 0.9);
+  border-radius: 50%;
+  z-index: 100;
+  pointer-events: none;
+  box-shadow: 0 4px 12px rgba(220, 38, 38, 0.5);
+  animation: fadeIn 0.2s ease, pulse 1.5s ease infinite;
 }
 
-.drag-drop-icon--invalid {
+.invalid-file-indicator svg {
+  width: 50px;
+  height: 50px;
+  color: white;
   animation: shake 0.5s ease infinite;
+}
+
+.invalid-file-indicator span {
+  font-size: 0.75rem;
+  font-weight: 600;
+  color: white;
+  text-align: center;
+  line-height: 1.2;
+  text-shadow: 0 2px 4px rgba(0, 0, 0, 0.3);
 }
 
 @keyframes fadeIn {
@@ -799,6 +829,17 @@
   }
   75% {
     transform: translateX(10px);
+  }
+}
+
+@keyframes pulse {
+  0%, 100% {
+    box-shadow: 0 4px 12px rgba(220, 38, 38, 0.5);
+    transform: translate(-50%, -50%) scale(1);
+  }
+  50% {
+    box-shadow: 0 6px 20px rgba(220, 38, 38, 0.7);
+    transform: translate(-50%, -50%) scale(1.05);
   }
 }
 
