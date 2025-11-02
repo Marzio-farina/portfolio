@@ -207,6 +207,95 @@
   /* Device selector nel devices bar */
   .project-detail-modal__devices-bar .device-selector {
     margin-right: 0;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    background: var(--bg-card);
+    border: 1px solid var(--border-color);
+    border-radius: 8px;
+    padding: 8px;
+    transition: all var(--transition-1);
+    position: relative;
+  }
+
+  /* Frecce laterali */
+  .device-selector__arrow {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 24px;
+    height: 24px;
+    color: var(--text-secondary);
+    opacity: 0.5;
+    transition: all var(--transition-1);
+    flex-shrink: 0;
+  }
+
+  .device-selector__arrow svg {
+    width: 20px;
+    height: 20px;
+  }
+
+  /* Animazione frecce all'hover */
+  .device-selector:hover .device-selector__arrow {
+    opacity: 1;
+    color: var(--accent-primary);
+  }
+
+  .device-selector:hover .device-selector__arrow--left {
+    animation: pulseLeft 1s ease infinite;
+  }
+
+  .device-selector:hover .device-selector__arrow--right {
+    animation: pulseRight 1s ease infinite;
+  }
+
+  @keyframes pulseLeft {
+    0%, 100% {
+      transform: translateX(0);
+    }
+    50% {
+      transform: translateX(-4px);
+    }
+  }
+
+  @keyframes pulseRight {
+    0%, 100% {
+      transform: translateX(0);
+    }
+    50% {
+      transform: translateX(4px);
+    }
+  }
+
+  /* Contenitore dispositivi */
+  .device-selector__items {
+    display: flex;
+    gap: 8px;
+    align-items: center;
+    overflow: hidden;
+    position: relative;
+  }
+
+  /* Nasconde i dispositivi non attivi di default */
+  .device-selector__items .device-btn:not(.active):not(.device-btn--custom) {
+    position: absolute;
+    opacity: 0;
+    pointer-events: none;
+    transform: scale(0.8);
+    transition: all var(--transition-1);
+  }
+
+  /* Mostra tutti i dispositivi all'hover */
+  .device-selector:hover .device-selector__items {
+    gap: 8px;
+  }
+
+  .device-selector:hover .device-selector__items .device-btn {
+    position: static;
+    opacity: 1;
+    pointer-events: auto;
+    transform: scale(1);
   }
 
   /* Layout adapted notice nel devices bar */

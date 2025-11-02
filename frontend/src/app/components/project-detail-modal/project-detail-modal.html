@@ -695,25 +695,42 @@
     <div class="project-detail-modal__devices-bar">
       <!-- Selettore dispositivi -->
       <div class="device-selector">
-        <button 
-          type="button"
-          class="device-btn device-btn--custom"
-          (click)="openCustomSizeDialog()"
-          title="Dimensione personalizzata">
-          ⚙️
-        </button>
+        <!-- Freccia sinistra -->
+        <div class="device-selector__arrow device-selector__arrow--left">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <path stroke-linecap="round" stroke-linejoin="round" d="M15 19l-7-7 7-7"/>
+          </svg>
+        </div>
         
-        @for (device of devicePresets; track device.id) {
+        <!-- Contenitore dispositivi -->
+        <div class="device-selector__items">
           <button 
             type="button"
-            class="device-btn"
-            [class.active]="selectedDevice().id === device.id"
-            (click)="selectDevice(device)"
-            [title]="device.name + ' (' + device.width + '×' + device.height + ')'">
-            <span class="device-icon">{{ device.icon }}</span>
-            <span class="device-label">{{ device.name }}</span>
+            class="device-btn device-btn--custom"
+            (click)="openCustomSizeDialog()"
+            title="Dimensione personalizzata">
+            ⚙️
           </button>
-        }
+          
+          @for (device of devicePresets; track device.id) {
+            <button 
+              type="button"
+              class="device-btn"
+              [class.active]="selectedDevice().id === device.id"
+              (click)="selectDevice(device)"
+              [title]="device.name + ' (' + device.width + '×' + device.height + ')'">
+              <span class="device-icon">{{ device.icon }}</span>
+              <span class="device-label">{{ device.name }}</span>
+            </button>
+          }
+        </div>
+        
+        <!-- Freccia destra -->
+        <div class="device-selector__arrow device-selector__arrow--right">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <path stroke-linecap="round" stroke-linejoin="round" d="M9 5l7 7-7 7"/>
+          </svg>
+        </div>
       </div>
 
       <!-- Indicatore layout adattato -->
