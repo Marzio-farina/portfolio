@@ -714,7 +714,9 @@
 .edit-mode .project-detail-modal__image-container:hover .upload-image-center-btn,
 .edit-mode .project-detail-modal__image-error:hover .upload-image-center-btn,
 .edit-mode .project-detail-modal__add-image-area:hover .upload-image-center-btn,
-.edit-mode .custom-image-wrapper:hover .upload-image-center-btn {
+.edit-mode .custom-image-wrapper:hover .upload-image-center-btn,
+.edit-mode .project-detail-modal__video-container:hover .upload-video-center-btn,
+.edit-mode .project-detail-modal__add-video-area:hover .upload-video-center-btn {
   opacity: 1;
   pointer-events: auto;
 }

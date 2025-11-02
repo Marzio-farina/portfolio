@@ -261,35 +261,64 @@
                     </div>
                   }
                 </div>
+                
                 @if (isEditMode()) {
-                  <button 
-                    type="button"
-                    class="project-detail-modal__change-media"
-                    (click)="openVideoPicker()"
-                    [disabled]="saving()"
-                    aria-label="Cambia video">
-                    <svg viewBox="0 0 24 24" aria-hidden="true">
-                      <path d="M3 17.25V21h3.75L17.81 9.94l-3.75-3.75L3 17.25zM21.41 6.34a1.25 1.25 0 0 0 0-1.77l-2.98-2.98a1.25 1.25 0 0 0-1.77 0l-1.83 1.83 3.75 3.75 1.83-1.83z"/>
-                    </svg>
-                  </button>
+                  <!-- Overlay drag drop -->
+                  @if (isDragOverVideo()) {
+                    <div class="drag-drop-overlay">
+                      <svg class="drag-drop-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12"/>
+                      </svg>
+                      <span>Rilascia per caricare</span>
+                    </div>
+                  } @else {
+                    <!-- Pulsante centrale all'hover -->
+                    <button 
+                      type="button"
+                      class="upload-image-center-btn upload-video-center-btn"
+                      (click)="openVideoPicker()"
+                      (mousedown)="$event.stopPropagation()"
+                      [disabled]="saving()"
+                      title="Carica o cambia video">
+                      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <path stroke-linecap="round" stroke-linejoin="round" d="M15 10l4.553-2.276A1 1 0 0121 8.618v6.764a1 1 0 01-1.447.894L15 14M5 18h8a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v8a2 2 0 002 2z"/>
+                      </svg>
+                      <span>Cambia video</span>
+                    </button>
+                  }
                 }
               </div>
             </div>
           } @else if (isEditMode()) {
-            <div class="project-detail-modal__add-video-area">
-              <button 
-                type="button"
-                class="project-detail-modal__add-media-btn"
-                (click)="openVideoPicker()"
-                (dragover)="onDragOverVideo($event)"
-                (dragleave)="onDragLeaveVideo($event)"
-                (drop)="onFileDropVideo($event)"
-                [class.is-dragover]="isDragOverVideo()">
-                <svg viewBox="0 0 24 24" aria-hidden="true">
-                  <path d="M8 5v14l11-7z"/>
-                </svg>
-                <span>Carica video</span>
-              </button>
+            <div 
+              class="project-detail-modal__add-video-area"
+              (dragover)="onDragOverVideo($event)"
+              (dragleave)="onDragLeaveVideo($event)"
+              (drop)="onFileDropVideo($event)"
+              [class.is-dragover]="isDragOverVideo()">
+              
+              @if (isDragOverVideo()) {
+                <!-- Overlay drag drop -->
+                <div class="drag-drop-overlay">
+                  <svg class="drag-drop-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12"/>
+                  </svg>
+                  <span>Rilascia per caricare</span>
+                </div>
+              } @else {
+                <!-- Pulsante centrale sempre visibile quando vuoto -->
+                <button 
+                  type="button"
+                  class="upload-image-center-btn upload-video-center-btn upload-image-center-btn--empty"
+                  (click)="openVideoPicker()"
+                  (mousedown)="$event.stopPropagation()"
+                  title="Carica video">
+                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <path stroke-linecap="round" stroke-linejoin="round" d="M15 10l4.553-2.276A1 1 0 0121 8.618v6.764a1 1 0 01-1.447.894L15 14M5 18h8a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v8a2 2 0 002 2z"/>
+                  </svg>
+                  <span>Carica video</span>
+                </button>
+              }
             </div>
           }
         </div>
