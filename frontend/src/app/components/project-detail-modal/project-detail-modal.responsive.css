@@ -210,14 +210,23 @@
     display: flex;
     align-items: center;
     gap: 8px;
-    background: var(--bg-card);
-    border: 1px solid var(--border-color);
-    border-radius: 8px;
+    background: rgba(255, 255, 255, 0.1);
+    backdrop-filter: blur(8px);
+    -webkit-backdrop-filter: blur(8px);
+    border: 2px solid rgba(128, 128, 128, 0.4);
+    border-radius: 100px;
     padding: 8px;
     transition: all 0.4s ease;
     position: relative;
     width: fit-content;
     max-width: fit-content;
+    box-shadow: 0 0 0 1px rgba(128, 128, 128, 0.2);
+  }
+  
+  /* Contorno colorato all'hover */
+  .project-detail-modal__devices-bar .device-selector:hover {
+    border-color: var(--accent-primary);
+    box-shadow: 0 0 0 1px var(--accent-primary), 0 2px 8px rgba(var(--accent-primary-rgb), 0.2);
   }
 
   /* Frecce laterali */
