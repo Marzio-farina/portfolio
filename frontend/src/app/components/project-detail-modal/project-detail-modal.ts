@@ -15,11 +15,9 @@ import { PosterUploaderComponent, PosterData } from '../poster-uploader/poster-u
 import { VideoUploaderComponent, VideoData } from '../video-uploader/video-uploader.component';
 import { CustomTextElementComponent } from '../custom-text-element/custom-text-element.component';
 import { CustomImageElementComponent, CustomImageData } from '../custom-image-element/custom-image-element.component';
-
-interface Category {
-  id: number;
-  title: string;
-}
+import { CategoryFieldComponent, Category } from '../category-field/category-field.component';
+import { TechnologiesSelectorComponent, Technology as TechType } from '../technologies-selector/technologies-selector.component';
+import { DescriptionFieldComponent } from '../description-field/description-field.component';
 
 interface CanvasItem {
   id: string;
@@ -60,7 +58,7 @@ interface ResizeState {
 @Component({
   selector: 'app-project-detail-modal',
   standalone: true,
-  imports: [ReactiveFormsModule, KeyValuePipe, Notification, DeviceSelectorComponent, PosterUploaderComponent, VideoUploaderComponent, CustomTextElementComponent, CustomImageElementComponent],
+  imports: [ReactiveFormsModule, KeyValuePipe, Notification, DeviceSelectorComponent, PosterUploaderComponent, VideoUploaderComponent, CustomTextElementComponent, CustomImageElementComponent, CategoryFieldComponent, TechnologiesSelectorComponent, DescriptionFieldComponent],
   templateUrl: './project-detail-modal.html',
   styleUrls: [
     './project-detail-modal-base.css',

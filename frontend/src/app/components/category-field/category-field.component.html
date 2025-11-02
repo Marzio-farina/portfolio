@@ -1,0 +1,18 @@
+<div class="category-field">
+  <span class="category-field__label">Categoria:</span>
+  @if (isEditMode()) {
+    <select 
+      [formControl]="formControl()"
+      class="category-field__select">
+      <option value="">Seleziona categoria</option>
+      @for (cat of categories(); track cat.id) {
+        <option [value]="cat.id">{{ cat.title }}</option>
+      }
+    </select>
+  } @else {
+    @if (currentCategory()) {
+      <span class="category-field__value">{{ currentCategory() }}</span>
+    }
+  }
+</div>
+

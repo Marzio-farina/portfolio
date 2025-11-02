@@ -1,0 +1,34 @@
+<div class="technologies-selector">
+  <span class="technologies-selector__label">Tecnologie:</span>
+  @if (isEditMode()) {
+    @if (loading()) {
+      <span class="technologies-selector__value">Caricamento tecnologie...</span>
+    } @else {
+      @if (availableTechnologies().length > 0) {
+        <div class="technologies-selector__grid">
+          @for (tech of availableTechnologies(); track tech.id) {
+            <label class="technologies-selector__checkbox">
+              <input 
+                type="checkbox"
+                [checked]="isTechnologySelected(tech.id)"
+                (change)="toggleTechnology(tech.id)"
+                class="technologies-selector__input">
+              <span class="technologies-selector__label-text">{{ tech.title }}</span>
+            </label>
+          }
+        </div>
+      } @else {
+        <span class="technologies-selector__value technologies-selector__value--empty">Nessuna tecnologia disponibile</span>
+      }
+    }
+  } @else {
+    @if (projectTechnologies() && projectTechnologies().length > 0) {
+      <div class="technologies-selector__tags">
+        @for (tech of projectTechnologies(); track tech.id) {
+          <span class="technologies-selector__tag">{{ tech.title }}</span>
+        }
+      </div>
+    }
+  }
+</div>
+

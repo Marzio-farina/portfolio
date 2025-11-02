@@ -1,0 +1,20 @@
+<div class="description-field">
+  <span class="description-field__label">
+    DESCRIZIONE:
+    @if (isEditMode()) {
+      <span class="description-field__required">*</span>
+    }
+  </span>
+  @if (isEditMode()) {
+    <textarea 
+      [formControl]="formControl()"
+      class="description-field__textarea"
+      placeholder="Inserisci una descrizione del progetto..."
+      rows="6"></textarea>
+  } @else {
+    @if (currentDescription()) {
+      <p class="description-field__text">{{ currentDescription() }}</p>
+    }
+  }
+</div>
+

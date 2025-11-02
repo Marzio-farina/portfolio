@@ -187,23 +187,13 @@
         [style.height.px]="getItemStyle('category').height"
         (mousedown)="onItemMouseDown($event, 'category')">
         
-        <div class="project-detail-modal__field">
-          <span class="project-detail-modal__label">Categoria:</span>
-          @if (isEditMode()) {
-            <select 
-              [formControl]="$any(editForm.get('category_id'))"
-              class="project-detail-modal__value-input">
-              <option value="">Seleziona categoria</option>
-              @for (cat of categories(); track cat.id) {
-                <option [value]="cat.id">{{ cat.title }}</option>
-              }
-            </select>
-          } @else {
-            @if (project().category) {
-              <span class="project-detail-modal__value">{{ project().category }}</span>
-            }
-          }
-        </div>
+        <app-category-field
+          [formControl]="$any(editForm.get('category_id'))"
+          [categories]="categories()"
+          [currentCategory]="project().category || ''"
+          [isEditMode]="isEditMode()"
+          [loading]="loadingCategories()">
+        </app-category-field>
 
         @if (isEditMode()) {
           <div class="resize-handle resize-e" (mousedown)="onResizeHandleMouseDown($event, 'category', 'e')"></div>
@@ -229,41 +219,14 @@
         [style.height.px]="getItemStyle('technologies').height"
         (mousedown)="onItemMouseDown($event, 'technologies')">
         
-        <div class="project-detail-modal__field">
-          <span class="project-detail-modal__label">Tecnologie:</span>
-          @if (isEditMode()) {
-            @if (loadingTechnologies()) {
-              <span class="project-detail-modal__value">Caricamento tecnologie...</span>
-            } @else {
-              @if (availableTechnologies().length > 0) {
-                <div class="project-detail-modal__technologies-selector">
-                  @for (tech of availableTechnologies(); track tech.id) {
-                    <label class="project-detail-modal__tech-checkbox">
-                      <input 
-                        type="checkbox"
-                        [checked]="isTechnologySelected(tech.id)"
-                        (change)="toggleTechnology(tech.id)"
-                        class="project-detail-modal__tech-input">
-                      <span class="project-detail-modal__tech-label">{{ tech.title }}</span>
-                    </label>
-                  }
-                </div>
-              } @else {
-                <span class="project-detail-modal__value project-detail-modal__value--empty">Nessuna tecnologia disponibile</span>
-              }
-            }
-          } @else {
-            @if (project().technologies && project().technologies.length > 0) {
-              <div class="project-detail-modal__tags">
-                @for (tech of project().technologies; track tech.id) {
-                  <span class="project-detail-modal__tag">{{ tech.title }}</span>
-                }
-              </div>
-            } @else {
-              <span class="project-detail-modal__value project-detail-modal__value--empty">Nessuna tecnologia specificata</span>
-            }
-          }
-        </div>
+        <app-technologies-selector
+          [availableTechnologies]="availableTechnologies()"
+          [selectedTechnologyIds]="selectedTechnologyIds()"
+          [projectTechnologies]="project().technologies || []"
+          [isEditMode]="isEditMode()"
+          [loading]="loadingTechnologies()"
+          (technologyToggled)="toggleTechnology($event)">
+        </app-technologies-selector>
 
         @if (isEditMode()) {
           <div class="resize-handle resize-e" (mousedown)="onResizeHandleMouseDown($event, 'technologies', 'e')"></div>
@@ -289,26 +252,11 @@
         [style.height.px]="getItemStyle('description').height"
         (mousedown)="onItemMouseDown($event, 'description')">
         
-        <div class="project-detail-modal__field">
-          <span class="project-detail-modal__label">
-            Descrizione: 
-            @if (isEditMode()) {
-              <span class="project-detail-modal__required">*</span>
-            }
-          </span>
-          @if (isEditMode()) {
-            <textarea 
-              [formControl]="$any(editForm.get('description'))"
-              class="project-detail-modal__value-input project-detail-modal__textarea"
-              placeholder="Descrizione progetto"
-              maxlength="1000"
-              rows="4"></textarea>
-          } @else {
-            @if (project().description) {
-              <p class="project-detail-modal__description">{{ project().description }}</p>
-            }
-          }
-        </div>
+        <app-description-field
+          [formControl]="$any(editForm.get('description'))"
+          [currentDescription]="project().description || ''"
+          [isEditMode]="isEditMode()">
+        </app-description-field>
 
         @if (isEditMode()) {
           <div class="resize-handle resize-e" (mousedown)="onResizeHandleMouseDown($event, 'description', 'e')"></div>

@@ -1,0 +1,95 @@
+.technologies-selector {
+  display: flex;
+  flex-direction: row;
+  align-items: flex-start;
+  gap: 12px;
+  width: 100%;
+  height: 100%;
+}
+
+.technologies-selector__label {
+  flex-shrink: 0;
+  white-space: nowrap;
+  min-width: fit-content;
+  color: var(--text-primary);
+  font-weight: 600;
+  font-size: 0.95rem;
+  padding-top: 8px;
+}
+
+.technologies-selector__value {
+  flex: 1;
+  color: var(--text-secondary);
+  font-size: 0.9rem;
+  padding-top: 8px;
+}
+
+.technologies-selector__value--empty {
+  opacity: 0.6;
+  font-style: italic;
+}
+
+/* Grid tecnologie in edit mode */
+.technologies-selector__grid {
+  flex: 1;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.75rem;
+  padding: 12px;
+  background: var(--bg-secondary);
+  border: 2px dashed var(--border-primary);
+  border-radius: 8px;
+  overflow-y: auto;
+}
+
+/* Checkbox singola tecnologia */
+.technologies-selector__checkbox {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  cursor: pointer;
+  padding: 6px 12px;
+  border-radius: 6px;
+  transition: all var(--transition-1);
+  background: transparent;
+  border: 2px solid var(--border-primary);
+  white-space: nowrap;
+}
+
+.technologies-selector__checkbox:hover {
+  border-color: var(--accent-primary);
+  background: var(--accent-primary-alpha);
+}
+
+.technologies-selector__input {
+  cursor: pointer;
+  width: 16px;
+  height: 16px;
+}
+
+.technologies-selector__label-text {
+  font-size: 0.9rem;
+  color: var(--text-primary);
+  font-weight: 500;
+}
+
+/* Tags in modalità view */
+.technologies-selector__tags {
+  flex: 1;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+  overflow-y: auto;
+}
+
+.technologies-selector__tag {
+  display: inline-block;
+  padding: 6px 12px;
+  background: var(--accent-primary);
+  color: white;
+  border-radius: 6px;
+  font-size: 0.85rem;
+  font-weight: 500;
+  white-space: nowrap;
+}
+
