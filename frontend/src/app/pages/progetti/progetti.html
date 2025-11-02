@@ -9,7 +9,9 @@
 <app-filter 
     [categories]="categories()"
     [selected]="selectedCategory()"
+    [canDelete]="canDeleteCategories()"
     (select)="onSelectCategory($event)"
+    (deleteCategory)="onDeleteCategory($event)"
 />
 
 @if (loading()) {

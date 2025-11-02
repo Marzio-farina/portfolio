@@ -70,6 +70,9 @@ export class Progetti implements OnDestroy {
   // Stato autenticazione - mostra la card aggiungi solo se loggato e in edit mode
   isAuthenticated = computed(() => this.auth.isAuthenticated());
   showEmptyAddCard = computed(() => this.isAuthenticated() && this.edit.isEditing());
+  
+  // Permette l'eliminazione categorie solo se loggato e in edit mode
+  canDeleteCategories = computed(() => this.isAuthenticated() && this.edit.isEditing());
 
   // Flag per prevenire re-entry nell'effect di aggiornamento
   private isUpdatingProject = false;
@@ -236,6 +239,46 @@ export class Progetti implements OnDestroy {
   
   onSelectCategory(c: string) {
     this.selectedCategory.set(c);
+  }
+
+  /**
+   * Elimina una categoria
+   */
+  onDeleteCategory(categoryTitle: string): void {
+    // Verifica quanti progetti hanno questa categoria
+    const projectsWithCategory = this.projects().filter(p => p.category === categoryTitle).length;
+    
+    if (projectsWithCategory > 0) {
+      this.addNotification(
+        'warning', 
+        `Impossibile eliminare la categoria "${categoryTitle}". Ci sono ${projectsWithCategory} progetti associati. Riassegna prima i progetti ad un'altra categoria.`, 
+        `category-has-projects-${Date.now()}`
+      );
+      return;
+    }
+    
+    if (!confirm(`Sei sicuro di voler eliminare la categoria "${categoryTitle}"?`)) {
+      return;
+    }
+
+    this.api.deleteCategory(categoryTitle).subscribe({
+      next: () => {
+        this.addNotification('success', `Categoria "${categoryTitle}" eliminata con successo.`, `category-deleted-${Date.now()}`);
+        
+        // Se la categoria eliminata era selezionata, torna a "Tutti"
+        if (this.selectedCategory() === categoryTitle) {
+          this.selectedCategory.set('Tutti');
+        }
+        
+        // Ricarica i progetti per aggiornare le categorie disponibili
+        this.loadProjects(true);
+      },
+      error: (err) => {
+        console.error('Errore eliminazione categoria:', err);
+        const errorMessage = err.error?.message || err.message || 'Errore sconosciuto';
+        this.addNotification('error', errorMessage, `category-delete-error-${Date.now()}`);
+      }
+    });
   }
 
   // Metodo per ottenere la notifica più grave per l'icona nell'angolo

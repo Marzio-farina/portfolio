@@ -4,8 +4,18 @@
             <button
                 type="button"
                 [class.active]="c === selected()"
-                (click)="onSelect(c)">
+                (click)="onSelect(c)"
+                (mouseenter)="onMouseEnter(c)"
+                (mouseleave)="onMouseLeave()">
                 {{ c }}
+                @if (canDelete() && c !== 'Tutti') {
+                    <span 
+                        class="filter-remove-btn"
+                        [class.visible]="isRemoveVisible(c)"
+                        (click)="onDelete($event, c)"
+                        (mouseenter)="onMouseEnter(c)"
+                        (mouseleave)="onMouseLeave()">×</span>
+                }
             </button>
         </li>
     }

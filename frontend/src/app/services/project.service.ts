@@ -175,6 +175,17 @@ export class ProjectService {
     return this.http.delete<void>(url);
   }
 
+  /**
+   * Elimina una categoria per titolo (soft delete)
+   * 
+   * @param categoryTitle Titolo della categoria da eliminare
+   * @returns Observable che completa quando l'eliminazione è terminata
+   */
+  deleteCategory(categoryTitle: string): Observable<void> {
+    const url = apiUrl(`categories/by-title/${encodeURIComponent(categoryTitle)}`);
+    return this.http.delete<void>(url);
+  }
+
   // ========================================================================
   // Private Methods
   // ========================================================================
