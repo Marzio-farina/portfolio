@@ -132,7 +132,11 @@ export class ProjectDetailModal implements OnDestroy {
       // Carica solo se non è già stato caricato per questo progetto
       if (layoutConfig && !this.loadedProjectIds.has(projectId)) {
         untracked(() => {
-          this.loadCanvasLayout(layoutConfig);
+          // Converti l'oggetto in stringa JSON se necessario
+          const layoutConfigJson = typeof layoutConfig === 'string' 
+            ? layoutConfig 
+            : JSON.stringify(layoutConfig);
+          this.loadCanvasLayout(layoutConfigJson);
           this.loadedProjectIds.add(projectId);
         });
       }
