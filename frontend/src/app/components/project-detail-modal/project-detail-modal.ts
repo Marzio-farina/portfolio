@@ -11,6 +11,7 @@ import { Notification, NotificationType } from '../notification/notification';
 import { apiUrl } from '../../core/api/api-url';
 import { map } from 'rxjs';
 import { DeviceSelectorComponent, DevicePreset } from '../device-selector/device-selector.component';
+import { PosterUploaderComponent, PosterData } from '../poster-uploader/poster-uploader.component';
 
 interface Category {
   id: number;
@@ -56,7 +57,7 @@ interface ResizeState {
 @Component({
   selector: 'app-project-detail-modal',
   standalone: true,
-  imports: [ReactiveFormsModule, KeyValuePipe, Notification, DeviceSelectorComponent],
+  imports: [ReactiveFormsModule, KeyValuePipe, Notification, DeviceSelectorComponent, PosterUploaderComponent],
   templateUrl: './project-detail-modal.html',
   styleUrls: [
     './project-detail-modal-base.css',
@@ -79,36 +80,21 @@ export class ProjectDetailModal implements OnDestroy {
   // Output per comunicare al componente padre
   closed = output<void>();
 
-  // Aspect ratio per le immagini senza width/height
+  // Aspect ratio per le immagini (gestito dal poster-uploader)
   aspectRatio = signal<string | null>(null);
-  defaultAR = '16 / 9';
-  
-  // Altezza fissa del contenitore
-  containerHeight = 300;
-  
-  // Larghezza calcolata dinamicamente basata sull'aspect ratio
-  containerWidth = signal<number | null>(null);
-
-  // Indica se l'immagine è verticale (height > width)
   isVerticalImage = signal<boolean>(false);
-
-  // Indica se c'è stato un errore nel caricamento dell'immagine
-  imageLoadError = signal<boolean>(false);
   
   // Stato caricamento video
   videoLoading = signal<boolean>(false);
   videoLoadProgress = signal<number>(0); // 0-100
 
-  // File input per modificare immagine e video
-  @ViewChild('posterInput') posterInputRef?: ElementRef<HTMLInputElement>;
+  // File input per modificare video
   @ViewChild('videoInput') videoInputRef?: ElementRef<HTMLInputElement>;
   
   // File selezionati per upload
-  selectedPosterFile = signal<File | null>(null);
+  selectedPosterFile = signal<File | null>(null); // Gestito da poster-uploader
   selectedVideoFile = signal<File | null>(null);
-  posterPreviewUrl = signal<string | null>(null);
   videoPreviewUrl = signal<string | null>(null);
-  isDragOverPoster = signal(false);
   isDragOverVideo = signal(false);
   isValidVideoDrag = signal(true); // Flag per indicare se il file trascinato è un video valido
   videoRemoved = signal<boolean>(false); // Flag per indicare che il video esistente è stato rimosso
@@ -512,8 +498,6 @@ export class ProjectDetailModal implements OnDestroy {
       if (proj && this.editForm) {
         // Popola immediatamente il form
         this.updateFormValues(proj);
-        // Reset errore immagine quando cambia il progetto
-        this.imageLoadError.set(false);
       }
     });
 
@@ -624,38 +608,6 @@ export class ProjectDetailModal implements OnDestroy {
   onClose(): void {
     this.projectDetailModalService.close();
     this.closed.emit();
-  }
-
-  /**
-   * Gestisce il caricamento dell'immagine per calcolare l'aspect ratio e la larghezza del contenitore
-   */
-  onImgLoad(ev: Event): void {
-    const el = ev.target as HTMLImageElement;
-    if (el?.naturalWidth && el?.naturalHeight) {
-      const width = el.naturalWidth;
-      const height = el.naturalHeight;
-      
-      // Calcola aspect ratio
-      this.aspectRatio.set(`${width} / ${height}`);
-      
-      // Determina se l'immagine è verticale (height > width)
-      this.isVerticalImage.set(height > width);
-      
-      // Calcola la larghezza del contenitore basata sull'altezza fissa e l'aspect ratio
-      const calculatedWidth = this.containerHeight * (width / height);
-      this.containerWidth.set(calculatedWidth);
-      
-      // Reset errore se l'immagine si carica correttamente
-      this.imageLoadError.set(false);
-    }
-  }
-
-  /**
-   * Gestisce l'errore di caricamento dell'immagine
-   */
-  onImgError(ev: Event): void {
-    this.imageLoadError.set(true);
-    console.warn('Errore caricamento immagine progetto:', this.project().poster);
   }
 
   /**
@@ -788,9 +740,6 @@ export class ProjectDetailModal implements OnDestroy {
           this.addNotification('success', 'Progetto aggiornato con successo!');
           
           // Aggiorna i preview
-          if (updatedProject.poster) {
-            this.posterPreviewUrl.set(null);
-          }
           if (updatedProject.video) {
             this.videoPreviewUrl.set(null);
           }
@@ -799,7 +748,6 @@ export class ProjectDetailModal implements OnDestroy {
           this.selectedPosterFile.set(null);
           this.selectedVideoFile.set(null);
           this.videoRemoved.set(false);
-          if (this.posterInputRef?.nativeElement) this.posterInputRef.nativeElement.value = '';
           if (this.videoInputRef?.nativeElement) this.videoInputRef.nativeElement.value = '';
           
           this.projectDetailModalService.selectedProject.set(updatedProject);
@@ -855,28 +803,15 @@ export class ProjectDetailModal implements OnDestroy {
     // Ripristina anche i file selezionati
     this.selectedPosterFile.set(null);
     this.selectedVideoFile.set(null);
-    this.posterPreviewUrl.set(null);
     this.videoPreviewUrl.set(null);
     this.videoRemoved.set(false);
-    if (this.posterInputRef?.nativeElement) this.posterInputRef.nativeElement.value = '';
     if (this.videoInputRef?.nativeElement) this.videoInputRef.nativeElement.value = '';
   }
   
   // ================== Gestione upload file ==================
   
-  openPosterPicker(): void {
-    this.posterInputRef?.nativeElement?.click();
-  }
-  
   openVideoPicker(): void {
     this.videoInputRef?.nativeElement?.click();
-  }
-  
-  onPosterFileSelected(event: Event): void {
-    const input = event.target as HTMLInputElement;
-    const file = input.files?.[0];
-    if (!file) return;
-    this.handleSelectedPosterFile(file);
   }
   
   onVideoFileSelected(event: Event): void {
@@ -886,30 +821,7 @@ export class ProjectDetailModal implements OnDestroy {
     this.handleSelectedVideoFile(file);
   }
   
-  private handleSelectedPosterFile(file: File): void {
-    const validTypes = ['image/jpeg', 'image/png', 'image/jpg', 'image/gif', 'image/webp'];
-    if (!validTypes.includes(file.type)) {
-      this.addNotification('error', 'Formato file non supportato. Usa JPEG, PNG, GIF o WEBP.');
-      return;
-    }
-    
-    const maxSize = 5 * 1024 * 1024; // 5MB
-    if (file.size > maxSize) {
-      this.addNotification('error', 'Il file è troppo grande. Dimensione massima: 5MB.');
-      return;
-    }
-    
-    this.selectedPosterFile.set(file);
-    
-    // Crea preview URL
-    const reader = new FileReader();
-    reader.onload = (e) => {
-      this.posterPreviewUrl.set(e.target?.result as string);
-    };
-    reader.readAsDataURL(file);
-  }
-  
-  private handleSelectedVideoFile(file: File): void {
+  private handleSelectedVideoFile(file: File): void{
     const validTypes = ['video/mp4', 'video/webm', 'video/ogg'];
     if (!validTypes.includes(file.type)) {
       this.addNotification('error', 'Formato video non supportato. Usa MP4, WEBM o OGG.');
@@ -931,28 +843,6 @@ export class ProjectDetailModal implements OnDestroy {
       this.videoPreviewUrl.set(e.target?.result as string);
     };
     reader.readAsDataURL(file);
-  }
-  
-  onDragOverPoster(event: DragEvent): void {
-    event.preventDefault();
-    event.stopPropagation();
-    this.isDragOverPoster.set(true);
-  }
-  
-  onDragLeavePoster(event: DragEvent): void {
-    event.preventDefault();
-    event.stopPropagation();
-    this.isDragOverPoster.set(false);
-  }
-  
-  onFileDropPoster(event: DragEvent): void {
-    event.preventDefault();
-    event.stopPropagation();
-    this.isDragOverPoster.set(false);
-    const dt = event.dataTransfer;
-    const file = dt?.files?.[0];
-    if (!file) return;
-    this.handleSelectedPosterFile(file);
   }
   
   onDragOverVideo(event: DragEvent): void {
@@ -1003,10 +893,6 @@ export class ProjectDetailModal implements OnDestroy {
     this.addNotification('info', 'Video rimosso. Ricorda di salvare per applicare le modifiche.');
   }
   
-  getPosterUrl(): string | null {
-    return this.posterPreviewUrl() || this.project().poster || null;
-  }
-  
   getVideoUrl(): string | null {
     return this.videoPreviewUrl() || this.project().video || null;
   }
@@ -1049,6 +935,21 @@ export class ProjectDetailModal implements OnDestroy {
    */
   onDeviceSelected(device: DevicePreset): void {
     this.selectDevice(device);
+  }
+  
+  /**
+   * Gestisce la selezione poster dal poster-uploader
+   */
+  onPosterSelected(data: PosterData): void {
+    this.selectedPosterFile.set(data.file);
+  }
+  
+  /**
+   * Gestisce il calcolo aspect ratio dal poster-uploader
+   */
+  onAspectRatioCalculated(data: { aspectRatio: string; isVertical: boolean }): void {
+    this.aspectRatio.set(data.aspectRatio);
+    this.isVerticalImage.set(data.isVertical);
   }
 
   /**

@@ -1,0 +1,123 @@
+<!-- Input file nascosto -->
+<input 
+  #posterInput
+  type="file" 
+  accept="image/*"
+  (change)="onFileSelected($event)"
+  style="display: none;">
+
+<!-- Contenuto immagine -->
+@if (getDisplayUrl() && !imageLoadError()) {
+  <div 
+    class="poster-uploader__image"
+    [class.image-vertical]="isVerticalImage()"
+    [class.poster-uploader__image--editable]="isEditMode()">
+    <div 
+      class="poster-uploader__image-container"
+      (dragover)="onDragOver($event)"
+      (dragleave)="onDragLeave($event)"
+      (drop)="onFileDrop($event)"
+      [class.is-dragover]="isDragOver()">
+      <img
+        [src]="getDisplayUrl()"
+        [alt]="projectTitle()"
+        (load)="onImageLoad($event)"
+        (error)="onImageError($event)"
+        class="poster-uploader__image-img" />
+      
+      <!-- Overlay drag drop -->
+      @if (isDragOver() && isEditMode()) {
+        <div class="drag-drop-overlay">
+          <svg class="drag-drop-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12"/>
+          </svg>
+          <span>Rilascia per caricare</span>
+        </div>
+      }
+      
+      <!-- Pulsante centrale per caricare immagine (appare all'hover) -->
+      @if (isEditMode() && !isDragOver()) {
+        <button 
+          type="button"
+          class="upload-image-center-btn"
+          (click)="openFilePicker()"
+          (mousedown)="$event.stopPropagation()"
+          [disabled]="saving()"
+          title="Carica o cambia immagine">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <path stroke-linecap="round" stroke-linejoin="round" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z"/>
+          </svg>
+          <span>Cambia immagine</span>
+        </button>
+      }
+    </div>
+  </div>
+} @else if (imageLoadError()) {
+  <div 
+    class="poster-uploader__image-error"
+    (dragover)="onDragOver($event)"
+    (dragleave)="onDragLeave($event)"
+    (drop)="onFileDrop($event)"
+    [class.is-dragover]="isDragOver()">
+    <p>Immagine non disponibile</p>
+    
+    @if (isEditMode()) {
+      <!-- Overlay drag drop -->
+      @if (isDragOver()) {
+        <div class="drag-drop-overlay">
+          <svg class="drag-drop-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12"/>
+          </svg>
+          <span>Rilascia per caricare</span>
+        </div>
+      } @else {
+        <!-- Pulsante centrale all'hover -->
+        <button 
+          type="button"
+          class="upload-image-center-btn"
+          (click)="openFilePicker()"
+          (mousedown)="$event.stopPropagation()"
+          [disabled]="saving()"
+          title="Carica immagine">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <path stroke-linecap="round" stroke-linejoin="round" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z"/>
+          </svg>
+          <span>Carica immagine</span>
+        </button>
+      }
+    }
+  </div>
+} @else if (isEditMode() && !posterUrl()) {
+  <div 
+    class="poster-uploader__add-image-area"
+    (dragover)="onDragOver($event)"
+    (dragleave)="onDragLeave($event)"
+    (drop)="onFileDrop($event)"
+    [class.is-dragover]="isDragOver()">
+    
+    <!-- Overlay drag drop -->
+    @if (isDragOver()) {
+      <div class="drag-drop-overlay">
+        <svg class="drag-drop-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12"/>
+        </svg>
+        <span>Rilascia per caricare</span>
+      </div>
+    } @else {
+      <!-- Pulsante centrale sempre visibile quando vuoto -->
+      <button 
+        type="button"
+        class="upload-image-center-btn upload-image-center-btn--empty"
+        (click)="openFilePicker()"
+        (mousedown)="$event.stopPropagation()"
+        [disabled]="saving()"
+        title="Carica immagine">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <path stroke-linecap="round" stroke-linejoin="round" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z"/>
+        </svg>
+        <span>Carica immagine</span>
+      </button>
+    }
+  </div>
+}
+

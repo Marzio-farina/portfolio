@@ -1,0 +1,189 @@
+/* Contenitore immagine */
+.poster-uploader__image,
+.poster-uploader__image-error,
+.poster-uploader__add-image-area {
+  width: 100%;
+  height: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  position: relative;
+  overflow: hidden;
+}
+
+.poster-uploader__image-container {
+  width: 100%;
+  height: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  position: relative;
+  overflow: hidden;
+}
+
+.poster-uploader__image-img {
+  max-width: 100%;
+  max-height: 100%;
+  width: auto;
+  height: auto;
+  object-fit: contain;
+}
+
+/* Immagine verticale */
+.image-vertical .poster-uploader__image-img {
+  max-width: 80%;
+}
+
+/* Area errore */
+.poster-uploader__image-error {
+  background: var(--bg-secondary);
+  border: 2px dashed var(--border-color);
+  border-radius: 12px;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.poster-uploader__image-error p {
+  color: var(--text-secondary);
+  margin: 0;
+}
+
+/* Area aggiunta immagine */
+.poster-uploader__add-image-area {
+  background: var(--bg-secondary);
+  border: 2px dashed var(--border-color);
+  border-radius: 12px;
+  flex-direction: column;
+  gap: 16px;
+  cursor: pointer;
+  transition: all var(--transition-1);
+}
+
+.poster-uploader__add-image-area:hover {
+  border-color: var(--accent-primary);
+  background: var(--bg-tertiary);
+}
+
+/* Stato drag over */
+.is-dragover {
+  border-color: var(--accent-primary);
+  background: var(--accent-primary-alpha);
+}
+
+/* Pulsante centrale per caricare immagine (appare all'hover) */
+.upload-image-center-btn {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  width: 140px;
+  height: 140px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  background: rgba(100, 100, 100, 0.5);
+  color: white;
+  border: 3px solid rgba(255, 255, 255, 0.8);
+  border-radius: 50%;
+  cursor: pointer;
+  opacity: 0;
+  transition: all var(--transition-1);
+  z-index: 10;
+  pointer-events: none;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+}
+
+/* Mostra pulsante all'hover del contenitore */
+.poster-uploader__image-container:hover .upload-image-center-btn,
+.poster-uploader__image-error:hover .upload-image-center-btn,
+.poster-uploader__add-image-area:hover .upload-image-center-btn {
+  opacity: 1;
+  pointer-events: auto;
+}
+
+/* Pulsante sempre visibile quando area è vuota */
+.upload-image-center-btn--empty {
+  opacity: 1;
+  pointer-events: auto;
+  background: rgba(100, 100, 100, 0.4);
+}
+
+.upload-image-center-btn--empty:hover {
+  background: rgba(100, 100, 100, 0.6);
+  transform: translate(-50%, -50%) scale(1.05);
+  box-shadow: 0 6px 16px rgba(0, 0, 0, 0.4);
+}
+
+.upload-image-center-btn:hover {
+  background: rgba(80, 80, 80, 0.7);
+  transform: translate(-50%, -50%) scale(1.05);
+  box-shadow: 0 6px 16px rgba(0, 0, 0, 0.4);
+}
+
+.upload-image-center-btn svg {
+  width: 50px;
+  height: 50px;
+  color: white;
+}
+
+.upload-image-center-btn span {
+  font-size: 0.75rem;
+  font-weight: 600;
+  color: white;
+  text-align: center;
+  line-height: 1.2;
+  text-shadow: 0 2px 4px rgba(0, 0, 0, 0.3);
+}
+
+/* Overlay drag & drop */
+.drag-drop-overlay {
+  position: absolute;
+  inset: 0;
+  background: rgba(var(--accent-primary-rgb), 0.95);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 12px;
+  z-index: 100;
+  pointer-events: none;
+  animation: fadeIn 0.2s ease;
+}
+
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+    transform: scale(0.95);
+  }
+  to {
+    opacity: 1;
+    transform: scale(1);
+  }
+}
+
+/* Icona drag & drop */
+.drag-drop-icon {
+  width: 64px;
+  height: 64px;
+  color: white;
+  animation: bounce 1s ease infinite;
+}
+
+@keyframes bounce {
+  0%, 100% {
+    transform: translateY(0);
+  }
+  50% {
+    transform: translateY(-10px);
+  }
+}
+
+.drag-drop-overlay span {
+  font-size: 1.1rem;
+  font-weight: 600;
+  color: white;
+  text-shadow: 0 2px 4px rgba(0, 0, 0, 0.3);
+}
+
