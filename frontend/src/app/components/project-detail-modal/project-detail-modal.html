@@ -294,6 +294,7 @@
               <!-- Custom Text Element -->
               @if (item.value.type === 'custom-text') {
                 <app-custom-text-element
+                  [elementId]="item.key"
                   [content]="item.value.content || ''"
                   [isEditMode]="isEditMode()"
                   [saving]="saving()"

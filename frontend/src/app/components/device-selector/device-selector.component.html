@@ -47,6 +47,8 @@
         <label>
           <span>Larghezza (px)</span>
           <input 
+            id="custom-device-width"
+            name="customWidth"
             type="number" 
             [value]="customWidth()"
             (input)="customWidth.set(+$any($event.target).value)"
@@ -56,6 +58,8 @@
         <label>
           <span>Altezza (px)</span>
           <input 
+            id="custom-device-height"
+            name="customHeight"
             type="number"
             [value]="customHeight()"
             (input)="customHeight.set(+$any($event.target).value)"

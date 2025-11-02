@@ -2,6 +2,8 @@
   <span class="category-field__label">Categoria:</span>
   @if (isEditMode()) {
     <select 
+      id="project-category"
+      name="category"
       [value]="selectedCategoryId()"
       (change)="onCategoryChange($event)"
       (mousedown)="$event.stopPropagation()"

@@ -1,6 +1,8 @@
 <!-- Elemento testo custom -->
 @if (isEditMode()) {
   <textarea 
+    [id]="elementId()"
+    [name]="elementId()"
     class="custom-text-input"
     [value]="content()"
     (input)="onContentChange($any($event.target).value)"

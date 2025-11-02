@@ -8,6 +8,9 @@ import { Component, input, output } from '@angular/core';
   styleUrl: './custom-text-element.component.css'
 })
 export class CustomTextElementComponent {
+  // Input: ID elemento (per generare id univoco)
+  elementId = input<string>('custom-text');
+  
   // Input: contenuto testo
   content = input<string>('');
   

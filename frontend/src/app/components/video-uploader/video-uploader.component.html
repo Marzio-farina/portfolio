@@ -1,6 +1,8 @@
 <!-- Input file nascosto -->
 <input 
   #videoInput
+  id="video-file-input"
+  name="video"
   type="file" 
   accept="video/mp4,video/webm,video/ogg"
   (change)="onFileSelected($event)"

@@ -7,6 +7,8 @@
   </span>
   @if (isEditMode()) {
     <textarea 
+      id="project-description"
+      name="description"
       [value]="description()"
       (input)="onDescriptionChange($event)"
       (mousedown)="$event.stopPropagation()"

@@ -10,6 +10,8 @@
             <label class="technologies-selector__checkbox">
               <input 
                 type="checkbox"
+                [id]="'tech-' + tech.id"
+                [name]="'technology-' + tech.id"
                 [checked]="isTechnologySelected(tech.id)"
                 (change)="toggleTechnology(tech.id)"
                 (mousedown)="$event.stopPropagation()"

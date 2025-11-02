@@ -2,6 +2,8 @@
 @if (isEditMode()) {
   <input 
     #fileInput
+    [id]="elementId() + '-file'"
+    [name]="elementId() + '-image'"
     type="file"
     accept="image/jpeg,image/png,image/jpg,image/gif,image/webp"
     (change)="onFileSelected($event)"
