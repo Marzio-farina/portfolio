@@ -142,11 +142,17 @@ export class ProjectDetailModal implements OnDestroy {
       }
     });
 
-    // Seleziona automaticamente il dispositivo giusto in base alla larghezza dello schermo (solo in non-edit mode)
+    // Seleziona automaticamente il dispositivo giusto in base alla larghezza dello schermo (solo in view mode, NON in preview)
     effect(() => {
       const isEdit = this.isEditMode();
+      const isPreview = this.isPreviewMode();
+      const canEditCheck = this.canEdit();
       
-      if (!isEdit) {
+      // Auto-seleziona solo quando:
+      // - NON in edit mode (!isEdit)
+      // - NON in preview mode (!isPreview)
+      // - NON può editare (!canEditCheck) = utente finale
+      if (!isEdit && !isPreview && !canEditCheck) {
         untracked(() => {
           this.selectDeviceByScreenWidth();
         });
