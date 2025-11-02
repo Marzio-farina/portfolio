@@ -214,8 +214,10 @@
     border: 1px solid var(--border-color);
     border-radius: 8px;
     padding: 8px;
-    transition: all var(--transition-1);
+    transition: all 0.4s ease;
     position: relative;
+    width: fit-content;
+    max-width: fit-content;
   }
 
   /* Frecce laterali */
@@ -276,22 +278,30 @@
     overflow: hidden;
     position: relative;
     white-space: nowrap;
+    width: fit-content;
+    transition: all 0.4s ease;
   }
 
   /* Nasconde i dispositivi non attivi di default */
   .device-selector__items .device-btn:not(.active):not(.device-btn--custom) {
     max-width: 0;
+    min-width: 0;
+    width: 0;
     opacity: 0;
     padding: 0;
     margin: 0;
+    border: none;
     pointer-events: none;
     overflow: hidden;
-    transition: max-width 0.4s ease, opacity 0.3s ease, padding 0.4s ease, margin 0.4s ease;
+    flex-shrink: 0;
+    transition: max-width 0.4s ease, min-width 0.4s ease, width 0.4s ease, opacity 0.3s ease, padding 0.4s ease, margin 0.4s ease;
   }
 
   /* Mostra tutti i dispositivi all'hover */
   .device-selector:hover .device-selector__items .device-btn:not(.active):not(.device-btn--custom) {
     max-width: 150px;
+    min-width: auto;
+    width: auto;
     opacity: 1;
     pointer-events: auto;
     padding: 8px 12px;
