@@ -13,6 +13,8 @@ import { map } from 'rxjs';
 import { DeviceSelectorComponent, DevicePreset } from '../device-selector/device-selector.component';
 import { PosterUploaderComponent, PosterData } from '../poster-uploader/poster-uploader.component';
 import { VideoUploaderComponent, VideoData } from '../video-uploader/video-uploader.component';
+import { CustomTextElementComponent } from '../custom-text-element/custom-text-element.component';
+import { CustomImageElementComponent, CustomImageData } from '../custom-image-element/custom-image-element.component';
 
 interface Category {
   id: number;
@@ -58,7 +60,7 @@ interface ResizeState {
 @Component({
   selector: 'app-project-detail-modal',
   standalone: true,
-  imports: [ReactiveFormsModule, KeyValuePipe, Notification, DeviceSelectorComponent, PosterUploaderComponent, VideoUploaderComponent],
+  imports: [ReactiveFormsModule, KeyValuePipe, Notification, DeviceSelectorComponent, PosterUploaderComponent, VideoUploaderComponent, CustomTextElementComponent, CustomImageElementComponent],
   templateUrl: './project-detail-modal.html',
   styleUrls: [
     './project-detail-modal-base.css',
@@ -156,11 +158,6 @@ export class ProjectDetailModal implements OnDestroy {
 
   // Counter per ID univoci di elementi custom
   private customElementCounter = 0;
-
-  // File caricati per immagini custom (Map<elementId, File>)
-  customImageFiles = signal<Map<string, File>>(new Map());
-  customImagePreviews = signal<Map<string, string>>(new Map());
-  customImageDragOver = signal<Map<string, boolean>>(new Map());
 
   // Layout attuale basato sul dispositivo selezionato
   canvasItems = computed(() => {
@@ -811,6 +808,27 @@ export class ProjectDetailModal implements OnDestroy {
     this.selectedVideoFile.set(null);
     this.videoRemoved.set(true);
   }
+  
+  /**
+   * Gestisce il cambio contenuto da custom-text-element
+   */
+  onCustomTextContentChanged(elementId: string, content: string): void {
+    this.updateCustomElementContent(elementId, content);
+  }
+  
+  /**
+   * Gestisce la selezione immagine da custom-image-element
+   */
+  onCustomImageSelected(elementId: string, data: CustomImageData): void {
+    this.updateCustomElementContent(elementId, data.content);
+  }
+  
+  /**
+   * Gestisce la rimozione di un elemento custom
+   */
+  onCustomElementRemoveRequested(elementId: string): void {
+    this.removeCustomElement(elementId);
+  }
 
   /**
    * Seleziona automaticamente il dispositivo in base alla larghezza dello schermo
@@ -1094,102 +1112,6 @@ export class ProjectDetailModal implements OnDestroy {
         console.error('Errore nel salvataggio del layout:', err);
       }
     });
-  }
-
-  /**
-   * Gestisce drag over immagine custom
-   */
-  onDragOverCustomImage(event: DragEvent, itemId: string): void {
-    event.preventDefault();
-    event.stopPropagation();
-    const dragMap = new Map(this.customImageDragOver());
-    dragMap.set(itemId, true);
-    this.customImageDragOver.set(dragMap);
-  }
-
-  /**
-   * Gestisce drag leave immagine custom
-   */
-  onDragLeaveCustomImage(event: DragEvent, itemId: string): void {
-    event.preventDefault();
-    const dragMap = new Map(this.customImageDragOver());
-    dragMap.set(itemId, false);
-    this.customImageDragOver.set(dragMap);
-  }
-
-  /**
-   * Gestisce drop file su immagine custom
-   */
-  onFileDropCustomImage(event: DragEvent, itemId: string): void {
-    event.preventDefault();
-    event.stopPropagation();
-    
-    const dragMap = new Map(this.customImageDragOver());
-    dragMap.set(itemId, false);
-    this.customImageDragOver.set(dragMap);
-    
-    const files = event.dataTransfer?.files;
-    if (files && files.length > 0) {
-      const file = files[0];
-      if (file.type.startsWith('image/')) {
-        this.setCustomImageFile(itemId, file);
-      }
-    }
-  }
-
-  /**
-   * Gestisce selezione file immagine custom
-   */
-  onCustomImageFileSelected(event: Event, itemId: string): void {
-    const input = event.target as HTMLInputElement;
-    if (input.files && input.files.length > 0) {
-      const file = input.files[0];
-      this.setCustomImageFile(itemId, file);
-    }
-  }
-
-  /**
-   * Imposta file e preview per immagine custom
-   */
-  private setCustomImageFile(itemId: string, file: File): void {
-    const filesMap = new Map(this.customImageFiles());
-    filesMap.set(itemId, file);
-    this.customImageFiles.set(filesMap);
-    
-    // Crea preview URL
-    const reader = new FileReader();
-    reader.onload = (e) => {
-      const previewsMap = new Map(this.customImagePreviews());
-      previewsMap.set(itemId, e.target?.result as string);
-      this.customImagePreviews.set(previewsMap);
-      
-      // Aggiorna anche il content con un placeholder temporaneo
-      this.updateCustomElementContent(itemId, e.target?.result as string);
-    };
-    reader.readAsDataURL(file);
-  }
-
-  /**
-   * Rimuove file immagine custom
-   */
-  removeCustomImageFile(itemId: string): void {
-    const filesMap = new Map(this.customImageFiles());
-    filesMap.delete(itemId);
-    this.customImageFiles.set(filesMap);
-    
-    const previewsMap = new Map(this.customImagePreviews());
-    previewsMap.delete(itemId);
-    this.customImagePreviews.set(previewsMap);
-    
-    this.updateCustomElementContent(itemId, '');
-  }
-
-  /**
-   * Apre il file picker per immagine custom
-   */
-  openCustomImagePicker(itemId: string): void {
-    const input = document.getElementById(`customImageInput-${itemId}`) as HTMLInputElement;
-    input?.click();
   }
 
   // ================== Metodi per Canvas con Absolute Positioning ==================
