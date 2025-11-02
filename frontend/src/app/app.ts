@@ -252,11 +252,11 @@ export class App {
   closeLogin(): void { this.isLoginOpen.set(false); }
 
   /**
-   * Gestisce la pressione di Esc o Delete per chiudere i dialog aperti
+   * Gestisce la pressione di Esc per chiudere i dialog aperti
    */
   @HostListener('document:keydown', ['$event'])
   handleKeyboardEvent(event: KeyboardEvent): void {
-    if (event.key === 'Escape' || event.key === 'Delete') {
+    if (event.key === 'Escape') {
       // Chiudi il dialog di login se aperto
       if (this.isLoginOpen()) {
         this.closeLogin();
