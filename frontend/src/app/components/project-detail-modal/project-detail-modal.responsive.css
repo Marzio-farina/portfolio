@@ -275,27 +275,26 @@
     align-items: center;
     overflow: hidden;
     position: relative;
+    white-space: nowrap;
   }
 
   /* Nasconde i dispositivi non attivi di default */
   .device-selector__items .device-btn:not(.active):not(.device-btn--custom) {
-    position: absolute;
+    max-width: 0;
     opacity: 0;
+    padding: 0;
+    margin: 0;
     pointer-events: none;
-    transform: scale(0.8);
-    transition: all var(--transition-1);
+    overflow: hidden;
+    transition: max-width 0.4s ease, opacity 0.3s ease, padding 0.4s ease, margin 0.4s ease;
   }
 
   /* Mostra tutti i dispositivi all'hover */
-  .device-selector:hover .device-selector__items {
-    gap: 8px;
-  }
-
-  .device-selector:hover .device-selector__items .device-btn {
-    position: static;
+  .device-selector:hover .device-selector__items .device-btn:not(.active):not(.device-btn--custom) {
+    max-width: 150px;
     opacity: 1;
     pointer-events: auto;
-    transform: scale(1);
+    padding: 8px 12px;
   }
 
   /* Layout adapted notice nel devices bar */
