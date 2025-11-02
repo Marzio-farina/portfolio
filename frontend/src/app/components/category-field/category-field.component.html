@@ -4,6 +4,7 @@
     <select 
       [value]="selectedCategoryId()"
       (change)="onCategoryChange($event)"
+      (mousedown)="$event.stopPropagation()"
       class="category-field__select">
       <option value="">Seleziona categoria</option>
       @for (cat of categories(); track cat.id) {

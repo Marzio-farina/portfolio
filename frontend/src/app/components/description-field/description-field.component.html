@@ -9,6 +9,7 @@
     <textarea 
       [value]="description()"
       (input)="onDescriptionChange($event)"
+      (mousedown)="$event.stopPropagation()"
       class="description-field__textarea"
       placeholder="Inserisci una descrizione del progetto..."
       rows="6"

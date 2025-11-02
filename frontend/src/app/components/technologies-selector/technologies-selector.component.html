@@ -12,6 +12,7 @@
                 type="checkbox"
                 [checked]="isTechnologySelected(tech.id)"
                 (change)="toggleTechnology(tech.id)"
+                (mousedown)="$event.stopPropagation()"
                 class="technologies-selector__input">
               <span class="technologies-selector__label-text">{{ tech.title }}</span>
             </label>
