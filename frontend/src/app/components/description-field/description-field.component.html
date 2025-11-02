@@ -7,10 +7,12 @@
   </span>
   @if (isEditMode()) {
     <textarea 
-      [formControl]="formControl()"
+      [value]="description()"
+      (input)="onDescriptionChange($event)"
       class="description-field__textarea"
       placeholder="Inserisci una descrizione del progetto..."
-      rows="6"></textarea>
+      rows="6"
+      maxlength="1000"></textarea>
   } @else {
     @if (currentDescription()) {
       <p class="description-field__text">{{ currentDescription() }}</p>

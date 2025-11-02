@@ -1,5 +1,4 @@
-import { Component, input, output, signal } from '@angular/core';
-import { FormControl, ReactiveFormsModule } from '@angular/forms';
+import { Component, input, output } from '@angular/core';
 
 export interface Category {
   id: number;
@@ -9,13 +8,13 @@ export interface Category {
 @Component({
   selector: 'app-category-field',
   standalone: true,
-  imports: [ReactiveFormsModule],
+  imports: [],
   templateUrl: './category-field.component.html',
   styleUrl: './category-field.component.css'
 })
 export class CategoryFieldComponent {
-  // Input: controllo form
-  formControl = input.required<FormControl>();
+  // Input: valore categoria selezionata
+  selectedCategoryId = input<number | string>('');
   
   // Input: categorie disponibili
   categories = input<Category[]>([]);
@@ -28,5 +27,16 @@ export class CategoryFieldComponent {
   
   // Input: loading state
   loading = input<boolean>(false);
+  
+  // Output: quando cambia la selezione
+  categoryChanged = output<number | string>();
+  
+  /**
+   * Gestisce il cambio categoria
+   */
+  onCategoryChange(event: Event): void {
+    const select = event.target as HTMLSelectElement;
+    this.categoryChanged.emit(select.value);
+  }
 }
 

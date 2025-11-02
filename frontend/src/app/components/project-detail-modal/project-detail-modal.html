@@ -188,11 +188,12 @@
         (mousedown)="onItemMouseDown($event, 'category')">
         
         <app-category-field
-          [formControl]="$any(editForm.get('category_id'))"
+          [selectedCategoryId]="editForm.get('category_id')?.value || ''"
           [categories]="categories()"
           [currentCategory]="project().category || ''"
           [isEditMode]="isEditMode()"
-          [loading]="loadingCategories()">
+          [loading]="loadingCategories()"
+          (categoryChanged)="editForm.get('category_id')?.setValue($event)">
         </app-category-field>
 
         @if (isEditMode()) {
@@ -253,9 +254,10 @@
         (mousedown)="onItemMouseDown($event, 'description')">
         
         <app-description-field
-          [formControl]="$any(editForm.get('description'))"
+          [description]="editForm.get('description')?.value || ''"
           [currentDescription]="project().description || ''"
-          [isEditMode]="isEditMode()">
+          [isEditMode]="isEditMode()"
+          (descriptionChanged)="editForm.get('description')?.setValue($event)">
         </app-description-field>
 
         @if (isEditMode()) {
