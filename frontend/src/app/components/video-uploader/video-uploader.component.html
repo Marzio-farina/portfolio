@@ -1,0 +1,138 @@
+<!-- Input file nascosto -->
+<input 
+  #videoInput
+  type="file" 
+  accept="video/mp4,video/webm,video/ogg"
+  (change)="onFileSelected($event)"
+  style="display: none;">
+
+<!-- Contenuto video -->
+@if (getDisplayUrl()) {
+  <div 
+    class="video-uploader__video"
+    [class.video-uploader__video--editable]="isEditMode()">
+    <div 
+      class="video-uploader__video-container"
+      (dragover)="onDragOver($event)"
+      (dragleave)="onDragLeave($event)"
+      (drop)="onFileDrop($event)"
+      [class.is-dragover]="isDragOver()">
+      <div class="video-uploader__video-wrapper">
+        <video
+          [src]="getDisplayUrl()"
+          controls
+          class="video-uploader__video-element"
+          (click)="onVideoClick($event)"
+          (loadstart)="onVideoLoadStart($event)"
+          (progress)="onVideoProgress($event)"
+          (loadeddata)="onVideoLoadedData($event)"
+          (error)="onVideoError($event)">
+          Il tuo browser non supporta il tag video.
+        </video>
+        @if (videoLoading()) {
+          <div class="video-uploader__video-loading">
+            <div class="video-uploader__video-progress-bar">
+              <div 
+                class="video-uploader__video-progress-fill"
+                [style.width.%]="videoLoadProgress()">
+              </div>
+            </div>
+            <span class="video-uploader__video-progress-text">{{ videoLoadProgress() }}%</span>
+          </div>
+        }
+      </div>
+      
+      @if (isEditMode()) {
+        <!-- Overlay drag drop -->
+        @if (isDragOver()) {
+          @if (isValidDrag()) {
+            <div class="drag-drop-overlay">
+              <svg class="drag-drop-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12"/>
+              </svg>
+              <span>Rilascia per caricare</span>
+            </div>
+          } @else {
+            <!-- Cerchio rosso per file non validi -->
+            <div class="invalid-file-indicator">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="3" d="M6 18L18 6M6 6l12 12"/>
+              </svg>
+              <span>File non valido</span>
+            </div>
+          }
+        } @else {
+          <!-- Pulsante centrale all'hover -->
+          <button 
+            type="button"
+            class="upload-video-center-btn"
+            (click)="openFilePicker()"
+            (mousedown)="$event.stopPropagation()"
+            [disabled]="saving()"
+            title="Carica o cambia video">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <path stroke-linecap="round" stroke-linejoin="round" d="M15 10l4.553-2.276A1 1 0 0121 8.618v6.764a1 1 0 01-1.447.894L15 14M5 18h8a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v8a2 2 0 002 2z"/>
+            </svg>
+            <span>Cambia video</span>
+          </button>
+        }
+      }
+    </div>
+  </div>
+} @else if (isEditMode()) {
+  <div 
+    class="video-uploader__add-video-area"
+    (dragover)="onDragOver($event)"
+    (dragleave)="onDragLeave($event)"
+    (drop)="onFileDrop($event)"
+    [class.is-dragover]="isDragOver()">
+    
+    @if (isDragOver()) {
+      <!-- Overlay drag drop -->
+      @if (isValidDrag()) {
+        <div class="drag-drop-overlay">
+          <svg class="drag-drop-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12"/>
+          </svg>
+          <span>Rilascia per caricare</span>
+        </div>
+      } @else {
+        <!-- Cerchio rosso per file non validi -->
+        <div class="invalid-file-indicator">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="3" d="M6 18L18 6M6 6l12 12"/>
+          </svg>
+          <span>File non valido</span>
+        </div>
+      }
+    } @else {
+      <!-- Pulsante centrale sempre visibile quando vuoto -->
+      <button 
+        type="button"
+        class="upload-video-center-btn upload-video-center-btn--empty"
+        (click)="openFilePicker()"
+        (mousedown)="$event.stopPropagation()"
+        [disabled]="saving()"
+        title="Carica video">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <path stroke-linecap="round" stroke-linejoin="round" d="M15 10l4.553-2.276A1 1 0 0121 8.618v6.764a1 1 0 01-1.447.894L15 14M5 18h8a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v8a2 2 0 002 2z"/>
+        </svg>
+        <span>Carica video</span>
+      </button>
+    }
+  </div>
+}
+
+<!-- Pulsante rimozione video -->
+@if (isEditMode() && getDisplayUrl()) {
+  <button 
+    type="button"
+    class="video-uploader__remove-btn"
+    (click)="removeVideo()"
+    (mousedown)="$event.stopPropagation()"
+    [disabled]="saving()"
+    aria-label="Rimuovi video">
+    <span aria-hidden="true">×</span>
+  </button>
+}
+

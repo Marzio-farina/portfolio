@@ -12,6 +12,7 @@ import { apiUrl } from '../../core/api/api-url';
 import { map } from 'rxjs';
 import { DeviceSelectorComponent, DevicePreset } from '../device-selector/device-selector.component';
 import { PosterUploaderComponent, PosterData } from '../poster-uploader/poster-uploader.component';
+import { VideoUploaderComponent, VideoData } from '../video-uploader/video-uploader.component';
 
 interface Category {
   id: number;
@@ -57,7 +58,7 @@ interface ResizeState {
 @Component({
   selector: 'app-project-detail-modal',
   standalone: true,
-  imports: [ReactiveFormsModule, KeyValuePipe, Notification, DeviceSelectorComponent, PosterUploaderComponent],
+  imports: [ReactiveFormsModule, KeyValuePipe, Notification, DeviceSelectorComponent, PosterUploaderComponent, VideoUploaderComponent],
   templateUrl: './project-detail-modal.html',
   styleUrls: [
     './project-detail-modal-base.css',
@@ -84,20 +85,10 @@ export class ProjectDetailModal implements OnDestroy {
   aspectRatio = signal<string | null>(null);
   isVerticalImage = signal<boolean>(false);
   
-  // Stato caricamento video
-  videoLoading = signal<boolean>(false);
-  videoLoadProgress = signal<number>(0); // 0-100
-
-  // File input per modificare video
-  @ViewChild('videoInput') videoInputRef?: ElementRef<HTMLInputElement>;
-  
   // File selezionati per upload
   selectedPosterFile = signal<File | null>(null); // Gestito da poster-uploader
-  selectedVideoFile = signal<File | null>(null);
-  videoPreviewUrl = signal<string | null>(null);
-  isDragOverVideo = signal(false);
-  isValidVideoDrag = signal(true); // Flag per indicare se il file trascinato è un video valido
-  videoRemoved = signal<boolean>(false); // Flag per indicare che il video esistente è stato rimosso
+  selectedVideoFile = signal<File | null>(null); // Gestito da video-uploader
+  videoRemoved = signal<boolean>(false); // Gestito da video-uploader
 
   // Form per l'editing
   editForm!: FormGroup;
@@ -611,57 +602,6 @@ export class ProjectDetailModal implements OnDestroy {
   }
 
   /**
-   * Gestisce il click sul video
-   */
-  onVideoClick(event: Event): void {
-    event.stopPropagation();
-    const video = event.target as HTMLVideoElement;
-    if (video.paused) {
-      video.play();
-    } else {
-      video.pause();
-    }
-  }
-  
-  /**
-   * Gestisce l'inizio del caricamento del video
-   */
-  onVideoLoadStart(event: Event): void {
-    const video = event.target as HTMLVideoElement;
-    this.videoLoading.set(true);
-    this.videoLoadProgress.set(0);
-  }
-  
-  /**
-   * Gestisce il progresso del caricamento del video
-   */
-  onVideoProgress(event: Event): void {
-    const video = event.target as HTMLVideoElement;
-    if (video.buffered.length > 0 && video.duration > 0) {
-      const bufferedEnd = video.buffered.end(video.buffered.length - 1);
-      const progress = (bufferedEnd / video.duration) * 100;
-      this.videoLoadProgress.set(Math.min(100, Math.round(progress)));
-    }
-  }
-  
-  /**
-   * Gestisce il completamento del caricamento del video
-   */
-  onVideoLoadedData(event: Event): void {
-    this.videoLoading.set(false);
-    this.videoLoadProgress.set(100);
-  }
-  
-  /**
-   * Gestisce l'errore nel caricamento del video
-   */
-  onVideoError(event: Event): void {
-    this.videoLoading.set(false);
-    this.videoLoadProgress.set(0);
-    console.warn('Errore caricamento video:', this.project().video);
-  }
-
-  /**
    * Salva le modifiche al progetto
    */
   onSave(): void {
@@ -739,16 +679,10 @@ export class ProjectDetailModal implements OnDestroy {
           this.saving.set(false);
           this.addNotification('success', 'Progetto aggiornato con successo!');
           
-          // Aggiorna i preview
-          if (updatedProject.video) {
-            this.videoPreviewUrl.set(null);
-          }
-          
           // Pulisci i file selezionati
           this.selectedPosterFile.set(null);
           this.selectedVideoFile.set(null);
           this.videoRemoved.set(false);
-          if (this.videoInputRef?.nativeElement) this.videoInputRef.nativeElement.value = '';
           
           this.projectDetailModalService.selectedProject.set(updatedProject);
           this.projectDetailModalService.markAsModified(updatedProject);
@@ -803,100 +737,10 @@ export class ProjectDetailModal implements OnDestroy {
     // Ripristina anche i file selezionati
     this.selectedPosterFile.set(null);
     this.selectedVideoFile.set(null);
-    this.videoPreviewUrl.set(null);
     this.videoRemoved.set(false);
-    if (this.videoInputRef?.nativeElement) this.videoInputRef.nativeElement.value = '';
   }
   
-  // ================== Gestione upload file ==================
-  
-  openVideoPicker(): void {
-    this.videoInputRef?.nativeElement?.click();
-  }
-  
-  onVideoFileSelected(event: Event): void {
-    const input = event.target as HTMLInputElement;
-    const file = input.files?.[0];
-    if (!file) return;
-    this.handleSelectedVideoFile(file);
-  }
-  
-  private handleSelectedVideoFile(file: File): void{
-    const validTypes = ['video/mp4', 'video/webm', 'video/ogg'];
-    if (!validTypes.includes(file.type)) {
-      this.addNotification('error', 'Formato video non supportato. Usa MP4, WEBM o OGG.');
-      return;
-    }
-    
-    const maxSize = 50 * 1024 * 1024; // 50MB
-    if (file.size > maxSize) {
-      this.addNotification('error', 'Il video è troppo grande. Dimensione massima: 50MB.');
-      return;
-    }
-    
-    this.selectedVideoFile.set(file);
-    this.videoRemoved.set(false); // Resetta il flag se si seleziona un nuovo video
-    
-    // Crea preview URL
-    const reader = new FileReader();
-    reader.onload = (e) => {
-      this.videoPreviewUrl.set(e.target?.result as string);
-    };
-    reader.readAsDataURL(file);
-  }
-  
-  onDragOverVideo(event: DragEvent): void {
-    event.preventDefault();
-    event.stopPropagation();
-    this.isDragOverVideo.set(true);
-    
-    // Controlla se il file trascinato è un video
-    const items = event.dataTransfer?.items;
-    if (items && items.length > 0) {
-      const item = items[0];
-      const isVideo = item.type.startsWith('video/');
-      this.isValidVideoDrag.set(isVideo);
-    }
-  }
-  
-  onDragLeaveVideo(event: DragEvent): void {
-    event.preventDefault();
-    event.stopPropagation();
-    this.isDragOverVideo.set(false);
-    this.isValidVideoDrag.set(true); // Reset a true quando si esce
-  }
-  
-  onFileDropVideo(event: DragEvent): void {
-    event.preventDefault();
-    event.stopPropagation();
-    this.isDragOverVideo.set(false);
-    this.isValidVideoDrag.set(true); // Reset a true
-    
-    const dt = event.dataTransfer;
-    const file = dt?.files?.[0];
-    if (!file) return;
-    
-    // Verifica che sia effettivamente un video
-    if (!file.type.startsWith('video/')) {
-      this.addNotification('error', 'Il file selezionato non è un video valido.');
-      return;
-    }
-    
-    this.handleSelectedVideoFile(file);
-  }
-  
-  removeVideo(): void {
-    this.selectedVideoFile.set(null);
-    this.videoPreviewUrl.set(null);
-    this.videoRemoved.set(true); // Indica che il video esistente deve essere rimosso
-    if (this.videoInputRef?.nativeElement) this.videoInputRef.nativeElement.value = '';
-    this.addNotification('info', 'Video rimosso. Ricorda di salvare per applicare le modifiche.');
-  }
-  
-  getVideoUrl(): string | null {
-    return this.videoPreviewUrl() || this.project().video || null;
-  }
-
+  // ================== Gestione upload file (delegata ai componenti) ==================
 
   /**
    * Gestisce le notifiche
@@ -950,6 +794,22 @@ export class ProjectDetailModal implements OnDestroy {
   onAspectRatioCalculated(data: { aspectRatio: string; isVertical: boolean }): void {
     this.aspectRatio.set(data.aspectRatio);
     this.isVerticalImage.set(data.isVertical);
+  }
+  
+  /**
+   * Gestisce la selezione video dal video-uploader
+   */
+  onVideoSelected(data: VideoData): void {
+    this.selectedVideoFile.set(data.file);
+    this.videoRemoved.set(data.removed);
+  }
+  
+  /**
+   * Gestisce la rimozione video dal video-uploader
+   */
+  onVideoRemoved(): void {
+    this.selectedVideoFile.set(null);
+    this.videoRemoved.set(true);
   }
 
   /**
