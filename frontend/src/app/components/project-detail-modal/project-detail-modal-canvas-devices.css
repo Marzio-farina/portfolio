@@ -685,6 +685,62 @@
   background: var(--accent-primary-alpha);
 }
 
+/* Pulsante centrale per caricare immagine (appare all'hover) */
+.upload-image-center-btn {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 12px;
+  background: rgba(0, 0, 0, 0.85);
+  color: white;
+  border: none;
+  cursor: pointer;
+  opacity: 0;
+  transition: opacity var(--transition-1);
+  z-index: 10;
+  pointer-events: none;
+}
+
+/* Mostra pulsante all'hover del contenitore */
+.edit-mode .project-detail-modal__image-container:hover .upload-image-center-btn,
+.edit-mode .project-detail-modal__image-error:hover .upload-image-center-btn,
+.edit-mode .project-detail-modal__add-image-area:hover .upload-image-center-btn,
+.edit-mode .custom-image-wrapper:hover .upload-image-center-btn {
+  opacity: 1;
+  pointer-events: auto;
+}
+
+/* Pulsante sempre visibile quando area è vuota */
+.upload-image-center-btn--empty {
+  opacity: 1;
+  pointer-events: auto;
+  background: transparent;
+}
+
+.upload-image-center-btn--empty:hover {
+  background: rgba(0, 0, 0, 0.15);
+}
+
+.upload-image-center-btn:hover {
+  background: rgba(0, 0, 0, 0.95);
+}
+
+.upload-image-center-btn svg {
+  width: 80px;
+  height: 80px;
+  color: var(--accent-primary);
+}
+
+.upload-image-center-btn span {
+  font-size: 1.1rem;
+  font-weight: 600;
+  color: white;
+  text-shadow: 0 2px 4px rgba(0, 0, 0, 0.3);
+}
+
 /* Overlay drag & drop */
 .drag-drop-overlay {
   position: absolute;
