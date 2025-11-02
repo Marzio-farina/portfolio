@@ -265,12 +265,21 @@
                 @if (isEditMode()) {
                   <!-- Overlay drag drop -->
                   @if (isDragOverVideo()) {
-                    <div class="drag-drop-overlay">
-                      <svg class="drag-drop-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12"/>
-                      </svg>
-                      <span>Rilascia per caricare</span>
-                    </div>
+                    @if (isValidVideoDrag()) {
+                      <div class="drag-drop-overlay">
+                        <svg class="drag-drop-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor">
+                          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12"/>
+                        </svg>
+                        <span>Rilascia per caricare</span>
+                      </div>
+                    } @else {
+                      <div class="drag-drop-overlay drag-drop-overlay--invalid">
+                        <svg class="drag-drop-icon drag-drop-icon--invalid" viewBox="0 0 24 24" fill="none" stroke="currentColor">
+                          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="3" d="M6 18L18 6M6 6l12 12"/>
+                        </svg>
+                        <span>File non valido</span>
+                      </div>
+                    }
                   } @else {
                     <!-- Pulsante centrale all'hover -->
                     <button 
@@ -299,12 +308,21 @@
               
               @if (isDragOverVideo()) {
                 <!-- Overlay drag drop -->
-                <div class="drag-drop-overlay">
-                  <svg class="drag-drop-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12"/>
-                  </svg>
-                  <span>Rilascia per caricare</span>
-                </div>
+                @if (isValidVideoDrag()) {
+                  <div class="drag-drop-overlay">
+                    <svg class="drag-drop-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor">
+                      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12"/>
+                    </svg>
+                    <span>Rilascia per caricare</span>
+                  </div>
+                } @else {
+                  <div class="drag-drop-overlay drag-drop-overlay--invalid">
+                    <svg class="drag-drop-icon drag-drop-icon--invalid" viewBox="0 0 24 24" fill="none" stroke="currentColor">
+                      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="3" d="M6 18L18 6M6 6l12 12"/>
+                    </svg>
+                    <span>File non valido</span>
+                  </div>
+                }
               } @else {
                 <!-- Pulsante centrale sempre visibile quando vuoto -->
                 <button 

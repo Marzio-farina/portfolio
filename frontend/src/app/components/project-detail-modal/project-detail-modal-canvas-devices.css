@@ -770,6 +770,15 @@
   animation: fadeIn 0.2s ease;
 }
 
+/* Overlay per file non validi */
+.drag-drop-overlay--invalid {
+  background: rgba(220, 38, 38, 0.95);
+}
+
+.drag-drop-icon--invalid {
+  animation: shake 0.5s ease infinite;
+}
+
 @keyframes fadeIn {
   from {
     opacity: 0;
@@ -778,6 +787,18 @@
   to {
     opacity: 1;
     transform: scale(1);
+  }
+}
+
+@keyframes shake {
+  0%, 100% {
+    transform: translateX(0);
+  }
+  25% {
+    transform: translateX(-10px);
+  }
+  75% {
+    transform: translateX(10px);
   }
 }
 

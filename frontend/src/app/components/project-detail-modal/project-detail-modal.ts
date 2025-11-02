@@ -117,6 +117,7 @@ export class ProjectDetailModal implements OnDestroy {
   videoPreviewUrl = signal<string | null>(null);
   isDragOverPoster = signal(false);
   isDragOverVideo = signal(false);
+  isValidVideoDrag = signal(true); // Flag per indicare se il file trascinato è un video valido
   videoRemoved = signal<boolean>(false); // Flag per indicare che il video esistente è stato rimosso
 
   // Form per l'editing
@@ -967,21 +968,39 @@ export class ProjectDetailModal implements OnDestroy {
     event.preventDefault();
     event.stopPropagation();
     this.isDragOverVideo.set(true);
+    
+    // Controlla se il file trascinato è un video
+    const items = event.dataTransfer?.items;
+    if (items && items.length > 0) {
+      const item = items[0];
+      const isVideo = item.type.startsWith('video/');
+      this.isValidVideoDrag.set(isVideo);
+    }
   }
   
   onDragLeaveVideo(event: DragEvent): void {
     event.preventDefault();
     event.stopPropagation();
     this.isDragOverVideo.set(false);
+    this.isValidVideoDrag.set(true); // Reset a true quando si esce
   }
   
   onFileDropVideo(event: DragEvent): void {
     event.preventDefault();
     event.stopPropagation();
     this.isDragOverVideo.set(false);
+    this.isValidVideoDrag.set(true); // Reset a true
+    
     const dt = event.dataTransfer;
     const file = dt?.files?.[0];
     if (!file) return;
+    
+    // Verifica che sia effettivamente un video
+    if (!file.type.startsWith('video/')) {
+      this.addNotification('error', 'Il file selezionato non è un video valido.', 'video');
+      return;
+    }
+    
     this.handleSelectedVideoFile(file);
   }
   
