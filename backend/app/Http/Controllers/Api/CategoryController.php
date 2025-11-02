@@ -49,6 +49,56 @@ class CategoryController extends Controller
     }
 
     /**
+     * Create a new category
+     * 
+     * Crea una nuova categoria per l'utente autenticato.
+     * 
+     * @param Request $request HTTP request
+     * @return JsonResponse Newly created category
+     */
+    public function store(Request $request): JsonResponse
+    {
+        $user = $request->user();
+        
+        if (!$user) {
+            return response()->json([
+                'message' => 'Non autenticato'
+            ], 401);
+        }
+        
+        // Validazione
+        $validated = $request->validate([
+            'title' => 'required|string|max:50',
+            'description' => 'nullable|string|max:250',
+        ]);
+        
+        // Verifica che non esista già una categoria con lo stesso titolo per questo utente
+        $exists = Category::where('title', $validated['title'])
+            ->where('user_id', $user->id)
+            ->exists();
+        
+        if ($exists) {
+            return response()->json([
+                'message' => 'Esiste già una categoria con questo nome.'
+            ], 422);
+        }
+        
+        // Crea la categoria
+        $category = Category::create([
+            'title' => $validated['title'],
+            'description' => $validated['description'] ?? null,
+            'user_id' => $user->id,
+        ]);
+        
+        return response()->json([
+            'id' => $category->id,
+            'title' => $category->title,
+            'description' => $category->description,
+            'user_id' => $category->user_id,
+        ], 201);
+    }
+
+    /**
      * Delete a category by title (soft delete)
      * 
      * Elimina una categoria in base al titolo.

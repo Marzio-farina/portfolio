@@ -65,3 +65,79 @@
     transform: scale(1.15);
     box-shadow: 0 3px 8px rgba(239, 68, 68, 0.4);
 }
+
+/* Button aggiungi categoria con cerchio e + */
+.filter-add-btn {
+    width: 42px;
+    height: 42px;
+    min-width: 42px;
+    padding: 0 8px;
+    border-radius: 50%;
+    border: 3px solid var(--accent-primary) !important; /* Contorno colore tema */
+    background: transparent; /* Sfondo trasparente di default */
+    color: var(--accent-primary) !important; /* + colore tema */
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: width 0.3s ease, border-radius 0.3s ease, border-style 0.3s ease;
+    position: relative;
+    overflow: hidden;
+}
+
+/* Stato espanso - diventa un input field */
+.filter-add-btn.expanded {
+    width: 200px; /* Allargato per input */
+    border-radius: 20px; /* Bordi arrotondati invece di cerchio */
+    border-style: dashed !important; /* Bordo tratteggiato */
+    cursor: text; /* Cursor per scrivere */
+    padding: 0 12px; /* Padding per l'input */
+}
+
+/* Override completo per hover - NO background fill */
+.filter-list .filter-add-btn:not(.expanded):hover,
+.filter-add-btn:not(.expanded):hover {
+    background: transparent !important; /* ✅ Forza sfondo trasparente */
+    background-color: transparent !important; /* ✅ Doppia sicurezza */
+    transform: scale(1.05);
+    box-shadow: 0 4px 12px rgba(99, 102, 241, 0.3);
+}
+
+.filter-add-btn:not(.expanded):active {
+    transform: scale(0.95);
+}
+
+/* Icona + al centro del cerchio */
+.filter-add-icon {
+    font-size: 28px !important;
+    font-weight: 300; /* Più leggero per centraggio migliore */
+    line-height: 0; /* Rimuove offset verticale */
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: transform 0.3s ease;
+}
+
+/* Rotazione della + all'hover del button */
+.filter-add-btn:not(.expanded):hover .filter-add-icon {
+    transform: rotate(90deg);
+    color: var(--accent-primary) !important; /* Mantieni colore tema */
+}
+
+/* Input field interno (quando espanso) */
+.filter-add-input {
+    width: 100%;
+    height: 100%;
+    border: none;
+    outline: none;
+    background: transparent;
+    color: var(--accent-primary);
+    font-size: 0.9rem;
+    font-weight: 500;
+    padding: 0;
+}
+
+.filter-add-input::placeholder {
+    color: var(--accent-primary);
+    opacity: 0.5;
+}

@@ -207,7 +207,8 @@ Route::middleware(['api', "throttle:{$throttleLimit}", 'db.connection'])
             Route::patch('projects/{project}/layout', [ProjectController::class, 'updateLayout']); // Aggiorna solo il layout
             Route::delete('projects/{project}', [ProjectController::class, 'destroy']);
             
-            // Categories - eliminazione richiede autenticazione
+            // Categories - creazione ed eliminazione richiedono autenticazione
+            Route::post('categories', [CategoryController::class, 'store']);
             Route::delete('categories/by-title/{title}', [CategoryController::class, 'destroyByTitle']);
         });
 

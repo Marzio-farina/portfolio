@@ -176,6 +176,33 @@ export class ProjectService {
   }
 
   /**
+   * Ottiene tutte le categorie dal backend
+   * 
+   * @param userId ID utente per filtrare (opzionale)
+   * @returns Observable con array di categorie
+   */
+  getCategories$(userId?: number): Observable<Array<{ id: number; title: string; description?: string }>> {
+    const url = apiUrl('categories');
+    const params: any = {};
+    if (userId) params.user_id = String(userId);
+    
+    return this.http.get<Array<{ id: number; title: string; description?: string }>>(url, { params });
+  }
+
+  /**
+   * Crea una nuova categoria
+   * 
+   * @param title Titolo della categoria
+   * @param description Descrizione opzionale
+   * @returns Observable con la categoria creata
+   */
+  createCategory(title: string, description?: string): Observable<any> {
+    const url = apiUrl('categories');
+    const data = { title, description };
+    return this.http.post<any>(url, data);
+  }
+
+  /**
    * Elimina una categoria per titolo (soft delete)
    * 
    * @param categoryTitle Titolo della categoria da eliminare

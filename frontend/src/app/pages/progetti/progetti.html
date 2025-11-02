@@ -12,6 +12,7 @@
     [canDelete]="canDeleteCategories()"
     (select)="onSelectCategory($event)"
     (deleteCategory)="onDeleteCategory($event)"
+    (addCategory)="onAddCategory($event)"
 />
 
 @if (loading()) {

@@ -45,6 +45,25 @@ export class Progetti implements OnDestroy {
   projects = signal<Progetto[]>([]);
   // categoria selezionata
   selectedCategory = signal<string>('Tutti');
+  
+  // categorie caricate dal backend (tutte le categorie dell'utente)
+  allCategories = signal<string[]>(['Tutti']);
+  
+  // categorie visibili filtrate in base alla modalità edit
+  categories = computed<string[]>(() => {
+    const all = this.allCategories();
+    const projects = this.projects();
+    const isEdit = this.edit.isEditing();
+    
+    // In edit mode, mostra tutte le categorie
+    if (isEdit) {
+      return all;
+    }
+    
+    // In view mode, mostra solo le categorie che hanno progetti
+    const categoriesWithProjects = new Set(projects.map(p => p.category).filter(Boolean));
+    return all.filter(cat => cat === 'Tutti' || categoriesWithProjects.has(cat));
+  });
 
   // stati UI
   loading = signal(true);
@@ -53,12 +72,6 @@ export class Progetti implements OnDestroy {
   // Gestione notifiche
   notifications = signal<NotificationItem[]>([]);
   showMultipleNotifications = false;
-  
-  // categorie uniche calcolate dai progetti
-  categories = computed<string[]>(() => {
-    const set = new Set(this.projects().map(p => p.category).filter(Boolean));
-    return ['Tutti', ...Array.from(set).sort()];
-  });
 
   // lista filtrata in base alla categoria scelta
   filtered = computed<Progetto[]>(() => {
@@ -108,6 +121,9 @@ export class Progetti implements OnDestroy {
     } else {
       this.loadProjects();
     }
+    
+    // Carica le categorie dal backend
+    this.loadCategories();
 
     // Effect per aggiornare immediatamente la lista quando un progetto viene modificato
     effect(() => {
@@ -145,6 +161,26 @@ export class Progetti implements OnDestroy {
     // Il flag invalidateCacheOnNextLoad nel ProjectDetailModalService
     // verrà controllato automaticamente alla prossima chiamata di loadProjects()
     // quando il componente viene ricreato, quindi non serve fare nulla qui
+  }
+
+  /**
+   * Carica le categorie dal backend
+   */
+  private loadCategories(): void {
+    const uid = this.tenant.userId();
+    
+    this.api.getCategories$(uid ?? undefined).subscribe({
+      next: (categories) => {
+        // Estrai solo i titoli e aggiungi "Tutti" all'inizio
+        const titles = categories.map(c => c.title).sort();
+        this.allCategories.set(['Tutti', ...titles]);
+      },
+      error: (err) => {
+        console.error('Errore caricamento categorie:', err);
+        // Mantieni almeno "Tutti" in caso di errore
+        this.allCategories.set(['Tutti']);
+      }
+    });
   }
 
   private loadProjects(forceRefresh = false): void {
@@ -242,6 +278,38 @@ export class Progetti implements OnDestroy {
   }
 
   /**
+   * Aggiunge una nuova categoria
+   */
+  onAddCategory(categoryTitle: string): void {
+    const trimmedTitle = categoryTitle.trim();
+    
+    if (!trimmedTitle) {
+      return;
+    }
+    
+    // Verifica se la categoria esiste già (controlla in tutte le categorie)
+    if (this.allCategories().includes(trimmedTitle)) {
+      this.addNotification('warning', `La categoria "${trimmedTitle}" esiste già.`, `category-exists-${Date.now()}`);
+      return;
+    }
+    
+    // Chiama l'API per creare la categoria
+    this.api.createCategory(trimmedTitle).subscribe({
+      next: (response) => {
+        this.addNotification('success', `Categoria "${trimmedTitle}" creata con successo.`, `category-created-${Date.now()}`);
+        
+        // Ricarica le categorie dal backend
+        this.loadCategories();
+      },
+      error: (err) => {
+        console.error('Errore creazione categoria:', err);
+        const errorMessage = err.error?.message || err.message || 'Errore sconosciuto';
+        this.addNotification('error', `Errore nella creazione della categoria: ${errorMessage}`, `category-create-error-${Date.now()}`);
+      }
+    });
+  }
+
+  /**
    * Elimina una categoria
    */
   onDeleteCategory(categoryTitle: string): void {
@@ -256,10 +324,6 @@ export class Progetti implements OnDestroy {
       );
       return;
     }
-    
-    if (!confirm(`Sei sicuro di voler eliminare la categoria "${categoryTitle}"?`)) {
-      return;
-    }
 
     this.api.deleteCategory(categoryTitle).subscribe({
       next: () => {
@@ -270,8 +334,8 @@ export class Progetti implements OnDestroy {
           this.selectedCategory.set('Tutti');
         }
         
-        // Ricarica i progetti per aggiornare le categorie disponibili
-        this.loadProjects(true);
+        // Ricarica le categorie dal backend
+        this.loadCategories();
       },
       error: (err) => {
         console.error('Errore eliminazione categoria:', err);

@@ -410,7 +410,8 @@
     gap: 8px;
     position: fixed;
     top: 20px;
-    right: 20px;
+    /* Allinea con il bordo destro del dialog (width: 85%, margine destro = 7.5%) */
+    right: 7.5%;
     z-index: 50; /* Molto inferiore al dialog per non coprire nessun elemento */
     pointer-events: auto;
     width: 260px; /* Aumentato da 200px per "Salvataggio..." */

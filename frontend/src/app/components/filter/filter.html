@@ -19,4 +19,29 @@
             </button>
         </li>
     }
+    
+    <!-- Button aggiungi categoria (visibile solo in edit mode) -->
+    @if (canDelete()) {
+        <li>
+            <div
+                class="filter-add-btn"
+                [class.expanded]="isAddExpanded()"
+                (click)="onAddCategory()">
+                @if (!isAddExpanded()) {
+                    <span class="filter-add-icon">+</span>
+                } @else {
+                    <input
+                        type="text"
+                        class="filter-add-input"
+                        [value]="newCategoryValue()"
+                        (input)="onCategoryInput($event)"
+                        (keydown)="onCategorySubmit($event)"
+                        (blur)="onCategoryBlur()"
+                        (click)="$event.stopPropagation()"
+                        placeholder="Nome categoria..."
+                        maxlength="50">
+                }
+            </div>
+        </li>
+    }
 </ul>
