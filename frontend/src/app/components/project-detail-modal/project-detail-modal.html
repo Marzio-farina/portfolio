@@ -51,7 +51,40 @@
     <div 
       class="project-detail-modal__canvas"
       [class.edit-mode]="isEditMode()"
-      [style.min-height.px]="canvasHeight()">
+      [class.is-creating]="isCreatingElement()"
+      [class.creating-text]="isCreatingElement() === 'text'"
+      [class.creating-image]="isCreatingElement() === 'image'"
+      [style.min-height.px]="canvasHeight()"
+      (mousemove)="isCreatingElement() ? onCanvasMouseMove($event) : null"
+      (mousedown)="isCreatingElement() ? onCanvasMouseDown($event) : null"
+      (mouseup)="isCreatingElement() ? onCanvasMouseUp($event) : null"
+      (mouseleave)="isCreatingElement() ? cancelElementCreation() : null">
+      
+      <!-- Overlay per disegno elemento -->
+      @if (isCreatingElement()) {
+        <!-- Cursore personalizzato -->
+        <div 
+          class="custom-cursor"
+          [style.left.px]="cursorPos().x"
+          [style.top.px]="cursorPos().y">
+          @if (isCreatingElement() === 'text') {
+            <span class="custom-cursor__icon">T</span>
+          } @else {
+            <span class="custom-cursor__icon">🖼️</span>
+          }
+        </div>
+        
+        <!-- Rettangolo di disegno -->
+        @if (drawStartPos() && drawCurrentPos()) {
+          <div 
+            class="draw-rectangle"
+            [style.left.px]="Math.min(drawStartPos()!.x, drawCurrentPos()!.x)"
+            [style.top.px]="Math.min(drawStartPos()!.y, drawCurrentPos()!.y)"
+            [style.width.px]="Math.abs(drawCurrentPos()!.x - drawStartPos()!.x)"
+            [style.height.px]="Math.abs(drawCurrentPos()!.y - drawStartPos()!.y)">
+          </div>
+        }
+      }
       
       <!-- Overlay che mostra l'area visibile del dispositivo (solo in edit mode) -->
       @if (isEditMode()) {

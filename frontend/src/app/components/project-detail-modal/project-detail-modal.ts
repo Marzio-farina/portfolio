@@ -142,6 +142,15 @@ export class ProjectDetailModal implements OnDestroy {
   isEditMode = computed(() => this.canEdit() && !this.isPreviewMode());
   isAddToolbarExpanded = signal(false);
   
+  // Stato per la creazione drag-to-draw di elementi
+  isCreatingElement = signal<'text' | 'image' | null>(null);
+  drawStartPos = signal<{ x: number; y: number } | null>(null);
+  drawCurrentPos = signal<{ x: number; y: number } | null>(null);
+  cursorPos = signal<{ x: number; y: number }>({ x: 0, y: 0 });
+  
+  // Esponi Math per il template
+  Math = Math;
+  
   // Traccia progetti già caricati per evitare loop
   private loadedProjectIds = new Set<number>();
   private saveLayoutTimeout: any = null;
@@ -1175,51 +1184,88 @@ export class ProjectDetailModal implements OnDestroy {
   }
 
   /**
-   * Aggiunge un nuovo elemento di testo al canvas
+   * Inizia la modalità creazione testo
    */
   addCustomText(): void {
     if (!this.isEditMode()) return;
     
-    this.customElementCounter++;
-    const newId = `custom-text-${this.customElementCounter}`;
-    
-    const newItem: CanvasItem = {
-      id: newId,
-      type: 'custom-text',
-      left: 100,
-      top: 100,
-      width: 300,
-      height: 100,
-      content: '' // Vuoto, l'utente inserirà il testo
-    };
-    
-    const items = new Map(this.canvasItems());
-    items.set(newId, newItem);
-    this.updateCurrentDeviceLayout(items);
-    this.saveCanvasLayout();
-    
-    // Chiudi la toolbar dopo l'aggiunta
+    this.isCreatingElement.set('text');
     this.isAddToolbarExpanded.set(false);
     document.removeEventListener('click', this.closeAddToolbarOnClickOutside);
   }
 
   /**
-   * Aggiunge un nuovo elemento immagine al canvas
+   * Inizia la modalità creazione immagine
    */
   addCustomImage(): void {
     if (!this.isEditMode()) return;
     
+    this.isCreatingElement.set('image');
+    this.isAddToolbarExpanded.set(false);
+    document.removeEventListener('click', this.closeAddToolbarOnClickOutside);
+  }
+  
+  /**
+   * Gestisce il mouse move durante la creazione di un elemento
+   */
+  onCanvasMouseMove(event: MouseEvent): void {
+    const canvas = (event.currentTarget as HTMLElement);
+    const rect = canvas.getBoundingClientRect();
+    const x = event.clientX - rect.left;
+    const y = event.clientY - rect.top;
+    
+    // Aggiorna posizione cursore
+    this.cursorPos.set({ x, y });
+    
+    // Se stiamo disegnando, aggiorna la posizione corrente
+    if (this.drawStartPos()) {
+      this.drawCurrentPos.set({ x, y });
+    }
+  }
+  
+  /**
+   * Gestisce l'inizio del disegno di un elemento
+   */
+  onCanvasMouseDown(event: MouseEvent): void {
+    if (!this.isCreatingElement()) return;
+    
+    const canvas = (event.currentTarget as HTMLElement);
+    const rect = canvas.getBoundingClientRect();
+    const x = event.clientX - rect.left;
+    const y = event.clientY - rect.top;
+    
+    this.drawStartPos.set({ x, y });
+    this.drawCurrentPos.set({ x, y });
+  }
+  
+  /**
+   * Gestisce la fine del disegno e crea l'elemento
+   */
+  onCanvasMouseUp(event: MouseEvent): void {
+    if (!this.isCreatingElement() || !this.drawStartPos() || !this.drawCurrentPos()) return;
+    
+    const start = this.drawStartPos()!;
+    const end = this.drawCurrentPos()!;
+    
+    // Calcola dimensioni (minimo 50x50)
+    const left = Math.min(start.x, end.x);
+    const top = Math.min(start.y, end.y);
+    const width = Math.max(50, Math.abs(end.x - start.x));
+    const height = Math.max(50, Math.abs(end.y - start.y));
+    
+    // Crea l'elemento
     this.customElementCounter++;
-    const newId = `custom-image-${this.customElementCounter}`;
+    const type = this.isCreatingElement();
+    const newId = `custom-${type}-${this.customElementCounter}`;
     
     const newItem: CanvasItem = {
       id: newId,
-      type: 'custom-image',
-      left: 100,
-      top: 250,
-      width: 300,
-      height: 200,
-      content: '' // URL immagine verrà impostato dall'utente
+      type: type === 'text' ? 'custom-text' : 'custom-image',
+      left,
+      top,
+      width,
+      height,
+      content: ''
     };
     
     const items = new Map(this.canvasItems());
@@ -1227,9 +1273,19 @@ export class ProjectDetailModal implements OnDestroy {
     this.updateCurrentDeviceLayout(items);
     this.saveCanvasLayout();
     
-    // Chiudi la toolbar dopo l'aggiunta
-    this.isAddToolbarExpanded.set(false);
-    document.removeEventListener('click', this.closeAddToolbarOnClickOutside);
+    // Reset stato
+    this.isCreatingElement.set(null);
+    this.drawStartPos.set(null);
+    this.drawCurrentPos.set(null);
+  }
+  
+  /**
+   * Annulla la creazione di un elemento
+   */
+  cancelElementCreation(): void {
+    this.isCreatingElement.set(null);
+    this.drawStartPos.set(null);
+    this.drawCurrentPos.set(null);
   }
 
   /**

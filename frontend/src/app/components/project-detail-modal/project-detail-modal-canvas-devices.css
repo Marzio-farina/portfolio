@@ -288,6 +288,47 @@
   min-height: 1200px;
 }
 
+/* Cursore a croce durante la creazione */
+.project-detail-modal__canvas.is-creating {
+  cursor: crosshair !important;
+}
+
+.project-detail-modal__canvas.is-creating * {
+  cursor: crosshair !important;
+}
+
+/* Cursore personalizzato */
+.custom-cursor {
+  position: absolute;
+  pointer-events: none;
+  z-index: 9999;
+  transform: translate(-50%, -100%);
+  margin-top: -10px;
+}
+
+.custom-cursor__icon {
+  display: inline-block;
+  font-size: 1.5rem;
+  background: rgba(0, 0, 0, 0.8);
+  color: white;
+  padding: 4px 8px;
+  border-radius: 4px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.3);
+  font-weight: bold;
+  min-width: 30px;
+  text-align: center;
+}
+
+/* Rettangolo di disegno */
+.draw-rectangle {
+  position: absolute;
+  border: 2px dashed var(--accent-primary);
+  background: rgba(var(--accent-primary-rgb), 0.1);
+  pointer-events: none;
+  z-index: 1000;
+  box-shadow: 0 0 0 1px rgba(0, 0, 0, 0.1);
+}
+
 .canvas-item {
   position: absolute;
   background: transparent;
