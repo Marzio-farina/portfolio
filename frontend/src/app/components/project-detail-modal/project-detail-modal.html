@@ -726,61 +726,11 @@
   <!-- Selettore dispositivi desktop (fuori dal dialog, in alto) -->
   @if (canEdit() && !isPreviewMode()) {
     <div class="project-detail-modal__devices-bar">
-      <!-- Selettore dispositivi -->
-      <div class="device-selector">
-        <!-- Freccia sinistra -->
-        <div class="device-selector__arrow device-selector__arrow--left">
-          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-            <path stroke-linecap="round" stroke-linejoin="round" d="M15 19l-7-7 7-7"/>
-          </svg>
-        </div>
-        
-        <!-- Contenitore dispositivi -->
-        <div class="device-selector__items">
-          <button 
-            type="button"
-            class="device-btn device-btn--custom"
-            (click)="openCustomSizeDialog()"
-            title="Dimensione personalizzata">
-            ⚙️
-          </button>
-          
-          @for (device of devicePresets; track device.id) {
-            <button 
-              type="button"
-              class="device-btn"
-              [class.active]="selectedDevice().id === device.id"
-              (click)="selectDevice(device)"
-              [title]="device.name + ' (' + device.width + '×' + device.height + ')'">
-              <span class="device-icon">{{ device.icon }}</span>
-              <span class="device-label">{{ device.name }}</span>
-            </button>
-          }
-        </div>
-        
-        <!-- Freccia destra -->
-        <div class="device-selector__arrow device-selector__arrow--right">
-          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-            <path stroke-linecap="round" stroke-linejoin="round" d="M9 5l7 7-7 7"/>
-          </svg>
-        </div>
-      </div>
-
-      <!-- Indicatore layout adattato -->
-      @if (isLayoutAdapted()) {
-        <div class="layout-adapted-notice">
-          <span class="layout-adapted-notice__icon">ℹ️</span>
-          <span class="layout-adapted-notice__text">Layout adattato</span>
-          <button 
-            type="button"
-            class="layout-adapted-notice__btn"
-            (click)="saveAdaptedLayoutForCurrentDevice()"
-            title="Salva questo layout come configurazione per {{ selectedDevice().name }}">
-            💾 Salva
-          </button>
-        </div>
-      }
-
+      <app-device-selector
+        [selectedDevice]="selectedDevice()"
+        [devicePresets]="devicePresets"
+        (deviceSelected)="onDeviceSelected($event)">
+      </app-device-selector>
     </div>
   }
 
@@ -858,46 +808,4 @@
     </div>
   }
 
-  <!-- Dialog per dimensioni custom -->
-  @if (showCustomSizeDialog()) {
-    <div class="custom-size-overlay" (click)="showCustomSizeDialog.set(false)">
-      <div class="custom-size-dialog" (click)="$event.stopPropagation()">
-        <h3>Dimensioni Personalizzate</h3>
-        <div class="custom-size-inputs">
-          <label>
-            <span>Larghezza (px)</span>
-            <input 
-              type="number" 
-              [value]="customWidth()"
-              (input)="customWidth.set(+$any($event.target).value)"
-              min="320"
-              max="3840">
-          </label>
-          <label>
-            <span>Altezza (px)</span>
-            <input 
-              type="number"
-              [value]="customHeight()"
-              (input)="customHeight.set(+$any($event.target).value)"
-              min="480"
-              max="2160">
-          </label>
-        </div>
-        <div class="custom-size-actions">
-          <button 
-            type="button"
-            class="btn-secondary"
-            (click)="showCustomSizeDialog.set(false)">
-            Annulla
-          </button>
-          <button 
-            type="button"
-            class="btn-primary"
-            (click)="applyCustomSize()">
-            Applica
-          </button>
-        </div>
-      </div>
-    </div>
-  }
 </div>

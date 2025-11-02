@@ -1,0 +1,83 @@
+<!-- Selettore dispositivi -->
+<div class="device-selector">
+  <!-- Freccia sinistra -->
+  <div class="device-selector__arrow device-selector__arrow--left">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+      <path stroke-linecap="round" stroke-linejoin="round" d="M15 19l-7-7 7-7"/>
+    </svg>
+  </div>
+  
+  <!-- Contenitore dispositivi -->
+  <div class="device-selector__items">
+    <button 
+      type="button"
+      class="device-btn device-btn--custom"
+      (click)="openCustomSizeDialog()"
+      title="Dimensione personalizzata">
+      ⚙️
+    </button>
+    
+    @for (device of devicePresets(); track device.id) {
+      <button 
+        type="button"
+        class="device-btn"
+        [class.active]="selectedDevice().id === device.id"
+        (click)="selectDevice(device)"
+        [title]="device.name + ' (' + device.width + '×' + device.height + ')'">
+        <span class="device-icon">{{ device.icon }}</span>
+        <span class="device-label">{{ device.name }}</span>
+      </button>
+    }
+  </div>
+  
+  <!-- Freccia destra -->
+  <div class="device-selector__arrow device-selector__arrow--right">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+      <path stroke-linecap="round" stroke-linejoin="round" d="M9 5l7 7-7 7"/>
+    </svg>
+  </div>
+</div>
+
+<!-- Dialog dimensioni personalizzate -->
+@if (showCustomSizeDialog()) {
+  <div class="custom-size-overlay" (click)="closeCustomSizeDialog()">
+    <div class="custom-size-dialog" (click)="$event.stopPropagation()">
+      <h3>Dimensioni Personalizzate</h3>
+      <div class="custom-size-inputs">
+        <label>
+          <span>Larghezza (px)</span>
+          <input 
+            type="number" 
+            [value]="customWidth()"
+            (input)="customWidth.set(+$any($event.target).value)"
+            min="320"
+            max="3840">
+        </label>
+        <label>
+          <span>Altezza (px)</span>
+          <input 
+            type="number"
+            [value]="customHeight()"
+            (input)="customHeight.set(+$any($event.target).value)"
+            min="320"
+            max="2160">
+        </label>
+      </div>
+      <div class="custom-size-actions">
+        <button 
+          type="button"
+          class="btn-secondary"
+          (click)="closeCustomSizeDialog()">
+          Annulla
+        </button>
+        <button 
+          type="button"
+          class="btn-primary"
+          (click)="applyCustomSize()">
+          Applica
+        </button>
+      </div>
+    </div>
+  </div>
+}
+

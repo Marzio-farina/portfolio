@@ -10,6 +10,7 @@ import { Progetto, Technology } from '../../core/models/project';
 import { Notification, NotificationType } from '../notification/notification';
 import { apiUrl } from '../../core/api/api-url';
 import { map } from 'rxjs';
+import { DeviceSelectorComponent, DevicePreset } from '../device-selector/device-selector.component';
 
 interface Category {
   id: number;
@@ -24,14 +25,6 @@ interface CanvasItem {
   height: number;  // altezza in pixel
   type?: 'image' | 'video' | 'category' | 'technologies' | 'description' | 'custom-text' | 'custom-image';
   content?: string; // Contenuto per elementi custom (testo o URL immagine)
-}
-
-interface DevicePreset {
-  id: string;
-  name: string;
-  width: number;
-  height: number;
-  icon?: string;
 }
 
 interface DeviceLayout {
@@ -63,7 +56,7 @@ interface ResizeState {
 @Component({
   selector: 'app-project-detail-modal',
   standalone: true,
-  imports: [ReactiveFormsModule, KeyValuePipe, Notification],
+  imports: [ReactiveFormsModule, KeyValuePipe, Notification, DeviceSelectorComponent],
   templateUrl: './project-detail-modal.html',
   styleUrls: [
     './project-detail-modal-base.css',
@@ -166,21 +159,9 @@ export class ProjectDetailModal implements OnDestroy {
 
   // Dispositivo attualmente selezionato
   selectedDevice = signal<DevicePreset>(this.devicePresets[3]); // Default: desktop
-  
-  // Dialog per custom size
-  showCustomSizeDialog = signal(false);
-  customWidth = signal(1920);
-  customHeight = signal(1080);
 
   // Layout multipli per dispositivi diversi
   deviceLayouts = signal<Map<string, Map<string, CanvasItem>>>(new Map());
-
-  // Verifica se il layout corrente è adattato automaticamente (non salvato)
-  isLayoutAdapted = computed(() => {
-    const deviceId = this.selectedDevice().id;
-    const layouts = this.deviceLayouts();
-    return !layouts.has(deviceId);
-  });
 
   // Dimensioni griglia per snap
   gridCols = 4;
@@ -1062,6 +1043,13 @@ export class ProjectDetailModal implements OnDestroy {
   selectDevice(device: DevicePreset): void {
     this.selectedDevice.set(device);
   }
+  
+  /**
+   * Gestisce il cambio dispositivo dal device-selector
+   */
+  onDeviceSelected(device: DevicePreset): void {
+    this.selectDevice(device);
+  }
 
   /**
    * Seleziona automaticamente il dispositivo in base alla larghezza dello schermo
@@ -1110,29 +1098,6 @@ export class ProjectDetailModal implements OnDestroy {
   }
 
   /**
-   * Apre dialog per custom size
-   */
-  openCustomSizeDialog(): void {
-    this.showCustomSizeDialog.set(true);
-  }
-
-  /**
-   * Applica dimensioni custom
-   */
-  applyCustomSize(): void {
-    const customDevice: DevicePreset = {
-      id: 'custom',
-      name: `Custom ${this.customWidth()}×${this.customHeight()}`,
-      width: this.customWidth(),
-      height: this.customHeight(),
-      icon: '⚙️'
-    };
-    
-    this.selectedDevice.set(customDevice);
-    this.showCustomSizeDialog.set(false);
-  }
-
-  /**
    * Aggiorna il layout per il dispositivo corrente
    */
   private updateCurrentDeviceLayout(items: Map<string, CanvasItem>): void {
@@ -1140,19 +1105,6 @@ export class ProjectDetailModal implements OnDestroy {
     const layouts = new Map(this.deviceLayouts());
     layouts.set(deviceId, new Map(items));
     this.deviceLayouts.set(layouts);
-  }
-
-  /**
-   * Salva il layout adattato corrente come configurazione per questo dispositivo
-   */
-  saveAdaptedLayoutForCurrentDevice(): void {
-    if (!this.isEditMode()) return;
-    
-    const currentItems = this.canvasItems();
-    this.updateCurrentDeviceLayout(currentItems);
-    
-    // Salva immediatamente
-    this.saveCanvasLayout();
   }
 
   /**

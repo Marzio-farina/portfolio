@@ -320,11 +320,6 @@
     padding: 8px 12px;
   }
 
-  /* Layout adapted notice nel devices bar */
-  .project-detail-modal__devices-bar .layout-adapted-notice {
-    max-width: 350px;
-  }
-
   /* Toolbar per aggiungere elementi */
   .add-elements-toolbar {
     position: fixed;

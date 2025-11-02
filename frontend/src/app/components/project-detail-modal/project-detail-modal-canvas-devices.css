@@ -159,62 +159,6 @@
   border-color: var(--accent-primary);
 }
 
-/* Indicatore layout adattato */
-.layout-adapted-notice {
-  display: flex;
-  align-items: center;
-  gap: 8px;
-  padding: 8px 12px;
-  background: linear-gradient(135deg, rgba(59, 130, 246, 0.1), rgba(147, 51, 234, 0.1));
-  border: 1px solid rgba(59, 130, 246, 0.3);
-  border-radius: 8px;
-  font-size: 0.85rem;
-  animation: slideIn 0.3s ease-out;
-}
-
-@keyframes slideIn {
-  from {
-    opacity: 0;
-    transform: translateY(-10px);
-  }
-  to {
-    opacity: 1;
-    transform: translateY(0);
-  }
-}
-
-.layout-adapted-notice__icon {
-  font-size: 1rem;
-}
-
-.layout-adapted-notice__text {
-  color: var(--text-secondary);
-  font-weight: 500;
-}
-
-.layout-adapted-notice__btn {
-  padding: 4px 12px;
-  background: var(--accent-primary);
-  color: white;
-  border: none;
-  border-radius: 6px;
-  cursor: pointer;
-  font-size: 0.8rem;
-  font-weight: 600;
-  transition: all var(--transition-1);
-  white-space: nowrap;
-}
-
-.layout-adapted-notice__btn:hover {
-  background: var(--accent-secondary);
-  transform: scale(1.05);
-  box-shadow: 0 2px 8px rgba(59, 130, 246, 0.3);
-}
-
-.layout-adapted-notice__btn:active {
-  transform: scale(0.98);
-}
-
 /* Overlay che indica l'area visibile del dispositivo */
 .device-viewport-indicator {
   position: absolute;

@@ -1,0 +1,260 @@
+/* Device selector */
+.device-selector {
+  margin-right: 0;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  background: rgba(255, 255, 255, 0.1);
+  backdrop-filter: blur(8px);
+  -webkit-backdrop-filter: blur(8px);
+  border: 2px solid rgba(128, 128, 128, 0.4);
+  border-radius: 100px;
+  padding: 4px 8px;
+  transition: all 0.4s ease;
+  position: relative;
+  width: fit-content;
+  max-width: fit-content;
+  box-shadow: 0 0 0 1px rgba(128, 128, 128, 0.2);
+}
+
+/* Contorno colorato all'hover */
+.device-selector:hover {
+  border-color: var(--accent-primary);
+  box-shadow: 0 0 0 1px var(--accent-primary), 0 2px 8px rgba(var(--accent-primary-rgb), 0.2);
+}
+
+/* Frecce laterali */
+.device-selector__arrow {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 20px;
+  height: 20px;
+  color: var(--text-secondary);
+  opacity: 0.5;
+  transition: all var(--transition-1);
+  flex-shrink: 0;
+}
+
+.device-selector__arrow svg {
+  width: 16px;
+  height: 16px;
+}
+
+/* Animazione frecce all'hover */
+.device-selector:hover .device-selector__arrow {
+  opacity: 1;
+  color: var(--accent-primary);
+}
+
+.device-selector:hover .device-selector__arrow--left {
+  animation: pulseLeft 1s ease infinite;
+}
+
+.device-selector:hover .device-selector__arrow--right {
+  animation: pulseRight 1s ease infinite;
+}
+
+@keyframes pulseLeft {
+  0%, 100% {
+    transform: translateX(0);
+  }
+  50% {
+    transform: translateX(-4px);
+  }
+}
+
+@keyframes pulseRight {
+  0%, 100% {
+    transform: translateX(0);
+  }
+  50% {
+    transform: translateX(4px);
+  }
+}
+
+/* Contenitore dispositivi */
+.device-selector__items {
+  display: flex;
+  gap: 6px;
+  align-items: center;
+  overflow: hidden;
+  position: relative;
+  white-space: nowrap;
+  width: fit-content;
+  transition: all 0.4s ease;
+}
+
+/* Stili base pulsanti dispositivi */
+.device-btn {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 8px 12px;
+  background: transparent;
+  border: 1px solid rgba(128, 128, 128, 0.3);
+  border-radius: 100px;
+  color: var(--text-primary);
+  font-size: 0.85rem;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  white-space: nowrap;
+}
+
+.device-btn:hover {
+  background: rgba(var(--accent-primary-rgb), 0.1);
+  border-color: var(--accent-primary);
+}
+
+/* Pulsante custom (gear) */
+.device-btn--custom {
+  padding: 6px 10px;
+  font-size: 1.1rem;
+}
+
+/* Dispositivo attivo */
+.device-btn.active {
+  background: var(--accent-primary);
+  color: white;
+  border-color: var(--accent-primary);
+  font-weight: 600;
+}
+
+.device-btn.active:hover {
+  background: var(--accent-secondary);
+}
+
+.device-icon {
+  font-size: 1rem;
+  line-height: 1;
+}
+
+.device-label {
+  font-size: 0.85rem;
+  font-weight: 500;
+}
+
+/* Nasconde i dispositivi non attivi di default */
+.device-selector__items .device-btn:not(.active):not(.device-btn--custom) {
+  max-width: 0;
+  min-width: 0;
+  width: 0;
+  opacity: 0;
+  padding: 0;
+  margin: 0;
+  border: none;
+  pointer-events: none;
+  overflow: hidden;
+  flex-shrink: 0;
+  transition: max-width 0.4s ease, min-width 0.4s ease, width 0.4s ease, opacity 0.3s ease, padding 0.4s ease, margin 0.4s ease;
+}
+
+/* Mostra tutti i dispositivi all'hover */
+.device-selector:hover .device-selector__items .device-btn:not(.active):not(.device-btn--custom) {
+  max-width: 150px;
+  min-width: auto;
+  width: auto;
+  opacity: 1;
+  pointer-events: auto;
+  padding: 8px 12px;
+  border: 1px solid rgba(128, 128, 128, 0.3);
+}
+
+/* Dialog custom size */
+.custom-size-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.5);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 2000;
+  backdrop-filter: blur(4px);
+}
+
+.custom-size-dialog {
+  background: var(--bg-card);
+  border: 1px solid var(--border-primary);
+  border-radius: 16px;
+  padding: 24px;
+  min-width: 400px;
+  box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+}
+
+.custom-size-dialog h3 {
+  margin: 0 0 20px;
+  color: var(--text-primary);
+  font-size: 1.25rem;
+}
+
+.custom-size-inputs {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  margin-bottom: 20px;
+}
+
+.custom-size-inputs label {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.custom-size-inputs label span {
+  font-size: 0.9rem;
+  color: var(--text-secondary);
+  font-weight: 500;
+}
+
+.custom-size-inputs input {
+  padding: 10px 14px;
+  border: 1px solid var(--border-color);
+  border-radius: 8px;
+  background: var(--bg-primary);
+  color: var(--text-primary);
+  font-size: 1rem;
+  transition: all var(--transition-1);
+}
+
+.custom-size-inputs input:focus {
+  outline: none;
+  border-color: var(--accent-primary);
+  box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
+}
+
+.custom-size-actions {
+  display: flex;
+  gap: 12px;
+  justify-content: flex-end;
+}
+
+.custom-size-actions button {
+  padding: 10px 20px;
+  border-radius: 8px;
+  font-size: 0.95rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all var(--transition-1);
+  border: none;
+}
+
+.btn-secondary {
+  background: var(--bg-secondary);
+  color: var(--text-primary);
+  border: 1px solid var(--border-color);
+}
+
+.btn-secondary:hover {
+  background: var(--bg-tertiary);
+}
+
+.btn-primary {
+  background: var(--accent-primary);
+  color: white;
+}
+
+.btn-primary:hover {
+  background: var(--accent-secondary);
+  box-shadow: 0 4px 12px rgba(59, 130, 246, 0.3);
+}
+
