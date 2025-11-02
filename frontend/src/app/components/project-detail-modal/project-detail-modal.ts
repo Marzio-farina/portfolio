@@ -140,6 +140,7 @@ export class ProjectDetailModal implements OnDestroy {
   // Gestione canvas con absolute positioning - Attiva automaticamente quando canEdit() è true
   isPreviewMode = signal(false);
   isEditMode = computed(() => this.canEdit() && !this.isPreviewMode());
+  isAddToolbarExpanded = signal(false);
   
   // Traccia progetti già caricati per evitare loop
   private loadedProjectIds = new Set<number>();
@@ -1152,6 +1153,27 @@ export class ProjectDetailModal implements OnDestroy {
     this.isPreviewMode.update(prev => !prev);
   }
 
+  toggleAddToolbar(): void {
+    this.isAddToolbarExpanded.update(prev => !prev);
+    
+    // Se si espande, aggiungi listener per cliccare fuori
+    if (!this.isAddToolbarExpanded()) {
+      setTimeout(() => {
+        document.addEventListener('click', this.closeAddToolbarOnClickOutside);
+      }, 0);
+    } else {
+      document.removeEventListener('click', this.closeAddToolbarOnClickOutside);
+    }
+  }
+
+  private closeAddToolbarOnClickOutside = (event: MouseEvent): void => {
+    const toolbar = document.querySelector('.add-elements-toolbar');
+    if (toolbar && !toolbar.contains(event.target as Node)) {
+      this.isAddToolbarExpanded.set(false);
+      document.removeEventListener('click', this.closeAddToolbarOnClickOutside);
+    }
+  }
+
   /**
    * Aggiunge un nuovo elemento di testo al canvas
    */
@@ -1175,6 +1197,10 @@ export class ProjectDetailModal implements OnDestroy {
     items.set(newId, newItem);
     this.updateCurrentDeviceLayout(items);
     this.saveCanvasLayout();
+    
+    // Chiudi la toolbar dopo l'aggiunta
+    this.isAddToolbarExpanded.set(false);
+    document.removeEventListener('click', this.closeAddToolbarOnClickOutside);
   }
 
   /**
@@ -1200,6 +1226,10 @@ export class ProjectDetailModal implements OnDestroy {
     items.set(newId, newItem);
     this.updateCurrentDeviceLayout(items);
     this.saveCanvasLayout();
+    
+    // Chiudi la toolbar dopo l'aggiunta
+    this.isAddToolbarExpanded.set(false);
+    document.removeEventListener('click', this.closeAddToolbarOnClickOutside);
   }
 
   /**

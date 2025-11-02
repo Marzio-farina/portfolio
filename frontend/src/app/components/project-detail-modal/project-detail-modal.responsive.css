@@ -115,8 +115,12 @@
   }
 }
 
-/* Nascondi devices bar e pulsanti desktop di default (sotto 1250px) */
+/* Nascondi devices bar, toolbar add elements e pulsanti desktop di default (sotto 1250px) */
 .project-detail-modal__devices-bar {
+  display: none;
+}
+
+.add-elements-toolbar {
   display: none;
 }
 
@@ -209,13 +213,13 @@
     margin-right: 0;
     display: flex;
     align-items: center;
-    gap: 8px;
+    gap: 6px;
     background: rgba(255, 255, 255, 0.1);
     backdrop-filter: blur(8px);
     -webkit-backdrop-filter: blur(8px);
     border: 2px solid rgba(128, 128, 128, 0.4);
     border-radius: 100px;
-    padding: 8px;
+    padding: 4px 8px;
     transition: all 0.4s ease;
     position: relative;
     width: fit-content;
@@ -234,8 +238,8 @@
     display: flex;
     align-items: center;
     justify-content: center;
-    width: 24px;
-    height: 24px;
+    width: 20px;
+    height: 20px;
     color: var(--text-secondary);
     opacity: 0.5;
     transition: all var(--transition-1);
@@ -243,8 +247,8 @@
   }
 
   .device-selector__arrow svg {
-    width: 20px;
-    height: 20px;
+    width: 16px;
+    height: 16px;
   }
 
   /* Animazione frecce all'hover */
@@ -282,7 +286,7 @@
   /* Contenitore dispositivi */
   .device-selector__items {
     display: flex;
-    gap: 8px;
+    gap: 6px;
     align-items: center;
     overflow: hidden;
     position: relative;
@@ -319,6 +323,87 @@
   /* Layout adapted notice nel devices bar */
   .project-detail-modal__devices-bar .layout-adapted-notice {
     max-width: 350px;
+  }
+
+  /* Toolbar per aggiungere elementi */
+  .add-elements-toolbar {
+    position: fixed;
+    top: 80px;
+    left: 50%;
+    transform: translateX(-50%);
+    z-index: 50;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    background: rgba(255, 255, 255, 0.1);
+    backdrop-filter: blur(8px);
+    -webkit-backdrop-filter: blur(8px);
+    border: 2px solid rgba(128, 128, 128, 0.4);
+    border-radius: 100px;
+    padding: 8px;
+    transition: all 0.4s ease;
+    cursor: pointer;
+    width: fit-content;
+    max-width: fit-content;
+    box-shadow: 0 0 0 1px rgba(128, 128, 128, 0.2);
+  }
+
+  .add-elements-toolbar:hover {
+    border-color: var(--accent-primary);
+    box-shadow: 0 0 0 1px var(--accent-primary), 0 2px 8px rgba(var(--accent-primary-rgb), 0.2);
+  }
+
+  /* Icona edit quando compatto */
+  .add-elements-toolbar__icon {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 32px;
+    height: 32px;
+    font-size: 1.2rem;
+    transition: all 0.3s ease;
+  }
+
+  /* Pulsanti per aggiungere elementi */
+  .add-element-btn {
+    display: flex;
+    align-items: center;
+    gap: 4px;
+    padding: 6px 12px;
+    background: transparent;
+    border: 1px solid rgba(128, 128, 128, 0.3);
+    border-radius: 100px;
+    color: var(--text-primary);
+    font-size: 0.85rem;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    white-space: nowrap;
+    min-width: fit-content;
+  }
+
+  .add-element-btn:hover {
+    background: rgba(var(--accent-primary-rgb), 0.1);
+    border-color: var(--accent-primary);
+    transform: scale(1.05);
+  }
+
+  .add-element-btn__icon {
+    font-size: 1rem;
+    line-height: 1;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+
+  .add-element-btn__label {
+    font-size: 0.8rem;
+    font-weight: 500;
+    line-height: 1;
+  }
+
+  /* Stato espanso */
+  .add-elements-toolbar--expanded {
+    cursor: default;
   }
 
   /* Mostra pulsanti azioni desktop in posizione fixed a destra */

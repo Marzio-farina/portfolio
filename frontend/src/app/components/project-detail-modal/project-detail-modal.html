@@ -748,23 +748,42 @@
         </div>
       }
 
-      <!-- Pulsanti per aggiungere elementi custom -->
-      <div class="add-elements-toolbar">
+    </div>
+  }
+
+  <!-- Toolbar per aggiungere elementi custom -->
+  @if (canEdit() && !isPreviewMode()) {
+    <div 
+      class="add-elements-toolbar"
+      [class.add-elements-toolbar--expanded]="isAddToolbarExpanded()"
+      (click)="toggleAddToolbar()">
+      
+      <!-- Icona edit quando compatto -->
+      @if (!isAddToolbarExpanded()) {
+        <div class="add-elements-toolbar__icon">
+          ✏️
+        </div>
+      }
+      
+      <!-- Pulsanti quando espanso -->
+      @if (isAddToolbarExpanded()) {
         <button 
           type="button"
           class="add-element-btn"
-          (click)="addCustomText()"
+          (click)="addCustomText(); $event.stopPropagation()"
           title="Aggiungi testo">
-          📝
+          <span class="add-element-btn__icon">📝</span>
+          <span class="add-element-btn__label">Testo</span>
         </button>
         <button 
           type="button"
           class="add-element-btn"
-          (click)="addCustomImage()"
+          (click)="addCustomImage(); $event.stopPropagation()"
           title="Aggiungi immagine">
-          🖼️
+          <span class="add-element-btn__icon">🖼️</span>
+          <span class="add-element-btn__label">Immagine</span>
         </button>
-      </div>
+      }
     </div>
   }
 
