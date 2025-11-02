@@ -26,9 +26,6 @@ export class VideoUploaderComponent {
   // Output: quando viene selezionato un file
   videoSelected = output<VideoData>();
   
-  // Output: quando il video viene rimosso
-  videoRemoved = output<void>();
-  
   // File input reference
   @ViewChild('videoInput') videoInputRef?: ElementRef<HTMLInputElement>;
   
@@ -94,20 +91,6 @@ export class VideoUploaderComponent {
       previewUrl: null,
       removed: false
     });
-  }
-  
-  /**
-   * Rimuove il video
-   */
-  removeVideo(): void {
-    this.selectedFile.set(null);
-    this.previewUrl.set(null);
-    this.removed.set(true);
-    if (this.videoInputRef?.nativeElement) {
-      this.videoInputRef.nativeElement.value = '';
-    }
-    
-    this.videoRemoved.emit();
   }
   
   /**

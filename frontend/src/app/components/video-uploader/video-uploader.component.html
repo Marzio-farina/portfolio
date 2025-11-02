@@ -123,16 +123,3 @@
   </div>
 }
 
-<!-- Pulsante rimozione video -->
-@if (isEditMode() && getDisplayUrl()) {
-  <button 
-    type="button"
-    class="video-uploader__remove-btn"
-    (click)="removeVideo()"
-    (mousedown)="$event.stopPropagation()"
-    [disabled]="saving()"
-    aria-label="Rimuovi video">
-    <span aria-hidden="true">×</span>
-  </button>
-}
-

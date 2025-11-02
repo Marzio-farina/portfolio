@@ -272,46 +272,7 @@
   text-shadow: 0 2px 4px rgba(0, 0, 0, 0.3);
 }
 
-/* Pulsante rimozione video */
-.video-uploader__remove-btn {
-  position: absolute;
-  top: -8px;
-  right: -8px;
-  width: 28px;
-  height: 28px;
-  border-radius: 50%;
-  border: 2px solid white;
-  background: rgba(239, 68, 68, 0.95);
-  color: white;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  font-size: 18px;
-  line-height: 1;
-  font-weight: 700;
-  cursor: pointer;
-  transition: all var(--transition-1);
-  z-index: 60;
-  padding: 0;
-  opacity: 0;
-  pointer-events: none;
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.3);
-}
-
-.video-uploader__remove-btn:hover {
-  background: #ef4444;
-  color: white;
-  transform: scale(1.2);
-  box-shadow: 0 4px 12px rgba(239, 68, 68, 0.4);
-}
-
-.video-uploader__remove-btn:active {
-  transform: scale(1.0);
-}
-
-.video-uploader__remove-btn > span {
-  display: block;
-  font-size: 14px;
-  line-height: 1;
-}
+/* Nota: stili per la X rimozione video (.project-detail-modal__remove-video.admin-x-btn) 
+   sono in project-detail-modal-canvas-devices.css perché la X è posizionata 
+   sul canvas-item-wrapper--video che è nel componente parent */
 

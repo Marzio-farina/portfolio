@@ -144,10 +144,22 @@
             [videoUrl]="project().video"
             [isEditMode]="isEditMode()"
             [saving]="saving()"
-            (videoSelected)="onVideoSelected($event)"
-            (videoRemoved)="onVideoRemoved()">
+            (videoSelected)="onVideoSelected($event)">
           </app-video-uploader>
         </div>
+
+          <!-- X rimozione video (fuori canvas-item, dentro wrapper) -->
+          @if (isEditMode() && project().video) {
+            <button 
+              type="button"
+              class="project-detail-modal__remove-video admin-x-btn"
+              (click)="onVideoRemoved()"
+              (mousedown)="$event.stopPropagation()"
+              [disabled]="saving()"
+              aria-label="Rimuovi video">
+              <span aria-hidden="true">×</span>
+            </button>
+          }
 
           <!-- Resize handles sul wrapper -->
           @if (isEditMode()) {
