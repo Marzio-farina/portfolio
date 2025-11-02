@@ -20,21 +20,11 @@ export class CustomTextElementComponent {
   // Output: quando il contenuto cambia
   contentChanged = output<string>();
   
-  // Output: richiesta rimozione elemento
-  removeRequested = output<void>();
-  
   /**
    * Gestisce il cambio contenuto
    */
   onContentChange(value: string): void {
     this.contentChanged.emit(value);
-  }
-  
-  /**
-   * Richiede la rimozione dell'elemento
-   */
-  requestRemove(): void {
-    this.removeRequested.emit();
   }
 }
 

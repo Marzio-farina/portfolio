@@ -29,9 +29,6 @@ export class CustomImageElementComponent {
   // Output: quando viene selezionata un'immagine
   imageSelected = output<CustomImageData>();
   
-  // Output: richiesta rimozione elemento
-  removeRequested = output<void>();
-  
   // File input reference
   @ViewChild('fileInput') fileInputRef?: ElementRef<HTMLInputElement>;
   
@@ -110,13 +107,6 @@ export class CustomImageElementComponent {
     const file = dt?.files?.[0];
     if (!file) return;
     this.handleSelectedFile(file);
-  }
-  
-  /**
-   * Richiede la rimozione dell'elemento
-   */
-  requestRemove(): void {
-    this.removeRequested.emit();
   }
 }
 

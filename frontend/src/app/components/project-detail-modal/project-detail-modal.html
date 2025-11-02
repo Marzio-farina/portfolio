@@ -335,8 +335,7 @@
                   [content]="item.value.content || ''"
                   [isEditMode]="isEditMode()"
                   [saving]="saving()"
-                  (contentChanged)="onCustomTextContentChanged(item.key, $event)"
-                  (removeRequested)="onCustomElementRemoveRequested(item.key)">
+                  (contentChanged)="onCustomTextContentChanged(item.key, $event)">
                 </app-custom-text-element>
               }
               
@@ -347,11 +346,23 @@
                   [imageUrl]="item.value.content || ''"
                   [isEditMode]="isEditMode()"
                   [saving]="saving()"
-                  (imageSelected)="onCustomImageSelected(item.key, $event)"
-                  (removeRequested)="onCustomElementRemoveRequested(item.key)">
+                  (imageSelected)="onCustomImageSelected(item.key, $event)">
                 </app-custom-image-element>
               }
             </div>
+            
+            <!-- Pulsante rimozione elemento custom (fuori canvas-item, dentro wrapper) -->
+            @if (isEditMode()) {
+              <button 
+                type="button"
+                class="remove-custom-element"
+                (click)="onCustomElementRemoveRequested(item.key)"
+                (mousedown)="$event.stopPropagation()"
+                [disabled]="saving()"
+                title="Rimuovi elemento">
+                ×
+              </button>
+            }
             
             <!-- Resize handles sul wrapper esterno -->
             @if (isEditMode()) {

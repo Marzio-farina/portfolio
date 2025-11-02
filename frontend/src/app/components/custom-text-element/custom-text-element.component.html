@@ -10,16 +10,3 @@
   <div class="custom-text-display">{{ content() }}</div>
 }
 
-<!-- Pulsante rimozione (visibile solo in edit mode) -->
-@if (isEditMode()) {
-  <button 
-    type="button"
-    class="remove-custom-element"
-    (click)="requestRemove()"
-    (mousedown)="$event.stopPropagation()"
-    [disabled]="saving()"
-    title="Rimuovi elemento">
-    ×
-  </button>
-}
-
