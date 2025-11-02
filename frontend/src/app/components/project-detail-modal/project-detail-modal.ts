@@ -723,6 +723,9 @@ export class ProjectDetailModal implements OnDestroy {
   onSave(): void {
     if (this.saving() || this.editForm.invalid) return;
 
+    // Pulisci elementi custom vuoti prima di salvare
+    this.cleanEmptyCustomElements();
+
     this.saving.set(true);
     this.notifications.set([]);
 
@@ -1206,6 +1209,73 @@ export class ProjectDetailModal implements OnDestroy {
       this.updateCurrentDeviceLayout(items);
       this.saveCanvasLayout();
     }
+  }
+
+  /**
+   * Pulisce elementi custom vuoti (senza contenuto)
+   */
+  private cleanEmptyCustomElements(): void {
+    const layouts = new Map(this.deviceLayouts());
+    let hasChanges = false;
+    
+    // Pulisci per ogni dispositivo
+    layouts.forEach((itemsMap, deviceId) => {
+      const itemsToRemove: string[] = [];
+      
+      itemsMap.forEach((item, itemId) => {
+        // Rimuovi elementi custom senza contenuto
+        if ((item.type === 'custom-text' || item.type === 'custom-image') && !item.content) {
+          itemsToRemove.push(itemId);
+          hasChanges = true;
+        }
+      });
+      
+      // Rimuovi elementi vuoti
+      itemsToRemove.forEach(id => itemsMap.delete(id));
+    });
+    
+    if (hasChanges) {
+      this.deviceLayouts.set(layouts);
+      // Salva immediatamente senza debounce
+      this.saveCanvasLayoutImmediate();
+    }
+  }
+
+  /**
+   * Salva il layout immediatamente senza debounce
+   */
+  private saveCanvasLayoutImmediate(): void {
+    const layouts = this.deviceLayouts();
+    const multiDeviceConfig: Record<string, Record<string, any>> = {};
+
+    layouts.forEach((itemsMap, deviceId) => {
+      const deviceConfig: Record<string, any> = {};
+      
+      itemsMap.forEach((item, key) => {
+        deviceConfig[key] = {
+          left: item.left,
+          top: item.top,
+          width: item.width,
+          height: item.height,
+          ...(item.type && { type: item.type }),
+          ...(item.content !== undefined && { content: item.content })
+        };
+      });
+      
+      multiDeviceConfig[deviceId] = deviceConfig;
+    });
+
+    const projectId = this.project().id;
+    this.http.patch(apiUrl(`projects/${projectId}/layout`), {
+      layout_config: JSON.stringify(multiDeviceConfig)
+    }).subscribe({
+      next: () => {
+        // Layout salvato
+      },
+      error: (err) => {
+        console.error('Errore nel salvataggio del layout:', err);
+      }
+    });
   }
 
   /**
