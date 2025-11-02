@@ -1146,7 +1146,7 @@ export class ProjectDetailModal implements OnDestroy {
       top: 100,
       width: 300,
       height: 100,
-      content: 'Nuovo testo'
+      content: '' // Vuoto, l'utente inserirà il testo
     };
     
     const items = new Map(this.canvasItems());

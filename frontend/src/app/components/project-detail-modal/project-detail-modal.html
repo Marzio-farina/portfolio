@@ -464,10 +464,10 @@
                 @if (isEditMode()) {
                   <textarea 
                     class="custom-text-input"
-                    [value]="item.value.content || 'Nuovo testo'"
+                    [value]="item.value.content || ''"
                     (input)="updateCustomElementContent(item.key, $any($event.target).value)"
                     (mousedown)="$event.stopPropagation()"
-                    placeholder="Inserisci testo..."></textarea>
+                    placeholder="Inserisci il testo."></textarea>
                 } @else {
                   <div class="custom-text-display">{{ item.value.content }}</div>
                 }
