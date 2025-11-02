@@ -224,7 +224,7 @@
     right: 20px;
     z-index: 50; /* Molto inferiore al dialog per non coprire nessun elemento */
     pointer-events: auto;
-    width: 200px;
+    width: 260px; /* Aumentato da 200px per "Salvataggio..." */
   }
 
   /* Riga: Preview, Annulla e Salva affiancati */
