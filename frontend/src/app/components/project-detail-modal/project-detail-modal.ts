@@ -997,7 +997,7 @@ export class ProjectDetailModal implements OnDestroy {
     
     // Verifica che sia effettivamente un video
     if (!file.type.startsWith('video/')) {
-      this.addNotification('error', 'Il file selezionato non è un video valido.', 'video');
+      this.addNotification('error', 'Il file selezionato non è un video valido.');
       return;
     }
     
