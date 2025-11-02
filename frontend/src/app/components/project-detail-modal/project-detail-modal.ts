@@ -6,6 +6,7 @@ import { ProjectDetailModalService } from '../../services/project-detail-modal.s
 import { ProjectService } from '../../services/project.service';
 import { EditModeService } from '../../services/edit-mode.service';
 import { AuthService } from '../../services/auth.service';
+import { CanvasService, CanvasItem, DragState, ResizeState } from '../../services/canvas.service';
 import { Progetto, Technology } from '../../core/models/project';
 import { Notification, NotificationType } from '../notification/notification';
 import { apiUrl } from '../../core/api/api-url';
@@ -18,42 +19,6 @@ import { CustomImageElementComponent, CustomImageData } from '../custom-image-el
 import { CategoryFieldComponent, Category } from '../category-field/category-field.component';
 import { TechnologiesSelectorComponent, Technology as TechType } from '../technologies-selector/technologies-selector.component';
 import { DescriptionFieldComponent } from '../description-field/description-field.component';
-
-interface CanvasItem {
-  id: string;
-  left: number;    // posizione X in pixel
-  top: number;     // posizione Y in pixel
-  width: number;   // larghezza in pixel
-  height: number;  // altezza in pixel
-  type?: 'image' | 'video' | 'category' | 'technologies' | 'description' | 'custom-text' | 'custom-image';
-  content?: string; // Contenuto per elementi custom (testo o URL immagine)
-}
-
-interface DeviceLayout {
-  deviceId: string;
-  items: Map<string, CanvasItem>;
-}
-
-interface DragState {
-  isDragging: boolean;
-  draggedItemId: string | null;
-  startX: number;
-  startY: number;
-  startItemX: number;
-  startItemY: number;
-}
-
-interface ResizeState {
-  isResizing: boolean;
-  itemId: string | null;
-  handle: string | null;
-  startX: number;
-  startY: number;
-  startLeft: number;
-  startTop: number;
-  startWidth: number;
-  startHeight: number;
-}
 
 @Component({
   selector: 'app-project-detail-modal',
@@ -74,6 +39,7 @@ export class ProjectDetailModal implements OnDestroy {
   private authService = inject(AuthService);
   private fb = inject(FormBuilder);
   private http = inject(HttpClient);
+  canvasService = inject(CanvasService);
 
   // Riceve il progetto dal servizio tramite input
   project = input.required<Progetto>();
@@ -112,78 +78,20 @@ export class ProjectDetailModal implements OnDestroy {
   isEditMode = computed(() => this.canEdit() && !this.isPreviewMode());
   isAddToolbarExpanded = signal(false);
   
-  // Stato per la creazione drag-to-draw di elementi
-  isCreatingElement = signal<'text' | 'image' | null>(null);
-  drawStartPos = signal<{ x: number; y: number } | null>(null);
-  drawCurrentPos = signal<{ x: number; y: number } | null>(null);
-  cursorPos = signal<{ x: number; y: number }>({ x: 0, y: 0 });
-  
   // Esponi Math per il template
   Math = Math;
   
   // Traccia progetti già caricati per evitare loop
   private loadedProjectIds = new Set<number>();
-  private saveLayoutTimeout: any = null;
-
-  // Presets dispositivi standard
-  devicePresets: DevicePreset[] = [
-    { id: 'mobile-small', name: 'Mobile S', width: 375, height: 667, icon: '📱' },
-    { id: 'mobile', name: 'Mobile', width: 414, height: 896, icon: '📱' },
-    { id: 'tablet', name: 'Tablet', width: 768, height: 1024, icon: '📱' },
-    { id: 'desktop', name: 'Desktop', width: 1920, height: 1080, icon: '💻' },
-    { id: 'desktop-wide', name: 'Wide', width: 2560, height: 1440, icon: '🖥️' }
-  ];
-
-  // Dispositivo attualmente selezionato
-  selectedDevice = signal<DevicePreset>(this.devicePresets[3]); // Default: desktop
-
-  // Layout multipli per dispositivi diversi
-  deviceLayouts = signal<Map<string, Map<string, CanvasItem>>>(new Map());
 
   // Dimensioni griglia per snap
   gridCols = 4;
   gridRows = 5;
   gridCellSize = 160;
-  
-  // Layout predefinito per il dispositivo corrente
-  private defaultLayout = new Map<string, CanvasItem>([
-    ['image', { id: 'image', type: 'image', left: 20, top: 20, width: 400, height: 320 }],
-    ['video', { id: 'video', type: 'video', left: 440, top: 20, width: 400, height: 320 }],
-    ['category', { id: 'category', type: 'category', left: 20, top: 360, width: 200, height: 120 }],
-    ['technologies', { id: 'technologies', type: 'technologies', left: 240, top: 360, width: 200, height: 120 }],
-    ['description', { id: 'description', type: 'description', left: 460, top: 360, width: 380, height: 240 }]
-  ]);
-
-  // Counter per ID univoci di elementi custom
-  private customElementCounter = 0;
-
-  // Layout attuale basato sul dispositivo selezionato
-  canvasItems = computed(() => {
-    const deviceId = this.selectedDevice().id;
-    const layouts = this.deviceLayouts();
-    
-    const deviceLayout = layouts.get(deviceId);
-    
-    // Se esiste un layout per questo dispositivo, usalo
-    if (deviceLayout) {
-      return deviceLayout;
-    }
-    
-    // Altrimenti, cerca un layout di un dispositivo più largo e scalalo
-    // In modalità visualizzazione, usa la larghezza reale dello schermo
-    const targetWidth = !this.isEditMode() ? window.innerWidth : this.selectedDevice().width;
-    const adaptedLayout = this.getAdaptedLayoutForDevice(deviceId, layouts, targetWidth);
-    if (adaptedLayout) {
-      return adaptedLayout;
-    }
-    
-    // Fallback al layout default
-    return this.defaultLayout;
-  });
 
   // Calcola altezza dinamica del canvas in base agli elementi
   canvasHeight = computed(() => {
-    const items = this.canvasItems();
+    const items = this.canvasService.canvasItems();
     let maxBottom = 800; // Minimo 800px
     
     items.forEach(item => {
@@ -198,7 +106,7 @@ export class ProjectDetailModal implements OnDestroy {
 
   // Calcola altezza dinamica del viewport (si espande se necessario)
   viewportHeight = computed(() => {
-    const deviceHeight = this.selectedDevice().height;
+    const deviceHeight = this.canvasService.selectedDevice().height;
     const contentHeight = this.canvasHeight();
     
     // Usa il maggiore tra l'altezza del dispositivo e quella necessaria per il contenuto
@@ -213,7 +121,7 @@ export class ProjectDetailModal implements OnDestroy {
     layouts: Map<string, Map<string, CanvasItem>>,
     customTargetWidth?: number
   ): Map<string, CanvasItem> | null {
-    const targetDevice = this.devicePresets.find(d => d.id === targetDeviceId);
+    const targetDevice = this.canvasService.devicePresets.find(d => d.id === targetDeviceId);
     if (!targetDevice) return null;
     
     // Usa la larghezza personalizzata se fornita, altrimenti quella del dispositivo
@@ -221,7 +129,7 @@ export class ProjectDetailModal implements OnDestroy {
     const targetHeight = targetDevice.height;
 
     // Ordina i dispositivi per larghezza (dal più largo al più stretto)
-    const devicesByWidth = [...this.devicePresets]
+    const devicesByWidth = [...this.canvasService.devicePresets]
       .sort((a, b) => b.width - a.width);
 
     // Trova il primo dispositivo più largo del target che ha un layout salvato
@@ -395,11 +303,11 @@ export class ProjectDetailModal implements OnDestroy {
   isItemOutsideViewport(itemId: string): boolean {
     if (!this.isEditMode()) return false;
     
-    const items = this.canvasItems();
+    const items = this.canvasService.canvasItems();
     const item = items.get(itemId);
     if (!item) return false;
     
-    const device = this.selectedDevice();
+    const device = this.canvasService.selectedDevice();
     const viewportWidth = device.width;
     const viewportHeight = device.height;
     
@@ -778,7 +686,7 @@ export class ProjectDetailModal implements OnDestroy {
    * Seleziona un dispositivo preset
    */
   selectDevice(device: DevicePreset): void {
-    this.selectedDevice.set(device);
+    this.canvasService.selectedDevice.set(device);
   }
   
   /**
@@ -846,7 +754,7 @@ export class ProjectDetailModal implements OnDestroy {
    */
   private selectDeviceByScreenWidth(): void {
     const screenWidth = window.innerWidth;
-    const layouts = this.deviceLayouts();
+    const layouts = this.canvasService.deviceLayouts();
     
     // Se ci sono layout salvati, trova quello più adatto
     if (layouts.size > 0) {
@@ -854,7 +762,7 @@ export class ProjectDetailModal implements OnDestroy {
       let smallestDifference = Infinity;
       
       // Cerca il dispositivo con layout salvato più vicino alla larghezza attuale
-      this.devicePresets.forEach((preset: DevicePreset) => {
+      this.canvasService.devicePresets.forEach((preset: DevicePreset) => {
         if (layouts.has(preset.id)) {
           const difference = Math.abs(preset.width - screenWidth);
           if (difference < smallestDifference) {
@@ -865,7 +773,7 @@ export class ProjectDetailModal implements OnDestroy {
       });
       
       if (closestDevice !== undefined) {
-        this.selectedDevice.set(closestDevice);
+        this.canvasService.selectedDevice.set(closestDevice);
         return;
       }
     }
@@ -874,26 +782,26 @@ export class ProjectDetailModal implements OnDestroy {
     let selectedPreset: DevicePreset;
     
     if (screenWidth <= 414) {
-      selectedPreset = this.devicePresets.find(d => d.id === 'mobile') || this.devicePresets[1];
+      selectedPreset = this.canvasService.devicePresets.find(d => d.id === 'mobile') || this.canvasService.devicePresets[1];
     } else if (screenWidth <= 768) {
-      selectedPreset = this.devicePresets.find(d => d.id === 'tablet') || this.devicePresets[2];
+      selectedPreset = this.canvasService.devicePresets.find(d => d.id === 'tablet') || this.canvasService.devicePresets[2];
     } else if (screenWidth <= 1920) {
-      selectedPreset = this.devicePresets.find(d => d.id === 'desktop') || this.devicePresets[3];
+      selectedPreset = this.canvasService.devicePresets.find(d => d.id === 'desktop') || this.canvasService.devicePresets[3];
     } else {
-      selectedPreset = this.devicePresets.find(d => d.id === 'desktop-wide') || this.devicePresets[4];
+      selectedPreset = this.canvasService.devicePresets.find(d => d.id === 'desktop-wide') || this.canvasService.devicePresets[4];
     }
     
-    this.selectedDevice.set(selectedPreset);
+    this.canvasService.selectedDevice.set(selectedPreset);
   }
 
   /**
    * Aggiorna il layout per il dispositivo corrente
    */
   private updateCurrentDeviceLayout(items: Map<string, CanvasItem>): void {
-    const deviceId = this.selectedDevice().id;
-    const layouts = new Map(this.deviceLayouts());
+    const deviceId = this.canvasService.selectedDevice().id;
+    const layouts = new Map(this.canvasService.deviceLayouts());
     layouts.set(deviceId, new Map(items));
-    this.deviceLayouts.set(layouts);
+    this.canvasService.deviceLayouts.set(layouts);
   }
 
   /**
@@ -930,7 +838,7 @@ export class ProjectDetailModal implements OnDestroy {
   addCustomText(): void {
     if (!this.isEditMode()) return;
     
-    this.isCreatingElement.set('text');
+    this.canvasService.startElementCreation('text');
     this.isAddToolbarExpanded.set(false);
     document.removeEventListener('click', this.closeAddToolbarOnClickOutside);
   }
@@ -941,7 +849,7 @@ export class ProjectDetailModal implements OnDestroy {
   addCustomImage(): void {
     if (!this.isEditMode()) return;
     
-    this.isCreatingElement.set('image');
+    this.canvasService.startElementCreation('image');
     this.isAddToolbarExpanded.set(false);
     document.removeEventListener('click', this.closeAddToolbarOnClickOutside);
   }
@@ -956,11 +864,11 @@ export class ProjectDetailModal implements OnDestroy {
     const y = event.clientY - rect.top;
     
     // Aggiorna posizione cursore
-    this.cursorPos.set({ x, y });
+    this.canvasService.updateCursorPosition(x, y);
     
-    // Se stiamo disegnando, aggiorna la posizione corrente
-    if (this.drawStartPos()) {
-      this.drawCurrentPos.set({ x, y });
+    // Se stiamo disegnando, aggiorna il disegno
+    if (this.canvasService.drawStartPos()) {
+      this.canvasService.updateDrawing(x, y);
     }
   }
   
@@ -968,65 +876,31 @@ export class ProjectDetailModal implements OnDestroy {
    * Gestisce l'inizio del disegno di un elemento
    */
   onCanvasMouseDown(event: MouseEvent): void {
-    if (!this.isCreatingElement()) return;
+    if (!this.canvasService.isCreatingElement()) return;
     
     const canvas = (event.currentTarget as HTMLElement);
     const rect = canvas.getBoundingClientRect();
     const x = event.clientX - rect.left;
     const y = event.clientY - rect.top;
     
-    this.drawStartPos.set({ x, y });
-    this.drawCurrentPos.set({ x, y });
+    this.canvasService.startDrawing(x, y);
   }
   
   /**
    * Gestisce la fine del disegno e crea l'elemento
    */
   onCanvasMouseUp(event: MouseEvent): void {
-    if (!this.isCreatingElement() || !this.drawStartPos() || !this.drawCurrentPos()) return;
-    
-    const start = this.drawStartPos()!;
-    const end = this.drawCurrentPos()!;
-    
-    // Calcola dimensioni (minimo 50x50)
-    const left = Math.min(start.x, end.x);
-    const top = Math.min(start.y, end.y);
-    const width = Math.max(50, Math.abs(end.x - start.x));
-    const height = Math.max(50, Math.abs(end.y - start.y));
-    
-    // Crea l'elemento
-    this.customElementCounter++;
-    const type = this.isCreatingElement();
-    const newId = `custom-${type}-${this.customElementCounter}`;
-    
-    const newItem: CanvasItem = {
-      id: newId,
-      type: type === 'text' ? 'custom-text' : 'custom-image',
-      left,
-      top,
-      width,
-      height,
-      content: ''
-    };
-    
-    const items = new Map(this.canvasItems());
-    items.set(newId, newItem);
-    this.updateCurrentDeviceLayout(items);
-    this.saveCanvasLayout();
-    
-    // Reset stato
-    this.isCreatingElement.set(null);
-    this.drawStartPos.set(null);
-    this.drawCurrentPos.set(null);
+    const newId = this.canvasService.finalizeDrawing();
+    if (newId) {
+      this.saveCanvasLayout();
+    }
   }
   
   /**
    * Annulla la creazione di un elemento
    */
   cancelElementCreation(): void {
-    this.isCreatingElement.set(null);
-    this.drawStartPos.set(null);
-    this.drawCurrentPos.set(null);
+    this.canvasService.cancelElementCreation();
   }
 
   /**
@@ -1034,11 +908,9 @@ export class ProjectDetailModal implements OnDestroy {
    */
   removeCustomElement(itemId: string): void {
     if (!this.isEditMode()) return;
-    if (!itemId.startsWith('custom-')) return; // Proteggi elementi base
+    if (!itemId.startsWith('custom-') && itemId !== 'video') return; // Proteggi elementi base (tranne video)
     
-    const items = new Map(this.canvasItems());
-    items.delete(itemId);
-    this.updateCurrentDeviceLayout(items);
+    this.canvasService.removeCanvasItem(itemId);
     this.saveCanvasLayout();
   }
 
@@ -1048,20 +920,15 @@ export class ProjectDetailModal implements OnDestroy {
   updateCustomElementContent(itemId: string, content: string): void {
     if (!this.isEditMode()) return;
     
-    const items = new Map(this.canvasItems());
-    const item = items.get(itemId);
-    if (item) {
-      items.set(itemId, { ...item, content });
-      this.updateCurrentDeviceLayout(items);
-      this.saveCanvasLayout();
-    }
+    this.canvasService.updateCustomElementContent(itemId, content);
+    this.saveCanvasLayout();
   }
 
   /**
    * Pulisce elementi custom vuoti (senza contenuto)
    */
   private cleanEmptyCustomElements(): void {
-    const layouts = new Map(this.deviceLayouts());
+    const layouts = new Map(this.canvasService.deviceLayouts());
     let hasChanges = false;
     
     // Pulisci per ogni dispositivo
@@ -1081,7 +948,7 @@ export class ProjectDetailModal implements OnDestroy {
     });
     
     if (hasChanges) {
-      this.deviceLayouts.set(layouts);
+      this.canvasService.deviceLayouts.set(layouts);
       // Salva immediatamente senza debounce
       this.saveCanvasLayoutImmediate();
     }
@@ -1091,7 +958,7 @@ export class ProjectDetailModal implements OnDestroy {
    * Salva il layout immediatamente senza debounce
    */
   private saveCanvasLayoutImmediate(): void {
-    const layouts = this.deviceLayouts();
+    const layouts = this.canvasService.deviceLayouts();
     const multiDeviceConfig: Record<string, Record<string, any>> = {};
 
     layouts.forEach((itemsMap, deviceId) => {
@@ -1130,7 +997,7 @@ export class ProjectDetailModal implements OnDestroy {
    * Ottiene lo stile inline per un elemento del canvas
    */
   getItemStyle(itemId: string): { left: number; top: number; width: number; height: number } {
-    const item = this.canvasItems().get(itemId);
+    const item = this.canvasService.canvasItems().get(itemId);
     return item || { left: 0, top: 0, width: 200, height: 150 };
   }
 
@@ -1150,10 +1017,10 @@ export class ProjectDetailModal implements OnDestroy {
     event.preventDefault();
     event.stopPropagation();
 
-    const item = this.canvasItems().get(itemId);
+    const item = this.canvasService.canvasItems().get(itemId);
     if (!item) return;
 
-    this.dragState.set({
+    this.canvasService.dragState.set({
       isDragging: true,
       draggedItemId: itemId,
       startX: event.clientX,
@@ -1171,9 +1038,9 @@ export class ProjectDetailModal implements OnDestroy {
    * Handler globale per mousemove (bound function)
    */
   private handleDragMoveGlobal = (event: MouseEvent): void => {
-    if (this.dragState().isDragging) {
+    if (this.canvasService.dragState().isDragging) {
       this.handleDragMove(event);
-    } else if (this.resizeState().isResizing) {
+    } else if (this.canvasService.resizeState().isResizing) {
       this.handleResizeMove(event);
     }
   };
@@ -1182,9 +1049,9 @@ export class ProjectDetailModal implements OnDestroy {
    * Handler globale per mouseup (bound function)
    */
   private handleMouseUpGlobal = (event: MouseEvent): void => {
-    if (this.dragState().isDragging) {
+    if (this.canvasService.dragState().isDragging) {
       this.finalizeDrag();
-    } else if (this.resizeState().isResizing) {
+    } else if (this.canvasService.resizeState().isResizing) {
       this.finalizeResize();
     }
     
@@ -1197,7 +1064,7 @@ export class ProjectDetailModal implements OnDestroy {
    * Movimento durante il drag
    */
   private handleDragMove(event: MouseEvent): void {
-    const state = this.dragState();
+    const state = this.canvasService.dragState();
     if (!state.draggedItemId) return;
 
     const deltaX = event.clientX - state.startX;
@@ -1207,7 +1074,7 @@ export class ProjectDetailModal implements OnDestroy {
     const newTop = state.startItemY + deltaY;
 
     // Aggiorna posizione in tempo reale
-    const items = new Map(this.canvasItems());
+    const items = new Map(this.canvasService.canvasItems());
     const item = items.get(state.draggedItemId);
     if (!item) return;
 
@@ -1226,17 +1093,17 @@ export class ProjectDetailModal implements OnDestroy {
    * Finalizza il drag con snap-to-grid
    */
   private finalizeDrag(): void {
-    const state = this.dragState();
+    const state = this.canvasService.dragState();
     if (!state.draggedItemId) return;
 
-    const item = this.canvasItems().get(state.draggedItemId);
+    const item = this.canvasService.canvasItems().get(state.draggedItemId);
     if (!item) return;
 
     // Snap alla griglia più vicina (solo valori positivi)
     const snappedLeft = Math.max(0, this.snapToGrid(item.left));
     const snappedTop = Math.max(0, this.snapToGrid(item.top));
 
-    const items = new Map(this.canvasItems());
+    const items = new Map(this.canvasService.canvasItems());
     items.set(state.draggedItemId, {
       ...item,
       left: snappedLeft,
@@ -1247,7 +1114,7 @@ export class ProjectDetailModal implements OnDestroy {
     this.updateCurrentDeviceLayout(items);
 
     // Reset stato drag
-    this.dragState.set({
+    this.canvasService.dragState.set({
       isDragging: false,
       draggedItemId: null,
       startX: 0,
@@ -1282,10 +1149,10 @@ export class ProjectDetailModal implements OnDestroy {
     event.preventDefault();
     event.stopPropagation();
 
-    const item = this.canvasItems().get(itemId);
+    const item = this.canvasService.canvasItems().get(itemId);
     if (!item) return;
 
-    this.resizeState.set({
+    this.canvasService.resizeState.set({
       isResizing: true,
       itemId,
       handle,
@@ -1306,10 +1173,10 @@ export class ProjectDetailModal implements OnDestroy {
    * Gestisce il movimento durante il resize
    */
   private handleResizeMove(event: MouseEvent): void {
-    const state = this.resizeState();
+    const state = this.canvasService.resizeState();
     if (!state.itemId) return;
 
-    const item = this.canvasItems().get(state.itemId);
+    const item = this.canvasService.canvasItems().get(state.itemId);
     if (!item) return;
 
     const deltaX = event.clientX - state.startX;
@@ -1362,7 +1229,7 @@ export class ProjectDetailModal implements OnDestroy {
     }
 
     // Aggiorna in tempo reale (il canvas si espanderà automaticamente)
-    const items = new Map(this.canvasItems());
+    const items = new Map(this.canvasService.canvasItems());
     items.set(state.itemId, {
       ...item,
       left: Math.max(0, newLeft),
@@ -1379,10 +1246,10 @@ export class ProjectDetailModal implements OnDestroy {
    * Finalizza il resize con snap
    */
   private finalizeResize(): void {
-    const state = this.resizeState();
+    const state = this.canvasService.resizeState();
     if (!state.itemId) return;
 
-    const item = this.canvasItems().get(state.itemId);
+    const item = this.canvasService.canvasItems().get(state.itemId);
     if (!item) return;
 
     // Snap posizioni e dimensioni (solo valori positivi e larghezza minima)
@@ -1391,7 +1258,7 @@ export class ProjectDetailModal implements OnDestroy {
     const snappedWidth = Math.max(150, this.snapToGrid(item.width));
     const snappedHeight = Math.max(30, this.snapToGrid(item.height)); // Altezza minima 30px
 
-    const items = new Map(this.canvasItems());
+    const items = new Map(this.canvasService.canvasItems());
     items.set(state.itemId, {
       ...item,
       left: snappedLeft,
@@ -1404,7 +1271,7 @@ export class ProjectDetailModal implements OnDestroy {
     this.updateCurrentDeviceLayout(items);
 
     // Reset stato
-    this.resizeState.set({
+    this.canvasService.resizeState.set({
       isResizing: false,
       itemId: null,
       handle: null,
@@ -1474,7 +1341,7 @@ export class ProjectDetailModal implements OnDestroy {
       layouts.set('desktop', itemsMap);
     }
 
-    this.deviceLayouts.set(layouts);
+    this.canvasService.deviceLayouts.set(layouts);
   }
 
   /**
@@ -1497,47 +1364,8 @@ export class ProjectDetailModal implements OnDestroy {
    * Salva tutti i layout dispositivi nel backend con debouncing
    */
   private saveCanvasLayout(): void {
-    // Cancella il timeout precedente
-    if (this.saveLayoutTimeout) {
-      clearTimeout(this.saveLayoutTimeout);
-    }
-
-    // Debounce di 500ms - salva solo dopo che l'utente ha finito di muovere/ridimensionare
-    this.saveLayoutTimeout = setTimeout(() => {
-      const layouts = this.deviceLayouts();
-      const multiDeviceConfig: Record<string, Record<string, { left: number; top: number; width: number; height: number }>> = {};
-
-      // Salva layout per ogni dispositivo
-      layouts.forEach((itemsMap, deviceId) => {
-        const deviceConfig: Record<string, any> = {};
-        
-        itemsMap.forEach((item, key) => {
-          deviceConfig[key] = {
-            left: item.left,
-            top: item.top,
-            width: item.width,
-            height: item.height,
-            ...(item.type && { type: item.type }),
-            ...(item.content !== undefined && { content: item.content })
-          };
-        });
-        
-        multiDeviceConfig[deviceId] = deviceConfig;
-      });
-
-      // Salva nel backend
-      const projectId = this.project().id;
-      this.http.patch(apiUrl(`projects/${projectId}/layout`), {
-        layout_config: JSON.stringify(multiDeviceConfig)
-      }).subscribe({
-        next: () => {
-          // Layout salvato con successo
-        },
-        error: (err) => {
-          console.error('Errore nel salvataggio del layout:', err);
-        }
-      });
-    }, 500);
+    const projectId = this.project().id;
+    this.canvasService.saveCanvasLayout(projectId);
   }
 
   /**
@@ -1548,9 +1376,7 @@ export class ProjectDetailModal implements OnDestroy {
     document.removeEventListener('mousemove', this.handleDragMoveGlobal);
     document.removeEventListener('mouseup', this.handleMouseUpGlobal);
     
-    // Pulisci timeout
-    if (this.saveLayoutTimeout) {
-      clearTimeout(this.saveLayoutTimeout);
-    }
+    // Reset del servizio canvas
+    this.canvasService.reset();
   }
 }

@@ -36,23 +36,23 @@
     <div 
       class="project-detail-modal__canvas"
       [class.edit-mode]="isEditMode()"
-      [class.is-creating]="isCreatingElement()"
-      [class.creating-text]="isCreatingElement() === 'text'"
-      [class.creating-image]="isCreatingElement() === 'image'"
+      [class.is-creating]="canvasService.isCreatingElement()"
+      [class.creating-text]="canvasService.isCreatingElement() === 'text'"
+      [class.creating-image]="canvasService.isCreatingElement() === 'image'"
       [style.min-height.px]="canvasHeight()"
-      (mousemove)="isCreatingElement() ? onCanvasMouseMove($event) : null"
-      (mousedown)="isCreatingElement() ? onCanvasMouseDown($event) : null"
-      (mouseup)="isCreatingElement() ? onCanvasMouseUp($event) : null"
-      (mouseleave)="isCreatingElement() ? cancelElementCreation() : null">
+      (mousemove)="canvasService.isCreatingElement() ? onCanvasMouseMove($event) : null"
+      (mousedown)="canvasService.isCreatingElement() ? onCanvasMouseDown($event) : null"
+      (mouseup)="canvasService.isCreatingElement() ? onCanvasMouseUp($event) : null"
+      (mouseleave)="canvasService.isCreatingElement() ? cancelElementCreation() : null">
       
       <!-- Overlay per disegno elemento -->
-      @if (isCreatingElement()) {
+      @if (canvasService.isCreatingElement()) {
         <!-- Cursore personalizzato -->
         <div 
           class="custom-cursor"
-          [style.left.px]="cursorPos().x"
-          [style.top.px]="cursorPos().y">
-          @if (isCreatingElement() === 'text') {
+          [style.left.px]="canvasService.cursorPos().x"
+          [style.top.px]="canvasService.cursorPos().y">
+          @if (canvasService.isCreatingElement() === 'text') {
             <span class="custom-cursor__icon">T</span>
           } @else {
             <span class="custom-cursor__icon">🖼️</span>
@@ -60,13 +60,13 @@
         </div>
         
         <!-- Rettangolo di disegno -->
-        @if (drawStartPos() && drawCurrentPos()) {
+        @if (canvasService.drawStartPos() && canvasService.drawCurrentPos()) {
           <div 
             class="draw-rectangle"
-            [style.left.px]="Math.min(drawStartPos()!.x, drawCurrentPos()!.x)"
-            [style.top.px]="Math.min(drawStartPos()!.y, drawCurrentPos()!.y)"
-            [style.width.px]="Math.abs(drawCurrentPos()!.x - drawStartPos()!.x)"
-            [style.height.px]="Math.abs(drawCurrentPos()!.y - drawStartPos()!.y)">
+            [style.left.px]="Math.min(canvasService.drawStartPos()!.x, canvasService.drawCurrentPos()!.x)"
+            [style.top.px]="Math.min(canvasService.drawStartPos()!.y, canvasService.drawCurrentPos()!.y)"
+            [style.width.px]="Math.abs(canvasService.drawCurrentPos()!.x - canvasService.drawStartPos()!.x)"
+            [style.height.px]="Math.abs(canvasService.drawCurrentPos()!.y - canvasService.drawStartPos()!.y)">
           </div>
         }
       }
@@ -75,15 +75,15 @@
       @if (isEditMode()) {
         <div 
           class="device-viewport-indicator"
-          [style.width.px]="selectedDevice().width"
+          [style.width.px]="canvasService.selectedDevice().width"
           [style.height.px]="viewportHeight()">
           
           <!-- Linea che indica l'altezza originale del dispositivo (se espanso) -->
-          @if (viewportHeight() > selectedDevice().height) {
+          @if (viewportHeight() > canvasService.selectedDevice().height) {
             <div 
               class="device-original-height-line"
-              [style.top.px]="selectedDevice().height"
-              [style.width.px]="selectedDevice().width"></div>
+              [style.top.px]="canvasService.selectedDevice().height"
+              [style.width.px]="canvasService.selectedDevice().width"></div>
           }
         </div>
       }
@@ -273,7 +273,7 @@
       </div>
 
       <!-- ELEMENTI CUSTOM: Renderizzati dinamicamente -->
-      @for (item of canvasItems() | keyvalue; track item.key) {
+      @for (item of canvasService.canvasItems() | keyvalue; track item.key) {
         @if (item.value.type === 'custom-text' || item.value.type === 'custom-image') {
           <!-- Contenitore con posizionamento (senza bordi) -->
           <div 
@@ -382,8 +382,8 @@
   @if (canEdit() && !isPreviewMode()) {
     <div class="project-detail-modal__devices-bar">
       <app-device-selector
-        [selectedDevice]="selectedDevice()"
-        [devicePresets]="devicePresets"
+        [selectedDevice]="canvasService.selectedDevice()"
+        [devicePresets]="canvasService.devicePresets"
         (deviceSelected)="onDeviceSelected($event)">
       </app-device-selector>
     </div>
