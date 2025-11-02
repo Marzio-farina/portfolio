@@ -1,0 +1,90 @@
+<div class="text-formatting-toolbar" (mousedown)="$event.stopPropagation()">
+  <!-- Grassetto -->
+  <button 
+    type="button"
+    class="toolbar-btn"
+    [class.active]="isBold()"
+    (click)="toggleBold()"
+    title="Grassetto">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+      <path d="M6 4h8a4 4 0 0 1 4 4 4 4 0 0 1-4 4H6zM6 12h9a4 4 0 0 1 4 4 4 4 0 0 1-4 4H6z"/>
+    </svg>
+  </button>
+  
+  <!-- Corsivo -->
+  <button 
+    type="button"
+    class="toolbar-btn"
+    [class.active]="isItalic()"
+    (click)="toggleItalic()"
+    title="Corsivo">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+      <path d="M19 4h-9M14 20H5M15 4L9 20"/>
+    </svg>
+  </button>
+  
+  <!-- Sottolineato -->
+  <button 
+    type="button"
+    class="toolbar-btn"
+    [class.active]="isUnderline()"
+    (click)="toggleUnderline()"
+    title="Sottolineato">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+      <path d="M6 3v7a6 6 0 0 0 6 6 6 6 0 0 0 6-6V3M4 21h16"/>
+    </svg>
+  </button>
+  
+  <!-- Barrato -->
+  <button 
+    type="button"
+    class="toolbar-btn"
+    [class.active]="isStrikethrough()"
+    (click)="toggleStrikethrough()"
+    title="Barrato">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+      <path d="M16 4H9a3 3 0 0 0-2.83 4M14 12a4 4 0 0 1 0 8H6M3 12h18"/>
+    </svg>
+  </button>
+  
+  <!-- Separatore -->
+  <div class="toolbar-separator"></div>
+  
+  <!-- Colore Testo -->
+  <div class="toolbar-group">
+    <button 
+      type="button"
+      class="toolbar-btn toolbar-btn--color"
+      (click)="toggleColorPicker()"
+      title="Colore testo">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+        <path d="M12 2.69l5.66 5.66a8 8 0 1 1-11.31 0z"/>
+      </svg>
+      <span class="toolbar-btn__color-indicator" [style.background]="getCurrentColor()"></span>
+    </button>
+    
+    @if (showColorPicker()) {
+      <div class="color-picker-dropdown">
+        <input 
+          type="color"
+          [value]="getCurrentColor()"
+          (input)="changeColor($any($event.target).value)"
+          class="color-picker-input">
+        
+        <!-- Colori predefiniti -->
+        <div class="preset-colors">
+          @for (color of ['#000000', '#ffffff', '#ef4444', '#f59e0b', '#10b981', '#3b82f6', '#8b5cf6', '#ec4899']; track color) {
+            <button
+              type="button"
+              class="preset-color-btn"
+              [style.background]="color"
+              (click)="changeColor(color)"
+              [title]="color">
+            </button>
+          }
+        </div>
+      </div>
+    }
+  </div>
+</div>
+

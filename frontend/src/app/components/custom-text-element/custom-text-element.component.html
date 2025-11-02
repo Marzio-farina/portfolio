@@ -1,14 +1,22 @@
 <!-- Elemento testo custom -->
-@if (isEditMode()) {
-  <textarea 
-    [id]="elementId()"
-    [name]="elementId()"
-    class="custom-text-input"
-    [value]="content()"
-    (input)="onContentChange($any($event.target).value)"
-    (mousedown)="$event.stopPropagation()"
-    placeholder="Inserisci il testo..."></textarea>
-} @else {
-  <div class="custom-text-display">{{ content() }}</div>
-}
+<div class="custom-text-wrapper">
+  <!-- Contenteditable (modalità edit) -->
+  @if (isEditMode()) {
+    <div
+      #editableDiv
+      [id]="elementId()"
+      [attr.name]="elementId()"
+      class="custom-text-input"
+      contenteditable="true"
+      [attr.tabindex]="-1"
+      (input)="onContentChange($event)"
+      (focus)="onFocus()"
+      (blur)="onBlur()"
+      (mousedown)="onEditableMouseDown($event)"
+      [attr.data-placeholder]="'Scrivi qui...'"></div>
+  } @else {
+    <!-- Display (modalità view) -->
+    <div class="custom-text-display" [innerHTML]="content()"></div>
+  }
+</div>
 

@@ -63,13 +63,14 @@
   font-weight: 600;
   font-size: 0.85rem;
   cursor: pointer;
-  transition: all var(--transition-1);
+  transition: background-color 0.2s ease, transform 0.2s ease, box-shadow 0.2s ease;
   border: 0;
   display: inline-flex;
   align-items: center;
   justify-content: center;
   white-space: nowrap;
   min-width: 100px;
+  will-change: transform; /* Ottimizza transizioni */
 }
 
 .project-detail-modal__btn--cancel {
@@ -88,12 +89,14 @@
   background: var(--accent-primary);
   color: var(--text-inverse);
   box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15);
+  opacity: 1; /* Mantieni sempre opaco */
 }
 
 .project-detail-modal__btn--save:hover:not(:disabled) {
   background: color-mix(in srgb, var(--accent-primary) 110%, white);
   transform: translateY(-1px);
   box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
+  opacity: 1 !important; /* Forza opacità 1 all'hover */
 }
 
 .project-detail-modal__btn--preview {

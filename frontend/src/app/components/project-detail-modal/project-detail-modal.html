@@ -153,8 +153,8 @@
             <button 
               type="button"
               class="project-detail-modal__remove-video admin-x-btn"
-              (click)="onVideoRemoved()"
-              (mousedown)="$event.stopPropagation()"
+              (click)="onVideoRemoved(); $event.preventDefault(); $event.stopPropagation();"
+              (mousedown)="$event.stopPropagation(); $event.preventDefault();"
               [disabled]="saving()"
               aria-label="Rimuovi video">
               <span aria-hidden="true">×</span>
@@ -272,8 +272,28 @@
         }
       </div>
 
+      <!-- Toolbar formattazione testo (posizionata sopra l'elemento selezionato) -->
+      @if (isEditMode() && selectedCustomTextId()) {
+        @for (item of customItemsArray(); track item.key) {
+          @if (item.key === selectedCustomTextId() && item.value.type === 'custom-text') {
+            <div 
+              class="text-formatting-toolbar-wrapper"
+              [style.left.px]="item.value.left"
+              [style.top.px]="item.value.top - 56"
+              [style.z-index]="10001"
+              (mouseenter)="onToolbarMouseEnter()"
+              (mouseleave)="onToolbarMouseLeave()">
+              <app-text-formatting-toolbar
+                [currentStyle]="getSelectedCustomTextStyle()"
+                (styleChanged)="onTextStyleChanged($event)">
+              </app-text-formatting-toolbar>
+            </div>
+          }
+        }
+      }
+      
       <!-- ELEMENTI CUSTOM: Renderizzati dinamicamente -->
-      @for (item of canvasService.canvasItems() | keyvalue; track item.key) {
+      @for (item of customItemsArray(); track item.key) {
         @if (item.value.type === 'custom-text' || item.value.type === 'custom-image') {
           <!-- Contenitore con posizionamento (senza bordi) -->
           <div 
@@ -288,7 +308,10 @@
             <!-- Contenitore del contenuto con bordi -->
             <div 
               class="canvas-item canvas-item--custom"
+              [class.is-dragging]="canvasService.dragState().isDragging && canvasService.dragState().draggedItemId === item.key"
               [class.is-resizing]="canvasService.resizeState().isResizing && canvasService.resizeState().itemId === item.key"
+              [class.outside-viewport]="isItemOutsideViewport(item.key)"
+              [class.has-toolbar-active]="selectedCustomTextId() === item.key"
               (mousedown)="onItemMouseDown($event, item.key)">
               
               <!-- Custom Text Element -->
@@ -298,7 +321,8 @@
                   [content]="item.value.content || ''"
                   [isEditMode]="isEditMode()"
                   [saving]="saving()"
-                  (contentChanged)="onCustomTextContentChanged(item.key, $event)">
+                  (focused)="onCustomTextFocused(item.key)"
+                  (blurred)="onCustomTextBlurred()">
                 </app-custom-text-element>
               }
               
@@ -319,8 +343,8 @@
               <button 
                 type="button"
                 class="remove-custom-element"
-                (click)="onCustomElementRemoveRequested(item.key)"
-                (mousedown)="$event.stopPropagation()"
+                (click)="onCustomElementRemoveRequested(item.key); $event.preventDefault(); $event.stopPropagation();"
+                (mousedown)="$event.stopPropagation(); $event.preventDefault();"
                 [disabled]="saving()"
                 title="Rimuovi elemento">
                 ×

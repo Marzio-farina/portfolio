@@ -1,7 +1,6 @@
 import { Component, inject, input, output, signal, computed, effect, afterNextRender, ViewChild, ElementRef, untracked, OnDestroy, HostListener } from '@angular/core';
 import { ReactiveFormsModule, FormBuilder, FormGroup, Validators } from '@angular/forms';
 import { HttpClient } from '@angular/common/http';
-import { KeyValuePipe } from '@angular/common';
 import { ProjectDetailModalService } from '../../services/project-detail-modal.service';
 import { ProjectService } from '../../services/project.service';
 import { EditModeService } from '../../services/edit-mode.service';
@@ -19,11 +18,12 @@ import { CustomImageElementComponent, CustomImageData } from '../custom-image-el
 import { CategoryFieldComponent, Category } from '../category-field/category-field.component';
 import { TechnologiesSelectorComponent, Technology as TechType } from '../technologies-selector/technologies-selector.component';
 import { DescriptionFieldComponent } from '../description-field/description-field.component';
+import { TextFormattingToolbarComponent, TextStyle } from '../text-formatting-toolbar/text-formatting-toolbar.component';
 
 @Component({
   selector: 'app-project-detail-modal',
   standalone: true,
-  imports: [ReactiveFormsModule, KeyValuePipe, Notification, DeviceSelectorComponent, PosterUploaderComponent, VideoUploaderComponent, CustomTextElementComponent, CustomImageElementComponent, CategoryFieldComponent, TechnologiesSelectorComponent, DescriptionFieldComponent],
+  imports: [ReactiveFormsModule, Notification, DeviceSelectorComponent, PosterUploaderComponent, VideoUploaderComponent, CustomTextElementComponent, CustomImageElementComponent, CategoryFieldComponent, TechnologiesSelectorComponent, DescriptionFieldComponent, TextFormattingToolbarComponent],
   templateUrl: './project-detail-modal.html',
   styleUrls: [
     './project-detail-modal-base.css',
@@ -78,11 +78,44 @@ export class ProjectDetailModal implements OnDestroy {
   isEditMode = computed(() => this.canEdit() && !this.isPreviewMode());
   isAddToolbarExpanded = signal(false);
   
+  // Traccia l'elemento custom text selezionato per la toolbar di formattazione
+  selectedCustomTextId = signal<string | null>(null);
+  
+  // Flag per prevenire la chiusura della toolbar quando il mouse è sopra di essa
+  isToolbarHovered = signal<boolean>(false);
+  
+  
   // Esponi Math per il template
   Math = Math;
   
   // Traccia progetti già caricati per evitare loop
   private loadedProjectIds = new Set<number>();
+  
+  /**
+   * Computed per gli elementi custom come array
+   * Dipende DIRETTAMENTE dai signals base, non dal computed canvasItems
+   */
+  customItemsArray = computed(() => {
+    const deviceId = this.canvasService.selectedDevice().id;
+    const deviceItems = this.canvasService.deviceLayouts().get(deviceId) || new Map<string, CanvasItem>();
+    const customItems = this.canvasService.customElements();
+    
+    const result: Array<{ key: string; value: CanvasItem }> = [];
+    
+    // Aggiungi SOLO elementi predefiniti del dispositivo (escludi custom che sono già in customItems)
+    deviceItems.forEach((item, key) => {
+      if (!key.startsWith('custom-')) {
+        result.push({ key, value: item });
+      }
+    });
+    
+    // Aggiungi elementi custom (condivisi tra tutti i dispositivi)
+    customItems.forEach((item, key) => {
+      result.push({ key, value: item });
+    });
+    
+    return result;
+  });
 
   // Calcola altezza dinamica del canvas in base agli elementi
   canvasHeight = computed(() => {
@@ -288,9 +321,36 @@ export class ProjectDetailModal implements OnDestroy {
   handleKeyboardEvent(event: KeyboardEvent): void {
     // Chiudi solo con Escape, non con Delete/Canc
     if (event.key === 'Escape') {
+      // Se la toolbar di formattazione è aperta, chiudi quella prima
+      if (this.selectedCustomTextId()) {
+        this.closeFormattingToolbar();
+        event.preventDefault();
+        event.stopPropagation();
+        return;
+      }
+      // Altrimenti chiudi il modal
       this.onClose();
     }
     // Ignora Delete/Backspace per evitare chiusure accidentali durante editing
+  }
+  
+  @HostListener('document:mousedown', ['$event'])
+  handleDocumentClick(event: MouseEvent): void {
+    // Chiudi la toolbar se si clicca fuori da elementi contenteditable e dalla toolbar
+    if (!this.selectedCustomTextId()) return;
+    
+    const target = event.target as HTMLElement;
+    
+    // Non chiudere se clicca su contenteditable o toolbar
+    if (target.hasAttribute('contenteditable') || 
+        target.closest('[contenteditable="true"]') ||
+        target.closest('.text-formatting-toolbar') ||
+        target.closest('.text-formatting-toolbar-wrapper')) {
+      return;
+    }
+    
+    // Chiudi la toolbar
+    this.closeFormattingToolbar();
   }
 
   /**
@@ -299,8 +359,14 @@ export class ProjectDetailModal implements OnDestroy {
   onSave(): void {
     if (this.saving() || this.editForm.invalid) return;
 
+    // Aggiorna il contenuto di tutti gli elementi custom-text prima di salvare
+    this.updateAllCustomTextContent();
+
     // Pulisci elementi custom vuoti prima di salvare
     this.cleanEmptyCustomElements();
+    
+    // Salva il layout del canvas PRIMA di salvare il resto
+    this.canvasService.saveCanvasLayoutImmediate(this.project().id);
 
     this.saving.set(true);
     this.notifications.set([]);
@@ -505,10 +571,60 @@ export class ProjectDetailModal implements OnDestroy {
   }
   
   /**
-   * Gestisce il cambio contenuto da custom-text-element
+   * Gestisce il focus su custom-text-element
    */
-  onCustomTextContentChanged(elementId: string, content: string): void {
-    this.updateCustomElementContent(elementId, content);
+  onCustomTextFocused(elementId: string): void {
+    // Chiudi la toolbar precedente se era aperta per un altro elemento
+    if (this.selectedCustomTextId() && this.selectedCustomTextId() !== elementId) {
+      this.closeFormattingToolbar();
+    }
+    this.selectedCustomTextId.set(elementId);
+  }
+  
+  /**
+   * Gestisce il blur da custom-text-element
+   */
+  onCustomTextBlurred(): void {
+    // Non chiudere la toolbar se il mouse è sopra di essa
+    if (this.isToolbarHovered()) {
+      return;
+    }
+    this.selectedCustomTextId.set(null);
+  }
+  
+  /**
+   * Gestisce l'hover sulla toolbar
+   */
+  onToolbarMouseEnter(): void {
+    this.isToolbarHovered.set(true);
+  }
+  
+  onToolbarMouseLeave(): void {
+    this.isToolbarHovered.set(false);
+  }
+  
+  /**
+   * Chiude la toolbar di formattazione
+   */
+  closeFormattingToolbar(): void {
+    this.selectedCustomTextId.set(null);
+    this.isToolbarHovered.set(false);
+  }
+  
+  /**
+   * Gestisce il cambio stile dalla toolbar di formattazione
+   * (ora gestito direttamente da document.execCommand, questo metodo è deprecato)
+   */
+  onTextStyleChanged(style: TextStyle): void {
+    // Non più necessario, la formattazione è gestita direttamente dal contenteditable
+  }
+  
+  /**
+   * Ottiene lo stile dell'elemento custom text selezionato
+   * (ora gestito direttamente dalla selezione, ritorna oggetto vuoto)
+   */
+  getSelectedCustomTextStyle(): TextStyle {
+    return {};
   }
   
   /**
@@ -660,7 +776,10 @@ export class ProjectDetailModal implements OnDestroy {
   onCanvasMouseUp(event: MouseEvent): void {
     const newId = this.canvasService.finalizeDrawing();
     if (newId) {
-      this.saveCanvasLayout();
+      // L'elemento è ora draggabile/ridimensionabile immediatamente
+      // (contenteditable è disabilitato di default)
+      // NON salvare automaticamente - salvataggio solo al click del pulsante Salva
+      // this.saveCanvasLayout();
     }
   }
   
@@ -678,85 +797,89 @@ export class ProjectDetailModal implements OnDestroy {
     if (!this.isEditMode()) return;
     if (!itemId.startsWith('custom-') && itemId !== 'video') return; // Proteggi elementi base (tranne video)
     
+    // Verifica che l'elemento esista prima di rimuoverlo
+    const exists = this.canvasService.canvasItems().has(itemId);
+    if (!exists) {
+      return; // Elemento già rimosso
+    }
+    
+    // Chiudi la toolbar se l'elemento rimosso è quello selezionato
+    if (this.selectedCustomTextId() === itemId) {
+      this.closeFormattingToolbar();
+    }
+    
     this.canvasService.removeCanvasItem(itemId);
-    this.saveCanvasLayout();
+    
+    // NON salvare automaticamente - salvataggio solo al click del pulsante Salva
+    // this.saveCanvasLayout();
   }
 
   /**
    * Aggiorna il contenuto di un elemento custom
+   * NON salva automaticamente - il salvataggio avviene solo quando si preme il pulsante Salva
    */
   updateCustomElementContent(itemId: string, content: string): void {
     if (!this.isEditMode()) return;
     
     this.canvasService.updateCustomElementContent(itemId, content);
-    this.saveCanvasLayout();
+    // Rimosso saveCanvasLayout() - salvataggio solo al click del pulsante Salva
   }
 
+  /**
+   * Aggiorna il contenuto di tutti gli elementi custom-text dal DOM
+   * Chiamato prima di salvare per assicurarsi di avere il contenuto più recente
+   * Il contenuto viene sanitizzato dal componente custom-text-element
+   */
+  private updateAllCustomTextContent(): void {
+    // Trova tutti gli elementi contenteditable nel DOM che appartengono a custom-text
+    const canvasItems = this.canvasService.canvasItems();
+    
+    canvasItems.forEach((item, itemId) => {
+      if (item.type === 'custom-text') {
+        // Trova il div contenteditable corrispondente nel DOM
+        const editableDiv = document.getElementById(itemId) as HTMLDivElement;
+        
+        if (editableDiv && editableDiv.hasAttribute('contenteditable')) {
+          let currentContent = editableDiv.innerHTML || '';
+          
+          // Pulisce il contenuto: se è solo <br> o whitespace, lo considera vuoto
+          const tempDiv = document.createElement('div');
+          tempDiv.innerHTML = currentContent;
+          const textContent = tempDiv.textContent?.trim() || '';
+          
+          // Se non c'è testo e il contenuto è solo <br>, lo considera vuoto
+          if (!textContent && (currentContent === '<br>' || currentContent === '<br/>' || currentContent === '<br />')) {
+            currentContent = '';
+          }
+          
+          // Crea un nuovo item completo con il contenuto aggiornato
+          const updatedItem: CanvasItem = {
+            id: item.id,
+            left: item.left,
+            top: item.top,
+            width: item.width,
+            height: item.height,
+            type: item.type,
+            content: currentContent
+          };
+          
+          // Aggiorna direttamente in customElements se è un custom element
+          if (itemId.startsWith('custom-')) {
+            const customs = new Map(this.canvasService.customElements());
+            customs.set(itemId, updatedItem);
+            this.canvasService.customElements.set(new Map(customs));
+          }
+        }
+      }
+    });
+  }
+  
   /**
    * Pulisce elementi custom vuoti (senza contenuto)
    */
   private cleanEmptyCustomElements(): void {
-    const layouts = new Map(this.canvasService.deviceLayouts());
-    let hasChanges = false;
-    
-    // Pulisci per ogni dispositivo
-    layouts.forEach((itemsMap, deviceId) => {
-      const itemsToRemove: string[] = [];
-      
-      itemsMap.forEach((item, itemId) => {
-        // Rimuovi elementi custom senza contenuto
-        if ((item.type === 'custom-text' || item.type === 'custom-image') && !item.content) {
-          itemsToRemove.push(itemId);
-          hasChanges = true;
-        }
-      });
-      
-      // Rimuovi elementi vuoti
-      itemsToRemove.forEach(id => itemsMap.delete(id));
-    });
-    
-    if (hasChanges) {
-      this.canvasService.deviceLayouts.set(layouts);
-      // Salva immediatamente senza debounce
-      this.saveCanvasLayoutImmediate();
-    }
-  }
-
-  /**
-   * Salva il layout immediatamente senza debounce
-   */
-  private saveCanvasLayoutImmediate(): void {
-    const layouts = this.canvasService.deviceLayouts();
-    const multiDeviceConfig: Record<string, Record<string, any>> = {};
-
-    layouts.forEach((itemsMap, deviceId) => {
-      const deviceConfig: Record<string, any> = {};
-      
-      itemsMap.forEach((item, key) => {
-        deviceConfig[key] = {
-          left: item.left,
-          top: item.top,
-          width: item.width,
-          height: item.height,
-          ...(item.type && { type: item.type }),
-          ...(item.content !== undefined && { content: item.content })
-        };
-      });
-      
-      multiDeviceConfig[deviceId] = deviceConfig;
-    });
-
-    const projectId = this.project().id;
-    this.http.patch(apiUrl(`projects/${projectId}/layout`), {
-      layout_config: JSON.stringify(multiDeviceConfig)
-    }).subscribe({
-      next: () => {
-        // Layout salvato
-      },
-      error: (err) => {
-        console.error('Errore nel salvataggio del layout:', err);
-      }
-    });
+    // Ora i custom elements sono in customElements, non in deviceLayouts
+    this.canvasService.cleanEmptyCustomElements();
   }
 
   // ================== Metodi per Canvas con Absolute Positioning ==================
@@ -775,132 +898,11 @@ export class ProjectDetailModal implements OnDestroy {
   onItemMouseDown(event: MouseEvent, itemId: string): void {
     if (!this.isEditMode()) return;
     
-    // Disabilita drag su mobile (< 768px)
-    if (window.innerWidth <= 768) return;
+    // Chiudi la toolbar di formattazione se aperta
+    this.closeFormattingToolbar();
     
-    // Se clicca su un resize handle, non fare drag
-    const target = event.target as HTMLElement;
-    if (target.classList.contains('resize-handle')) return;
-    
-    event.preventDefault();
-    event.stopPropagation();
-
-    const item = this.canvasService.canvasItems().get(itemId);
-    if (!item) return;
-
-    this.canvasService.dragState.set({
-      isDragging: true,
-      draggedItemId: itemId,
-      startX: event.clientX,
-      startY: event.clientY,
-      startItemX: item.left,
-      startItemY: item.top
-    });
-
-    // Aggiungi event listeners globali
-    document.addEventListener('mousemove', this.handleDragMoveGlobal);
-    document.addEventListener('mouseup', this.handleMouseUpGlobal);
-  }
-
-  /**
-   * Handler globale per mousemove (bound function)
-   */
-  private handleDragMoveGlobal = (event: MouseEvent): void => {
-    if (this.canvasService.dragState().isDragging) {
-      this.handleDragMove(event);
-    } else if (this.canvasService.resizeState().isResizing) {
-      this.handleResizeMove(event);
-    }
-  };
-
-  /**
-   * Handler globale per mouseup (bound function)
-   */
-  private handleMouseUpGlobal = (event: MouseEvent): void => {
-    if (this.canvasService.dragState().isDragging) {
-      this.finalizeDrag();
-    } else if (this.canvasService.resizeState().isResizing) {
-      this.finalizeResize();
-    }
-    
-    // Rimuovi event listeners
-    document.removeEventListener('mousemove', this.handleDragMoveGlobal);
-    document.removeEventListener('mouseup', this.handleMouseUpGlobal);
-  };
-
-  /**
-   * Movimento durante il drag
-   */
-  private handleDragMove(event: MouseEvent): void {
-    const state = this.canvasService.dragState();
-    if (!state.draggedItemId) return;
-
-    const deltaX = event.clientX - state.startX;
-    const deltaY = event.clientY - state.startY;
-
-    const newLeft = state.startItemX + deltaX;
-    const newTop = state.startItemY + deltaY;
-
-    // Aggiorna posizione in tempo reale
-    const items = new Map(this.canvasService.canvasItems());
-    const item = items.get(state.draggedItemId);
-    if (!item) return;
-
-    // Limita solo a valori positivi, il canvas si espanderà automaticamente
-    items.set(state.draggedItemId, {
-      ...item,
-      left: Math.max(0, newLeft),
-      top: Math.max(0, newTop)
-    });
-
-    // Aggiorna layout del dispositivo corrente
-    this.canvasService.setDeviceLayout(this.canvasService.selectedDevice().id, items);
-  }
-
-  /**
-   * Finalizza il drag con snap-to-grid
-   */
-  private finalizeDrag(): void {
-    const state = this.canvasService.dragState();
-    if (!state.draggedItemId) return;
-
-    const item = this.canvasService.canvasItems().get(state.draggedItemId);
-    if (!item) return;
-
-    // Snap alla griglia più vicina (solo valori positivi)
-    const snappedLeft = Math.max(0, this.snapToGrid(item.left));
-    const snappedTop = Math.max(0, this.snapToGrid(item.top));
-
-    const items = new Map(this.canvasService.canvasItems());
-    items.set(state.draggedItemId, {
-      ...item,
-      left: snappedLeft,
-      top: snappedTop
-    });
-
-    // Aggiorna layout del dispositivo corrente
-    this.canvasService.setDeviceLayout(this.canvasService.selectedDevice().id, items);
-
-    // Reset stato drag
-    this.canvasService.dragState.set({
-      isDragging: false,
-      draggedItemId: null,
-      startX: 0,
-      startY: 0,
-      startItemX: 0,
-      startItemY: 0
-    });
-
-    // Salva layout
-    this.saveCanvasLayout();
-  }
-
-  /**
-   * Snap a multipli di 20px (griglia fine)
-   */
-  private snapToGrid(value: number): number {
-    const snapSize = 20;
-    return Math.round(value / snapSize) * snapSize;
+    // Delega al CanvasService che gestisce tutto
+    this.canvasService.startDrag(event, itemId);
   }
 
   // ================== Metodi per Resize con Absolute Positioning ==================
@@ -911,148 +913,11 @@ export class ProjectDetailModal implements OnDestroy {
   onResizeHandleMouseDown(event: MouseEvent, itemId: string, handle: string): void {
     if (!this.isEditMode()) return;
     
-    // Disabilita resize su mobile (< 768px)
-    if (window.innerWidth <= 768) return;
+    // Chiudi la toolbar di formattazione se aperta
+    this.closeFormattingToolbar();
     
-    event.preventDefault();
-    event.stopPropagation();
-
-    const item = this.canvasService.canvasItems().get(itemId);
-    if (!item) return;
-
-    this.canvasService.resizeState.set({
-      isResizing: true,
-      itemId,
-      handle,
-      startX: event.clientX,
-      startY: event.clientY,
-      startLeft: item.left,
-      startTop: item.top,
-      startWidth: item.width,
-      startHeight: item.height
-    });
-
-    // Aggiungi event listeners globali
-    document.addEventListener('mousemove', this.handleDragMoveGlobal);
-    document.addEventListener('mouseup', this.handleMouseUpGlobal);
-  }
-
-  /**
-   * Gestisce il movimento durante il resize
-   */
-  private handleResizeMove(event: MouseEvent): void {
-    const state = this.canvasService.resizeState();
-    if (!state.itemId) return;
-
-    const item = this.canvasService.canvasItems().get(state.itemId);
-    if (!item) return;
-
-    const deltaX = event.clientX - state.startX;
-    const deltaY = event.clientY - state.startY;
-
-    let newLeft = state.startLeft;
-    let newTop = state.startTop;
-    let newWidth = state.startWidth;
-    let newHeight = state.startHeight;
-
-    const minWidth = 150;  // Larghezza minima
-    const minHeight = 30; // Altezza minima ridotta per maggiore flessibilità
-
-    // Calcola nuove dimensioni in base all'handle
-    switch (state.handle) {
-      case 'e': // East (destra)
-        newWidth = Math.max(minWidth, state.startWidth + deltaX);
-        break;
-      case 'w': // West (sinistra)
-        newWidth = Math.max(minWidth, state.startWidth - deltaX);
-        newLeft = state.startLeft + (state.startWidth - newWidth);
-        break;
-      case 's': // South (sotto)
-        newHeight = Math.max(minHeight, state.startHeight + deltaY);
-        break;
-      case 'n': // North (sopra)
-        newHeight = Math.max(minHeight, state.startHeight - deltaY);
-        newTop = state.startTop + (state.startHeight - newHeight);
-        break;
-      case 'se': // South-East
-        newWidth = Math.max(minWidth, state.startWidth + deltaX);
-        newHeight = Math.max(minHeight, state.startHeight + deltaY);
-        break;
-      case 'sw': // South-West
-        newWidth = Math.max(minWidth, state.startWidth - deltaX);
-        newLeft = state.startLeft + (state.startWidth - newWidth);
-        newHeight = Math.max(minHeight, state.startHeight + deltaY);
-        break;
-      case 'ne': // North-East
-        newWidth = Math.max(minWidth, state.startWidth + deltaX);
-        newHeight = Math.max(minHeight, state.startHeight - deltaY);
-        newTop = state.startTop + (state.startHeight - newHeight);
-        break;
-      case 'nw': // North-West
-        newWidth = Math.max(minWidth, state.startWidth - deltaX);
-        newLeft = state.startLeft + (state.startWidth - newWidth);
-        newHeight = Math.max(minHeight, state.startHeight - deltaY);
-        newTop = state.startTop + (state.startHeight - newHeight);
-        break;
-    }
-
-    // Aggiorna in tempo reale (il canvas si espanderà automaticamente)
-    const items = new Map(this.canvasService.canvasItems());
-    items.set(state.itemId, {
-      ...item,
-      left: Math.max(0, newLeft),
-      top: Math.max(0, newTop),
-      width: newWidth,
-      height: newHeight
-    });
-
-    // Aggiorna layout del dispositivo corrente
-    this.canvasService.setDeviceLayout(this.canvasService.selectedDevice().id, items);
-  }
-
-  /**
-   * Finalizza il resize con snap
-   */
-  private finalizeResize(): void {
-    const state = this.canvasService.resizeState();
-    if (!state.itemId) return;
-
-    const item = this.canvasService.canvasItems().get(state.itemId);
-    if (!item) return;
-
-    // Snap posizioni e dimensioni (solo valori positivi e larghezza minima)
-    const snappedLeft = Math.max(0, this.snapToGrid(item.left));
-    const snappedTop = Math.max(0, this.snapToGrid(item.top));
-    const snappedWidth = Math.max(150, this.snapToGrid(item.width));
-    const snappedHeight = Math.max(30, this.snapToGrid(item.height)); // Altezza minima 30px
-
-    const items = new Map(this.canvasService.canvasItems());
-    items.set(state.itemId, {
-      ...item,
-      left: snappedLeft,
-      top: snappedTop,
-      width: snappedWidth,
-      height: snappedHeight
-    });
-
-    // Aggiorna layout del dispositivo corrente
-    this.canvasService.setDeviceLayout(this.canvasService.selectedDevice().id, items);
-
-    // Reset stato
-    this.canvasService.resizeState.set({
-      isResizing: false,
-      itemId: null,
-      handle: null,
-      startX: 0,
-      startY: 0,
-      startLeft: 0,
-      startTop: 0,
-      startWidth: 0,
-      startHeight: 0
-    });
-
-    // Salva layout
-    this.saveCanvasLayout();
+    // Delega al CanvasService che gestisce tutto
+    this.canvasService.startResize(event, itemId, handle);
   }
 
   // ================== Metodi per Persistenza Layout ==================
@@ -1076,11 +941,7 @@ export class ProjectDetailModal implements OnDestroy {
    * Cleanup quando il componente viene distrutto
    */
   ngOnDestroy(): void {
-    // Pulisci event listeners globali se esistono
-    document.removeEventListener('mousemove', this.handleDragMoveGlobal);
-    document.removeEventListener('mouseup', this.handleMouseUpGlobal);
-    
-    // Reset del servizio canvas
+    // Reset del servizio canvas (pulisce anche i suoi event listeners)
     this.canvasService.reset();
   }
 }

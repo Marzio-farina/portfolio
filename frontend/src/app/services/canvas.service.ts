@@ -2,6 +2,7 @@ import { Injectable, signal, computed } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
 import { apiUrl } from '../core/api/api-url';
 import { DevicePreset } from '../components/device-selector/device-selector.component';
+import { TextStyle } from '../components/text-formatting-toolbar/text-formatting-toolbar.component';
 
 // ================== Interfaces ==================
 
@@ -13,6 +14,7 @@ export interface CanvasItem {
   height: number;  // altezza in pixel
   type?: 'image' | 'video' | 'category' | 'technologies' | 'description' | 'custom-text' | 'custom-image';
   content?: string; // Contenuto per elementi custom (testo o URL immagine)
+  textStyle?: TextStyle; // Stili del testo per elementi custom-text
 }
 
 export interface DeviceLayout {
@@ -186,27 +188,38 @@ export class CanvasService {
 
   /**
    * Aggiorna un elemento del canvas
+   * @param forceChangeDetection - se true, forza il change detection (default: true)
    */
-  updateCanvasItem(itemId: string, updates: Partial<CanvasItem>): void {
+  updateCanvasItem(itemId: string, updates: Partial<CanvasItem>, forceChangeDetection: boolean = true): void {
     // Verifica se è un elemento custom
     if (itemId.startsWith('custom-')) {
-      const customs = new Map(this.customElements());
+      const customs = this.customElements();
       const existingItem = customs.get(itemId);
+      
       if (existingItem) {
-        customs.set(itemId, { ...existingItem, ...updates });
-        this.customElements.set(customs);
+        const updatedItem = { ...existingItem, ...updates };
+        customs.set(itemId, updatedItem);
+        
+        // Forza il change detection solo se richiesto (non durante drag/resize continui)
+        if (forceChangeDetection) {
+          this.customElements.set(new Map(customs));
+        }
       }
     } else {
       // Elemento predefinito - aggiorna nel layout del dispositivo
       const deviceId = this.selectedDevice().id;
-      const layouts = new Map(this.deviceLayouts());
-      const currentLayout = new Map(layouts.get(deviceId) || new Map());
+      const layouts = this.deviceLayouts();
+      const currentLayout = layouts.get(deviceId) || new Map();
       
       const existingItem = currentLayout.get(itemId);
       if (existingItem) {
-        currentLayout.set(itemId, { ...existingItem, ...updates });
-        layouts.set(deviceId, currentLayout);
-        this.deviceLayouts.set(layouts);
+        const updatedItem = { ...existingItem, ...updates };
+        currentLayout.set(itemId, updatedItem);
+        
+        // Forza il change detection solo se richiesto
+        if (forceChangeDetection) {
+          this.deviceLayouts.set(new Map(layouts));
+        }
       }
     }
   }
@@ -218,8 +231,15 @@ export class CanvasService {
     // Verifica se è un elemento custom
     if (item.id.startsWith('custom-')) {
       const customs = new Map(this.customElements());
+      
+      // Verifica che non esista già (previene duplicati)
+      if (customs.has(item.id)) {
+        return;
+      }
+      
       customs.set(item.id, item);
-      this.customElements.set(customs);
+      // Forza il change detection creando una nuova Map
+      this.customElements.set(new Map(customs));
     } else {
       // Elemento predefinito - aggiunge al layout del dispositivo
       const deviceId = this.selectedDevice().id;
@@ -240,7 +260,8 @@ export class CanvasService {
     if (itemId.startsWith('custom-')) {
       const customs = new Map(this.customElements());
       customs.delete(itemId);
-      this.customElements.set(customs);
+      // Forza il change detection creando una nuova Map
+      this.customElements.set(new Map(customs));
     } else {
       // Elemento predefinito - rimuove dal layout del dispositivo
       const deviceId = this.selectedDevice().id;
@@ -249,7 +270,8 @@ export class CanvasService {
       
       currentLayout.delete(itemId);
       layouts.set(deviceId, currentLayout);
-      this.deviceLayouts.set(layouts);
+      // Forza il change detection creando una nuova Map
+      this.deviceLayouts.set(new Map(layouts));
     }
   }
 
@@ -303,10 +325,11 @@ export class CanvasService {
     newLeft = Math.max(0, newLeft);
     newTop = Math.max(0, newTop);
 
+    // Aggiorna con change detection per movimento fluido
     this.updateCanvasItem(state.draggedItemId, {
       left: newLeft,
       top: newTop
-    });
+    }, true);
   };
 
   /**
@@ -314,6 +337,8 @@ export class CanvasService {
    */
   private finalizeDrag = (): void => {
     if (this.dragState().isDragging) {
+      const draggedId = this.dragState().draggedItemId;
+      
       this.dragState.set({
         isDragging: false,
         draggedItemId: null,
@@ -322,6 +347,15 @@ export class CanvasService {
         startItemX: 0,
         startItemY: 0
       });
+
+      // Forza il change detection alla fine del drag
+      if (draggedId) {
+        if (draggedId.startsWith('custom-')) {
+          this.customElements.set(new Map(this.customElements()));
+        } else {
+          this.deviceLayouts.set(new Map(this.deviceLayouts()));
+        }
+      }
 
       // Rimuovi listener globali
       document.removeEventListener('mousemove', this.handleDragMove);
@@ -378,6 +412,23 @@ export class CanvasService {
 
     // Calcola nuove dimensioni in base all'handle
     switch (state.handle) {
+      // Lati singoli
+      case 'n': // Nord (sopra) - riduce altezza, sposta top
+        newTop = state.startTop + deltaY;
+        newHeight = state.startHeight - deltaY;
+        break;
+      case 's': // Sud (sotto) - aumenta altezza
+        newHeight = state.startHeight + deltaY;
+        break;
+      case 'e': // Est (destra) - aumenta larghezza
+        newWidth = state.startWidth + deltaX;
+        break;
+      case 'w': // Ovest (sinistra) - riduce larghezza, sposta left
+        newLeft = state.startLeft + deltaX;
+        newWidth = state.startWidth - deltaX;
+        break;
+      
+      // Angoli
       case 'nw':
         newLeft = state.startLeft + deltaX;
         newTop = state.startTop + deltaY;
@@ -406,14 +457,16 @@ export class CanvasService {
 
     if (newWidth < minWidth) {
       newWidth = minWidth;
-      if (state.handle === 'nw' || state.handle === 'sw') {
+      // Se ridimensiona da sinistra (w, nw, sw), aggiusta left
+      if (state.handle === 'w' || state.handle === 'nw' || state.handle === 'sw') {
         newLeft = state.startLeft + state.startWidth - minWidth;
       }
     }
 
     if (newHeight < minHeight) {
       newHeight = minHeight;
-      if (state.handle === 'nw' || state.handle === 'ne') {
+      // Se ridimensiona dall'alto (n, nw, ne), aggiusta top
+      if (state.handle === 'n' || state.handle === 'nw' || state.handle === 'ne') {
         newTop = state.startTop + state.startHeight - minHeight;
       }
     }
@@ -422,12 +475,13 @@ export class CanvasService {
     newLeft = Math.max(0, newLeft);
     newTop = Math.max(0, newTop);
 
+    // Aggiorna con change detection per movimento fluido
     this.updateCanvasItem(state.itemId, {
       left: newLeft,
       top: newTop,
       width: newWidth,
       height: newHeight
-    });
+    }, true);
   };
 
   /**
@@ -435,6 +489,8 @@ export class CanvasService {
    */
   private finalizeResize = (): void => {
     if (this.resizeState().isResizing) {
+      const resizedId = this.resizeState().itemId;
+      
       this.resizeState.set({
         isResizing: false,
         itemId: null,
@@ -446,6 +502,15 @@ export class CanvasService {
         startWidth: 0,
         startHeight: 0
       });
+
+      // Forza il change detection alla fine del resize
+      if (resizedId) {
+        if (resizedId.startsWith('custom-')) {
+          this.customElements.set(new Map(this.customElements()));
+        } else {
+          this.deviceLayouts.set(new Map(this.deviceLayouts()));
+        }
+      }
 
       // Rimuovi listener globali
       document.removeEventListener('mousemove', this.handleResizeMove);
@@ -469,7 +534,15 @@ export class CanvasService {
       top,
       width,
       height,
-      content: '' // Vuoto di default
+      content: '', // Vuoto di default
+      textStyle: {
+        fontSize: 16,
+        fontWeight: 'normal',
+        fontStyle: 'normal',
+        textDecoration: 'none',
+        color: '#000000',
+        fontFamily: 'inherit'
+      }
     };
 
     this.addCanvasItem(newItem);
@@ -517,7 +590,8 @@ export class CanvasService {
       }
     }
     
-    this.customElements.set(customs);
+    // Forza il change detection creando una nuova Map
+    this.customElements.set(new Map(customs));
   }
 
   // ================== Drag-to-Draw ==================
@@ -658,7 +732,8 @@ export class CanvasService {
       }
 
       this.deviceLayouts.set(layouts);
-      this.customElements.set(customs);
+      // Forza il change detection creando una nuova Map
+      this.customElements.set(new Map(customs));
     } catch (error) {
       console.error('Errore nel parsing del layout:', error);
       // Fallback al default
