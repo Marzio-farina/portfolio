@@ -1,4 +1,4 @@
-import { Component, inject, input, output, signal, computed, effect, afterNextRender, ViewChild, ElementRef, untracked, OnDestroy } from '@angular/core';
+import { Component, inject, input, output, signal, computed, effect, afterNextRender, ViewChild, ElementRef, untracked, OnDestroy, HostListener } from '@angular/core';
 import { ReactiveFormsModule, FormBuilder, FormGroup, Validators } from '@angular/forms';
 import { HttpClient } from '@angular/common/http';
 import { KeyValuePipe } from '@angular/common';
@@ -594,6 +594,18 @@ export class ProjectDetailModal implements OnDestroy {
   onClose(): void {
     this.projectDetailModalService.close();
     this.closed.emit();
+  }
+  
+  /**
+   * Gestisce i tasti premuti - chiude solo con Escape
+   */
+  @HostListener('document:keydown', ['$event'])
+  handleKeyboardEvent(event: KeyboardEvent): void {
+    // Chiudi solo con Escape, non con Delete/Canc
+    if (event.key === 'Escape') {
+      this.onClose();
+    }
+    // Ignora Delete/Backspace per evitare chiusure accidentali durante editing
   }
 
   /**
