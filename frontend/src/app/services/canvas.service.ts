@@ -675,7 +675,6 @@ export class CanvasService {
 
     try {
       const parsed = JSON.parse(layoutConfigJson);
-      console.log('📦 Layout caricato dal JSON:', parsed);
       const layouts = new Map<string, Map<string, CanvasItem>>();
       
       // Elementi predefiniti da escludere se vuoti nel progetto
@@ -700,7 +699,6 @@ export class CanvasService {
         for (const itemId in parsed[deviceId]) {
           // Salta elementi predefiniti vuoti (senza contenuto nel progetto)
           if (elementsToFilter.has(itemId)) {
-            console.log(`⚠️ Elemento ${itemId} filtrato perché vuoto nel progetto`);
             continue;
           }
           
@@ -721,7 +719,6 @@ export class CanvasService {
           const newLayout = new Map(this.defaultLayout);
           // Rimuovi elementi vuoti
           elementsToFilter.forEach(itemId => {
-            console.log(`⚠️ Elemento ${itemId} filtrato dal default perché vuoto nel progetto`);
             newLayout.delete(itemId);
           });
           layouts.set(deviceId, newLayout);

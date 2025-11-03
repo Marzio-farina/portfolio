@@ -791,6 +791,27 @@ export class ProjectDetailModal implements OnDestroy {
   }
   
   /**
+   * Aggiunge l'elemento video predefinito al canvas
+   */
+  addVideoElement(): void {
+    if (!this.isEditMode()) return;
+    
+    // Aggiunge l'elemento video al canvas del dispositivo corrente
+    const defaultVideoItem: any = {
+      id: 'video',
+      type: 'video',
+      left: 440,
+      top: 20,
+      width: 400,
+      height: 320
+    };
+    
+    this.canvasService.addCanvasItem(defaultVideoItem);
+    this.isAddToolbarExpanded.set(false);
+    document.removeEventListener('click', this.closeAddToolbarOnClickOutside);
+  }
+  
+  /**
    * Gestisce il mouse move durante la creazione di un elemento
    */
   onCanvasMouseMove(event: MouseEvent): void {
