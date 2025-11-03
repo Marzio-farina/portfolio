@@ -297,7 +297,8 @@
 .field--textarea:focus-within .field-label { color: var(--accent-primary); }
 .field--textarea textarea:not(:placeholder-shown) + .field-label { opacity: 0; }
 
-/* ================== Preview Media (Immagine e Video) ================== */
+/* ================== Preview Media (Video) ================== */
+/* Nota: Preview immagine ora gestita dal componente poster-uploader con variant='form' */
 
 .add-project-modal__media-preview {
   position: relative;
@@ -319,21 +320,6 @@
 .add-project-modal__media-preview.is-dragover {
   border-color: var(--accent-primary);
   background: var(--accent-primary-alpha);
-}
-
-/* Preview Immagine */
-.add-project-modal__media-preview--image {
-  aspect-ratio: 16 / 9;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-}
-
-.add-project-modal__preview-img {
-  width: 100%;
-  height: 100%;
-  object-fit: contain;
-  border-radius: 4px;
 }
 
 /* Preview Video */

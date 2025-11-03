@@ -37,48 +37,15 @@
         <label class="add-project-modal__label">
           Immagine Poster <span class="add-project-modal__required">*</span>
         </label>
-        <input 
-          #posterInput
-          type="file" 
-          accept="image/jpeg,image/png,image/jpg,image/gif,image/webp"
-          (change)="onPosterFileSelected($event)"
-          [disabled]="uploading()"
-          style="display: none;">
         
-        @if (!hasPoster()) {
-          <button 
-            type="button"
-            class="add-project-modal__file-button"
-            (click)="openPosterPicker()"
-            [disabled]="uploading()"
-            (dragover)="onDragOverPoster($event)"
-            (dragleave)="onDragLeavePoster($event)"
-            (drop)="onFileDropPoster($event)"
-            [class.is-dragover]="isDragOverPoster()">
-            <svg viewBox="0 0 24 24" aria-hidden="true">
-              <path d="M21 19V5a2 2 0 0 0-2-2H5a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2zM8.5 13.5l2.5 3.01L14.5 12l4.5 6H5l3.5-4.5z"/>
-            </svg>
-            <span>Seleziona immagine</span>
-          </button>
-        } @else {
-          <div class="add-project-modal__media-preview add-project-modal__media-preview--image"
-               (dragover)="onDragOverPoster($event)" 
-               (dragleave)="onDragLeavePoster($event)"
-               (drop)="onFileDropPoster($event)"
-               [class.is-dragover]="isDragOverPoster()">
-            <img [src]="getPosterUrl()" alt="Poster progetto" class="add-project-modal__preview-img">
-            <button 
-              type="button"
-              class="add-project-modal__change-media"
-              (click)="openPosterPicker()"
-              [disabled]="uploading()"
-              aria-label="Carica">
-              <svg viewBox="0 0 24 24" aria-hidden="true">
-                <path d="M3 17.25V21h3.75L17.81 9.94l-3.75-3.75L3 17.25zM21.41 6.34a1.25 1.25 0 0 0 0-1.77l-2.98-2.98a1.25 1.25 0 0 0-1.77 0l-1.83 1.83 3.75 3.75 1.83-1.83z"/>
-              </svg>
-            </button>
-          </div>
-        }
+        <app-poster-uploader
+          [posterUrl]="getPosterUrl()"
+          [projectTitle]="addProjectForm.get('title')?.value || 'Progetto'"
+          [isEditMode]="true"
+          [saving]="uploading()"
+          [variant]="'form'"
+          (posterSelected)="onPosterSelected($event)">
+        </app-poster-uploader>
       </div>
 
       <div class="add-project-modal__field c2 row-2">

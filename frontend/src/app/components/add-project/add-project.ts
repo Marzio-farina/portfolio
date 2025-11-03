@@ -10,6 +10,7 @@ import { Observable, map } from 'rxjs';
 import { apiUrl } from '../../core/api/api-url';
 import { environment } from '../../../environments/environment';
 import { Progetto } from '../../core/models/project';
+import { PosterUploaderComponent, PosterData } from '../poster-uploader/poster-uploader.component';
 
 interface Category {
   id: number;
@@ -20,7 +21,7 @@ interface Category {
 @Component({
   selector: 'app-add-project',
   standalone: true,
-  imports: [ReactiveFormsModule, Notification],
+  imports: [ReactiveFormsModule, Notification, PosterUploaderComponent],
   templateUrl: './add-project.html',
   styleUrls: ['./add-project.css', './add-project.responsive.css']
 })
@@ -33,7 +34,6 @@ export class AddProject implements OnInit {
   private tenant = inject(TenantService);
   private http = inject(HttpClient);
 
-  @ViewChild('posterInput') posterInputRef?: ElementRef<HTMLInputElement>;
   @ViewChild('videoInput') videoInputRef?: ElementRef<HTMLInputElement>;
 
   addProjectForm: FormGroup;
@@ -41,15 +41,13 @@ export class AddProject implements OnInit {
   selectedPosterFile = signal<File | null>(null);
   selectedVideoFile = signal<File | null>(null);
   errorMsg = signal<string | null>(null);
-  isDragOverPoster = signal(false);
   isDragOverVideo = signal(false);
   
   // Preview URLs per immagini e video esistenti (in modalità edit)
   existingPosterUrl = signal<string | null>(null);
   existingVideoUrl = signal<string | null>(null);
   
-  // Preview URLs per file selezionati
-  posterPreviewUrl = signal<string | null>(null);
+  // Preview URL per video selezionato
   videoPreviewUrl = signal<string | null>(null);
   
   categories = signal<Category[]>([]);
@@ -240,11 +238,15 @@ export class AddProject implements OnInit {
     this.tenantRouter.navigate(['progetti']);
   }
 
-  onPosterFileSelected(event: Event): void {
-    const input = event.target as HTMLInputElement;
-    const file = input.files?.[0];
-    if (!file) return;
-    this.handleSelectedPosterFile(file);
+  /**
+   * Gestisce la selezione del poster dal poster-uploader component
+   */
+  onPosterSelected(data: PosterData): void {
+    this.selectedPosterFile.set(data.file);
+    this.addProjectForm.patchValue({ poster_file: data.file });
+    this.addProjectForm.get('poster_file')?.updateValueAndValidity();
+    this.removeNotification('project.poster_file');
+    // existingPosterUrl viene gestito direttamente dal componente poster-uploader
   }
 
   onVideoFileSelected(event: Event): void {
@@ -252,45 +254,6 @@ export class AddProject implements OnInit {
     const file = input.files?.[0];
     if (!file) return;
     this.handleSelectedVideoFile(file);
-  }
-
-  private handleSelectedPosterFile(file: File): void {
-    const validTypes = ['image/jpeg', 'image/png', 'image/jpg', 'image/gif', 'image/webp'];
-    if (!validTypes.includes(file.type)) {
-      const errorMessage = 'Formato file non supportato. Usa JPEG, PNG, GIF o WEBP.';
-      this.errorMsg.set(errorMessage);
-      this.selectedPosterFile.set(null);
-      this.addProjectForm.patchValue({ poster_file: null });
-      this.addProjectForm.get('poster_file')?.updateValueAndValidity();
-      if (this.posterInputRef?.nativeElement) this.posterInputRef.nativeElement.value = '';
-      this.addNotification('project.poster_file', errorMessage, 'error');
-      return;
-    }
-
-    const maxSize = 5 * 1024 * 1024; // 5MB
-    if (file.size > maxSize) {
-      const errorMessage = 'Il file è troppo grande. Dimensione massima: 5MB.';
-      this.errorMsg.set(errorMessage);
-      this.selectedPosterFile.set(null);
-      this.addProjectForm.patchValue({ poster_file: null });
-      this.addProjectForm.get('poster_file')?.updateValueAndValidity();
-      if (this.posterInputRef?.nativeElement) this.posterInputRef.nativeElement.value = '';
-      this.addNotification('project.poster_file', errorMessage, 'error');
-      return;
-    }
-
-    this.selectedPosterFile.set(file);
-    this.addProjectForm.patchValue({ poster_file: file });
-    this.addProjectForm.get('poster_file')?.updateValueAndValidity();
-    this.removeNotification('project.poster_file');
-    this.errorMsg.set(null);
-    
-    // Crea preview URL per il file
-    const reader = new FileReader();
-    reader.onload = (e) => {
-      this.posterPreviewUrl.set(e.target?.result as string);
-    };
-    reader.readAsDataURL(file);
   }
 
   private handleSelectedVideoFile(file: File): void {
@@ -332,27 +295,6 @@ export class AddProject implements OnInit {
     reader.readAsDataURL(file);
   }
 
-  onDragOverPoster(event: DragEvent): void {
-    event.preventDefault();
-    event.stopPropagation();
-    this.isDragOverPoster.set(true);
-  }
-
-  onDragLeavePoster(event: DragEvent): void {
-    event.preventDefault();
-    event.stopPropagation();
-    this.isDragOverPoster.set(false);
-  }
-
-  onFileDropPoster(event: DragEvent): void {
-    event.preventDefault();
-    event.stopPropagation();
-    this.isDragOverPoster.set(false);
-    const dt = event.dataTransfer;
-    const file = dt?.files?.[0];
-    if (!file) return;
-    this.handleSelectedPosterFile(file);
-  }
 
   onDragOverVideo(event: DragEvent): void {
     event.preventDefault();
@@ -376,19 +318,7 @@ export class AddProject implements OnInit {
     this.handleSelectedVideoFile(file);
   }
 
-  openPosterPicker(): void { this.posterInputRef?.nativeElement?.click(); }
   openVideoPicker(): void { this.videoInputRef?.nativeElement?.click(); }
-
-  removePosterFile(): void {
-    this.selectedPosterFile.set(null);
-    this.posterPreviewUrl.set(null);
-    this.addProjectForm.patchValue({ poster_file: null });
-    const posterCtrl = this.addProjectForm.get('poster_file');
-    posterCtrl?.updateValueAndValidity();
-    posterCtrl?.markAsTouched();
-    if (this.posterInputRef?.nativeElement) this.posterInputRef.nativeElement.value = '';
-    if (posterCtrl?.invalid) this.onFieldBlur('project.poster_file');
-  }
 
   removeVideoFile(): void {
     this.selectedVideoFile.set(null);
@@ -401,9 +331,9 @@ export class AddProject implements OnInit {
     this.removeNotification('project.video_file');
   }
   
-  // Ottieni URL da mostrare (preview o esistente)
+  // Ottieni URL da mostrare (esistente o null - il componente poster-uploader gestisce la preview)
   getPosterUrl(): string | null {
-    return this.posterPreviewUrl() || this.existingPosterUrl();
+    return this.existingPosterUrl();
   }
   
   getVideoUrl(): string | null {
@@ -411,7 +341,7 @@ export class AddProject implements OnInit {
   }
   
   hasPoster(): boolean {
-    return !!(this.getPosterUrl() || this.selectedPosterFile());
+    return !!(this.existingPosterUrl() || this.selectedPosterFile());
   }
   
   hasVideo(): boolean {
