@@ -164,7 +164,7 @@ export class ProjectDetailModal implements OnDestroy {
           const layoutConfigJson = typeof layoutConfig === 'string' 
             ? layoutConfig 
             : JSON.stringify(layoutConfig);
-          this.loadCanvasLayout(layoutConfigJson);
+          this.loadCanvasLayout(layoutConfigJson, this.project());
           this.loadedProjectIds.add(projectId);
         });
       }
@@ -971,8 +971,8 @@ export class ProjectDetailModal implements OnDestroy {
   /**
    * Carica il layout dal progetto (delega al servizio)
    */
-  private loadCanvasLayout(layoutConfigJson: string | null): void {
-    this.canvasService.loadCanvasLayout(layoutConfigJson);
+  private loadCanvasLayout(layoutConfigJson: string | null, project: Progetto): void {
+    this.canvasService.loadCanvasLayout(layoutConfigJson, project);
   }
 
   /**

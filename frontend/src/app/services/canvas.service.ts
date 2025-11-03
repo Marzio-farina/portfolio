@@ -3,6 +3,7 @@ import { HttpClient } from '@angular/common/http';
 import { apiUrl } from '../core/api/api-url';
 import { DevicePreset } from '../components/device-selector/device-selector.component';
 import { TextStyle } from '../components/text-formatting-toolbar/text-formatting-toolbar.component';
+import { Progetto } from '../components/progetti-card/progetti-card';
 
 // ================== Interfaces ==================
 
@@ -626,15 +627,47 @@ export class CanvasService {
   // ================== Layout Persistence ==================
 
   /**
+   * Restituisce gli elementi predefiniti da filtrare perché vuoti
+   */
+  private getEmptyPredefinedElements(project?: Progetto): Set<string> {
+    const emptyElements = new Set<string>();
+    
+    if (!project) {
+      return emptyElements;
+    }
+    
+    // Escludi video se non esiste
+    if (!project.video) {
+      emptyElements.add('video');
+    }
+    
+    // Escludi technologies se array vuoto o non esiste
+    if (!project.technologies || project.technologies.length === 0) {
+      emptyElements.add('technologies');
+    }
+    
+    // category e description sono sempre presenti (stringa), image sempre presente (poster)
+    // Quindi non li filtriamo mai
+    
+    return emptyElements;
+  }
+  
+  /**
    * Carica il layout dal server
    * Supporta sia il nuovo formato (custom per dispositivo) che il vecchio (custom condivisi)
    */
-  loadCanvasLayout(layoutConfigJson: string | null): void {
+  loadCanvasLayout(layoutConfigJson: string | null, project?: Progetto): void {
     if (!layoutConfigJson) {
-      // Nessun layout salvato, usa il default per tutti i dispositivi
+      // Nessun layout salvato, usa il default per tutti i dispositivi (filtrato)
+      const elementsToFilter = this.getEmptyPredefinedElements(project);
       const layouts = new Map<string, Map<string, CanvasItem>>();
       for (const device of this.devicePresets) {
-        layouts.set(device.id, new Map(this.defaultLayout));
+        const newLayout = new Map(this.defaultLayout);
+        // Rimuovi elementi vuoti
+        elementsToFilter.forEach(itemId => {
+          newLayout.delete(itemId);
+        });
+        layouts.set(device.id, newLayout);
       }
       this.deviceLayouts.set(layouts);
       return;
@@ -642,7 +675,11 @@ export class CanvasService {
 
     try {
       const parsed = JSON.parse(layoutConfigJson);
+      console.log('📦 Layout caricato dal JSON:', parsed);
       const layouts = new Map<string, Map<string, CanvasItem>>();
+      
+      // Elementi predefiniti da escludere se vuoti nel progetto
+      const elementsToFilter = this.getEmptyPredefinedElements(project);
       
       // COMPATIBILITÀ: Se esiste __customElements (vecchio formato), caricalo
       const sharedCustoms = new Map<string, CanvasItem>();
@@ -659,29 +696,43 @@ export class CanvasService {
         
         const deviceLayout = new Map<string, CanvasItem>();
         
-        // Carica tutti gli elementi (predefiniti E custom)
+        // Carica SOLO gli elementi salvati (non il default)
         for (const itemId in parsed[deviceId]) {
+          // Salta elementi predefiniti vuoti (senza contenuto nel progetto)
+          if (elementsToFilter.has(itemId)) {
+            console.log(`⚠️ Elemento ${itemId} filtrato perché vuoto nel progetto`);
+            continue;
+          }
+          
           deviceLayout.set(itemId, parsed[deviceId][itemId]);
         }
         
         // COMPATIBILITÀ: Aggiungi custom elements condivisi (se esistono nel vecchio formato)
-        // Questo permette migrazione graduale
         if (sharedCustoms.size > 0) {
           sharedCustoms.forEach((item, itemId) => {
-            // Aggiungi solo se non esiste già nel layout specifico del dispositivo
             if (!deviceLayout.has(itemId)) {
               deviceLayout.set(itemId, item);
             }
           });
         }
         
-        layouts.set(deviceId, deviceLayout);
+        // Se il layout è completamente vuoto per questo dispositivo, usa il default
+        if (deviceLayout.size === 0) {
+          layouts.set(deviceId, new Map(this.defaultLayout));
+        } else {
+          layouts.set(deviceId, deviceLayout);
+        }
       }
 
       // Aggiungi layout default per dispositivi mancanti
       for (const device of this.devicePresets) {
         if (!layouts.has(device.id)) {
           const newLayout = new Map(this.defaultLayout);
+          
+          // Rimuovi elementi vuoti dal default
+          elementsToFilter.forEach(itemId => {
+            newLayout.delete(itemId);
+          });
           
           // COMPATIBILITÀ: Aggiungi custom condivisi anche ai nuovi dispositivi
           sharedCustoms.forEach((item, itemId) => {
@@ -695,10 +746,16 @@ export class CanvasService {
       this.deviceLayouts.set(layouts);
     } catch (error) {
       console.error('Errore nel parsing del layout:', error);
-      // Fallback al default
+      // Fallback al default (filtrato)
+      const elementsToFilter = this.getEmptyPredefinedElements(project);
       const layouts = new Map<string, Map<string, CanvasItem>>();
       for (const device of this.devicePresets) {
-        layouts.set(device.id, new Map(this.defaultLayout));
+        const newLayout = new Map(this.defaultLayout);
+        // Rimuovi elementi vuoti
+        elementsToFilter.forEach(itemId => {
+          newLayout.delete(itemId);
+        });
+        layouts.set(device.id, newLayout);
       }
       this.deviceLayouts.set(layouts);
     }
