@@ -1,4 +1,4 @@
-import { Component, inject, input, output, signal, computed, effect, afterNextRender, ViewChild, ElementRef, untracked, OnDestroy, HostListener } from '@angular/core';
+import { Component, inject, input, output, signal, computed, effect, afterNextRender, ViewChild, ViewChildren, QueryList, ElementRef, untracked, OnDestroy, HostListener } from '@angular/core';
 import { ReactiveFormsModule, FormBuilder, FormGroup, Validators } from '@angular/forms';
 import { HttpClient } from '@angular/common/http';
 import { ProjectDetailModalService } from '../../services/project-detail-modal.service';
@@ -40,6 +40,9 @@ export class ProjectDetailModal implements OnDestroy {
   private fb = inject(FormBuilder);
   private http = inject(HttpClient);
   canvasService = inject(CanvasService);
+
+  // Accesso a tutti i componenti custom-text per leggere il contenuto
+  @ViewChildren(CustomTextElementComponent) customTextElements!: QueryList<CustomTextElementComponent>;
 
   // Riceve il progetto dal servizio tramite input
   project = input.required<Progetto>();
@@ -831,45 +834,35 @@ export class ProjectDetailModal implements OnDestroy {
    * Il contenuto viene sanitizzato dal componente custom-text-element
    */
   private updateAllCustomTextContent(): void {
-    // Trova tutti gli elementi contenteditable nel DOM che appartengono a custom-text
-    const canvasItems = this.canvasService.canvasItems();
-    
-    canvasItems.forEach((item, itemId) => {
-      if (item.type === 'custom-text') {
-        // Trova il div contenteditable corrispondente nel DOM
-        const editableDiv = document.getElementById(itemId) as HTMLDivElement;
+    // Usa ViewChildren per accedere ai componenti CustomTextElementComponent
+    if (!this.customTextElements) {
+      return;
+    }
+
+    this.customTextElements.forEach((component) => {
+      const elementId = component.elementId();
+      const currentContent = component.getCurrentContent();
+      
+      // Trova l'elemento custom corrispondente
+      const customElements = this.canvasService.customElements();
+      const existingItem = customElements.get(elementId);
+      
+      if (existingItem && existingItem.type === 'custom-text') {
+        // Crea un nuovo item completo con il contenuto aggiornato
+        const updatedItem: CanvasItem = {
+          id: existingItem.id,
+          left: existingItem.left,
+          top: existingItem.top,
+          width: existingItem.width,
+          height: existingItem.height,
+          type: existingItem.type,
+          content: currentContent
+        };
         
-        if (editableDiv && editableDiv.hasAttribute('contenteditable')) {
-          let currentContent = editableDiv.innerHTML || '';
-          
-          // Pulisce il contenuto: se è solo <br> o whitespace, lo considera vuoto
-          const tempDiv = document.createElement('div');
-          tempDiv.innerHTML = currentContent;
-          const textContent = tempDiv.textContent?.trim() || '';
-          
-          // Se non c'è testo e il contenuto è solo <br>, lo considera vuoto
-          if (!textContent && (currentContent === '<br>' || currentContent === '<br/>' || currentContent === '<br />')) {
-            currentContent = '';
-          }
-          
-          // Crea un nuovo item completo con il contenuto aggiornato
-          const updatedItem: CanvasItem = {
-            id: item.id,
-            left: item.left,
-            top: item.top,
-            width: item.width,
-            height: item.height,
-            type: item.type,
-            content: currentContent
-          };
-          
-          // Aggiorna direttamente in customElements se è un custom element
-          if (itemId.startsWith('custom-')) {
-            const customs = new Map(this.canvasService.customElements());
-            customs.set(itemId, updatedItem);
-            this.canvasService.customElements.set(new Map(customs));
-          }
-        }
+        // Aggiorna in customElements
+        const customs = new Map(customElements);
+        customs.set(elementId, updatedItem);
+        this.canvasService.customElements.set(customs);
       }
     });
   }

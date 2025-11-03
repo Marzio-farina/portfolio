@@ -146,13 +146,36 @@ export class TextFormattingToolbarComponent implements AfterViewInit {
   }
   
   /**
-   * Cambia colore
+   * Cambia colore usando span con style inline
    */
   changeColor(color: string, closePopup: boolean = false): void {
     this.saveSelection();
     this.restoreSelection();
-    // @ts-ignore - execCommand è deprecato ma ancora funzionante
-    document.execCommand('foreColor', false, color);
+    
+    const selection = window.getSelection();
+    if (selection && selection.rangeCount > 0) {
+      const range = selection.getRangeAt(0);
+      
+      if (!range.collapsed) {
+        // Se c'è testo selezionato, applica il colore
+        const span = document.createElement('span');
+        span.style.color = color;
+        
+        try {
+          range.surroundContents(span);
+        } catch (e) {
+          // Se surroundContents fallisce (selezione complessa), usa un altro approccio
+          const fragment = range.extractContents();
+          span.appendChild(fragment);
+          range.insertNode(span);
+        }
+        
+        // Ripristina la selezione
+        selection.removeAllRanges();
+        selection.addRange(range);
+      }
+    }
+    
     setTimeout(() => this.colorState.set(color), 0);
     
     // Chiudi il popup se richiesto (per i colori predefiniti)
