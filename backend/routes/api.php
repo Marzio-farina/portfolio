@@ -186,22 +186,7 @@ Route::middleware(['api', "throttle:{$throttleLimit}", 'db.connection'])
             Route::delete('attestati/{attestato}', [AttestatiController::class, 'destroy']);
             
             // Projects - creazione, aggiornamento ed eliminazione richiedono autenticazione
-            Route::post('projects', function (Request $request) {
-                // Debug: log della richiesta PRIMA di arrivare al controller
-                $debugFile = storage_path('logs/project_debug.log');
-                file_put_contents($debugFile, "=== ROUTE POST /projects RAGGIUNTA ===\n" . json_encode([
-                    'timestamp' => date('Y-m-d H:i:s'),
-                    'method' => $request->method(),
-                    'url' => $request->fullUrl(),
-                    'has_auth' => Auth::check(),
-                    'user_id' => Auth::id(),
-                    'content_type' => $request->header('Content-Type'),
-                    'has_files' => $request->hasFile('poster_file'),
-                    'input_keys' => array_keys($request->all()),
-                ], JSON_PRETTY_PRINT) . "\n", FILE_APPEND);
-                
-                return app(ProjectController::class)->store($request);
-            });
+            Route::post('projects', [ProjectController::class, 'store']);
             Route::put('projects/{project}', [ProjectController::class, 'update']);
             Route::post('projects/{project}', [ProjectController::class, 'update']); // POST per supportare FormData con file
             Route::patch('projects/{project}/layout', [ProjectController::class, 'updateLayout']); // Aggiorna solo il layout
