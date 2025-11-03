@@ -184,13 +184,17 @@ export class ProgettiCard {
       url += `?user_id=${userId}`;
     }
     
+    console.log('📡 Caricamento tecnologie da:', url, 'userId:', userId);
+    
     this.http.get<Technology[]>(url)
       .pipe(takeUntilDestroyed(this.destroyRef))
       .subscribe({
         next: (techs) => {
+          console.log('✅ Tecnologie caricate:', techs?.length || 0, techs);
           this.availableTechnologies.set(techs || []);
         },
-        error: () => {
+        error: (err) => {
+          console.error('❌ Errore caricamento tecnologie:', err);
           this.availableTechnologies.set([]);
         }
       });
@@ -454,24 +458,33 @@ export class ProgettiCard {
   
   /**
    * Aggiunge una tecnologia al progetto cercandola per nome
+   * Se non esiste, la crea prima di aggiungerla
    */
   private addTechnologyToProject(techName: string): void {
+    console.log('🔍 Ricerca tecnologia:', {
+      cercando: techName,
+      disponibili: this.availableTechnologies().map(t => t.title),
+      totale: this.availableTechnologies().length
+    });
+    
     // Cerca la tecnologia per nome (case-insensitive)
-    const tech = this.availableTechnologies().find(t => 
+    let tech = this.availableTechnologies().find(t => 
       t.title.toLowerCase() === techName.toLowerCase()
     );
     
+    console.log('✅ Tecnologia trovata:', tech);
+    
     if (!tech) {
-      // Tecnologia non trovata - apri il modal
-      this.isAddTechExpanded.set(false);
-      this.newTechValue.set('');
-      this.clicked.emit(this.progetto());
+      console.log('🆕 Tecnologia non trovata, creazione in corso...');
+      // Tecnologia non trovata - creala prima
+      this.createAndAddTechnology(techName);
       return;
     }
     
     // Verifica se la tecnologia è già nel progetto
     const currentTechs = this.progetto().technologies || [];
     if (currentTechs.some(t => t.id === tech.id)) {
+      console.log('⚠️ Tecnologia già presente nel progetto');
       // Già presente, collassa senza fare nulla
       this.isAddTechExpanded.set(false);
       this.newTechValue.set('');
@@ -482,10 +495,13 @@ export class ProgettiCard {
     this.addingTechnology.set(true);
     const newTechnologyIds = [...currentTechs.map(t => t.id), tech.id];
     
+    console.log('📤 Aggiornamento progetto con technology_ids:', newTechnologyIds);
+    
     this.api.update$(this.progetto().id, { technology_ids: newTechnologyIds })
       .pipe(takeUntilDestroyed(this.destroyRef))
       .subscribe({
         next: (updatedProject) => {
+          console.log('✅ Progetto aggiornato con successo');
           this.addingTechnology.set(false);
           this.isAddTechExpanded.set(false);
           this.newTechValue.set('');
@@ -496,7 +512,71 @@ export class ProgettiCard {
           // Notifica il parent dell'update
           this.categoryChanged.emit(updatedProject);
         },
-        error: () => {
+        error: (err) => {
+          console.error('❌ Errore aggiornamento progetto:', err);
+          this.addingTechnology.set(false);
+          this.isAddTechExpanded.set(false);
+          this.newTechValue.set('');
+        }
+      });
+  }
+  
+  /**
+   * Crea una nuova tecnologia e poi la aggiunge al progetto
+   */
+  private createAndAddTechnology(techName: string): void {
+    this.addingTechnology.set(true);
+    const userId = this.tenant.userId();
+    
+    const body = {
+      title: techName.trim(),
+      type: 'frontend', // Default type
+      user_id: userId
+    };
+    
+    console.log('🆕 Creazione nuova tecnologia:', body);
+    
+    this.http.post<{ ok: boolean; data: Technology; is_new: boolean }>(apiUrl('technologies'), body)
+      .pipe(takeUntilDestroyed(this.destroyRef))
+      .subscribe({
+        next: (response) => {
+          console.log('✅ Tecnologia creata:', response.data);
+          
+          // Aggiungi la nuova tecnologia alla lista disponibili
+          const currentAvailable = this.availableTechnologies();
+          this.availableTechnologies.set([...currentAvailable, response.data]);
+          
+          // Ora aggiungila al progetto
+          const currentTechs = this.progetto().technologies || [];
+          const newTechnologyIds = [...currentTechs.map(t => t.id), response.data.id];
+          
+          console.log('📤 Aggiornamento progetto con nuova tecnologia, technology_ids:', newTechnologyIds);
+          
+          this.api.update$(this.progetto().id, { technology_ids: newTechnologyIds })
+            .pipe(takeUntilDestroyed(this.destroyRef))
+            .subscribe({
+              next: (updatedProject) => {
+                console.log('✅ Progetto aggiornato con nuova tecnologia');
+                this.addingTechnology.set(false);
+                this.isAddTechExpanded.set(false);
+                this.newTechValue.set('');
+                if (this.addTechTimer) {
+                  clearTimeout(this.addTechTimer);
+                  this.addTechTimer = null;
+                }
+                // Notifica il parent dell'update
+                this.categoryChanged.emit(updatedProject);
+              },
+              error: (err) => {
+                console.error('❌ Errore aggiornamento progetto con nuova tecnologia:', err);
+                this.addingTechnology.set(false);
+                this.isAddTechExpanded.set(false);
+                this.newTechValue.set('');
+              }
+            });
+        },
+        error: (err) => {
+          console.error('❌ Errore creazione tecnologia:', err);
           this.addingTechnology.set(false);
           this.isAddTechExpanded.set(false);
           this.newTechValue.set('');

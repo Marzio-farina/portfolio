@@ -195,6 +195,9 @@ Route::middleware(['api', "throttle:{$throttleLimit}", 'db.connection'])
             // Categories - creazione ed eliminazione richiedono autenticazione
             Route::post('categories', [CategoryController::class, 'store']);
             Route::delete('categories/by-title/{title}', [CategoryController::class, 'destroyByTitle']);
+            
+            // Technologies - creazione richiede autenticazione
+            Route::post('technologies', [TechnologyController::class, 'store']);
         });
 
         // ====================================================================

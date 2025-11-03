@@ -56,5 +56,68 @@ class TechnologyController extends Controller
 
         return response()->json($technologies, 200, [], JSON_UNESCAPED_UNICODE);
     }
+    
+    /**
+     * Create a new technology
+     * 
+     * Creates a new technology for the authenticated user.
+     * 
+     * @param Request $request HTTP request with technology data
+     * @return JsonResponse Created technology
+     */
+    public function store(Request $request): JsonResponse
+    {
+        $validated = $request->validate([
+            'title' => 'required|string|max:100',
+            'description' => 'nullable|string|max:500',
+            'type' => 'nullable|string|in:frontend,backend,tools',
+            'user_id' => 'nullable|integer|exists:users,id',
+        ]);
+        
+        // Usa l'user_id dal request o dall'utente autenticato
+        $userId = $validated['user_id'] ?? auth()->id();
+        
+        // Verifica se esiste già una tecnologia con lo stesso titolo per questo utente
+        $existing = Technology::where('title', $validated['title'])
+            ->where(function ($q) use ($userId) {
+                $q->whereNull('user_id')
+                  ->orWhere('user_id', $userId);
+            })
+            ->first();
+        
+        if ($existing) {
+            return response()->json([
+                'ok' => true,
+                'data' => [
+                    'id' => $existing->id,
+                    'title' => $existing->title,
+                    'description' => $existing->description,
+                    'user_id' => $existing->user_id,
+                ],
+                'message' => 'Tecnologia già esistente',
+                'is_new' => false
+            ], 200, [], JSON_UNESCAPED_UNICODE);
+        }
+        
+        // Crea la nuova tecnologia
+        $technology = Technology::create([
+            'title' => trim($validated['title']),
+            'description' => $validated['description'] ?? null,
+            'type' => $validated['type'] ?? 'frontend',
+            'user_id' => $userId,
+        ]);
+        
+        return response()->json([
+            'ok' => true,
+            'data' => [
+                'id' => $technology->id,
+                'title' => $technology->title,
+                'description' => $technology->description,
+                'user_id' => $technology->user_id,
+            ],
+            'message' => 'Tecnologia creata con successo',
+            'is_new' => true
+        ], 201, [], JSON_UNESCAPED_UNICODE);
+    }
 }
 
