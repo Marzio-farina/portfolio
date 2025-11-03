@@ -27,6 +27,9 @@ return Application::configure(basePath: dirname(__DIR__))
             'http.cache' => HttpCache::class,
             'db.connection' => DatabaseConnectionMiddleware::class,
         ]);
+        
+        // Disabilita redirect per API quando non autenticato (restituisci JSON 401 invece)
+        $middleware->redirectGuestsTo(fn () => null);
     })
     ->withExceptions(function (Exceptions $exceptions): void {
         $exceptions->shouldRenderJsonWhen(fn () => true);
