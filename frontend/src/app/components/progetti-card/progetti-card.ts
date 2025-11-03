@@ -2,6 +2,8 @@ import { Component, ElementRef, input, ViewChild, signal, inject, effect, comput
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { MatSelectModule } from '@angular/material/select';
 import { MatFormFieldModule } from '@angular/material/form-field';
+import { HttpClient } from '@angular/common/http';
+import { apiUrl } from '../../core/api/api-url';
 import { ThemeService } from '../../services/theme.service';
 import { AuthService } from '../../services/auth.service';
 import { EditModeService } from '../../services/edit-mode.service';
@@ -10,6 +12,12 @@ import { ProjectService } from '../../services/project.service';
 import { Progetto } from '../../core/models/project';
 
 export type { Progetto };
+
+interface Technology {
+  id: number;
+  title: string;
+  description?: string | null;
+}
 
 @Component({
   selector: 'app-progetti-card',
@@ -24,6 +32,7 @@ export class ProgettiCard {
   private readonly auth = inject(AuthService);
   private readonly editModeService = inject(EditModeService);
   private readonly api = inject(ProjectService);
+  private readonly http = inject(HttpClient);
   private readonly destroyRef = inject(DestroyRef);
   
   isAuthenticated = computed(() => this.auth.isAuthenticated());
@@ -68,6 +77,10 @@ export class ProgettiCard {
   isAddTechExpanded = signal(false);
   newTechValue = signal('');
   private addTechTimer: any = null;
+  
+  // Tecnologie disponibili per ricerca
+  availableTechnologies = signal<Technology[]>([]);
+  addingTechnology = signal(false);
   
   // Gestione visualizzazione tecnologie (max sulla stessa riga)
   visibleTechs = computed(() => {
@@ -153,6 +166,25 @@ export class ProgettiCard {
     if (rgbMatch) {
       this.radialGradientColor.set(`rgba(${rgbMatch[1]}, ${rgbMatch[2]}, ${rgbMatch[3]}, 0.15)`);
     }
+    
+    // Carica le tecnologie disponibili per la ricerca
+    this.loadTechnologies();
+  }
+  
+  /**
+   * Carica tutte le tecnologie disponibili dal backend
+   */
+  private loadTechnologies(): void {
+    this.http.get<Technology[]>(apiUrl('technologies'))
+      .pipe(takeUntilDestroyed(this.destroyRef))
+      .subscribe({
+        next: (techs) => {
+          this.availableTechnologies.set(techs || []);
+        },
+        error: () => {
+          this.availableTechnologies.set([]);
+        }
+      });
   }
 
   /**
@@ -399,9 +431,8 @@ export class ProgettiCard {
     const trimmedValue = this.newTechValue().trim();
     
     if (saveIfNotEmpty && trimmedValue !== '') {
-      // TODO: Implementare logica di salvataggio tag
-      // Per ora apriamo il modal
-      this.clicked.emit(this.progetto());
+      this.addTechnologyToProject(trimmedValue);
+      return; // Non collassare subito, aspetta la risposta API
     }
     
     this.isAddTechExpanded.set(false);
@@ -410,6 +441,58 @@ export class ProgettiCard {
       clearTimeout(this.addTechTimer);
       this.addTechTimer = null;
     }
+  }
+  
+  /**
+   * Aggiunge una tecnologia al progetto cercandola per nome
+   */
+  private addTechnologyToProject(techName: string): void {
+    // Cerca la tecnologia per nome (case-insensitive)
+    const tech = this.availableTechnologies().find(t => 
+      t.title.toLowerCase() === techName.toLowerCase()
+    );
+    
+    if (!tech) {
+      // Tecnologia non trovata - apri il modal
+      this.isAddTechExpanded.set(false);
+      this.newTechValue.set('');
+      this.clicked.emit(this.progetto());
+      return;
+    }
+    
+    // Verifica se la tecnologia è già nel progetto
+    const currentTechs = this.progetto().technologies || [];
+    if (currentTechs.some(t => t.id === tech.id)) {
+      // Già presente, collassa senza fare nulla
+      this.isAddTechExpanded.set(false);
+      this.newTechValue.set('');
+      return;
+    }
+    
+    // Aggiungi la tecnologia tramite API
+    this.addingTechnology.set(true);
+    const newTechnologyIds = [...currentTechs.map(t => t.id), tech.id];
+    
+    this.api.update$(this.progetto().id, { technology_ids: newTechnologyIds })
+      .pipe(takeUntilDestroyed(this.destroyRef))
+      .subscribe({
+        next: (updatedProject) => {
+          this.addingTechnology.set(false);
+          this.isAddTechExpanded.set(false);
+          this.newTechValue.set('');
+          if (this.addTechTimer) {
+            clearTimeout(this.addTechTimer);
+            this.addTechTimer = null;
+          }
+          // Notifica il parent dell'update
+          this.categoryChanged.emit(updatedProject);
+        },
+        error: () => {
+          this.addingTechnology.set(false);
+          this.isAddTechExpanded.set(false);
+          this.newTechValue.set('');
+        }
+      });
   }
   
   onTechInput(event: Event): void {
@@ -440,11 +523,11 @@ export class ProgettiCard {
         return;
       }
       
-      // TODO: Implementare aggiunta tag
-      // Per ora apriamo il modal
-      this.clicked.emit(this.progetto());
-      this.collapseAddTech();
+      // Aggiungi la tecnologia
+      this.addTechnologyToProject(trimmedValue);
     } else if (event.key === 'Escape') {
+      event.preventDefault();
+      event.stopPropagation();
       this.collapseAddTech();
     }
   }

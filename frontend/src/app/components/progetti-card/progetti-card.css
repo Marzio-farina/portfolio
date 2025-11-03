@@ -404,6 +404,11 @@
   opacity: 0.5;
 }
 
+.add-tech-input:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
 .poster,
 .video {
   position: absolute;
