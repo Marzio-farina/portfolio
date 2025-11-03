@@ -49,7 +49,17 @@ export class CustomTextElementComponent implements AfterViewInit, AfterViewCheck
       // Non aggiornare se:
       // 1. L'elemento è focused (l'utente sta scrivendo)
       // 2. Il contenuto è già uguale
+      // 3. L'utente ha già scritto qualcosa localmente e il nuovo contenuto è vuoto
       if (div && !this.isFocused() && div.innerHTML !== newContent) {
+        // Se c'è contenuto locale e il nuovo contenuto è vuoto, non sovrascrivere
+        const currentLocal = div.innerHTML.trim();
+        const isNewContentEmpty = !newContent || newContent.trim() === '' || newContent === '<br>' || newContent === '<br/>';
+        
+        if (currentLocal && isNewContentEmpty && this.localContent) {
+          // Non sovrascrivere: l'utente ha già scritto qualcosa
+          return;
+        }
+        
         // Sanitizza il contenuto prima di inserirlo nel DOM
         const sanitized = this.sanitizeHtml(newContent);
         div.innerHTML = sanitized;
@@ -96,6 +106,16 @@ export class CustomTextElementComponent implements AfterViewInit, AfterViewCheck
       
       // Se il ViewChild è disponibile e il contenuto è diverso
       if (div && div.innerHTML !== newContent && !this.isFocused()) {
+        // Se c'è contenuto locale e il nuovo contenuto è vuoto, non sovrascrivere
+        const currentLocal = div.innerHTML.trim();
+        const isNewContentEmpty = !newContent || newContent.trim() === '' || newContent === '<br>' || newContent === '<br/>';
+        
+        if (currentLocal && isNewContentEmpty && this.localContent) {
+          // Non sovrascrivere: l'utente ha già scritto qualcosa
+          this.contentSynced = true; // Ma marca come sincronizzato per evitare loop
+          return;
+        }
+        
         const sanitized = this.sanitizeHtml(newContent);
         div.innerHTML = sanitized;
         this.localContent = sanitized;
@@ -226,6 +246,38 @@ export class CustomTextElementComponent implements AfterViewInit, AfterViewCheck
   onEditableMouseDown(event: MouseEvent): void {
     // Stoppa propagazione per permettere editing e prevenire drag
     event.stopPropagation();
+  }
+  
+  /**
+   * Gestisce i tasti premuti nel contenteditable
+   */
+  onKeyDown(event: KeyboardEvent): void {
+    // Gestione tasto TAB: inserisce spazi invece di spostare il focus
+    if (event.key === 'Tab') {
+      event.preventDefault();
+      
+      // Inserisci 4 spazi (o un tab character)
+      const selection = window.getSelection();
+      if (selection && selection.rangeCount > 0) {
+        const range = selection.getRangeAt(0);
+        range.deleteContents();
+        
+        // Inserisci spazi invece di tab character per compatibilità
+        const spaces = document.createTextNode('\u00A0\u00A0\u00A0\u00A0'); // 4 non-breaking spaces
+        range.insertNode(spaces);
+        
+        // Sposta il cursore dopo gli spazi
+        range.setStartAfter(spaces);
+        range.setEndAfter(spaces);
+        selection.removeAllRanges();
+        selection.addRange(range);
+        
+        // Trigger input event per aggiornare il contenuto
+        if (this.editableDiv) {
+          this.editableDiv.nativeElement.dispatchEvent(new Event('input'));
+        }
+      }
+    }
   }
   
   /**

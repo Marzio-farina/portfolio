@@ -12,6 +12,7 @@
       (input)="onContentChange($event)"
       (focus)="onFocus()"
       (blur)="onBlur()"
+      (keydown)="onKeyDown($event)"
       (mousedown)="onEditableMouseDown($event)"
       [attr.data-placeholder]="'Scrivi qui...'"></div>
   } @else {

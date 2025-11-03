@@ -429,6 +429,15 @@ h1, h2, h3, h4, h5, h6, p, span, div, a {
   hyphens: auto !important;
 }
 
+/* Disabilita hyphens per elementi contenteditable */
+[contenteditable="true"],
+[contenteditable="true"] * {
+  hyphens: none !important;
+  -webkit-hyphens: none !important;
+  -moz-hyphens: none !important;
+  -ms-hyphens: none !important;
+}
+
 /* Riduzione font-size per dispositivi piccoli */
 h1 { font-size: 1.8rem !important; }
 h2 { font-size: 1.5rem !important; }
