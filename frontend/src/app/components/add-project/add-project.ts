@@ -142,14 +142,12 @@ export class AddProject implements OnInit {
         this.loadExistingProject(project);
       },
       error: (err) => {
-        console.error('Errore nel caricamento del progetto:', err);
+        // Errore nel caricamento del progetto
       }
     });
   }
 
   private loadExistingProject(project: Progetto): void {
-    console.log('Caricamento progetto esistente:', project);
-    
     // Trova l'ID della categoria basandosi sul nome
     const categoryId = this.findCategoryIdByName(project.category);
     
@@ -162,19 +160,11 @@ export class AddProject implements OnInit {
 
     // Carica gli URL esistenti per preview
     if (project.poster) {
-      console.log('Impostato existingPosterUrl:', project.poster);
       this.existingPosterUrl.set(project.poster);
     }
     if (project.video) {
-      console.log('Impostato existingVideoUrl:', project.video);
       this.existingVideoUrl.set(project.video);
     }
-
-    // Debug per verificare gli URL
-    console.log('existingPosterUrl dopo set:', this.existingPosterUrl());
-    console.log('existingVideoUrl dopo set:', this.existingVideoUrl());
-    console.log('hasPoster():', this.hasPoster());
-    console.log('hasVideo():', this.hasVideo());
 
     // Rimuovi validazione required per poster_file se c'è già un'immagine esistente
     if (this.existingPosterUrl()) {
@@ -349,46 +339,21 @@ export class AddProject implements OnInit {
   }
 
   onSubmit(): void {
-    console.log('=== INIZIO onSubmit() ===');
-    
     if (this.uploading()) {
-      console.log('Upload già in corso, interruzione');
       return;
     }
     this.notifications.set([]);
     this.errorMsg.set(null);
 
     if (this.addProjectForm.invalid) {
-      console.log('Form non valido', {
-        errors: this.addProjectForm.errors,
-        status: this.addProjectForm.status,
-        controls: Object.keys(this.addProjectForm.controls).map(key => ({
-          key,
-          valid: this.addProjectForm.get(key)?.valid,
-          errors: this.addProjectForm.get(key)?.errors
-        }))
-      });
       this.addProjectForm.markAllAsTouched();
       this.showValidationErrors();
       return;
     }
 
-    console.log('Form valido, preparazione FormData');
     this.uploading.set(true);
 
     const v = this.addProjectForm.getRawValue();
-    console.log('Valori form raw:', {
-      title: v.title,
-      category_id: v.category_id,
-      description: v.description,
-      description_type: typeof v.description,
-      description_is_null: v.description === null,
-      description_length: v.description?.length || 0,
-      has_poster_file: !!v.poster_file,
-      has_video_file: !!v.video_file,
-      poster_file_name: v.poster_file?.name,
-      video_file_name: v.video_file?.name
-    });
 
     const formData = new FormData();
     formData.append('title', v.title.trim());
@@ -398,58 +363,26 @@ export class AddProject implements OnInit {
     const userId = this.tenant.userId();
     if (userId) {
       formData.append('user_id', String(userId));
-      console.log('user_id aggiunto al FormData:', userId);
     }
     
     // Description è OBBLIGATORIO - invia sempre, anche se vuoto
     const descriptionValue = v.description?.trim() || '';
-    console.log('Description da inviare:', {
-      original: v.description,
-      trimmed: descriptionValue,
-      type: typeof descriptionValue,
-      length: descriptionValue.length,
-      is_empty: descriptionValue === ''
-    });
     formData.append('description', descriptionValue);
     
     if (v.poster_file) {
       formData.append('poster_file', v.poster_file, v.poster_file.name);
-      console.log('Poster file aggiunto:', {
-        name: v.poster_file.name,
-        size: v.poster_file.size,
-        type: v.poster_file.type
-      });
     }
     if (v.video_file) {
       formData.append('video_file', v.video_file, v.video_file.name);
-      console.log('Video file aggiunto:', {
-        name: v.video_file.name,
-        size: v.video_file.size,
-        type: v.video_file.type
-      });
     }
-
-    // Log FormData (non può essere ispezionato direttamente, ma loggiamo le chiavi)
-    console.log('FormData preparato, chiamata API');
     
     this.projectService.create$(formData).subscribe({
       next: (response) => {
-        console.log('=== SUCCESSO CREAZIONE PROGETTO ===', response);
         this.uploading.set(false);
         this.notifications.set([]);
         this.tenantRouter.navigate(['progetti'], { queryParams: { created: 'true', refresh: '1', t: Date.now() } });
       },
       error: (err: any) => {
-        console.error('=== ERRORE CREAZIONE PROGETTO ===', {
-          error: err,
-          status: err?.status,
-          statusText: err?.statusText,
-          message: err?.message,
-          error_obj: err?.error,
-          payload: err?.payload,
-          url: err?.url,
-          full_error: JSON.stringify(err, null, 2)
-        });
         this.uploading.set(false);
         
         let message = 'Errore durante la creazione del progetto';

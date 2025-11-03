@@ -102,22 +102,6 @@ export class ProjectService {
   create$(data: FormData): Observable<any> {
     const url = apiUrl('projects');
     
-    // Log FormData (non possiamo ispezionare direttamente, ma loggiamo ciò che possiamo)
-    console.log('=== ProjectService.create$ ===', {
-      url,
-      formData_keys: Array.from(data.keys()),
-      has_title: data.has('title'),
-      has_category_id: data.has('category_id'),
-      has_description: data.has('description'),
-      has_poster_file: data.has('poster_file'),
-      has_video_file: data.has('video_file'),
-      // Prova a leggere i valori testuali (non i file)
-      title: data.get('title'),
-      category_id: data.get('category_id'),
-      description: data.get('description'),
-      description_type: typeof data.get('description'),
-    });
-    
     return this.http.post<any>(url, data);
   }
 
