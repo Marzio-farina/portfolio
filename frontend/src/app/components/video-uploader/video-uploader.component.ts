@@ -29,6 +29,9 @@ export class VideoUploaderComponent {
   // File input reference
   @ViewChild('videoInput') videoInputRef?: ElementRef<HTMLInputElement>;
   
+  // Video element reference
+  @ViewChild('videoElement') videoElementRef?: ElementRef<HTMLVideoElement>;
+  
   // Stato interno
   selectedFile = signal<File | null>(null);
   previewUrl = signal<string | null>(null);
@@ -146,6 +149,29 @@ export class VideoUploaderComponent {
       video.play();
     } else {
       video.pause();
+    }
+  }
+  
+  /**
+   * Avvia il video quando il mouse entra
+   */
+  onVideoMouseEnter(): void {
+    if (this.videoElementRef?.nativeElement) {
+      this.videoElementRef.nativeElement.play().catch(err => {
+        // Ignora errori di autoplay (es. policy del browser)
+        console.debug('Autoplay video non riuscito:', err);
+      });
+    }
+  }
+  
+  /**
+   * Pausa il video quando il mouse esce
+   */
+  onVideoMouseLeave(): void {
+    if (this.videoElementRef?.nativeElement) {
+      const video = this.videoElementRef.nativeElement;
+      video.pause();
+      video.currentTime = 0; // Riporta all'inizio
     }
   }
   

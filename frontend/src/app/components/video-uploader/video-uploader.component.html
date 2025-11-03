@@ -21,10 +21,15 @@
       [class.is-dragover]="isDragOver()">
       <div class="video-uploader__video-wrapper">
         <video
+          #videoElement
           [src]="getDisplayUrl()"
           controls
+          muted
+          loop
           class="video-uploader__video-element"
           (click)="onVideoClick($event)"
+          (mouseenter)="onVideoMouseEnter()"
+          (mouseleave)="onVideoMouseLeave()"
           (loadstart)="onVideoLoadStart($event)"
           (progress)="onVideoProgress($event)"
           (loadeddata)="onVideoLoadedData($event)"
