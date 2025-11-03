@@ -21,7 +21,7 @@
   height: 100%;
   border: none;
   border-radius: var(--radius-2xl);
-  transition: filter var(--transition-1);
+  transition: filter var(--transition-1), opacity 0.3s ease;
   position: relative;
   z-index: 0;
 }

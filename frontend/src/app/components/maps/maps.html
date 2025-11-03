@@ -1,20 +1,23 @@
 <figure class="map-embed">
   @if (hasLocation()) {
+    <!-- Skeleton visibile sopra l'iframe finché non si carica -->
     @if (!loaded()) {
       <div class="skeleton map-skeleton" aria-hidden="true"></div>
-    } @else {
-      <iframe 
-        [src]="safeSrc()"
-        width="100%" 
-        height="100%" 
-        style="border:0;" 
-        allowfullscreen="" 
-        loading="lazy" 
-        referrerpolicy="no-referrer-when-downgrade"
-        [attr.title]="'Mappa di ' + locationName()"
-        (load)="onMapLoad()">
-      </iframe>
     }
+    
+    <!-- Iframe sempre renderizzato se c'è location -->
+    <iframe 
+      [src]="safeSrc()"
+      width="100%" 
+      height="100%" 
+      style="border:0;" 
+      [style.opacity]="loaded() ? 1 : 0"
+      allowfullscreen="" 
+      loading="lazy" 
+      referrerpolicy="no-referrer-when-downgrade"
+      [attr.title]="'Mappa di ' + locationName()"
+      (load)="onMapLoad()">
+    </iframe>
   } @else if (showPlaceholder()) {
     <div class="map-placeholder" aria-label="Nessuna posizione impostata">
       <svg class="map-plus-svg" viewBox="-50 -50 100 100" preserveAspectRatio="xMidYMid meet" aria-hidden="true">
