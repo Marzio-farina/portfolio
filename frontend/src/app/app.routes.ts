@@ -9,6 +9,7 @@ import { AddTestimonial } from './components/add-testimonial/add-testimonial';
 import { AddAttestato } from './components/add-attestato/add-attestato';
 import { AddProject } from './components/add-project/add-project';
 import { tenantResolver } from './core/tenant/tenant.resolver';
+import { authGuard } from './guards/auth.guard';
 
 export const routes: Routes = [
   { path: '', pathMatch: 'full', redirectTo: 'about' },
@@ -17,8 +18,8 @@ export const routes: Routes = [
   { path: 'curriculum',component: Curriculum,data: { title: 'Curriculum' } },
   { path: 'progetti',  component: Progetti,  data: { title: 'Progetti' } },
   { path: 'attestati',  component: Attestati,  data: { title: 'Attestati' } },
-  { path: 'attestati/nuovo', component: AddAttestato, data: { title: 'Nuovo Attestato' } },
-  { path: 'progetti/nuovo', component: AddProject, data: { title: 'Nuovo Progetto' } },
+  { path: 'attestati/nuovo', component: AddAttestato, canActivate: [authGuard], data: { title: 'Nuovo Attestato' } },
+  { path: 'progetti/nuovo', component: AddProject, canActivate: [authGuard], data: { title: 'Nuovo Progetto' } },
   { path: 'contatti',  component: Contatti,  data: { title: 'Contatti' } },
   // Rotte con prefisso slug utente
   { path: ':userSlug/about',     component: About,     resolve: { tenant: tenantResolver }, data: { title: 'Chi sono' } },
@@ -26,8 +27,8 @@ export const routes: Routes = [
   { path: ':userSlug/curriculum',component: Curriculum,resolve: { tenant: tenantResolver }, data: { title: 'Curriculum' } },
   { path: ':userSlug/progetti',  component: Progetti,  resolve: { tenant: tenantResolver }, data: { title: 'Progetti' } },
   { path: ':userSlug/attestati', component: Attestati, resolve: { tenant: tenantResolver }, data: { title: 'Attestati' } },
-  { path: ':userSlug/attestati/nuovo', component: AddAttestato, resolve: { tenant: tenantResolver }, data: { title: 'Nuovo Attestato' } },
-  { path: ':userSlug/progetti/nuovo', component: AddProject, resolve: { tenant: tenantResolver }, data: { title: 'Nuovo Progetto' } },
+  { path: ':userSlug/attestati/nuovo', component: AddAttestato, canActivate: [authGuard], resolve: { tenant: tenantResolver }, data: { title: 'Nuovo Attestato' } },
+  { path: ':userSlug/progetti/nuovo', component: AddProject, canActivate: [authGuard], resolve: { tenant: tenantResolver }, data: { title: 'Nuovo Progetto' } },
   { path: ':userSlug/contatti',  component: Contatti,  resolve: { tenant: tenantResolver }, data: { title: 'Contatti' } },
   { path: '**', redirectTo: 'about' },
 ];
