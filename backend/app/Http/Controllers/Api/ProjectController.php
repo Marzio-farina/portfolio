@@ -67,25 +67,39 @@ class ProjectController extends Controller
      */
     public function store(Request $request): JsonResponse
     {
-        // Log alternativo per debugging
-        $debugFile = storage_path('logs/project_debug.log');
-        $logData = [
-            'timestamp' => date('Y-m-d H:i:s'),
-            'user_id' => Auth::id(),
-            'request_method' => $request->method(),
-            'content_type' => $request->header('Content-Type'),
-            'has_files' => $request->hasFile('poster_file') || $request->hasFile('video_file'),
-            'all_input_keys' => array_keys($request->all()),
-        ];
-        file_put_contents($debugFile, "=== INIZIO CREAZIONE PROGETTO ===\n" . json_encode($logData, JSON_PRETTY_PRINT) . "\n", FILE_APPEND);
-        
-        Log::info('=== INIZIO CREAZIONE PROGETTO ===', $logData);
+        try {
+            // Log alternativo per debugging
+            $debugFile = storage_path('logs/project_debug.log');
+            $logData = [
+                'timestamp' => date('Y-m-d H:i:s'),
+                'user_id' => Auth::id(),
+                'request_method' => $request->method(),
+                'content_type' => $request->header('Content-Type'),
+                'has_files' => $request->hasFile('poster_file') || $request->hasFile('video_file'),
+                'all_input_keys' => array_keys($request->all()),
+            ];
+            file_put_contents($debugFile, "=== INIZIO CREAZIONE PROGETTO ===\n" . json_encode($logData, JSON_PRETTY_PRINT) . "\n", FILE_APPEND);
+            
+            Log::info('=== INIZIO CREAZIONE PROGETTO ===', $logData);
 
-        // Verifica autenticazione
-        $user = Auth::user();
-        if (!$user) {
-            Log::warning('Creazione progetto: utente non autenticato');
-            return response()->json(['ok' => false, 'message' => 'Non autenticato'], 401);
+            // Verifica autenticazione
+            $user = Auth::user();
+            if (!$user) {
+                Log::warning('Creazione progetto: utente non autenticato');
+                return response()->json(['ok' => false, 'message' => 'Non autenticato'], 401);
+            }
+        } catch (\Exception $earlyException) {
+            Log::error('ERRORE CRITICO ALL\'INIZIO DI store()', [
+                'error' => $earlyException->getMessage(),
+                'file' => $earlyException->getFile(),
+                'line' => $earlyException->getLine(),
+                'trace' => $earlyException->getTraceAsString()
+            ]);
+            
+            return response()->json([
+                'ok' => false,
+                'message' => 'Errore durante l\'inizializzazione: ' . $earlyException->getMessage()
+            ], 500);
         }
 
         Log::info('Utente autenticato', ['user_id' => $user->id, 'email' => $user->email]);
