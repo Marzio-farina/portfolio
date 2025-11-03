@@ -54,6 +54,9 @@ export class AddProject implements OnInit {
   
   categories = signal<Category[]>([]);
   loadingCategories = signal(true);
+  
+  // Categoria preselezionata da applicare dopo il caricamento
+  private preselectedCategoryName: string | null = null;
 
   notifications = signal<{ id: string; message: string; type: NotificationType; timestamp: number; fieldId: string; }[]>([]);
 
@@ -93,8 +96,46 @@ export class AddProject implements OnInit {
       const projectId = this.route.snapshot.queryParams['projectId'];
       if (projectId) {
         this.loadProjectById(Number(projectId));
+      } else {
+        // Verifica se c'è una categoria preselezionata dal filtro
+        this.checkPreselectedCategory();
       }
     }
+  }
+
+  /**
+   * Verifica e salva la categoria preselezionata dal filtro
+   */
+  private checkPreselectedCategory(): void {
+    const navigation = this.router.getCurrentNavigation();
+    const historyState = window.history.state;
+    const preselectedCategory = (navigation?.extras?.state?.['preselectedCategory'] || historyState?.preselectedCategory) as string | undefined;
+    
+    if (preselectedCategory && preselectedCategory !== 'Tutti') {
+      // Salva la categoria preselezionata per applicarla dopo il caricamento
+      this.preselectedCategoryName = preselectedCategory;
+    }
+  }
+
+  /**
+   * Applica la categoria preselezionata dopo che le categorie sono state caricate
+   */
+  private applyPreselectedCategoryIfNeeded(): void {
+    if (!this.preselectedCategoryName) {
+      return;
+    }
+
+    const categoryId = this.findCategoryIdByName(this.preselectedCategoryName);
+    
+    if (categoryId) {
+      // Usa setTimeout per assicurarsi che il form sia pronto
+      setTimeout(() => {
+        this.addProjectForm.patchValue({ category_id: categoryId });
+      }, 0);
+    }
+    
+    // Reset del nome preselezionato
+    this.preselectedCategoryName = null;
   }
 
   private loadProjectById(projectId: number): void {
@@ -170,6 +211,8 @@ export class AddProject implements OnInit {
       next: (cats) => {
         this.categories.set(cats);
         this.loadingCategories.set(false);
+        // Dopo il caricamento, controlla se c'è una categoria preselezionata
+        this.applyPreselectedCategoryIfNeeded();
       },
       error: (err) => {
         // Se non esiste l'endpoint, usiamo categorie di default
@@ -179,6 +222,9 @@ export class AddProject implements OnInit {
           { id: 3, title: 'Design' }
         ]);
         this.loadingCategories.set(false);
+        
+        // Dopo il caricamento, controlla se c'è una categoria preselezionata
+        this.applyPreselectedCategoryIfNeeded();
         
         // Per 404, non mostriamo notifica (endpoint previsto come opzionale)
         // Per altri errori, mostriamo un warning

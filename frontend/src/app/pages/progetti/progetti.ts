@@ -266,7 +266,15 @@ export class Progetti implements OnDestroy {
   }
 
   goToAddProgetto(): void {
-    this.tenantRouter.navigate(['progetti', 'nuovo']);
+    const selectedCat = this.selectedCategory();
+    // Passa la categoria selezionata solo se non è "Tutti"
+    if (selectedCat !== 'Tutti') {
+      this.tenantRouter.navigate(['progetti', 'nuovo'], { 
+        state: { preselectedCategory: selectedCat } 
+      });
+    } else {
+      this.tenantRouter.navigate(['progetti', 'nuovo']);
+    }
   }
 
   onProjectClicked(project: Progetto): void {
