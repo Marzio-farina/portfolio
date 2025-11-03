@@ -54,6 +54,8 @@
           [style.top.px]="canvasService.cursorPos().y">
           @if (canvasService.isCreatingElement() === 'text') {
             <span class="custom-cursor__icon">T</span>
+          } @else if (canvasService.isCreatingElement() === 'video') {
+            <span class="custom-cursor__icon">🎬</span>
           } @else {
             <span class="custom-cursor__icon">🖼️</span>
           }

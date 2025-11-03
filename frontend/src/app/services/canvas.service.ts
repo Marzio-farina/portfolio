@@ -101,7 +101,7 @@ export class CanvasService {
   });
 
   // Stato per la creazione drag-to-draw di elementi
-  isCreatingElement = signal<'text' | 'image' | null>(null);
+  isCreatingElement = signal<'text' | 'image' | 'video' | null>(null);
   drawStartPos = signal<{ x: number; y: number } | null>(null);
   drawCurrentPos = signal<{ x: number; y: number } | null>(null);
   cursorPos = signal<{ x: number; y: number }>({ x: 0, y: 0 });
@@ -549,7 +549,7 @@ export class CanvasService {
   /**
    * Inizia la creazione di un elemento con drag-to-draw
    */
-  startElementCreation(type: 'text' | 'image'): void {
+  startElementCreation(type: 'text' | 'image' | 'video'): void {
     this.isCreatingElement.set(type);
   }
 
@@ -615,6 +615,18 @@ export class CanvasService {
     let newId: string;
     if (type === 'text') {
       newId = this.addCustomText(left, top, width, height);
+    } else if (type === 'video') {
+      // Elemento predefinito video (non custom)
+      const videoItem: any = {
+        id: 'video',
+        type: 'video',
+        left,
+        top,
+        width,
+        height
+      };
+      this.addCanvasItem(videoItem);
+      newId = 'video';
     } else {
       newId = this.addCustomImage(left, top, width, height);
     }
