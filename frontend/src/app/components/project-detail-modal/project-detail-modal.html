@@ -149,7 +149,7 @@
         </div>
 
           <!-- X rimozione video (fuori canvas-item, dentro wrapper) -->
-          @if (isEditMode() && project().video) {
+          @if (isEditMode() && canvasService.canvasItems().has('video')) {
             <button 
               type="button"
               class="project-detail-modal__remove-video admin-x-btn"

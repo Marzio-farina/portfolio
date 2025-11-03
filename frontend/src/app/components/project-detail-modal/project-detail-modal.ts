@@ -569,6 +569,9 @@ export class ProjectDetailModal implements OnDestroy {
   onVideoRemoved(): void {
     this.selectedVideoFile.set(null);
     this.videoRemoved.set(true);
+    
+    // Rimuovi l'elemento video anche dal canvas
+    this.canvasService.removeCanvasItem('video');
   }
   
   /**
