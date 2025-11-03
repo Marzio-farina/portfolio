@@ -29,6 +29,33 @@
     border-color: var(--accent-primary);
 }
 
+/* Stato pending (categoria in creazione/eliminazione) */
+.filter-list button.pending {
+    opacity: 0.5;
+    cursor: not-allowed;
+    pointer-events: none;
+    position: relative;
+}
+
+/* Animazione pulsante per stato pending */
+.filter-list button.pending::after {
+    content: '';
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    width: 14px;
+    height: 14px;
+    margin: -7px 0 0 -7px;
+    border: 2px solid var(--accent-primary);
+    border-radius: 50%;
+    border-top-color: transparent;
+    animation: spin 0.8s linear infinite;
+}
+
+@keyframes spin {
+    to { transform: rotate(360deg); }
+}
+
 /* X rossa con cerchio nell'angolo superiore destro */
 .filter-remove-btn {
     position: absolute;

@@ -4,6 +4,8 @@
             <button
                 type="button"
                 [class.active]="c === selected()"
+                [class.pending]="isPending(c)"
+                [disabled]="isPending(c)"
                 (click)="onSelect(c)"
                 (mouseenter)="onMouseEnter(c)"
                 (mouseleave)="onMouseLeave()">
@@ -11,7 +13,8 @@
                 @if (canDelete() && c !== 'Tutti') {
                     <span 
                         class="filter-remove-btn"
-                        [class.visible]="isRemoveVisible(c)"
+                        [class.visible]="isRemoveVisible(c) && !isPending(c)"
+                        [class.disabled]="isPending(c)"
                         (click)="onDelete($event, c)"
                         (mouseenter)="onMouseEnter(c)"
                         (mouseleave)="onMouseLeave()">×</span>

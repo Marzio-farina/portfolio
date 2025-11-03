@@ -10,6 +10,7 @@
     [categories]="categories()"
     [selected]="selectedCategory()"
     [canDelete]="canDeleteCategories()"
+    [pendingCategories]="pendingCategories()"
     (select)="onSelectCategory($event)"
     (deleteCategory)="onDeleteCategory($event)"
     (addCategory)="onAddCategory($event)"

@@ -49,6 +49,9 @@ export class Progetti implements OnDestroy {
   // categorie caricate dal backend (tutte le categorie dell'utente)
   allCategories = signal<string[]>(['Tutti']);
   
+  // categorie in stato pending (in creazione o eliminazione)
+  pendingCategories = signal<Set<string>>(new Set());
+  
   // categorie visibili filtrate in base alla modalità edit
   categories = computed<string[]>(() => {
     const all = this.allCategories();
@@ -286,7 +289,7 @@ export class Progetti implements OnDestroy {
   }
 
   /**
-   * Aggiunge una nuova categoria
+   * Aggiunge una nuova categoria (optimistic update)
    */
   onAddCategory(categoryTitle: string): void {
     const trimmedTitle = categoryTitle.trim();
@@ -301,24 +304,56 @@ export class Progetti implements OnDestroy {
       return;
     }
     
+    // OPTIMISTIC UPDATE: aggiungi subito la categoria all'UI
+    const currentCategories = this.allCategories();
+    const newCategories = [...currentCategories, trimmedTitle].sort((a, b) => {
+      if (a === 'Tutti') return -1;
+      if (b === 'Tutti') return 1;
+      return a.localeCompare(b);
+    });
+    this.allCategories.set(newCategories);
+    
+    // Aggiungi a pendingCategories per mostrarla disabilitata
+    const currentPending = this.pendingCategories();
+    const newPending = new Set(currentPending);
+    newPending.add(trimmedTitle);
+    this.pendingCategories.set(newPending);
+    
     // Chiama l'API per creare la categoria
     this.api.createCategory(trimmedTitle).subscribe({
       next: (response) => {
+        // Rimuovi da pendingCategories (ora è attiva)
+        const updatedPending = this.pendingCategories();
+        const finalPending = new Set(updatedPending);
+        finalPending.delete(trimmedTitle);
+        this.pendingCategories.set(finalPending);
+        
+        // Mostra notifica di successo
         this.addNotification('success', `Categoria "${trimmedTitle}" creata con successo.`, `category-created-${Date.now()}`);
         
-        // Ricarica le categorie dal backend
+        // Ricarica le categorie dal backend per sincronizzare
         this.loadCategories();
       },
       error: (err) => {
         console.error('Errore creazione categoria:', err);
         const errorMessage = err.error?.message || err.message || 'Errore sconosciuto';
+        
+        // ROLLBACK: rimuovi la categoria da allCategories e pendingCategories
+        const rollbackCategories = this.allCategories().filter(c => c !== trimmedTitle);
+        this.allCategories.set(rollbackCategories);
+        
+        const rollbackPending = this.pendingCategories();
+        const finalPending = new Set(rollbackPending);
+        finalPending.delete(trimmedTitle);
+        this.pendingCategories.set(finalPending);
+        
         this.addNotification('error', `Errore nella creazione della categoria: ${errorMessage}`, `category-create-error-${Date.now()}`);
       }
     });
   }
 
   /**
-   * Elimina una categoria
+   * Elimina una categoria (optimistic update)
    */
   onDeleteCategory(categoryTitle: string): void {
     // Verifica quanti progetti hanno questa categoria
@@ -333,21 +368,45 @@ export class Progetti implements OnDestroy {
       return;
     }
 
+    // OPTIMISTIC UPDATE: aggiungi la categoria a pendingCategories per mostrarla disabilitata
+    // (non la rimuoviamo ancora da allCategories per evitare un "flash")
+    const currentPending = this.pendingCategories();
+    const newPending = new Set(currentPending);
+    newPending.add(categoryTitle);
+    this.pendingCategories.set(newPending);
+
     this.api.deleteCategory(categoryTitle).subscribe({
       next: () => {
-        this.addNotification('success', `Categoria "${categoryTitle}" eliminata con successo.`, `category-deleted-${Date.now()}`);
+        // Rimuovi la categoria da allCategories
+        const updatedCategories = this.allCategories().filter(c => c !== categoryTitle);
+        this.allCategories.set(updatedCategories);
+        
+        // Rimuovi da pendingCategories
+        const updatedPending = this.pendingCategories();
+        const finalPending = new Set(updatedPending);
+        finalPending.delete(categoryTitle);
+        this.pendingCategories.set(finalPending);
         
         // Se la categoria eliminata era selezionata, torna a "Tutti"
         if (this.selectedCategory() === categoryTitle) {
           this.selectedCategory.set('Tutti');
         }
         
-        // Ricarica le categorie dal backend
+        this.addNotification('success', `Categoria "${categoryTitle}" eliminata con successo.`, `category-deleted-${Date.now()}`);
+        
+        // Ricarica le categorie dal backend per sincronizzare
         this.loadCategories();
       },
       error: (err) => {
         console.error('Errore eliminazione categoria:', err);
         const errorMessage = err.error?.message || err.message || 'Errore sconosciuto';
+        
+        // ROLLBACK: rimuovi da pendingCategories (ripristina stato normale)
+        const rollbackPending = this.pendingCategories();
+        const finalPending = new Set(rollbackPending);
+        finalPending.delete(categoryTitle);
+        this.pendingCategories.set(finalPending);
+        
         this.addNotification('error', errorMessage, `category-delete-error-${Date.now()}`);
       }
     });

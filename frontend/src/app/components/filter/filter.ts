@@ -13,6 +13,8 @@ export class Filter {
   selected = input<string>('Tutti');
   // se l'utente può eliminare categorie (loggato + edit mode)
   canDelete = input<boolean>(false);
+  // categorie in attesa di creazione/eliminazione (disabilitate)
+  pendingCategories = input<Set<string>>(new Set());
   // evento verso il genitore
   select = output<string>();
   
@@ -38,7 +40,18 @@ export class Filter {
   private collapseTimer: any = null;
 
   onSelect(c: string) {
+    // Non permettere la selezione di categorie pending
+    if (this.isPending(c)) {
+      return;
+    }
     this.select.emit(c);
+  }
+
+  /**
+   * Verifica se una categoria è in stato pending
+   */
+  isPending(category: string): boolean {
+    return this.pendingCategories().has(category);
   }
 
   /**
