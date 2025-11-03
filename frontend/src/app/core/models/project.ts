@@ -25,7 +25,8 @@ export interface Paginated<T> {
 export type Progetto = {
   id: number;
   title: string;
-  category: string;     // <— stringa semplice per la tua UI
+  category: string;     // <— stringa semplice per la tua UI (es: "Web")
+  category_id?: number | null; // <— ID categoria dal backend per API calls
   description: string;
   poster: string;       // url o data uri
   video: string;        // url video

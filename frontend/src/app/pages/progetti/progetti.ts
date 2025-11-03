@@ -49,6 +49,9 @@ export class Progetti implements OnDestroy {
   // categorie caricate dal backend (tutte le categorie dell'utente)
   allCategories = signal<string[]>(['Tutti']);
   
+  // categorie complete con ID per le card (passate da parent a child)
+  categoriesWithId = signal<Array<{ id: number; title: string }>>([]);
+  
   // categorie in stato pending (in creazione o eliminazione)
   pendingCategories = signal<Set<string>>(new Set());
   
@@ -189,11 +192,15 @@ export class Progetti implements OnDestroy {
         const titles = ['Tutti', ...categories.map(c => c.title)];
         const sortedTitles = this.sortCategories(titles);
         this.allCategories.set(sortedTitles);
+        
+        // Salva anche le categorie complete per passarle alle card
+        this.categoriesWithId.set(categories.map(c => ({ id: c.id, title: c.title })));
       },
       error: (err) => {
         console.error('Errore caricamento categorie:', err);
         // Mantieni almeno "Tutti" in caso di errore
         this.allCategories.set(['Tutti']);
+        this.categoriesWithId.set([]);
       }
     });
   }
@@ -294,6 +301,31 @@ export class Progetti implements OnDestroy {
 
   onProjectClicked(project: Progetto): void {
     this.projectDetailModal.open(project);
+  }
+  
+  onProjectCategoryChanged(updatedProject: Progetto): void {
+    // Aggiorna il progetto nella lista locale
+    const currentProjects = this.projects();
+    const index = currentProjects.findIndex(p => p.id === updatedProject.id);
+    
+    if (index !== -1) {
+      const updatedList = [...currentProjects];
+      updatedList[index] = { ...updatedProject };
+      this.projects.set(updatedList);
+    }
+    
+    // Se il filtro corrente non è "Tutti" e non è la nuova categoria,
+    // switcha automaticamente a "Tutti" per mostrare il progetto spostato
+    const currentFilter = this.selectedCategory();
+    if (currentFilter !== 'Tutti' && currentFilter !== updatedProject.category) {
+      this.selectedCategory.set('Tutti');
+    }
+    
+    // Mostra notifica di successo
+    this.addNotification('success', `Progetto spostato in categoria "${updatedProject.category}".`, `project-category-changed-${Date.now()}`);
+    
+    // Ricarica le categorie per aggiornare la lista dei filtri
+    this.loadCategories();
   }
   
   onSelectCategory(c: string) {

@@ -1,4 +1,5 @@
-import { Component, ElementRef, input, ViewChild, signal, inject, effect, computed, output } from '@angular/core';
+import { Component, ElementRef, input, ViewChild, signal, inject, effect, computed, output, DestroyRef } from '@angular/core';
+import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { ThemeService } from '../../services/theme.service';
 import { AuthService } from '../../services/auth.service';
 import { EditModeService } from '../../services/edit-mode.service';
@@ -21,6 +22,7 @@ export class ProgettiCard {
   private readonly auth = inject(AuthService);
   private readonly editModeService = inject(EditModeService);
   private readonly api = inject(ProjectService);
+  private readonly destroyRef = inject(DestroyRef);
   
   isAuthenticated = computed(() => this.auth.isAuthenticated());
   isEditing = computed(() => this.editModeService.isEditing());
@@ -28,6 +30,11 @@ export class ProgettiCard {
   deleted = output<number>();
   deletedError = output<{ id: number; error: any }>();
   clicked = output<Progetto>();
+  categoryChanged = output<Progetto>();
+  
+  // Lista categorie per la select (passata dal parent)
+  categories = input<Array<{ id: number; title: string }>>([]);
+  changingCategory = signal(false);
 
   // Valori randomici per hover, generati al mount
   hoverRotate = signal<string>('0deg');
@@ -196,5 +203,39 @@ export class ProgettiCard {
   onCardClick(): void {
     // Emetti il progetto per aprire il modal
     this.clicked.emit(this.progetto());
+  }
+  
+  /**
+   * Gestisce il cambio categoria dalla select
+   */
+  onCategoryChange(event: Event): void {
+    event.stopPropagation(); // Previeni l'apertura del modal
+    
+    const select = event.target as HTMLSelectElement;
+    const newCategoryId = Number(select.value);
+    
+    if (!newCategoryId) return;
+    
+    // Non fare nulla se la categoria è la stessa
+    if (newCategoryId === this.progetto().category_id) return;
+    
+    // Stato loading
+    this.changingCategory.set(true);
+    
+    // Usa il ProjectService che mappa correttamente la risposta
+    this.api.update$(this.progetto().id, { category_id: newCategoryId })
+      .pipe(takeUntilDestroyed(this.destroyRef))
+      .subscribe({
+        next: (updatedProject) => {
+          this.changingCategory.set(false);
+          // Emetti il progetto aggiornato al parent
+          this.categoryChanged.emit(updatedProject);
+        },
+        error: (err) => {
+          this.changingCategory.set(false);
+          // Ripristina il valore precedente nella select
+          select.value = String(this.progetto().category_id || '');
+        }
+      });
   }
 }

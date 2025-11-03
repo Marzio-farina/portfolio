@@ -83,6 +83,44 @@
   transition: color var(--transition-1);
 }
 
+/* Select per cambiare categoria in edit mode */
+.category-select {
+  margin: 0;
+  padding: 0;
+  border: none;
+  background: transparent;
+  color: var(--text-secondary);
+  font-size: var(--fs-6);
+  font-weight: var(--fw-300);
+  font-family: inherit;
+  cursor: pointer;
+  outline: none;
+  transition: color var(--transition-1), opacity var(--transition-1);
+  /* Rimuovi l'aspetto default della select */
+  appearance: none;
+  -webkit-appearance: none;
+  -moz-appearance: none;
+  /* Aggiungi una freccia personalizzata */
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 12 12'%3E%3Cpath fill='%23666' d='M6 9L1 4h10z'/%3E%3C/svg%3E");
+  background-repeat: no-repeat;
+  background-position: right center;
+  padding-right: 18px;
+}
+
+.category-select:hover:not(:disabled) {
+  color: var(--accent-primary);
+}
+
+.category-select:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+/* Per il tema dark, cambia il colore della freccia */
+[data-theme="dark"] .category-select {
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 12 12'%3E%3Cpath fill='%23999' d='M6 9L1 4h10z'/%3E%3C/svg%3E");
+}
+
 .technologies {
   display: flex;
   flex-wrap: wrap;

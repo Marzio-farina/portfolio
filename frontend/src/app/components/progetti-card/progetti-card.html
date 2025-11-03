@@ -20,7 +20,24 @@
   </div>
   <div class="meta">
     <h3 class="title">{{ progetto().title }}</h3>
-    <p class="category">{{ progetto().category }}</p>
+    @if (isAuthenticated() && isEditing()) {
+      <select 
+        class="category-select" 
+        [disabled]="changingCategory()"
+        (change)="onCategoryChange($event)"
+        (click)="$event.stopPropagation()"
+        aria-label="Cambia categoria progetto">
+        @for (cat of categories(); track cat.id) {
+          <option 
+            [value]="cat.id" 
+            [selected]="cat.id === progetto().category_id">
+            {{ cat.title }}
+          </option>
+        }
+      </select>
+    } @else {
+      <p class="category">{{ progetto().category }}</p>
+    }
     @if (progetto().technologies && progetto().technologies.length > 0) {
       <div class="technologies">
         @for (tech of progetto().technologies; track tech.id) {

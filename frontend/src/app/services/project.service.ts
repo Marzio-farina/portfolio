@@ -232,6 +232,7 @@ export class ProjectService {
       poster: dto.poster ?? '',
       video: dto.video ?? '',
       category: categoryName,
+      category_id: dto.category?.id ?? null, // Conserva l'ID categoria per API calls
       technologies: technologies,
       technologiesString: technologiesString, // Manteniamo anche la stringa per retrocompatibilità
       layout_config: layoutConfig
