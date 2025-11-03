@@ -97,6 +97,7 @@ export class Auth {
   // Actions
   submitLogin() {
     this.error.set(null); this.success.set(null);
+    this.notifications.set([]); // Reset notifiche
     if (this.loginForm.invalid) { this.loginForm.markAllAsTouched(); this.showValidationErrors('login'); return; }
     this.loading.set(true);
 
@@ -106,8 +107,14 @@ export class Auth {
     ).subscribe({
       next: (res) => {
         this.success.set(`Accesso effettuato come ${res.user?.email || 'utente'}`);
+        this.notifications.set([]); // Pulisci notifiche al successo
       },
-      error: (err) => this.error.set(this.humanizeError(err)),
+      error: (err) => {
+        const message = this.humanizeError(err);
+        this.error.set(message);
+        // Aggiungi notifica per mostrare l'errore
+        this.addNotification('login.credentials', 'Email o password errati', 'error');
+      },
     });
   }
 
