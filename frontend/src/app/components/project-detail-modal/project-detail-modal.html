@@ -39,6 +39,7 @@
       [class.is-creating]="canvasService.isCreatingElement()"
       [class.creating-text]="canvasService.isCreatingElement() === 'text'"
       [class.creating-image]="canvasService.isCreatingElement() === 'image'"
+      [class.creating-video]="canvasService.isCreatingElement() === 'video'"
       [style.min-height.px]="canvasHeight()"
       (mousemove)="canvasService.isCreatingElement() ? onCanvasMouseMove($event) : null"
       (mousedown)="canvasService.isCreatingElement() ? onCanvasMouseDown($event) : null"

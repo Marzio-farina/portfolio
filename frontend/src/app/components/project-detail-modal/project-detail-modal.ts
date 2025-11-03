@@ -157,6 +157,11 @@ export class ProjectDetailModal implements OnDestroy {
       const projectId = this.project().id;
       const layoutConfig = this.project().layout_config;
       
+      // NON ricaricare se si sta creando un elemento (per evitare di cancellare il rettangolo di disegno)
+      if (this.canvasService.isCreatingElement()) {
+        return;
+      }
+      
       // Carica solo se non è già stato caricato per questo progetto
       if (layoutConfig && !this.loadedProjectIds.has(projectId)) {
         untracked(() => {
@@ -193,6 +198,11 @@ export class ProjectDetailModal implements OnDestroy {
 
     // Aggiorna il form quando cambia il progetto
     effect(() => {
+      // NON aggiornare il form se si sta creando un elemento
+      if (this.canvasService.isCreatingElement()) {
+        return;
+      }
+      
       const proj = this.project();
       if (proj && this.editForm) {
         // Popola immediatamente il form
