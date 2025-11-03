@@ -167,6 +167,17 @@ export class Progetti implements OnDestroy {
   }
 
   /**
+   * Ordina le categorie: "Tutti" sempre per primo, poi alfabetico
+   */
+  private sortCategories(categories: string[]): string[] {
+    return [...categories].sort((a, b) => {
+      if (a === 'Tutti') return -1;
+      if (b === 'Tutti') return 1;
+      return a.localeCompare(b);
+    });
+  }
+
+  /**
    * Carica le categorie dal backend
    */
   private loadCategories(): void {
@@ -174,9 +185,10 @@ export class Progetti implements OnDestroy {
     
     this.api.getCategories$(uid ?? undefined).subscribe({
       next: (categories) => {
-        // Estrai solo i titoli e aggiungi "Tutti" all'inizio
-        const titles = categories.map(c => c.title).sort();
-        this.allCategories.set(['Tutti', ...titles]);
+        // Estrai i titoli e aggiungi "Tutti", poi ordina in modo consistente
+        const titles = ['Tutti', ...categories.map(c => c.title)];
+        const sortedTitles = this.sortCategories(titles);
+        this.allCategories.set(sortedTitles);
       },
       error: (err) => {
         console.error('Errore caricamento categorie:', err);
@@ -306,11 +318,7 @@ export class Progetti implements OnDestroy {
     
     // OPTIMISTIC UPDATE: aggiungi subito la categoria all'UI
     const currentCategories = this.allCategories();
-    const newCategories = [...currentCategories, trimmedTitle].sort((a, b) => {
-      if (a === 'Tutti') return -1;
-      if (b === 'Tutti') return 1;
-      return a.localeCompare(b);
-    });
+    const newCategories = this.sortCategories([...currentCategories, trimmedTitle]);
     this.allCategories.set(newCategories);
     
     // Aggiungi a pendingCategories per mostrarla disabilitata
