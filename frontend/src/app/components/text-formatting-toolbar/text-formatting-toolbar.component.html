@@ -64,7 +64,7 @@
     </button>
     
     @if (showColorPicker()) {
-      <div class="color-picker-dropdown">
+      <div class="color-picker-dropdown" (mouseleave)="closeColorPicker()">
         <input 
           type="color"
           [value]="getCurrentColor()"
@@ -78,7 +78,7 @@
               type="button"
               class="preset-color-btn"
               [style.background]="color"
-              (click)="changeColor(color)"
+              (click)="changeColor(color, true)"
               [title]="color">
             </button>
           }

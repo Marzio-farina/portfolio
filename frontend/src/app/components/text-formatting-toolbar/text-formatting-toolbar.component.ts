@@ -148,10 +148,24 @@ export class TextFormattingToolbarComponent implements AfterViewInit {
   /**
    * Cambia colore
    */
-  changeColor(color: string): void {
+  changeColor(color: string, closePopup: boolean = false): void {
+    this.saveSelection();
+    this.restoreSelection();
     // @ts-ignore - execCommand è deprecato ma ancora funzionante
     document.execCommand('foreColor', false, color);
     setTimeout(() => this.colorState.set(color), 0);
+    
+    // Chiudi il popup se richiesto (per i colori predefiniti)
+    if (closePopup) {
+      this.showColorPicker.set(false);
+    }
+  }
+  
+  /**
+   * Chiude il popup del color picker
+   */
+  closeColorPicker(): void {
+    this.showColorPicker.set(false);
   }
   
   /**
