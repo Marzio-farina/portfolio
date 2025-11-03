@@ -13,8 +13,8 @@ use App\Models\User;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Cache;
-use Illuminate\Support\Facades\Password;
 use Illuminate\Support\Facades\Log;
+use Illuminate\Support\Facades\Password;
 use Illuminate\Support\Facades\Mail;
 use Illuminate\Support\Str;
 
@@ -111,16 +111,32 @@ class AuthController extends Controller
      */
     public function me(): JsonResponse
     {
-        /** @var User|null $user */
-        $user = auth('sanctum')->user();
+        try {
+            /** @var User|null $user */
+            $user = auth('sanctum')->user();
 
-        if (!$user instanceof User) {
+            if (!$user instanceof User) {
+                Log::info('[AuthController] /me - User not authenticated');
+                return response()->json([
+                    'message' => 'Unauthenticated'
+                ], 401);
+            }
+
+            Log::info('[AuthController] /me - User authenticated', ['user_id' => $user->id]);
+            return response()->json($user);
+        } catch (\Throwable $e) {
+            Log::error('[AuthController] /me - Exception caught', [
+                'message' => $e->getMessage(),
+                'file' => $e->getFile(),
+                'line' => $e->getLine(),
+                'trace' => $e->getTraceAsString()
+            ]);
             return response()->json([
-                'message' => 'Unauthenticated'
-            ], 401);
+                'ok' => false,
+                'error' => 'Error loading user profile',
+                'details' => app()->environment('local') ? $e->getMessage() : null
+            ], 500);
         }
-
-        return response()->json($user);
     }
 
     /**
@@ -130,16 +146,33 @@ class AuthController extends Controller
      */
     public function logout(): JsonResponse
     {
-        /** @var User|null $user */
-        $user = auth('sanctum')->user();
+        try {
+            /** @var User|null $user */
+            $user = auth('sanctum')->user();
 
-        if ($user instanceof User) {
-            $user->tokens()->delete();
+            if ($user instanceof User) {
+                Log::info('[AuthController] /logout - Deleting tokens for user', ['user_id' => $user->id]);
+                $user->tokens()->delete();
+            } else {
+                Log::info('[AuthController] /logout - No authenticated user, returning success anyway');
+            }
+
+            return response()->json([
+                'message' => 'Logged out'
+            ]);
+        } catch (\Throwable $e) {
+            Log::error('[AuthController] /logout - Exception caught', [
+                'message' => $e->getMessage(),
+                'file' => $e->getFile(),
+                'line' => $e->getLine(),
+                'trace' => $e->getTraceAsString()
+            ]);
+            return response()->json([
+                'ok' => false,
+                'error' => 'Error during logout',
+                'details' => app()->environment('local') ? $e->getMessage() : null
+            ], 500);
         }
-
-        return response()->json([
-            'message' => 'Logged out'
-        ]);
     }
 
     /**
