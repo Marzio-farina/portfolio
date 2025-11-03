@@ -13,12 +13,21 @@ class TechnologySeeder extends Seeder
      */
     public function run(): void
     {
-        Technology::insert([
-            ['title' => 'Laravel',    'description' => 'Framework PHP full stack',       'type' => 'backend'],
-            ['title' => 'Angular',    'description' => 'Frontend TypeScript',            'type' => 'frontend'],
-            ['title' => 'Node.js',    'description' => 'Backend JavaScript',             'type' => 'frontend'],
-            ['title' => 'PostgreSQL', 'description' => 'Database relazionale avanzato',  'type' => 'backend'],
-            ['title' => 'Docker',     'description' => 'Containerizzazione e DevOps',    'type' => 'backend'],
-        ]);
+        $technologies = [
+            // Tecnologie specifiche User 1 (Marzio)
+            ['title' => 'Laravel',    'description' => 'Framework PHP full stack',        'type' => 'backend',   'user_id' => 1],
+            ['title' => 'Angular',    'description' => 'Framework frontend TypeScript',   'type' => 'frontend',  'user_id' => 1],
+            ['title' => 'Node.js',    'description' => 'Runtime JavaScript backend',      'type' => 'backend',   'user_id' => 1],
+            ['title' => 'Vue.js',     'description' => 'Framework frontend progressivo',  'type' => 'frontend',  'user_id' => 1],
+            ['title' => 'React',      'description' => 'Libreria UI component-based',     'type' => 'frontend',  'user_id' => 1],
+            ['title' => 'TailwindCSS','description' => 'Framework CSS utility-first',     'type' => 'frontend',  'user_id' => 1],
+            ['title' => 'Bootstrap',  'description' => 'Framework CSS responsive',        'type' => 'frontend',  'user_id' => 1],
+            ['title' => 'Supabase',   'description' => 'Backend as a Service',            'type' => 'backend',   'user_id' => 1],
+            ['title' => 'Firebase',   'description' => 'Platform Google cloud',           'type' => 'backend',   'user_id' => 1],
+            ['title' => 'Chart.js',   'description' => 'Libreria grafici JavaScript',     'type' => 'frontend',  'user_id' => 1],
+            ['title' => 'RxJS',       'description' => 'Programmazione reattiva',         'type' => 'frontend',  'user_id' => 1],
+        ];
+
+        Technology::insert($technologies);
     }
 }
