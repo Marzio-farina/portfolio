@@ -46,6 +46,12 @@ export class ProgettiCard {
   hiddenTechs = computed(() => {
     const techs = this.progetto().technologies || [];
     const isEditMode = this.isAuthenticated() && this.isEditing();
+    const isInputExpanded = this.isAddTechExpanded();
+    
+    // Se l'input è espanso, mostra tutti tranne l'ultimo
+    if (isEditMode && isInputExpanded && techs.length >= 2) {
+      return techs.slice(0, -1); // Tutti tranne l'ultimo
+    }
     
     if (isEditMode && techs.length >= 3) {
       return techs.slice(0, -2); // Primi N-2 tag nascosti
@@ -67,6 +73,12 @@ export class ProgettiCard {
   visibleTechs = computed(() => {
     const techs = this.progetto().technologies || [];
     const isEditMode = this.isAuthenticated() && this.isEditing();
+    const isInputExpanded = this.isAddTechExpanded();
+    
+    // Se l'input è espanso, mostra solo 1 tag per dare spazio all'input
+    if (isEditMode && isInputExpanded && techs.length >= 2) {
+      return techs.slice(-1); // Solo ultimo tag
+    }
     
     // In edit mode, dobbiamo lasciare spazio per il bottone +
     // Se ci sono 3+ tag, mostra badge "+N" + ultimi 2 tag + bottone +
@@ -90,6 +102,12 @@ export class ProgettiCard {
   hiddenTechsCount = computed(() => {
     const techs = this.progetto().technologies || [];
     const isEditMode = this.isAuthenticated() && this.isEditing();
+    const isInputExpanded = this.isAddTechExpanded();
+    
+    // Se l'input è espanso, aumenta il contatore di 1
+    if (isEditMode && isInputExpanded && techs.length >= 2) {
+      return techs.length - 1; // N tag - 1 visibile = N-1 nascosti
+    }
     
     // In edit mode con 3+ tag: mostra badge "+N" con i primi N-2 tag
     if (isEditMode && techs.length >= 3) {
