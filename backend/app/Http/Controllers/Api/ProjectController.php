@@ -68,8 +68,7 @@ class ProjectController extends Controller
     public function store(Request $request): JsonResponse
     {
         try {
-            // Log alternativo per debugging
-            $debugFile = storage_path('logs/project_debug.log');
+            // Log della richiesta
             $logData = [
                 'timestamp' => date('Y-m-d H:i:s'),
                 'user_id' => Auth::id(),
@@ -78,7 +77,6 @@ class ProjectController extends Controller
                 'has_files' => $request->hasFile('poster_file') || $request->hasFile('video_file'),
                 'all_input_keys' => array_keys($request->all()),
             ];
-            file_put_contents($debugFile, "=== INIZIO CREAZIONE PROGETTO ===\n" . json_encode($logData, JSON_PRETTY_PRINT) . "\n", FILE_APPEND);
             
             Log::info('=== INIZIO CREAZIONE PROGETTO ===', $logData);
 
@@ -135,18 +133,15 @@ class ProjectController extends Controller
                 'description_length' => isset($validated['description']) ? strlen($validated['description']) : 'NON PRESENTE',
             ]);
         } catch (\Illuminate\Validation\ValidationException $e) {
-            $debugFile = storage_path('logs/project_debug.log');
             $errorData = [
                 'errors' => $e->errors(),
                 'message' => $e->getMessage(),
             ];
-            file_put_contents($debugFile, "=== ERRORE VALIDAZIONE ===\n" . json_encode($errorData, JSON_PRETTY_PRINT) . "\n", FILE_APPEND);
             
             Log::error('Errore validazione', $errorData);
             throw $e; // Rilancia per la gestione standard di Laravel
         } catch (\Exception $validationError) {
             // Cattura qualsiasi altro errore prima della validazione
-            $debugFile = storage_path('logs/project_debug.log');
             $errorData = [
                 'error_message' => $validationError->getMessage(),
                 'error_class' => get_class($validationError),
@@ -154,7 +149,6 @@ class ProjectController extends Controller
                 'error_line' => $validationError->getLine(),
                 'trace' => $validationError->getTraceAsString(),
             ];
-            file_put_contents($debugFile, "=== ERRORE PRIMA DELLA VALIDAZIONE ===\n" . json_encode($errorData, JSON_PRETTY_PRINT) . "\n", FILE_APPEND);
             
             Log::error('Errore prima della validazione', $errorData);
             throw $validationError;
@@ -420,10 +414,6 @@ class ProjectController extends Controller
                 'trace' => $e->getTraceAsString(),
                 'validated_data' => $validated ?? null,
             ];
-            
-            // Log alternativo
-            $debugFile = storage_path('logs/project_debug.log');
-            file_put_contents($debugFile, "=== ERRORE CREAZIONE PROGETTO ===\n" . json_encode($errorData, JSON_PRETTY_PRINT) . "\n", FILE_APPEND);
             
             Log::error('=== ERRORE CREAZIONE PROGETTO ===', $errorData);
 
