@@ -1,5 +1,7 @@
 import { Component, ElementRef, input, ViewChild, signal, inject, effect, computed, output, DestroyRef } from '@angular/core';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
+import { MatSelectModule } from '@angular/material/select';
+import { MatFormFieldModule } from '@angular/material/form-field';
 import { ThemeService } from '../../services/theme.service';
 import { AuthService } from '../../services/auth.service';
 import { EditModeService } from '../../services/edit-mode.service';
@@ -11,7 +13,7 @@ export type { Progetto };
 
 @Component({
   selector: 'app-progetti-card',
-  imports: [],
+  imports: [MatSelectModule, MatFormFieldModule],
   templateUrl: './progetti-card.html',
   styleUrl: './progetti-card.css'
 })
@@ -35,6 +37,9 @@ export class ProgettiCard {
   // Lista categorie per la select (passata dal parent)
   categories = input<Array<{ id: number; title: string }>>([]);
   changingCategory = signal(false);
+  
+  // Flag per prevenire loop infinito
+  private isUpdatingCategory = false;
 
   // Valori randomici per hover, generati al mount
   hoverRotate = signal<string>('0deg');
@@ -206,18 +211,24 @@ export class ProgettiCard {
   }
   
   /**
-   * Gestisce il cambio categoria dalla select
+   * Ottiene il category_id corrente del progetto
    */
-  onCategoryChange(event: Event): void {
-    event.stopPropagation(); // Previeni l'apertura del modal
-    
-    const select = event.target as HTMLSelectElement;
-    const newCategoryId = Number(select.value);
-    
-    if (!newCategoryId) return;
+  getCurrentCategoryId(): number | null {
+    return this.progetto().category_id ?? null;
+  }
+  
+  /**
+   * Gestisce il cambio categoria dal mat-select
+   */
+  onCategorySelectionChange(newCategoryId: number): void {
+    // Previeni chiamate multiple
+    if (this.isUpdatingCategory) return;
     
     // Non fare nulla se la categoria è la stessa
     if (newCategoryId === this.progetto().category_id) return;
+    
+    // Setta il flag per prevenire loop
+    this.isUpdatingCategory = true;
     
     // Stato loading
     this.changingCategory.set(true);
@@ -228,14 +239,21 @@ export class ProgettiCard {
       .subscribe({
         next: (updatedProject) => {
           this.changingCategory.set(false);
+          this.isUpdatingCategory = false;
           // Emetti il progetto aggiornato al parent
           this.categoryChanged.emit(updatedProject);
         },
         error: (err) => {
           this.changingCategory.set(false);
-          // Ripristina il valore precedente nella select
-          select.value = String(this.progetto().category_id || '');
+          this.isUpdatingCategory = false;
         }
       });
+  }
+  
+  /**
+   * Previene l'apertura del modal quando si clicca sulla select
+   */
+  onSelectClick(event: Event): void {
+    event.stopPropagation();
   }
 }

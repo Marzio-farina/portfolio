@@ -1,6 +1,9 @@
 @import "tailwindcss";
 @plugin "daisyui";
 
+/* Angular Material Core */
+@import '@angular/material/prebuilt-themes/indigo-pink.css';
+
 /* ===== Sistema di Temi Completo ===== */
 
 /* ===== TEMA LIGHT (Default) ===== */

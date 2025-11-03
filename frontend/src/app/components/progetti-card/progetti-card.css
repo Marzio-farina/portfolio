@@ -83,42 +83,147 @@
   transition: color var(--transition-1);
 }
 
-/* Select per cambiare categoria in edit mode */
-.category-select {
+/* Material Select - Form Field */
+.category-select-field {
+  width: auto;
+  min-width: 120px;
   margin: 0;
-  padding: 0;
-  border: none;
-  background: transparent;
-  color: var(--text-secondary);
-  font-size: var(--fs-6);
-  font-weight: var(--fw-300);
-  font-family: inherit;
-  cursor: pointer;
-  outline: none;
-  transition: color var(--transition-1), opacity var(--transition-1);
-  /* Rimuovi l'aspetto default della select */
-  appearance: none;
-  -webkit-appearance: none;
-  -moz-appearance: none;
-  /* Aggiungi una freccia personalizzata */
-  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 12 12'%3E%3Cpath fill='%23666' d='M6 9L1 4h10z'/%3E%3C/svg%3E");
-  background-repeat: no-repeat;
-  background-position: right center;
-  padding-right: 18px;
 }
 
-.category-select:hover:not(:disabled) {
+/* Rimuovi underline e wrapper di Material */
+.category-select-field ::ng-deep .mat-mdc-form-field-subscript-wrapper,
+.category-select-field ::ng-deep .mat-mdc-form-field-bottom-align {
+  display: none;
+}
+
+.category-select-field ::ng-deep .mat-mdc-text-field-wrapper {
+  padding: 0;
+  margin: 0;
+  background: transparent;
+}
+
+.category-select-field ::ng-deep .mat-mdc-form-field-flex {
+  padding: 0;
+  margin: 0;
+  background: transparent;
+}
+
+.category-select-field ::ng-deep .mat-mdc-form-field-infix {
+  padding: 4px 0;
+  margin: 0;
+  border: none;
+  min-height: auto;
+}
+
+/* Select trigger (il button che si clicca) */
+.category-select-field ::ng-deep .mat-mdc-select {
+  font-size: var(--fs-6);
+  font-weight: var(--fw-400);
+  color: var(--text-secondary);
+  font-family: inherit;
+}
+
+.category-select-field ::ng-deep .mat-mdc-select-trigger {
+  padding: 4px 10px;
+  border: 1px solid var(--border-primary);
+  border-radius: 8px;
+  background: var(--bg-card);
+  transition: all var(--transition-1);
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
+}
+
+.category-select-field ::ng-deep .mat-mdc-select-value {
+  color: var(--text-secondary);
+}
+
+.category-select-field ::ng-deep .mat-mdc-select-arrow {
+  color: var(--text-secondary);
+}
+
+/* Hover sulla select */
+.category-select-field:hover ::ng-deep .mat-mdc-select-trigger {
+  border-color: var(--accent-primary);
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.08);
+}
+
+.category-select-field:hover ::ng-deep .mat-mdc-select-value,
+.category-select-field:hover ::ng-deep .mat-mdc-select-arrow {
   color: var(--accent-primary);
 }
 
-.category-select:disabled {
-  opacity: 0.5;
-  cursor: not-allowed;
+/* Focus */
+.category-select-field ::ng-deep .mat-mdc-select.mat-mdc-select-focused .mat-mdc-select-trigger {
+  border-color: var(--accent-primary);
+  box-shadow: 0 0 0 3px var(--accent-primary-alpha);
 }
 
-/* Per il tema dark, cambia il colore della freccia */
-[data-theme="dark"] .category-select {
-  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 12 12'%3E%3Cpath fill='%23999' d='M6 9L1 4h10z'/%3E%3C/svg%3E");
+/* Disabled */
+.category-select-field ::ng-deep .mat-mdc-select.mat-mdc-select-disabled .mat-mdc-select-trigger {
+  opacity: 0.5;
+  cursor: not-allowed;
+  background: var(--bg-secondary);
+}
+
+/* Tema dark */
+[data-theme="dark"] .category-select-field ::ng-deep .mat-mdc-select-trigger {
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.15);
+}
+
+[data-theme="dark"] .category-select-field:hover ::ng-deep .mat-mdc-select-trigger {
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.25);
+}
+
+/* Stili globali per il panel del dropdown (overlay) */
+/* Usa ::ng-deep per penetrare l'encapsulation */
+::ng-deep .category-select-panel {
+  background: var(--bg-card) !important;
+  border: 1px solid var(--border-primary);
+  border-radius: 8px;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+  margin-top: 4px;
+}
+
+/* Options dentro il panel */
+::ng-deep .category-select-panel .mat-mdc-option {
+  background: transparent !important;
+  color: var(--text-primary) !important;
+  font-size: var(--fs-6);
+  font-weight: var(--fw-400);
+  min-height: 40px;
+  padding: 8px 16px;
+}
+
+/* Hover sulle options - SOLO testo accent + bold, NO background */
+::ng-deep .category-select-panel .mat-mdc-option:hover,
+::ng-deep .category-select-panel .mat-mdc-option.mat-mdc-option-active {
+  background: transparent !important;
+  background-color: transparent !important;
+  color: var(--accent-primary) !important;
+  font-weight: var(--fw-600) !important;
+}
+
+/* Option selezionata - SOLO testo accent + bold, NO background */
+::ng-deep .category-select-panel .mat-mdc-option.mat-mdc-option-selected {
+  background: transparent !important;
+  background-color: transparent !important;
+  color: var(--accent-primary) !important;
+  font-weight: var(--fw-600) !important;
+}
+
+/* Rimuovi il ripple effect di Material */
+::ng-deep .category-select-panel .mat-mdc-option .mat-ripple,
+::ng-deep .category-select-panel .mat-mdc-option .mat-pseudo-checkbox {
+  display: none;
+}
+
+/* Testo dentro l'option */
+::ng-deep .category-select-panel .mat-mdc-option .mdc-list-item__primary-text {
+  color: inherit;
+}
+
+/* Tema dark - panel */
+[data-theme="dark"] ::ng-deep .category-select-panel {
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.35);
 }
 
 .technologies {
