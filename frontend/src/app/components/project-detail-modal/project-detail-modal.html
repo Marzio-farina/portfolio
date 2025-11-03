@@ -123,7 +123,7 @@
       </div>
 
       <!-- ELEMENTO 2: Video (opzionale) -->
-      @if (project().video || isEditMode()) {
+      @if ((project().video || isEditMode()) && canvasService.canvasItems().has('video')) {
         <!-- Wrapper esterno per posizionamento -->
         <div 
           class="canvas-item-wrapper canvas-item-wrapper--video"
@@ -209,16 +209,17 @@
       </div>
 
       <!-- ELEMENTO 4: Tecnologie -->
-      <div 
-        class="canvas-item"
-        [class.is-dragging]="canvasService.dragState().isDragging && canvasService.dragState().draggedItemId === 'technologies'"
-        [class.is-resizing]="canvasService.resizeState().isResizing && canvasService.resizeState().itemId === 'technologies'"
-        [class.outside-viewport]="isItemOutsideViewport('technologies')"
-        [style.left.px]="getItemStyle('technologies').left"
-        [style.top.px]="getItemStyle('technologies').top"
-        [style.width.px]="getItemStyle('technologies').width"
-        [style.height.px]="getItemStyle('technologies').height"
-        (mousedown)="onItemMouseDown($event, 'technologies')">
+      @if (canvasService.canvasItems().has('technologies')) {
+        <div 
+          class="canvas-item"
+          [class.is-dragging]="canvasService.dragState().isDragging && canvasService.dragState().draggedItemId === 'technologies'"
+          [class.is-resizing]="canvasService.resizeState().isResizing && canvasService.resizeState().itemId === 'technologies'"
+          [class.outside-viewport]="isItemOutsideViewport('technologies')"
+          [style.left.px]="getItemStyle('technologies').left"
+          [style.top.px]="getItemStyle('technologies').top"
+          [style.width.px]="getItemStyle('technologies').width"
+          [style.height.px]="getItemStyle('technologies').height"
+          (mousedown)="onItemMouseDown($event, 'technologies')">
         
         <app-technologies-selector
           [availableTechnologies]="availableTechnologies()"
@@ -240,6 +241,7 @@
           <div class="resize-handle resize-sw" (mousedown)="onResizeHandleMouseDown($event, 'technologies', 'sw')"></div>
         }
       </div>
+      }
 
       <!-- ELEMENTO 5: Descrizione -->
       <div 

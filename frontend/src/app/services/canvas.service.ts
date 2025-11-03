@@ -716,9 +716,15 @@ export class CanvasService {
           });
         }
         
-        // Se il layout è completamente vuoto per questo dispositivo, usa il default
+        // Se il layout è completamente vuoto per questo dispositivo, usa il default FILTRATO
         if (deviceLayout.size === 0) {
-          layouts.set(deviceId, new Map(this.defaultLayout));
+          const newLayout = new Map(this.defaultLayout);
+          // Rimuovi elementi vuoti
+          elementsToFilter.forEach(itemId => {
+            console.log(`⚠️ Elemento ${itemId} filtrato dal default perché vuoto nel progetto`);
+            newLayout.delete(itemId);
+          });
+          layouts.set(deviceId, newLayout);
         } else {
           layouts.set(deviceId, deviceLayout);
         }
