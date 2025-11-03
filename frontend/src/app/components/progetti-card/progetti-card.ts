@@ -54,7 +54,11 @@ export class ProgettiCard {
   
   // Popup tag nascosti
   showHiddenTechsPopup = signal(false);
-  hiddenTechs = computed(() => {
+  popupTop = signal('0px');
+  popupLeft = signal('0px');
+  
+  // Tag nascosti grezzi (senza layout)
+  hiddenTechsRaw = computed(() => {
     const techs = this.progetto().technologies || [];
     const isEditMode = this.isAuthenticated() && this.isEditing();
     const isInputExpanded = this.isAddTechExpanded();
@@ -73,6 +77,39 @@ export class ProgettiCard {
     }
     
     return [];
+  });
+  
+  // Tag nascosti con layout a due colonne e "Altri X tag"
+  hiddenTechs = computed(() => {
+    const techs = this.hiddenTechsRaw();
+    
+    if (techs.length <= 12) {
+      // Mostra tutti normalmente
+      return techs.map((tech, index) => ({
+        ...tech,
+        column: index < 6 ? 1 : 2,
+        isOthers: false
+      }));
+    }
+    
+    // Più di 12 tag: mostra i primi 11 + "Altri X tag"
+    const visibleTechs = techs.slice(0, 11);
+    const remainingCount = techs.length - 11;
+    
+    return [
+      ...visibleTechs.map((tech, index) => ({
+        ...tech,
+        column: index < 6 ? 1 : 2,
+        isOthers: false
+      })),
+      {
+        id: -1,
+        title: `Altri ${remainingCount} tag`,
+        description: null,
+        column: 2,
+        isOthers: true
+      } as any
+    ];
   });
   
   // Input espandibile per aggiungere tag
@@ -184,13 +221,10 @@ export class ProgettiCard {
       url += `?user_id=${userId}`;
     }
     
-    console.log('📡 Caricamento tecnologie da:', url, 'userId:', userId);
-    
     this.http.get<Technology[]>(url)
       .pipe(takeUntilDestroyed(this.destroyRef))
       .subscribe({
         next: (techs) => {
-          console.log('✅ Tecnologie caricate:', techs?.length || 0, techs);
           this.availableTechnologies.set(techs || []);
         },
         error: (err) => {
@@ -384,11 +418,51 @@ export class ProgettiCard {
   }
   
   /**
-   * Toggle popup tag nascosti
+   * Toggle popup tag nascosti (click)
    */
   toggleHiddenTechsPopup(event: Event): void {
     event.stopPropagation();
-    this.showHiddenTechsPopup.update(v => !v);
+    const willOpen = !this.showHiddenTechsPopup();
+    
+    if (willOpen) {
+      this.calculatePopupPosition(event.target as HTMLElement);
+    }
+    
+    this.showHiddenTechsPopup.set(willOpen);
+  }
+  
+  /**
+   * Apre il popup tag nascosti (hover)
+   */
+  openHiddenTechsPopup(event: Event): void {
+    this.calculatePopupPosition(event.target as HTMLElement);
+    this.showHiddenTechsPopup.set(true);
+  }
+  
+  /**
+   * Calcola la posizione del popup in base al badge +N
+   */
+  private calculatePopupPosition(element: HTMLElement): void {
+    const rect = element.getBoundingClientRect();
+    
+    // Calcola quanti tag ci sono
+    const numTags = this.hiddenTechs().length;
+    const tagHeight = 32; // Altezza approssimativa di un tag
+    const gap = 4; // Gap tra i tag
+    
+    // Layout a griglia: max 6 righe, se > 6 tag si crea seconda colonna
+    const numRows = Math.min(numTags, 6);
+    const totalHeight = (numRows * tagHeight) + ((numRows - 1) * gap);
+    
+    // Top: parte da 200px fisso (tag più basso vicino al +N) e sottrae altezza per distribuire verso l'alto
+    const baseTop = rect.top - 415;
+    const top = baseTop - totalHeight;
+    
+    // Left: fisso, vicino al bordo sinistro
+    const left = 40;
+    
+    this.popupTop.set(`${top}px`);
+    this.popupLeft.set(`${left}px`);
   }
   
   /**
@@ -461,21 +535,12 @@ export class ProgettiCard {
    * Se non esiste, la crea prima di aggiungerla
    */
   private addTechnologyToProject(techName: string): void {
-    console.log('🔍 Ricerca tecnologia:', {
-      cercando: techName,
-      disponibili: this.availableTechnologies().map(t => t.title),
-      totale: this.availableTechnologies().length
-    });
-    
     // Cerca la tecnologia per nome (case-insensitive)
     let tech = this.availableTechnologies().find(t => 
       t.title.toLowerCase() === techName.toLowerCase()
     );
     
-    console.log('✅ Tecnologia trovata:', tech);
-    
     if (!tech) {
-      console.log('🆕 Tecnologia non trovata, creazione in corso...');
       // Tecnologia non trovata - creala prima
       this.createAndAddTechnology(techName);
       return;
@@ -484,7 +549,6 @@ export class ProgettiCard {
     // Verifica se la tecnologia è già nel progetto
     const currentTechs = this.progetto().technologies || [];
     if (currentTechs.some(t => t.id === tech.id)) {
-      console.log('⚠️ Tecnologia già presente nel progetto');
       // Già presente, collassa senza fare nulla
       this.isAddTechExpanded.set(false);
       this.newTechValue.set('');
@@ -495,13 +559,10 @@ export class ProgettiCard {
     this.addingTechnology.set(true);
     const newTechnologyIds = [...currentTechs.map(t => t.id), tech.id];
     
-    console.log('📤 Aggiornamento progetto con technology_ids:', newTechnologyIds);
-    
     this.api.update$(this.progetto().id, { technology_ids: newTechnologyIds })
       .pipe(takeUntilDestroyed(this.destroyRef))
       .subscribe({
         next: (updatedProject) => {
-          console.log('✅ Progetto aggiornato con successo');
           this.addingTechnology.set(false);
           this.isAddTechExpanded.set(false);
           this.newTechValue.set('');
@@ -533,14 +594,10 @@ export class ProgettiCard {
       user_id: userId
     };
     
-    console.log('🆕 Creazione nuova tecnologia:', body);
-    
     this.http.post<{ ok: boolean; data: Technology; is_new: boolean }>(apiUrl('technologies'), body)
       .pipe(takeUntilDestroyed(this.destroyRef))
       .subscribe({
         next: (response) => {
-          console.log('✅ Tecnologia creata:', response.data);
-          
           // Aggiungi la nuova tecnologia alla lista disponibili
           const currentAvailable = this.availableTechnologies();
           this.availableTechnologies.set([...currentAvailable, response.data]);
@@ -549,13 +606,10 @@ export class ProgettiCard {
           const currentTechs = this.progetto().technologies || [];
           const newTechnologyIds = [...currentTechs.map(t => t.id), response.data.id];
           
-          console.log('📤 Aggiornamento progetto con nuova tecnologia, technology_ids:', newTechnologyIds);
-          
           this.api.update$(this.progetto().id, { technology_ids: newTechnologyIds })
             .pipe(takeUntilDestroyed(this.destroyRef))
             .subscribe({
               next: (updatedProject) => {
-                console.log('✅ Progetto aggiornato con nuova tecnologia');
                 this.addingTechnology.set(false);
                 this.isAddTechExpanded.set(false);
                 this.newTechValue.set('');

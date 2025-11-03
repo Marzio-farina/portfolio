@@ -60,7 +60,7 @@
   padding: 12px 14px 16px;
   border-radius: 0 0 16px 16px; /* Replica i bordi arrotondati di 16px della card */
   background: transparent; /* Trasparente per mostrare il gradiente radiale del wrapper */
-  overflow: hidden; /* Assicura che il background rispetti border-radius */
+  overflow: visible; /* Permette al popup di fuoriuscire */
 }
 
 .title {
@@ -234,6 +234,8 @@
   margin-top: 8px;
   align-items: center;
   cursor: default; /* Non aprono il modal, cursor normale */
+  position: relative;
+  z-index: 50;
 }
 
 /* Bottone aggiungi tecnologie - cerchio con + */
@@ -304,6 +306,7 @@
 .more-techs-wrapper {
   position: relative;
   display: inline-flex;
+  z-index: 100;
 }
 
 /* Badge "+N" per tecnologie nascoste */
@@ -337,16 +340,15 @@
   transform: scale(0.95);
 }
 
-/* Container per i tag nascosti (invisibile) */
+/* Container per i tag nascosti - layout a griglia */
 .hidden-techs-popup {
-  position: absolute;
-  bottom: 100%;
-  left: 100%;
-  z-index: 1000;
-  display: flex;
-  flex-direction: column;
-  gap: 4px;
-  margin-bottom: 8px;
+  position: fixed;
+  z-index: 9999;
+  display: grid;
+  grid-template-columns: auto auto;
+  grid-template-rows: repeat(6, auto);
+  grid-auto-flow: column;
+  gap: 4px 8px;
   pointer-events: none;
 }
 
@@ -354,6 +356,7 @@
 .hidden-tech-item {
   padding: 7px 14px;
   min-width: fit-content;
+  max-width: 80px;
   font-size: 0.8rem;
   font-weight: 600;
   color: var(--text-primary);
@@ -363,16 +366,27 @@
   box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15);
   cursor: default;
   white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
   pointer-events: all;
   transition: all 0.2s ease;
   animation: slideUpTag 0.4s cubic-bezier(0.34, 1.56, 0.64, 1) backwards;
 }
 
-/* Animazione: tutti partono sovrapposti (posizione del tag più basso) e salgono */
+/* Tag speciale "Altri X tag" */
+.hidden-tech-item.others {
+  font-style: italic;
+  opacity: 0.8;
+  cursor: help;
+}
+
+/* Con position: fixed, ogni tag ha la sua posizione assoluta */
+/* L'animazione parte tutti dalla stessa posizione e li distribuisce */
 @keyframes slideUpTag {
   0% {
     opacity: 0;
-    transform: translateY(var(--start-position, 0)) scale(0.8);
+    /* Tutti partono sovrapposti alla posizione dell'ultimo tag */
+    transform: translateY(var(--collapse-offset, 0)) scale(0.8);
   }
   60% {
     opacity: 1;
@@ -383,33 +397,22 @@
   }
 }
 
-/* Posizione iniziale: tutti partono dalla posizione del tag più basso (ultimo) */
-/* Tag 1 (più in alto) parte da +160px (più in basso nel DOM) */
-/* Tag 6 (più in basso) parte da 0px (sua posizione naturale) */
-.hidden-tech-item:nth-child(1) { 
-  --start-position: 160px;
-  animation-delay: 0s; 
-}
-.hidden-tech-item:nth-child(2) { 
-  --start-position: 128px;
-  animation-delay: 0.08s; 
-}
-.hidden-tech-item:nth-child(3) { 
-  --start-position: 96px;
-  animation-delay: 0.16s; 
-}
-.hidden-tech-item:nth-child(4) { 
-  --start-position: 64px;
-  animation-delay: 0.24s; 
-}
-.hidden-tech-item:nth-child(5) { 
-  --start-position: 32px;
-  animation-delay: 0.32s; 
-}
-.hidden-tech-item:nth-child(6) { 
-  --start-position: 0px;
-  animation-delay: 0.4s; 
-}
+/* Offset per far partire tutti dalla posizione dell'ultimo tag */
+/* Colonna 1 (primi 6 tag) */
+.hidden-tech-item:nth-child(1) { --collapse-offset: 160px; animation-delay: 0s; }
+.hidden-tech-item:nth-child(2) { --collapse-offset: 128px; animation-delay: 0.06s; }
+.hidden-tech-item:nth-child(3) { --collapse-offset: 96px; animation-delay: 0.12s; }
+.hidden-tech-item:nth-child(4) { --collapse-offset: 64px; animation-delay: 0.18s; }
+.hidden-tech-item:nth-child(5) { --collapse-offset: 32px; animation-delay: 0.24s; }
+.hidden-tech-item:nth-child(6) { --collapse-offset: 0px; animation-delay: 0.3s; }
+
+/* Colonna 2 (tag 7-12) */
+.hidden-tech-item:nth-child(7) { --collapse-offset: 160px; animation-delay: 0.36s; }
+.hidden-tech-item:nth-child(8) { --collapse-offset: 128px; animation-delay: 0.42s; }
+.hidden-tech-item:nth-child(9) { --collapse-offset: 96px; animation-delay: 0.48s; }
+.hidden-tech-item:nth-child(10) { --collapse-offset: 64px; animation-delay: 0.54s; }
+.hidden-tech-item:nth-child(11) { --collapse-offset: 32px; animation-delay: 0.6s; }
+.hidden-tech-item:nth-child(12) { --collapse-offset: 0px; animation-delay: 0.66s; }
 
 .hidden-tech-item:hover {
   background: var(--accent-primary);

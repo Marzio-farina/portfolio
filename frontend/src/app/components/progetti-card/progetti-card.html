@@ -41,18 +41,27 @@
     @if (progetto().technologies && progetto().technologies.length > 0) {
       <div class="technologies" (click)="$event.stopPropagation()">
         @if (hiddenTechsCount() > 0) {
-          <div class="more-techs-wrapper">
+          <div class="more-techs-wrapper" (mouseleave)="closeHiddenTechsPopup()">
             <button 
               class="more-techs-badge" 
               type="button" 
               [attr.aria-label]="'Mostra ' + hiddenTechsCount() + ' tecnologie nascoste'"
-              (click)="toggleHiddenTechsPopup($event)">
+              (click)="toggleHiddenTechsPopup($event)"
+              (mouseenter)="openHiddenTechsPopup($event)">
               +{{ hiddenTechsCount() }}
             </button>
             @if (showHiddenTechsPopup()) {
-              <div class="hidden-techs-popup" (mouseleave)="closeHiddenTechsPopup()">
+              <div 
+                class="hidden-techs-popup"
+                [style.top]="popupTop()"
+                [style.left]="popupLeft()">
                 @for (tech of hiddenTechs(); track tech.id) {
-                  <div class="hidden-tech-item">{{ tech.title }}</div>
+                  <div 
+                    class="hidden-tech-item"
+                    [class.others]="tech.isOthers"
+                    [attr.title]="tech.isOthers ? 'Tecnologie rimanenti non visualizzate' : tech.title">
+                    {{ tech.title }}
+                  </div>
                 }
               </div>
             }
