@@ -8,6 +8,7 @@ import { ThemeService } from '../../services/theme.service';
 import { AuthService } from '../../services/auth.service';
 import { EditModeService } from '../../services/edit-mode.service';
 import { ProjectService } from '../../services/project.service';
+import { TenantService } from '../../services/tenant.service';
 
 import { Progetto } from '../../core/models/project';
 
@@ -33,6 +34,7 @@ export class ProgettiCard {
   private readonly editModeService = inject(EditModeService);
   private readonly api = inject(ProjectService);
   private readonly http = inject(HttpClient);
+  private readonly tenant = inject(TenantService);
   private readonly destroyRef = inject(DestroyRef);
   
   isAuthenticated = computed(() => this.auth.isAuthenticated());
@@ -172,10 +174,17 @@ export class ProgettiCard {
   }
   
   /**
-   * Carica tutte le tecnologie disponibili dal backend
+   * Carica tutte le tecnologie disponibili dal backend (globali + specifiche utente)
    */
   private loadTechnologies(): void {
-    this.http.get<Technology[]>(apiUrl('technologies'))
+    const userId = this.tenant.userId();
+    let url = apiUrl('technologies');
+    
+    if (userId) {
+      url += `?user_id=${userId}`;
+    }
+    
+    this.http.get<Technology[]>(url)
       .pipe(takeUntilDestroyed(this.destroyRef))
       .subscribe({
         next: (techs) => {

@@ -18,14 +18,31 @@ class TechnologyController extends Controller
     /**
      * Get all technologies
      * 
-     * Returns a list of all technologies available for projects.
+     * Returns technologies filtered by user_id if provided.
+     * Returns global technologies (user_id = null) + user-specific ones.
      * 
-     * @param Request $request HTTP request
+     * @param Request $request HTTP request with optional user_id parameter
      * @return JsonResponse List of technologies
      */
     public function index(Request $request): JsonResponse
     {
-        $technologies = Technology::query()
+        $userId = $request->query('user_id');
+        
+        $query = Technology::query();
+        
+        if ($userId) {
+            // Mostra tecnologie globali (user_id = null) + tecnologie specifiche dell'utente
+            $query->where(function ($q) use ($userId) {
+                $q->whereNull('user_id')
+                  ->orWhere('user_id', $userId);
+            });
+        } else {
+            // Nessun filtro: mostra tutte le tecnologie
+            // Oppure solo quelle globali? Dipende dai requisiti
+            $query->whereNull('user_id'); // Solo globali per sicurezza
+        }
+        
+        $technologies = $query
             ->orderBy('title')
             ->get()
             ->map(function ($technology) {
@@ -33,6 +50,7 @@ class TechnologyController extends Controller
                     'id' => $technology->id,
                     'title' => $technology->title,
                     'description' => $technology->description ?? null,
+                    'user_id' => $technology->user_id,
                 ];
             });
 
