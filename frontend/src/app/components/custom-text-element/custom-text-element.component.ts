@@ -39,48 +39,84 @@ export class CustomTextElementComponent implements AfterViewInit, AfterViewCheck
   private localContent = '';
   // Flag per tracciare se il contenuto è stato sincronizzato con il ViewChild
   private contentSynced = false;
+  // Flag per tracciare se l'utente ha modifiche non salvate
+  private userHasUnsavedChanges = false;
   
   constructor() {
-    // Aggiorna il contenuto solo quando cambia dall'esterno e NON quando l'utente sta scrivendo
+    // Effect principale: sincronizza il DOM con content() dall'input
     effect(() => {
       const newContent = this.content();
       const div = this.editableDiv?.nativeElement;
       
       // Non aggiornare se:
-      // 1. L'elemento è focused (l'utente sta scrivendo)
-      // 2. Il contenuto è già uguale
-      // 3. L'utente ha già scritto qualcosa localmente e il nuovo contenuto è vuoto
-      if (div && !this.isFocused() && div.innerHTML !== newContent) {
-        // Se c'è contenuto locale e il nuovo contenuto è vuoto, non sovrascrivere
-        const currentLocal = div.innerHTML.trim();
-        const isNewContentEmpty = !newContent || newContent.trim() === '' || newContent === '<br>' || newContent === '<br/>';
-        
-        if (currentLocal && isNewContentEmpty && this.localContent) {
-          // Non sovrascrivere: l'utente ha già scritto qualcosa
-          return;
+      // 1. Non c'è il ViewChild
+      // 2. L'utente sta scrivendo (focused)
+      if (!div || this.isFocused()) {
+        if (!div) {
+          this.contentSynced = false;
         }
-        
-        // Sanitizza il contenuto prima di inserirlo nel DOM
-        const sanitized = this.sanitizeHtml(newContent);
-        div.innerHTML = sanitized;
-        this.localContent = sanitized;
+        return;
+      }
+      
+      const currentDivContent = div.innerHTML;
+      const sanitizedNew = this.sanitizeHtml(newContent);
+      
+      // Se il contenuto è identico, marca come sincronizzato
+      if (currentDivContent === sanitizedNew) {
         this.contentSynced = true;
-      } else if (!div) {
-        // Se il ViewChild non è disponibile, resetta il flag
-        this.contentSynced = false;
+        this.localContent = sanitizedNew;
+        return;
+      }
+      
+      const isNewContentEmpty = !newContent || newContent.trim() === '' || newContent === '<br>';
+      const isDivContentEmpty = !currentDivContent || currentDivContent.trim() === '' || currentDivContent === '<br>';
+      
+      // CASO 1: Nuovo elemento - div vuoto, nuovo contenuto vuoto
+      // Non fare nulla, lascia l'utente iniziare a scrivere
+      if (isDivContentEmpty && isNewContentEmpty) {
+        this.contentSynced = true;
+        return;
+      }
+      
+      // CASO 2: Utente ha scritto in nuovo elemento - div ha contenuto, server vuoto
+      // Preserva il contenuto locale dell'utente
+      if (!isDivContentEmpty && isNewContentEmpty) {
+        // L'utente sta scrivendo, non sovrascrivere
+        this.userHasUnsavedChanges = true;
+        return;
+      }
+      
+      // CASO 3: Utente ha modifiche non salvate
+      // Non sovrascrivere finché non vengono salvate
+      if (this.userHasUnsavedChanges && currentDivContent !== sanitizedNew) {
+        // Controlla se il nuovo contenuto corrisponde al div (significa salvato con successo)
+        if (sanitizedNew && this.sanitizeHtml(currentDivContent) === sanitizedNew) {
+          // Il contenuto è stato salvato con successo, resetta il flag
+          this.userHasUnsavedChanges = false;
+          this.localContent = sanitizedNew;
+          this.contentSynced = true;
+        }
+        // Altrimenti, mantieni il contenuto locale
+        return;
+      }
+      
+      // CASO 4: Ricaricamento da server - server ha contenuto
+      // Aggiorna il div solo se il contenuto è effettivamente diverso
+      if (!isNewContentEmpty) {
+        div.innerHTML = sanitizedNew;
+        this.localContent = sanitizedNew;
+        this.contentSynced = true;
+        this.userHasUnsavedChanges = false;
       }
     });
 
-    // Effect per reagire al cambio di modalità edit
-    // Quando si passa da view mode a edit mode, il ViewChild viene ricreato
+    // Effect per cambio modalità: resetta solo il flag di sincronizzazione
     effect(() => {
       const isEdit = this.isEditMode();
       
-      // Quando cambia la modalità, resetta il flag di sincronizzazione
-      // in modo che ngAfterViewChecked possa aggiornare il contenuto
-      if (isEdit) {
-        this.contentSynced = false;
-      }
+      // Quando cambia la modalità, resetta solo contentSynced
+      // NON resettare localContent per preservare eventuali modifiche dell'utente
+      this.contentSynced = false;
     });
   }
   
@@ -99,28 +135,37 @@ export class CustomTextElementComponent implements AfterViewInit, AfterViewCheck
    * Questo è importante quando si passa da view mode a edit mode
    */
   ngAfterViewChecked(): void {
-    // Se siamo in edit mode e il contenuto non è ancora sincronizzato
-    if (this.isEditMode() && !this.contentSynced && this.editableDiv) {
+    // Se siamo in edit mode, il ViewChild è disponibile e non è ancora sincronizzato
+    if (this.isEditMode() && !this.contentSynced && this.editableDiv && !this.isFocused()) {
       const newContent = this.content();
       const div = this.editableDiv.nativeElement;
+      const currentDivContent = div.innerHTML;
       
-      // Se il ViewChild è disponibile e il contenuto è diverso
-      if (div && div.innerHTML !== newContent && !this.isFocused()) {
-        // Se c'è contenuto locale e il nuovo contenuto è vuoto, non sovrascrivere
-        const currentLocal = div.innerHTML.trim();
-        const isNewContentEmpty = !newContent || newContent.trim() === '' || newContent === '<br>' || newContent === '<br/>';
-        
-        if (currentLocal && isNewContentEmpty && this.localContent) {
-          // Non sovrascrivere: l'utente ha già scritto qualcosa
-          this.contentSynced = true; // Ma marca come sincronizzato per evitare loop
-          return;
+      // Se l'utente ha modifiche non salvate, ripristina da localContent
+      if (this.userHasUnsavedChanges && this.localContent) {
+        // Ripristina il contenuto locale non salvato
+        if (currentDivContent !== this.localContent) {
+          div.innerHTML = this.localContent;
         }
-        
-        const sanitized = this.sanitizeHtml(newContent);
-        div.innerHTML = sanitized;
-        this.localContent = sanitized;
         this.contentSynced = true;
+        return;
       }
+      
+      // Altrimenti, sincronizza dal server
+      const sanitizedNew = this.sanitizeHtml(newContent);
+      
+      if (currentDivContent !== sanitizedNew) {
+        const isNewContentEmpty = !newContent || newContent.trim() === '' || newContent === '<br>';
+        
+        // Se il server ha contenuto, aggiornalo
+        if (!isNewContentEmpty) {
+          div.innerHTML = sanitizedNew;
+          this.localContent = sanitizedNew;
+          this.userHasUnsavedChanges = false;
+        }
+      }
+      
+      this.contentSynced = true;
     }
   }
   
@@ -236,8 +281,9 @@ export class CustomTextElementComponent implements AfterViewInit, AfterViewCheck
     // Sanitizza il contenuto per sicurezza
     const newContent = this.sanitizeHtml(rawContent);
     
-    // Aggiorna solo il contenuto locale, senza salvare
+    // Aggiorna il contenuto locale e marca come modificato
     this.localContent = newContent;
+    this.userHasUnsavedChanges = true;
   }
   
   /**
@@ -252,23 +298,29 @@ export class CustomTextElementComponent implements AfterViewInit, AfterViewCheck
    * Gestisce i tasti premuti nel contenteditable
    */
   onKeyDown(event: KeyboardEvent): void {
-    // Gestione tasto TAB: inserisce spazi invece di spostare il focus
+    // Gestione tasto TAB: inserisce indentazione invece di spostare il focus
     if (event.key === 'Tab') {
       event.preventDefault();
       
-      // Inserisci 4 spazi (o un tab character)
       const selection = window.getSelection();
       if (selection && selection.rangeCount > 0) {
         const range = selection.getRangeAt(0);
         range.deleteContents();
         
-        // Inserisci spazi invece di tab character per compatibilità
-        const spaces = document.createTextNode('\u00A0\u00A0\u00A0\u00A0'); // 4 non-breaking spaces
-        range.insertNode(spaces);
+        // Crea uno span temporaneo con HTML entities per spazi non-breaking
+        const tempSpan = document.createElement('span');
+        tempSpan.innerHTML = '&nbsp;&nbsp;&nbsp;&nbsp;'; // 4 spazi non-breaking come HTML entity
+        
+        // Inserisci il contenuto del tempSpan (che sarà convertito in caratteri reali)
+        const fragment = document.createDocumentFragment();
+        while (tempSpan.firstChild) {
+          fragment.appendChild(tempSpan.firstChild);
+        }
+        
+        range.insertNode(fragment);
         
         // Sposta il cursore dopo gli spazi
-        range.setStartAfter(spaces);
-        range.setEndAfter(spaces);
+        range.collapse(false);
         selection.removeAllRanges();
         selection.addRange(range);
         
@@ -319,11 +371,18 @@ export class CustomTextElementComponent implements AfterViewInit, AfterViewCheck
       const rawContent = this.editableDiv.nativeElement.innerHTML;
       const sanitized = this.sanitizeHtml(rawContent);
       
+      // Aggiorna localContent con il contenuto che verrà salvato
+      this.localContent = sanitized;
+      
       // Se il contenuto è solo <br>, trattalo come vuoto
       // I browser aggiungono automaticamente <br> quando il contenteditable è vuoto
       if (sanitized === '<br>' || sanitized === '<br/>' || sanitized === '<br />' || sanitized.trim() === '') {
+        this.userHasUnsavedChanges = false;
         return '';
       }
+      
+      // Non resettare userHasUnsavedChanges qui - verrà resettato dall'effect
+      // quando content() viene aggiornato dal server dopo il salvataggio
       
       return sanitized;
     }

@@ -438,6 +438,18 @@ h1, h2, h3, h4, h5, h6, p, span, div, a {
   -ms-hyphens: none !important;
 }
 
+/* Disabilita hyphens per custom text in modalità visualizzazione */
+.custom-text-display,
+.custom-text-display *,
+.custom-text-input,
+.custom-text-input * {
+  hyphens: none !important;
+  -webkit-hyphens: none !important;
+  -moz-hyphens: none !important;
+  -ms-hyphens: none !important;
+  word-break: normal !important;
+}
+
 /* Riduzione font-size per dispositivi piccoli */
 h1 { font-size: 1.8rem !important; }
 h2 { font-size: 1.5rem !important; }

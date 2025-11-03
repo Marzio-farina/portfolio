@@ -445,6 +445,9 @@ export class ProjectDetailModal implements OnDestroy {
           this.selectedVideoFile.set(null);
           this.videoRemoved.set(false);
           
+          // Rimuovi l'ID per forzare il ricaricamento del layout
+          this.loadedProjectIds.delete(updatedProject.id);
+          
           this.projectDetailModalService.selectedProject.set(updatedProject);
           this.projectDetailModalService.markAsModified(updatedProject);
         },
@@ -462,6 +465,9 @@ export class ProjectDetailModal implements OnDestroy {
       next: (updatedProject) => {
         this.saving.set(false);
         this.addNotification('success', 'Progetto aggiornato con successo!');
+        
+        // Rimuovi l'ID per forzare il ricaricamento del layout
+        this.loadedProjectIds.delete(updatedProject.id);
         
         // IMPORTANTE: Aggiorna prima selectedProject per aggiornare il dialog
         // POI marca come modificato per aggiornare la lista (questo evita conflitti)
@@ -695,9 +701,57 @@ export class ProjectDetailModal implements OnDestroy {
    * Toggle modalità preview per vedere il risultato senza edit mode
    */
   togglePreviewMode(): void {
-    this.isPreviewMode.update(prev => !prev);
+    const currentPreviewMode = this.isPreviewMode();
+    
+    // Se stiamo ENTRANDO in preview mode (da edit a preview)
+    if (!currentPreviewMode) {
+      // PRIMA controlla se ci sono modifiche non salvate (PRIMA di aggiornare customElements)
+      const hasUnsavedChanges = this.hasUnsavedChanges();
+      
+      // POI aggiorna il contenuto degli elementi custom text nel canvasService
+      // (così in preview vedono le modifiche anche se non salvate)
+      this.updateAllCustomTextContent();
+      
+      if (hasUnsavedChanges) {
+        // Mostra notifica persistente che avvisa di salvare
+        this.addNotification('warning', 'Attenzione: hai modifiche non salvate. Clicca "Salva" per salvarle definitivamente.');
+      }
+    }
+    
+    // Toggle preview mode (permetti sempre il passaggio)
+    this.isPreviewMode.set(!currentPreviewMode);
   }
-
+  
+  /**
+   * Controlla se ci sono modifiche non salvate
+   */
+  private hasUnsavedChanges(): boolean {
+    // Controlla se il form è dirty
+    if (this.editForm.dirty) {
+      return true;
+    }
+    
+    // Controlla se ci sono file selezionati per upload
+    if (this.selectedPosterFile() || this.selectedVideoFile() || this.videoRemoved()) {
+      return true;
+    }
+    
+    // Controlla se gli elementi custom text hanno contenuto non salvato
+    if (this.customTextElements) {
+      for (const component of this.customTextElements) {
+        const elementId = component.elementId();
+        const currentContent = component.getCurrentContent();
+        const savedContent = this.canvasService.customElements().get(elementId)?.content || '';
+        
+        if (currentContent !== savedContent) {
+          return true;
+        }
+      }
+    }
+    
+    return false;
+  }
+  
   toggleAddToolbar(): void {
     this.isAddToolbarExpanded.update(prev => !prev);
     

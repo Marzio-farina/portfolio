@@ -58,15 +58,41 @@
   font-size: 16px;
   line-height: 1.6;
   overflow: auto;
-  word-wrap: break-word;
-  overflow-wrap: break-word;
-  white-space: pre-wrap;
+  word-wrap: break-word !important;
+  overflow-wrap: break-word !important;
+  white-space: pre-wrap !important;
   hyphens: none !important;
   -webkit-hyphens: none !important;
   -moz-hyphens: none !important;
   -ms-hyphens: none !important;
-  word-break: normal;
+  word-break: normal !important;
   box-sizing: border-box;
+}
+
+/* Assicura che anche i figli non abbiano hyphens */
+.custom-text-display *,
+.custom-text-display span,
+.custom-text-display b,
+.custom-text-display i,
+.custom-text-display u {
+  hyphens: none !important;
+  -webkit-hyphens: none !important;
+  -moz-hyphens: none !important;
+  -ms-hyphens: none !important;
+  word-break: normal !important;
+}
+
+/* Stessi stili anche per modalità edit */
+.custom-text-input *,
+.custom-text-input span,
+.custom-text-input b,
+.custom-text-input i,
+.custom-text-input u {
+  hyphens: none !important;
+  -webkit-hyphens: none !important;
+  -moz-hyphens: none !important;
+  -ms-hyphens: none !important;
+  word-break: normal !important;
 }
 
 /* Nota: stili per .remove-custom-element sono in project-detail-modal-canvas-devices.css 

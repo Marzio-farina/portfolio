@@ -394,7 +394,6 @@ export class Notification implements OnDestroy, AfterViewInit {
                     !collapsed.some(c => c.message === notification.message)
     );
     
-    
     // Solo se ci sono nuove notifiche, aggiungile a quelle visibili
     if (unprocessedNotifications.length > 0) {
       this.visibleNotifications.set([...visible, ...unprocessedNotifications]);
