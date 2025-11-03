@@ -451,7 +451,7 @@
           <span class="add-element-btn__icon">🖼️</span>
           <span class="add-element-btn__label">Immagine</span>
         </button>
-        @if (!project().video) {
+        @if (!canvasService.canvasItems().has('video')) {
           <button 
             type="button"
             class="add-element-btn"
