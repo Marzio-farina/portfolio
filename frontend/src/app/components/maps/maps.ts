@@ -32,7 +32,6 @@ export class Maps {
   showSkeleton = computed<boolean>(() => !this.hasLocation() && !this.showPlaceholder());
 
   onMapLoad() {
-    console.log('Maps - Evento load iframe emesso, mappa caricata!');
     this.loaded.set(true);
   }
 
@@ -40,26 +39,15 @@ export class Maps {
     // Carica la location_url dal profilo pubblico (tenant-aware)
     this.about.get$().subscribe({
       next: (p) => {
-        console.log('Maps - Dati profilo ricevuti:', p);
-        console.log('Maps - location_url:', p?.location_url);
-        console.log('Maps - location:', p?.location);
-        
         const url = (p?.location_url ?? '').trim();
         if (url) {
           this.src.set(url);
           this.hasLocation.set(true);
-          console.log('Maps - Mappa impostata con URL:', url);
-          console.log('Maps - hasLocation:', this.hasLocation());
-          console.log('Maps - safeSrc:', this.safeSrc());
         } else {
           this.src.set('');
           this.hasLocation.set(false);
-          console.log('Maps - Nessuna location_url trovata, mostrando placeholder');
         }
         if (p?.location) this.locationName.set(p.location);
-      },
-      error: (err) => {
-        console.error('Maps - Errore caricamento profilo:', err);
       }
     });
   }
