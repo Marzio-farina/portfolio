@@ -103,7 +103,7 @@ class TechnologyController extends Controller
         $technology = Technology::create([
             'title' => trim($validated['title']),
             'description' => $validated['description'] ?? null,
-            'type' => $validated['type'] ?? 'frontend',
+            'type' => $validated['type'] ?? null,
             'user_id' => $userId,
         ]);
         

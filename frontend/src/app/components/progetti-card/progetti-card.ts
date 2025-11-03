@@ -530,7 +530,6 @@ export class ProgettiCard {
     
     const body = {
       title: techName.trim(),
-      type: 'frontend', // Default type
       user_id: userId
     };
     
