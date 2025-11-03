@@ -340,28 +340,47 @@
 /* Popup tag nascosti */
 .hidden-techs-popup {
   position: absolute;
-  bottom: calc(100% + 4px);
-  right: 0;
-  min-width: 120px;
+  bottom: 100%;
+  left: 100%;
+  margin-left: -8px;
+  margin-bottom: -8px;
+  min-width: 140px;
   background: var(--bg-card);
-  border: 1px solid var(--border-primary);
+  border: 2px solid var(--border-primary);
   border-radius: 8px;
-  padding: 8px;
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+  padding: 10px;
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.2);
   z-index: 1000;
   display: flex;
   flex-direction: column;
-  gap: 4px;
+  gap: 6px;
+}
+
+/* Freccia del popup che punta al badge +N */
+.hidden-techs-popup::before {
+  content: '';
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  width: 12px;
+  height: 12px;
+  background: var(--bg-card);
+  border-right: 2px solid var(--border-primary);
+  border-bottom: 2px solid var(--border-primary);
+  transform: translate(-6px, 6px) rotate(45deg);
+  z-index: -1;
 }
 
 .hidden-tech-item {
-  padding: 4px 8px;
-  font-size: 0.75rem;
-  color: var(--text-secondary);
+  padding: 6px 10px;
+  font-size: 0.85rem;
+  font-weight: 500;
+  color: var(--text-primary);
   background: var(--bg-secondary);
   border-radius: 4px;
   transition: all var(--transition-1);
   cursor: default;
+  white-space: nowrap;
 }
 
 .hidden-tech-item:hover {
