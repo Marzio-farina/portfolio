@@ -53,11 +53,51 @@ export class TextFormattingToolbarComponent implements AfterViewInit {
   }
   
   /**
+   * Salva e ripristina la selezione corrente
+   */
+  private savedSelection: Range | null = null;
+  private savedElement: HTMLElement | null = null;
+
+  private saveSelection(): void {
+    const selection = window.getSelection();
+    if (selection && selection.rangeCount > 0) {
+      this.savedSelection = selection.getRangeAt(0).cloneRange();
+      // Salva anche l'elemento che contiene la selezione
+      const container = this.savedSelection.commonAncestorContainer;
+      this.savedElement = (container.nodeType === 3 ? container.parentElement : container) as HTMLElement;
+    }
+  }
+
+  private restoreSelection(): void {
+    if (this.savedSelection && this.savedElement) {
+      try {
+        // Ripristina il focus sull'elemento
+        if (this.savedElement.focus) {
+          this.savedElement.focus();
+        }
+        // Ripristina la selezione
+        const selection = window.getSelection();
+        if (selection) {
+          selection.removeAllRanges();
+          selection.addRange(this.savedSelection);
+        }
+      } catch (e) {
+        console.warn('Impossibile ripristinare la selezione', e);
+      }
+    }
+  }
+
+  /**
    * Toggle grassetto
    * NOTA: execCommand è deprecato ma ancora supportato da tutti i browser.
    * Alternativa futura: usare Selection API + DOM manipulation o librerie come Quill/TinyMCE
    */
-  toggleBold(): void {
+  toggleBold(event?: MouseEvent): void {
+    if (event) {
+      event.preventDefault();
+    }
+    this.saveSelection();
+    this.restoreSelection();
     // @ts-ignore - execCommand è deprecato ma ancora funzionante
     document.execCommand('bold', false);
     setTimeout(() => this.boldState.set(this.checkBoldState()), 0);
@@ -66,7 +106,12 @@ export class TextFormattingToolbarComponent implements AfterViewInit {
   /**
    * Toggle corsivo
    */
-  toggleItalic(): void {
+  toggleItalic(event?: MouseEvent): void {
+    if (event) {
+      event.preventDefault();
+    }
+    this.saveSelection();
+    this.restoreSelection();
     // @ts-ignore - execCommand è deprecato ma ancora funzionante
     document.execCommand('italic', false);
     setTimeout(() => this.italicState.set(this.checkItalicState()), 0);
@@ -75,7 +120,12 @@ export class TextFormattingToolbarComponent implements AfterViewInit {
   /**
    * Toggle sottolineato
    */
-  toggleUnderline(): void {
+  toggleUnderline(event?: MouseEvent): void {
+    if (event) {
+      event.preventDefault();
+    }
+    this.saveSelection();
+    this.restoreSelection();
     // @ts-ignore - execCommand è deprecato ma ancora funzionante
     document.execCommand('underline', false);
     setTimeout(() => this.underlineState.set(this.checkUnderlineState()), 0);
@@ -84,7 +134,12 @@ export class TextFormattingToolbarComponent implements AfterViewInit {
   /**
    * Toggle barrato
    */
-  toggleStrikethrough(): void {
+  toggleStrikethrough(event?: MouseEvent): void {
+    if (event) {
+      event.preventDefault();
+    }
+    this.saveSelection();
+    this.restoreSelection();
     // @ts-ignore - execCommand è deprecato ma ancora funzionante
     document.execCommand('strikeThrough', false);
     setTimeout(() => this.strikethroughState.set(this.checkStrikethroughState()), 0);

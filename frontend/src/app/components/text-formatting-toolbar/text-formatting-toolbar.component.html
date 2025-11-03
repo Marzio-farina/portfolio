@@ -4,7 +4,7 @@
     type="button"
     class="toolbar-btn"
     [class.active]="isBold()"
-    (click)="toggleBold()"
+    (mousedown)="toggleBold($event)"
     title="Grassetto">
     <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
       <path d="M6 4h8a4 4 0 0 1 4 4 4 4 0 0 1-4 4H6zM6 12h9a4 4 0 0 1 4 4 4 4 0 0 1-4 4H6z"/>
@@ -16,7 +16,7 @@
     type="button"
     class="toolbar-btn"
     [class.active]="isItalic()"
-    (click)="toggleItalic()"
+    (mousedown)="toggleItalic($event)"
     title="Corsivo">
     <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
       <path d="M19 4h-9M14 20H5M15 4L9 20"/>
@@ -28,7 +28,7 @@
     type="button"
     class="toolbar-btn"
     [class.active]="isUnderline()"
-    (click)="toggleUnderline()"
+    (mousedown)="toggleUnderline($event)"
     title="Sottolineato">
     <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
       <path d="M6 3v7a6 6 0 0 0 6 6 6 6 0 0 0 6-6V3M4 21h16"/>
@@ -40,7 +40,7 @@
     type="button"
     class="toolbar-btn"
     [class.active]="isStrikethrough()"
-    (click)="toggleStrikethrough()"
+    (mousedown)="toggleStrikethrough($event)"
     title="Barrato">
     <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
       <path d="M16 4H9a3 3 0 0 0-2.83 4M14 12a4 4 0 0 1 0 8H6M3 12h18"/>
