@@ -6,11 +6,12 @@ import { TenantService } from '../../services/tenant.service';
 import { AttestatiService } from '../../services/attestati.service';
 import { Notification, NotificationType } from '../notification/notification';
 import { environment } from '../../../environments/environment';
+import { PosterUploaderComponent, PosterData } from '../poster-uploader/poster-uploader.component';
 
 @Component({
   selector: 'app-add-attestato',
   standalone: true,
-  imports: [ReactiveFormsModule, Notification],
+  imports: [ReactiveFormsModule, Notification, PosterUploaderComponent],
   templateUrl: './add-attestato.html',
   styleUrls: ['./add-attestato.css']
 })
@@ -21,13 +22,10 @@ export class AddAttestato {
   private tenantRouter = inject(TenantRouterService);
   private tenant = inject(TenantService);
 
-  @ViewChild('fileInput') fileInputRef?: ElementRef<HTMLInputElement>;
-
   addAttestatoForm: FormGroup;
   uploading = signal(false);
-  selectedFile = signal<File | null>(null);
+  selectedPosterFile = signal<File | null>(null);
   errorMsg = signal<string | null>(null);
-  isDragOver = signal(false);
 
   notifications = signal<{ id: string; message: string; type: NotificationType; timestamp: number; fieldId: string; }[]>([]);
   // yyyy-mm-dd formattato in locale (no timezone shift)
@@ -130,77 +128,14 @@ export class AddAttestato {
     }
   }
 
-  onFileSelected(event: Event): void {
-    const input = event.target as HTMLInputElement;
-    const file = input.files?.[0];
-    if (!file) return;
-    this.handleSelectedFile(file);
-  }
-
-  private handleSelectedFile(file: File): void {
-    const validTypes = ['image/jpeg', 'image/png', 'image/jpg', 'image/gif', 'image/webp'];
-    if (!validTypes.includes(file.type)) {
-      const errorMessage = 'Formato file non supportato. Usa JPEG, PNG, GIF o WEBP.';
-      this.errorMsg.set(errorMessage);
-      this.selectedFile.set(null);
-      this.addAttestatoForm.patchValue({ poster_file: null });
-      this.addAttestatoForm.get('poster_file')?.updateValueAndValidity();
-      if (this.fileInputRef?.nativeElement) this.fileInputRef.nativeElement.value = '';
-      this.addNotification('attestato.poster_file', errorMessage, 'error');
-      return;
-    }
-
-    const maxSize = 5 * 1024 * 1024; // 5MB
-    if (file.size > maxSize) {
-      const errorMessage = 'Il file è troppo grande. Dimensione massima: 5MB.';
-      this.errorMsg.set(errorMessage);
-      this.selectedFile.set(null);
-      this.addAttestatoForm.patchValue({ poster_file: null });
-      this.addAttestatoForm.get('poster_file')?.updateValueAndValidity();
-      if (this.fileInputRef?.nativeElement) this.fileInputRef.nativeElement.value = '';
-      this.addNotification('attestato.poster_file', errorMessage, 'error');
-      return;
-    }
-
-    this.selectedFile.set(file);
-    this.addAttestatoForm.patchValue({ poster_file: file });
+  /**
+   * Gestisce la selezione del poster dal poster-uploader component
+   */
+  onPosterSelected(data: PosterData): void {
+    this.selectedPosterFile.set(data.file);
+    this.addAttestatoForm.patchValue({ poster_file: data.file });
     this.addAttestatoForm.get('poster_file')?.updateValueAndValidity();
     this.removeNotification('attestato.poster_file');
-    this.errorMsg.set(null);
-  }
-
-  onDragOver(event: DragEvent): void {
-    event.preventDefault();
-    event.stopPropagation();
-    this.isDragOver.set(true);
-  }
-
-  onDragLeave(event: DragEvent): void {
-    event.preventDefault();
-    event.stopPropagation();
-    this.isDragOver.set(false);
-  }
-
-  onFileDrop(event: DragEvent): void {
-    event.preventDefault();
-    event.stopPropagation();
-    this.isDragOver.set(false);
-    const dt = event.dataTransfer;
-    const file = dt?.files?.[0];
-    if (!file) return;
-    this.handleSelectedFile(file);
-  }
-
-  openFilePicker(): void { this.fileInputRef?.nativeElement?.click(); }
-
-  removeFile(): void {
-    this.selectedFile.set(null);
-    this.addAttestatoForm.patchValue({ poster_file: null });
-    const posterCtrl = this.addAttestatoForm.get('poster_file');
-    posterCtrl?.updateValueAndValidity();
-    posterCtrl?.markAsTouched();
-    if (this.fileInputRef?.nativeElement) this.fileInputRef.nativeElement.value = '';
-    if (posterCtrl?.invalid) this.onFieldBlur('attestato.poster_file');
   }
 
   onSubmit(): void {

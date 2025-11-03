@@ -50,56 +50,22 @@
         <label class="add-attestato-modal__label">
           Immagine Attestato <span class="add-attestato-modal__required">*</span>
         </label>
-        <input 
-          #fileInput
-          type="file" 
-          accept="image/jpeg,image/png,image/jpg,image/gif,image/webp"
-          (change)="onFileSelected($event)"
-          [attr.disabled]="uploading() ? '' : null"
-          style="display: none;">
         
-        @if (!selectedFile()) {
-          <button 
-            type="button"
-            class="add-attestato-modal__file-button"
-            (click)="openFilePicker()"
-            [disabled]="uploading()"
-            (dragover)="onDragOver($event)"
-            (dragleave)="onDragLeave($event)"
-            (drop)="onFileDrop($event)"
-            [class.is-dragover]="isDragOver()">
-            <svg viewBox="0 0 24 24" aria-hidden="true">
-              <path d="M21 19V5a2 2 0 0 0-2-2H5a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2zM8.5 13.5l2.5 3.01L14.5 12l4.5 6H5l3.5-4.5z"/>
-            </svg>
-            <span>Seleziona immagine</span>
-          </button>
-        } @else {
-          <div class="add-attestato-modal__file-info" 
-               (dragover)="onDragOver($event)" 
-               (dragleave)="onDragLeave($event)" 
-               (drop)="onFileDrop($event)"
-               [class.is-dragover]="isDragOver()">
-            <svg viewBox="0 0 24 24" aria-hidden="true">
-              <path d="M21 19V5a2 2 0 0 0-2-2H5a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2zM8.5 13.5l2.5 3.01L14.5 12l4.5 6H5l3.5-4.5z"/>
-            </svg>
-            <span class="add-attestato-modal__filename">{{ selectedFile()?.name }}</span>
-            <button 
-              type="button"
-              class="add-attestato-modal__remove-file"
-              (click)="removeFile()"
-              [disabled]="uploading()"
-              aria-label="Rimuovi file">
-              ×
-            </button>
-          </div>
-        }
+        <app-poster-uploader
+          [posterUrl]="null"
+          [projectTitle]="addAttestatoForm.get('title')?.value || 'Attestato'"
+          [isEditMode]="true"
+          [saving]="uploading()"
+          [variant]="'form'"
+          (posterSelected)="onPosterSelected($event)">
+        </app-poster-uploader>
       </div>
 
       <div class="actions">
         <button type="button" class="btn btn-secondary" (click)="goBack()" [disabled]="uploading()">
           Annulla
         </button>
-        <button type="submit" class="btn btn-primary" [disabled]="addAttestatoForm.invalid || uploading() || !selectedFile()">
+        <button type="submit" class="btn btn-primary" [disabled]="addAttestatoForm.invalid || uploading() || !selectedPosterFile()">
           @if (uploading()) { <span>Caricamento...</span> } @else { <span>Crea</span> }
         </button>
       </div>

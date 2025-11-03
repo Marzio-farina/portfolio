@@ -187,3 +187,38 @@
   text-shadow: 0 2px 4px rgba(0, 0, 0, 0.3);
 }
 
+/* ================== VARIANT: FORM ==================  */
+
+/* Stile per variante form (usato in add-attestato, add-project, ecc.) */
+.is-form-variant {
+  border: 2px dashed var(--border-primary) !important;
+  border-radius: 8px !important;
+  background: transparent !important;
+  min-height: 200px;
+  cursor: pointer;
+}
+
+/* Hover per variante form */
+.is-form-variant:hover:not(.is-dragover) {
+  border-color: var(--accent-primary) !important;
+  background: rgba(var(--accent-primary-rgb), 0.05) !important;
+}
+
+/* Immagine in variante form - mostra sempre con bordi */
+.poster-uploader__image--form .poster-uploader__image-container {
+  border: 2px dashed var(--border-primary);
+  border-radius: 8px;
+  background: transparent;
+}
+
+.poster-uploader__image--form .poster-uploader__image-container:hover:not(.is-dragover) {
+  border-color: var(--accent-primary);
+  background: rgba(var(--accent-primary-rgb), 0.05);
+}
+
+/* Drag over in variante form */
+.is-form-variant.is-dragover {
+  border-color: var(--accent-primary) !important;
+  background: var(--accent-primary-alpha) !important;
+}
+

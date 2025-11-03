@@ -13,13 +13,15 @@
   <div 
     class="poster-uploader__image"
     [class.image-vertical]="isVerticalImage()"
-    [class.poster-uploader__image--editable]="isEditMode()">
+    [class.poster-uploader__image--editable]="isEditMode()"
+    [class.poster-uploader__image--form]="variant() === 'form'">
     <div 
       class="poster-uploader__image-container"
       (dragover)="onDragOver($event)"
       (dragleave)="onDragLeave($event)"
       (drop)="onFileDrop($event)"
-      [class.is-dragover]="isDragOver()">
+      [class.is-dragover]="isDragOver()"
+      [class.is-form-variant]="variant() === 'form'">
       <img
         [src]="getDisplayUrl()"
         [alt]="projectTitle()"
@@ -60,7 +62,8 @@
     (dragover)="onDragOver($event)"
     (dragleave)="onDragLeave($event)"
     (drop)="onFileDrop($event)"
-    [class.is-dragover]="isDragOver()">
+    [class.is-dragover]="isDragOver()"
+    [class.is-form-variant]="variant() === 'form'">
     <p>Immagine non disponibile</p>
     
     @if (isEditMode()) {
@@ -95,7 +98,8 @@
     (dragover)="onDragOver($event)"
     (dragleave)="onDragLeave($event)"
     (drop)="onFileDrop($event)"
-    [class.is-dragover]="isDragOver()">
+    [class.is-dragover]="isDragOver()"
+    [class.is-form-variant]="variant() === 'form'">
     
     <!-- Overlay drag drop -->
     @if (isDragOver()) {

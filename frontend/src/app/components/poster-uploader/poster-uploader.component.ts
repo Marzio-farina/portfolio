@@ -25,6 +25,9 @@ export class PosterUploaderComponent {
   // Input: stato saving (disabilita azioni)
   saving = input<boolean>(false);
   
+  // Input: variante stile ('default' per canvas, 'form' per form di creazione)
+  variant = input<'default' | 'form'>('default');
+  
   // Output: quando viene selezionato un file
   posterSelected = output<PosterData>();
   
