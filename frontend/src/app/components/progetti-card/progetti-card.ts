@@ -40,6 +40,69 @@ export class ProgettiCard {
   
   // Flag per prevenire loop infinito
   private isUpdatingCategory = false;
+  
+  // Popup tag nascosti
+  showHiddenTechsPopup = signal(false);
+  hiddenTechs = computed(() => {
+    const techs = this.progetto().technologies || [];
+    const isEditMode = this.isAuthenticated() && this.isEditing();
+    
+    if (isEditMode && techs.length >= 3) {
+      return techs.slice(0, -2); // Primi N-2 tag nascosti
+    }
+    
+    if (techs.length > 3 && !isEditMode) {
+      return techs.slice(2); // Tag dal 3° in poi
+    }
+    
+    return [];
+  });
+  
+  // Input espandibile per aggiungere tag
+  isAddTechExpanded = signal(false);
+  newTechValue = signal('');
+  private addTechTimer: any = null;
+  
+  // Gestione visualizzazione tecnologie (max sulla stessa riga)
+  visibleTechs = computed(() => {
+    const techs = this.progetto().technologies || [];
+    const isEditMode = this.isAuthenticated() && this.isEditing();
+    
+    // In edit mode, dobbiamo lasciare spazio per il bottone +
+    // Se ci sono 3+ tag, mostra badge "+N" + ultimi 2 tag + bottone +
+    if (isEditMode && techs.length >= 3) {
+      return techs.slice(-2); // Ultimi 2 tag
+    }
+    
+    // In view mode o se ci sono meno di 3 tag, mostra tutti
+    if (techs.length <= 3 && !isEditMode) {
+      return techs;
+    }
+    
+    // Se ci sono più di 3 tag in view mode
+    if (techs.length > 3 && !isEditMode) {
+      return techs.slice(0, 2); // Primi 2 tag + badge "+N"
+    }
+    
+    return techs;
+  });
+  
+  hiddenTechsCount = computed(() => {
+    const techs = this.progetto().technologies || [];
+    const isEditMode = this.isAuthenticated() && this.isEditing();
+    
+    // In edit mode con 3+ tag: mostra badge "+N" con i primi N-2 tag
+    if (isEditMode && techs.length >= 3) {
+      return techs.length - 2;
+    }
+    
+    // In view mode con più di 3 tag
+    if (techs.length > 3 && !isEditMode) {
+      return techs.length - 2;
+    }
+    
+    return 0;
+  });
 
   // Valori randomici per hover, generati al mount
   hoverRotate = signal<string>('0deg');
@@ -255,5 +318,116 @@ export class ProgettiCard {
    */
   onSelectClick(event: Event): void {
     event.stopPropagation();
+  }
+  
+  /**
+   * Toggle popup tag nascosti
+   */
+  toggleHiddenTechsPopup(event: Event): void {
+    event.stopPropagation();
+    this.showHiddenTechsPopup.update(v => !v);
+  }
+  
+  /**
+   * Chiude il popup tag nascosti
+   */
+  closeHiddenTechsPopup(): void {
+    this.showHiddenTechsPopup.set(false);
+  }
+  
+  /**
+   * Espande il bottone + per mostrare input
+   */
+  onExpandAddTech(event: Event): void {
+    event.stopPropagation();
+    
+    if (this.isAddTechExpanded()) {
+      return;
+    }
+    
+    this.isAddTechExpanded.set(true);
+    this.newTechValue.set('');
+    
+    // Cancella timer precedenti
+    if (this.addTechTimer) {
+      clearTimeout(this.addTechTimer);
+      this.addTechTimer = null;
+    }
+    
+    // Avvia timer per collassare dopo 5 secondi
+    this.startAddTechTimer();
+    
+    // Focus sull'input
+    setTimeout(() => {
+      const input = document.querySelector('.add-tech-input') as HTMLInputElement;
+      if (input) input.focus();
+    }, 100);
+  }
+  
+  private startAddTechTimer(): void {
+    this.addTechTimer = setTimeout(() => {
+      this.collapseAddTech(true);
+    }, 5000);
+  }
+  
+  private resetAddTechTimer(): void {
+    if (this.addTechTimer) {
+      clearTimeout(this.addTechTimer);
+    }
+    this.startAddTechTimer();
+  }
+  
+  private collapseAddTech(saveIfNotEmpty: boolean = false): void {
+    const trimmedValue = this.newTechValue().trim();
+    
+    if (saveIfNotEmpty && trimmedValue !== '') {
+      // TODO: Implementare logica di salvataggio tag
+      // Per ora apriamo il modal
+      this.clicked.emit(this.progetto());
+    }
+    
+    this.isAddTechExpanded.set(false);
+    this.newTechValue.set('');
+    if (this.addTechTimer) {
+      clearTimeout(this.addTechTimer);
+      this.addTechTimer = null;
+    }
+  }
+  
+  onTechInput(event: Event): void {
+    event.stopPropagation();
+    const input = event.target as HTMLInputElement;
+    this.newTechValue.set(input.value);
+    this.resetAddTechTimer();
+  }
+  
+  onTechBlur(): void {
+    if (this.addTechTimer) {
+      clearTimeout(this.addTechTimer);
+    }
+    this.addTechTimer = setTimeout(() => {
+      this.collapseAddTech(true);
+    }, 500);
+  }
+  
+  onTechSubmit(event: KeyboardEvent): void {
+    if (event.key === 'Enter') {
+      event.preventDefault();
+      event.stopPropagation();
+      
+      const trimmedValue = this.newTechValue().trim();
+      
+      if (trimmedValue === '') {
+        this.collapseAddTech();
+        return;
+      }
+      
+      // TODO: Implementare aggiunta tag
+      // Per ora apriamo il modal
+      this.clicked.emit(this.progetto());
+      this.collapseAddTech();
+    } else if (event.key === 'Escape') {
+      this.collapseAddTech();
+    }
   }
 }

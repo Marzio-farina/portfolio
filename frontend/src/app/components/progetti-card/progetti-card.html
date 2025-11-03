@@ -39,11 +39,80 @@
       <p class="category">{{ progetto().category }}</p>
     }
     @if (progetto().technologies && progetto().technologies.length > 0) {
-      <div class="technologies">
-        @for (tech of progetto().technologies; track tech.id) {
-          <span class="technology-tag">{{ tech.title }}</span>
+      <div class="technologies" (click)="$event.stopPropagation()">
+        @if (hiddenTechsCount() > 0) {
+          <div class="more-techs-wrapper">
+            <button 
+              class="more-techs-badge" 
+              type="button" 
+              [attr.aria-label]="'Mostra ' + hiddenTechsCount() + ' tecnologie nascoste'"
+              (click)="toggleHiddenTechsPopup($event)">
+              +{{ hiddenTechsCount() }}
+            </button>
+            @if (showHiddenTechsPopup()) {
+              <div class="hidden-techs-popup" (mouseleave)="closeHiddenTechsPopup()">
+                @for (tech of hiddenTechs(); track tech.id) {
+                  <div class="hidden-tech-item">{{ tech.title }}</div>
+                }
+              </div>
+            }
+          </div>
+        }
+        @for (tech of visibleTechs(); track tech.id) {
+          <span class="technology-tag" [title]="tech.title">{{ tech.title }}</span>
+        }
+        @if (isAuthenticated() && isEditing()) {
+          @if (!isAddTechExpanded()) {
+            <button 
+              class="add-tech-btn" 
+              type="button" 
+              aria-label="Aggiungi tecnologie"
+              (click)="onExpandAddTech($event)">
+              <span aria-hidden="true">+</span>
+            </button>
+          } @else {
+            <div class="add-tech-expanded" (click)="$event.stopPropagation()">
+              <input
+                type="text"
+                class="add-tech-input"
+                [value]="newTechValue()"
+                (input)="onTechInput($event)"
+                (keydown)="onTechSubmit($event)"
+                (blur)="onTechBlur()"
+                (click)="$event.stopPropagation()"
+                placeholder="Nome tecnologia..."
+                maxlength="50">
+            </div>
+          }
         }
       </div>
+    } @else {
+      @if (isAuthenticated() && isEditing()) {
+        <div class="technologies" (click)="$event.stopPropagation()">
+          @if (!isAddTechExpanded()) {
+            <button 
+              class="add-tech-btn" 
+              type="button" 
+              aria-label="Aggiungi tecnologie"
+              (click)="onExpandAddTech($event)">
+              <span aria-hidden="true">+</span>
+            </button>
+          } @else {
+            <div class="add-tech-expanded" (click)="$event.stopPropagation()">
+              <input
+                type="text"
+                class="add-tech-input"
+                [value]="newTechValue()"
+                (input)="onTechInput($event)"
+                (keydown)="onTechSubmit($event)"
+                (blur)="onTechBlur()"
+                (click)="$event.stopPropagation()"
+                placeholder="Nome tecnologia..."
+                maxlength="50">
+            </div>
+          }
+        </div>
+      }
     }
   </div>
 </div>
