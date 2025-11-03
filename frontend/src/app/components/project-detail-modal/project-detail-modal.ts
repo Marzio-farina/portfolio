@@ -95,25 +95,17 @@ export class ProjectDetailModal implements OnDestroy {
   private loadedProjectIds = new Set<number>();
   
   /**
-   * Computed per gli elementi custom come array
-   * Dipende DIRETTAMENTE dai signals base, non dal computed canvasItems
+   * Computed per tutti gli elementi del dispositivo corrente come array
+   * Include elementi predefiniti E custom (ora specifici per dispositivo)
    */
   customItemsArray = computed(() => {
     const deviceId = this.canvasService.selectedDevice().id;
     const deviceItems = this.canvasService.deviceLayouts().get(deviceId) || new Map<string, CanvasItem>();
-    const customItems = this.canvasService.customElements();
     
     const result: Array<{ key: string; value: CanvasItem }> = [];
     
-    // Aggiungi SOLO elementi predefiniti del dispositivo (escludi custom che sono già in customItems)
+    // Aggiungi TUTTI gli elementi del dispositivo (predefiniti E custom)
     deviceItems.forEach((item, key) => {
-      if (!key.startsWith('custom-')) {
-        result.push({ key, value: item });
-      }
-    });
-    
-    // Aggiungi elementi custom (condivisi tra tutti i dispositivi)
-    customItems.forEach((item, key) => {
       result.push({ key, value: item });
     });
     
@@ -738,10 +730,13 @@ export class ProjectDetailModal implements OnDestroy {
     
     // Controlla se gli elementi custom text hanno contenuto non salvato
     if (this.customTextElements) {
+      const deviceId = this.canvasService.selectedDevice().id;
+      const deviceLayout = this.canvasService.deviceLayouts().get(deviceId);
+      
       for (const component of this.customTextElements) {
         const elementId = component.elementId();
         const currentContent = component.getCurrentContent();
-        const savedContent = this.canvasService.customElements().get(elementId)?.content || '';
+        const savedContent = deviceLayout?.get(elementId)?.content || '';
         
         if (currentContent !== savedContent) {
           return true;
@@ -893,13 +888,16 @@ export class ProjectDetailModal implements OnDestroy {
       return;
     }
 
+    const deviceId = this.canvasService.selectedDevice().id;
+    const layouts = new Map(this.canvasService.deviceLayouts());
+    const currentLayout = new Map(layouts.get(deviceId) || new Map());
+    
     this.customTextElements.forEach((component) => {
       const elementId = component.elementId();
       const currentContent = component.getCurrentContent();
       
-      // Trova l'elemento custom corrispondente
-      const customElements = this.canvasService.customElements();
-      const existingItem = customElements.get(elementId);
+      // Trova l'elemento nel layout del dispositivo corrente
+      const existingItem = currentLayout.get(elementId);
       
       if (existingItem && existingItem.type === 'custom-text') {
         // Crea un nuovo item completo con il contenuto aggiornato
@@ -913,19 +911,20 @@ export class ProjectDetailModal implements OnDestroy {
           content: currentContent
         };
         
-        // Aggiorna in customElements
-        const customs = new Map(customElements);
-        customs.set(elementId, updatedItem);
-        this.canvasService.customElements.set(customs);
+        // Aggiorna nel layout del dispositivo
+        currentLayout.set(elementId, updatedItem);
       }
     });
+    
+    // Aggiorna il layout con le modifiche
+    layouts.set(deviceId, currentLayout);
+    this.canvasService.deviceLayouts.set(layouts);
   }
   
   /**
    * Pulisce elementi custom vuoti (senza contenuto)
    */
   private cleanEmptyCustomElements(): void {
-    // Ora i custom elements sono in customElements, non in deviceLayouts
     this.canvasService.cleanEmptyCustomElements();
   }
 

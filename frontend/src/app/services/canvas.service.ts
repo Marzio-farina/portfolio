@@ -67,32 +67,13 @@ export class CanvasService {
   // Dispositivo attualmente selezionato
   selectedDevice = signal<DevicePreset>(this.devicePresets[3]); // Default: desktop
 
-  // Layout multipli per dispositivi diversi (solo elementi predefiniti)
+  // Layout multipli per dispositivi diversi (include TUTTI gli elementi: predefiniti E custom)
   deviceLayouts = signal<Map<string, Map<string, CanvasItem>>>(new Map());
 
-  // Elementi custom condivisi tra tutti i dispositivi
-  customElements = signal<Map<string, CanvasItem>>(new Map());
-
-  // Canvas items per il dispositivo corrente (predefiniti + custom)
+  // Canvas items per il dispositivo corrente
   canvasItems = computed(() => {
     const deviceId = this.selectedDevice().id;
-    const deviceItems = this.deviceLayouts().get(deviceId) || new Map<string, CanvasItem>();
-    const customItems = this.customElements();
-    
-    // Unisci elementi predefiniti del dispositivo con elementi custom condivisi
-    const mergedItems = new Map<string, CanvasItem>();
-    
-    // Aggiungi elementi predefiniti del dispositivo
-    deviceItems.forEach((item, key) => {
-      mergedItems.set(key, item);
-    });
-    
-    // Aggiungi elementi custom (condivisi)
-    customItems.forEach((item, key) => {
-      mergedItems.set(key, item);
-    });
-    
-    return mergedItems;
+    return this.deviceLayouts().get(deviceId) || new Map<string, CanvasItem>();
   });
 
   // Stato drag
@@ -191,88 +172,52 @@ export class CanvasService {
    * @param forceChangeDetection - se true, forza il change detection (default: true)
    */
   updateCanvasItem(itemId: string, updates: Partial<CanvasItem>, forceChangeDetection: boolean = true): void {
-    // Verifica se è un elemento custom
-    if (itemId.startsWith('custom-')) {
-      const customs = this.customElements();
-      const existingItem = customs.get(itemId);
+    const deviceId = this.selectedDevice().id;
+    const layouts = this.deviceLayouts();
+    const currentLayout = layouts.get(deviceId) || new Map();
+    
+    const existingItem = currentLayout.get(itemId);
+    if (existingItem) {
+      const updatedItem = { ...existingItem, ...updates };
+      currentLayout.set(itemId, updatedItem);
       
-      if (existingItem) {
-        const updatedItem = { ...existingItem, ...updates };
-        customs.set(itemId, updatedItem);
-        
-        // Forza il change detection solo se richiesto (non durante drag/resize continui)
-        if (forceChangeDetection) {
-          this.customElements.set(new Map(customs));
-        }
-      }
-    } else {
-      // Elemento predefinito - aggiorna nel layout del dispositivo
-      const deviceId = this.selectedDevice().id;
-      const layouts = this.deviceLayouts();
-      const currentLayout = layouts.get(deviceId) || new Map();
-      
-      const existingItem = currentLayout.get(itemId);
-      if (existingItem) {
-        const updatedItem = { ...existingItem, ...updates };
-        currentLayout.set(itemId, updatedItem);
-        
-        // Forza il change detection solo se richiesto
-        if (forceChangeDetection) {
-          this.deviceLayouts.set(new Map(layouts));
-        }
+      // Forza il change detection solo se richiesto
+      if (forceChangeDetection) {
+        this.deviceLayouts.set(new Map(layouts));
       }
     }
   }
 
   /**
-   * Aggiunge un nuovo elemento al canvas
+   * Aggiunge un nuovo elemento al canvas del dispositivo corrente
    */
   addCanvasItem(item: CanvasItem): void {
-    // Verifica se è un elemento custom
-    if (item.id.startsWith('custom-')) {
-      const customs = new Map(this.customElements());
-      
-      // Verifica che non esista già (previene duplicati)
-      if (customs.has(item.id)) {
-        return;
-      }
-      
-      customs.set(item.id, item);
-      // Forza il change detection creando una nuova Map
-      this.customElements.set(new Map(customs));
-    } else {
-      // Elemento predefinito - aggiunge al layout del dispositivo
-      const deviceId = this.selectedDevice().id;
-      const layouts = new Map(this.deviceLayouts());
-      const currentLayout = new Map(layouts.get(deviceId) || new Map());
-      
-      currentLayout.set(item.id, item);
-      layouts.set(deviceId, currentLayout);
-      this.deviceLayouts.set(layouts);
+    const deviceId = this.selectedDevice().id;
+    const layouts = new Map(this.deviceLayouts());
+    const currentLayout = new Map(layouts.get(deviceId) || new Map());
+    
+    // Verifica che non esista già (previene duplicati)
+    if (currentLayout.has(item.id)) {
+      return;
     }
+    
+    currentLayout.set(item.id, item);
+    layouts.set(deviceId, currentLayout);
+    this.deviceLayouts.set(layouts);
   }
 
   /**
-   * Rimuove un elemento dal canvas
+   * Rimuove un elemento dal canvas del dispositivo corrente
    */
   removeCanvasItem(itemId: string): void {
-    // Verifica se è un elemento custom
-    if (itemId.startsWith('custom-')) {
-      const customs = new Map(this.customElements());
-      customs.delete(itemId);
-      // Forza il change detection creando una nuova Map
-      this.customElements.set(new Map(customs));
-    } else {
-      // Elemento predefinito - rimuove dal layout del dispositivo
-      const deviceId = this.selectedDevice().id;
-      const layouts = new Map(this.deviceLayouts());
-      const currentLayout = new Map(layouts.get(deviceId) || new Map());
-      
-      currentLayout.delete(itemId);
-      layouts.set(deviceId, currentLayout);
-      // Forza il change detection creando una nuova Map
-      this.deviceLayouts.set(new Map(layouts));
-    }
+    const deviceId = this.selectedDevice().id;
+    const layouts = new Map(this.deviceLayouts());
+    const currentLayout = new Map(layouts.get(deviceId) || new Map());
+    
+    currentLayout.delete(itemId);
+    layouts.set(deviceId, currentLayout);
+    // Forza il change detection creando una nuova Map
+    this.deviceLayouts.set(new Map(layouts));
   }
 
   // ================== Drag & Drop ==================
@@ -350,11 +295,7 @@ export class CanvasService {
 
       // Forza il change detection alla fine del drag
       if (draggedId) {
-        if (draggedId.startsWith('custom-')) {
-          this.customElements.set(new Map(this.customElements()));
-        } else {
-          this.deviceLayouts.set(new Map(this.deviceLayouts()));
-        }
+        this.deviceLayouts.set(new Map(this.deviceLayouts()));
       }
 
       // Rimuovi listener globali
@@ -505,11 +446,7 @@ export class CanvasService {
 
       // Forza il change detection alla fine del resize
       if (resizedId) {
-        if (resizedId.startsWith('custom-')) {
-          this.customElements.set(new Map(this.customElements()));
-        } else {
-          this.deviceLayouts.set(new Map(this.deviceLayouts()));
-        }
+        this.deviceLayouts.set(new Map(this.deviceLayouts()));
       }
 
       // Rimuovi listener globali
@@ -579,19 +516,31 @@ export class CanvasService {
 
   /**
    * Pulisce gli elementi custom vuoti (prima del salvataggio)
+   * Rimuove da TUTTI i dispositivi
    */
   cleanEmptyCustomElements(): void {
-    const customs = new Map(this.customElements());
+    const layouts = new Map(this.deviceLayouts());
+    let hasChanges = false;
     
-    // Rimuovi elementi custom senza contenuto
-    for (const [id, item] of customs.entries()) {
-      if ((item.type === 'custom-text' || item.type === 'custom-image') && !item.content) {
-        customs.delete(id);
+    // Per ogni dispositivo
+    for (const [deviceId, layout] of layouts.entries()) {
+      const newLayout = new Map(layout);
+      
+      // Rimuovi elementi custom senza contenuto
+      for (const [id, item] of newLayout.entries()) {
+        if (id.startsWith('custom-') && (item.type === 'custom-text' || item.type === 'custom-image') && !item.content) {
+          newLayout.delete(id);
+          hasChanges = true;
+        }
       }
+      
+      layouts.set(deviceId, newLayout);
     }
     
-    // Forza il change detection creando una nuova Map
-    this.customElements.set(new Map(customs));
+    // Forza il change detection solo se ci sono stati cambiamenti
+    if (hasChanges) {
+      this.deviceLayouts.set(layouts);
+    }
   }
 
   // ================== Drag-to-Draw ==================
@@ -678,6 +627,7 @@ export class CanvasService {
 
   /**
    * Carica il layout dal server
+   * Supporta sia il nuovo formato (custom per dispositivo) che il vecchio (custom condivisi)
    */
   loadCanvasLayout(layoutConfigJson: string | null): void {
     if (!layoutConfigJson) {
@@ -687,19 +637,18 @@ export class CanvasService {
         layouts.set(device.id, new Map(this.defaultLayout));
       }
       this.deviceLayouts.set(layouts);
-      this.customElements.set(new Map());
       return;
     }
 
     try {
       const parsed = JSON.parse(layoutConfigJson);
       const layouts = new Map<string, Map<string, CanvasItem>>();
-      const customs = new Map<string, CanvasItem>();
-
-      // Carica custom elements se presenti (chiave speciale __customElements)
+      
+      // COMPATIBILITÀ: Se esiste __customElements (vecchio formato), caricalo
+      const sharedCustoms = new Map<string, CanvasItem>();
       if (parsed.__customElements) {
         for (const itemId in parsed.__customElements) {
-          customs.set(itemId, parsed.__customElements[itemId]);
+          sharedCustoms.set(itemId, parsed.__customElements[itemId]);
         }
       }
 
@@ -709,31 +658,41 @@ export class CanvasService {
         if (deviceId === '__customElements') continue;
         
         const deviceLayout = new Map<string, CanvasItem>();
+        
+        // Carica tutti gli elementi (predefiniti E custom)
         for (const itemId in parsed[deviceId]) {
-          const item = parsed[deviceId][itemId];
-          
-          // Separa custom da predefiniti
-          if (itemId.startsWith('custom-')) {
-            // Elemento custom - va nella mappa condivisa (compatibilità vecchio formato)
-            customs.set(itemId, item);
-          } else {
-            // Elemento predefinito - va nel layout dispositivo
-            deviceLayout.set(itemId, item);
-          }
+          deviceLayout.set(itemId, parsed[deviceId][itemId]);
         }
+        
+        // COMPATIBILITÀ: Aggiungi custom elements condivisi (se esistono nel vecchio formato)
+        // Questo permette migrazione graduale
+        if (sharedCustoms.size > 0) {
+          sharedCustoms.forEach((item, itemId) => {
+            // Aggiungi solo se non esiste già nel layout specifico del dispositivo
+            if (!deviceLayout.has(itemId)) {
+              deviceLayout.set(itemId, item);
+            }
+          });
+        }
+        
         layouts.set(deviceId, deviceLayout);
       }
 
       // Aggiungi layout default per dispositivi mancanti
       for (const device of this.devicePresets) {
         if (!layouts.has(device.id)) {
-          layouts.set(device.id, new Map(this.defaultLayout));
+          const newLayout = new Map(this.defaultLayout);
+          
+          // COMPATIBILITÀ: Aggiungi custom condivisi anche ai nuovi dispositivi
+          sharedCustoms.forEach((item, itemId) => {
+            newLayout.set(itemId, item);
+          });
+          
+          layouts.set(device.id, newLayout);
         }
       }
 
       this.deviceLayouts.set(layouts);
-      // Forza il change detection creando una nuova Map
-      this.customElements.set(new Map(customs));
     } catch (error) {
       console.error('Errore nel parsing del layout:', error);
       // Fallback al default
@@ -742,7 +701,6 @@ export class CanvasService {
         layouts.set(device.id, new Map(this.defaultLayout));
       }
       this.deviceLayouts.set(layouts);
-      this.customElements.set(new Map());
     }
   }
 
@@ -759,29 +717,18 @@ export class CanvasService {
 
   /**
    * Salva il layout sul server immediatamente
+   * Salva TUTTI gli elementi (predefiniti E custom) per ogni dispositivo
    */
   saveCanvasLayoutImmediate(projectId: number): void {
     const layouts = this.deviceLayouts();
-    const customs = this.customElements();
     const multiDeviceConfig: any = {};
 
-    // Salva elementi custom in chiave speciale (condivisi tra dispositivi)
-    if (customs.size > 0) {
-      const customsConfig: any = {};
-      for (const [itemId, item] of customs.entries()) {
-        customsConfig[itemId] = item;
-      }
-      multiDeviceConfig.__customElements = customsConfig;
-    }
-
-    // Converti Map dispositivi in oggetto serializzabile (solo predefiniti)
+    // Converti Map dispositivi in oggetto serializzabile
+    // Ora include TUTTI gli elementi (predefiniti E custom) per ogni dispositivo
     for (const [deviceId, layout] of layouts.entries()) {
       const deviceConfig: any = {};
       for (const [itemId, item] of layout.entries()) {
-        // Salta custom elements (sono già in __customElements)
-        if (!itemId.startsWith('custom-')) {
-          deviceConfig[itemId] = item;
-        }
+        deviceConfig[itemId] = item;
       }
       multiDeviceConfig[deviceId] = deviceConfig;
     }
@@ -1077,7 +1024,6 @@ export class CanvasService {
     // Reset tutti i signals
     this.selectedDevice.set(this.devicePresets[3]);
     this.deviceLayouts.set(new Map());
-    this.customElements.set(new Map());
     this.dragState.set({
       isDragging: false,
       draggedItemId: null,
