@@ -290,7 +290,9 @@
               (mouseleave)="onToolbarMouseLeave()">
               <app-text-formatting-toolbar
                 [currentStyle]="getSelectedCustomTextStyle()"
-                (styleChanged)="onTextStyleChanged($event)">
+                [isDeviceSpecific]="getSelectedCustomTextIsDeviceSpecific()"
+                (styleChanged)="onTextStyleChanged($event)"
+                (deviceSpecificToggled)="onDeviceSpecificToggled($event)">
               </app-text-formatting-toolbar>
             </div>
           }
@@ -323,7 +325,7 @@
               @if (item.value.type === 'custom-text') {
                 <app-custom-text-element
                   [elementId]="item.key"
-                  [content]="item.value.content || ''"
+                  [content]="getCustomTextContent(item.value)"
                   [isEditMode]="isEditMode()"
                   [saving]="saving()"
                   (focused)="onCustomTextFocused(item.key)"

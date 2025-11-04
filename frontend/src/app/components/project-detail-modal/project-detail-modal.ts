@@ -655,10 +655,48 @@ export class ProjectDetailModal implements OnDestroy {
   }
   
   /**
+   * Verifica se l'elemento custom text selezionato ha contenuto specifico per dispositivo
+   */
+  getSelectedCustomTextIsDeviceSpecific(): boolean {
+    const itemId = this.selectedCustomTextId();
+    if (!itemId) return false;
+    
+    const item = this.canvasService.canvasItems().get(itemId);
+    return item?.isDeviceSpecific || false;
+  }
+  
+  /**
+   * Ottiene il contenuto corretto per un elemento custom text in base al dispositivo
+   */
+  getCustomTextContent(item: CanvasItem): string {
+    const deviceId = this.canvasService.selectedDevice().id;
+    
+    // Se è device-specific e ha contentByDevice, usa quello
+    if (item.isDeviceSpecific && item.contentByDevice && item.contentByDevice[deviceId]) {
+      return item.contentByDevice[deviceId];
+    }
+    
+    // Altrimenti usa il contenuto condiviso
+    return item.content || '';
+  }
+  
+  /**
+   * Gestisce il toggle della modalità device-specific per il testo
+   */
+  onDeviceSpecificToggled(newValue: boolean): void {
+    const itemId = this.selectedCustomTextId();
+    if (!itemId) return;
+    
+    this.canvasService.toggleDeviceSpecificContent(itemId);
+  }
+  
+  /**
    * Gestisce la selezione immagine da custom-image-element
    */
   onCustomImageSelected(elementId: string, data: CustomImageData): void {
-    this.updateCustomElementContent(elementId, data.content);
+    const item = this.canvasService.canvasItems().get(elementId);
+    const isDeviceSpecific = item?.isDeviceSpecific || false;
+    this.updateCustomElementContent(elementId, data.content, isDeviceSpecific);
   }
   
   /**
@@ -924,10 +962,10 @@ export class ProjectDetailModal implements OnDestroy {
    * Aggiorna il contenuto di un elemento custom
    * NON salva automaticamente - il salvataggio avviene solo quando si preme il pulsante Salva
    */
-  updateCustomElementContent(itemId: string, content: string): void {
+  updateCustomElementContent(itemId: string, content: string, isDeviceSpecific: boolean = false): void {
     if (!this.isEditMode()) return;
     
-    this.canvasService.updateCustomElementContent(itemId, content);
+    this.canvasService.updateCustomElementContent(itemId, content, isDeviceSpecific);
     // Rimosso saveCanvasLayout() - salvataggio solo al click del pulsante Salva
   }
 
@@ -942,37 +980,16 @@ export class ProjectDetailModal implements OnDestroy {
       return;
     }
 
-    const deviceId = this.canvasService.selectedDevice().id;
-    const layouts = new Map(this.canvasService.deviceLayouts());
-    const currentLayout = new Map(layouts.get(deviceId) || new Map());
-    
     this.customTextElements.forEach((component) => {
       const elementId = component.elementId();
       const currentContent = component.getCurrentContent();
+      const item = this.canvasService.canvasItems().get(elementId);
       
-      // Trova l'elemento nel layout del dispositivo corrente
-      const existingItem = currentLayout.get(elementId);
-      
-      if (existingItem && existingItem.type === 'custom-text') {
-        // Crea un nuovo item completo con il contenuto aggiornato
-        const updatedItem: CanvasItem = {
-          id: existingItem.id,
-          left: existingItem.left,
-          top: existingItem.top,
-          width: existingItem.width,
-          height: existingItem.height,
-          type: existingItem.type,
-          content: currentContent
-        };
-        
-        // Aggiorna nel layout del dispositivo
-        currentLayout.set(elementId, updatedItem);
+      if (item) {
+        const isDeviceSpecific = item.isDeviceSpecific || false;
+        this.canvasService.updateCustomElementContent(elementId, currentContent, isDeviceSpecific);
       }
     });
-    
-    // Aggiorna il layout con le modifiche
-    layouts.set(deviceId, currentLayout);
-    this.canvasService.deviceLayouts.set(layouts);
   }
   
   /**

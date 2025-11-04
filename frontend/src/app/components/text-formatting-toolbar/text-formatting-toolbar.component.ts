@@ -21,8 +21,14 @@ export class TextFormattingToolbarComponent implements AfterViewInit {
   // Input: stili correnti del testo
   currentStyle = input<TextStyle>({});
   
+  // Input: indica se il contenuto è specifico per dispositivo
+  isDeviceSpecific = input<boolean>(false);
+  
   // Output: quando lo stile cambia
   styleChanged = output<TextStyle>();
+  
+  // Output: quando si togla la modalità device-specific
+  deviceSpecificToggled = output<boolean>();
   
   // Stato interno toolbar
   showColorPicker = signal(false);
@@ -291,6 +297,16 @@ export class TextFormattingToolbarComponent implements AfterViewInit {
    */
   toggleColorPicker(): void {
     this.showColorPicker.update(v => !v);
+  }
+  
+  /**
+   * Toggle modalità contenuto specifico per dispositivo
+   */
+  toggleDeviceSpecific(event?: MouseEvent): void {
+    if (event) {
+      event.preventDefault();
+    }
+    this.deviceSpecificToggled.emit(!this.isDeviceSpecific());
   }
 }
 

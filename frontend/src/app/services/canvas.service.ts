@@ -14,8 +14,10 @@ export interface CanvasItem {
   width: number;   // larghezza in pixel
   height: number;  // altezza in pixel
   type?: 'image' | 'video' | 'category' | 'technologies' | 'description' | 'custom-text' | 'custom-image';
-  content?: string; // Contenuto per elementi custom (testo o URL immagine)
+  content?: string; // Contenuto per elementi custom (testo o URL immagine) - condiviso tra dispositivi
+  contentByDevice?: Record<string, string>; // Contenuto specifico per dispositivo (opzionale)
   textStyle?: TextStyle; // Stili del testo per elementi custom-text
+  isDeviceSpecific?: boolean; // Flag per indicare se il contenuto è specifico per dispositivo
 }
 
 export interface DeviceLayout {
@@ -541,25 +543,89 @@ export class CanvasService {
   }
 
   /**
-   * Aggiorna il contenuto di un elemento custom su TUTTI i dispositivi
-   * (il contenuto è condiviso, solo la posizione è specifica per dispositivo)
+   * Aggiorna il contenuto di un elemento custom
+   * Se isDeviceSpecific, salva solo per il dispositivo corrente
+   * Altrimenti, aggiorna su TUTTI i dispositivi
    */
-  updateCustomElementContent(itemId: string, content: string): void {
+  updateCustomElementContent(itemId: string, content: string, isDeviceSpecific: boolean = false): void {
     const layouts = new Map(this.deviceLayouts());
+    const deviceId = this.selectedDevice().id;
     
-    // Aggiorna il contenuto su TUTTI i dispositivi
-    for (const device of this.devicePresets) {
-      const currentLayout = new Map(layouts.get(device.id) || new Map());
+    if (isDeviceSpecific) {
+      // Modalità device-specific: salva il contenuto solo per il dispositivo corrente
+      const currentLayout = new Map(layouts.get(deviceId) || new Map());
       const existingItem = currentLayout.get(itemId);
       
       if (existingItem) {
-        const updatedItem = { ...existingItem, content };
+        const contentByDevice = existingItem.contentByDevice || {};
+        contentByDevice[deviceId] = content;
+        
+        const updatedItem = { 
+          ...existingItem, 
+          contentByDevice,
+          isDeviceSpecific: true
+        };
         currentLayout.set(itemId, updatedItem);
-        layouts.set(device.id, currentLayout);
+        layouts.set(deviceId, currentLayout);
+      }
+    } else {
+      // Modalità condivisa: aggiorna il contenuto su TUTTI i dispositivi
+      for (const device of this.devicePresets) {
+        const currentLayout = new Map(layouts.get(device.id) || new Map());
+        const existingItem = currentLayout.get(itemId);
+        
+        if (existingItem) {
+          const updatedItem = { 
+            ...existingItem, 
+            content,
+            isDeviceSpecific: false,
+            contentByDevice: undefined // Rimuovi contentByDevice se si torna a modalità condivisa
+          };
+          currentLayout.set(itemId, updatedItem);
+          layouts.set(device.id, currentLayout);
+        }
       }
     }
     
     this.deviceLayouts.set(layouts);
+  }
+  
+  /**
+   * Toggle modalità device-specific per un elemento custom text
+   */
+  toggleDeviceSpecificContent(itemId: string): boolean {
+    const layouts = new Map(this.deviceLayouts());
+    const deviceId = this.selectedDevice().id;
+    const currentLayout = new Map(layouts.get(deviceId) || new Map());
+    const existingItem = currentLayout.get(itemId);
+    
+    if (!existingItem) return false;
+    
+    const newIsDeviceSpecific = !existingItem.isDeviceSpecific;
+    
+    // Aggiorna il flag su TUTTI i dispositivi
+    for (const device of this.devicePresets) {
+      const layout = new Map(layouts.get(device.id) || new Map());
+      const item = layout.get(itemId);
+      
+      if (item) {
+        const updatedItem = { 
+          ...item, 
+          isDeviceSpecific: newIsDeviceSpecific
+        };
+        
+        // Se si disattiva device-specific, pulisci contentByDevice
+        if (!newIsDeviceSpecific) {
+          updatedItem.contentByDevice = undefined;
+        }
+        
+        layout.set(itemId, updatedItem);
+        layouts.set(device.id, layout);
+      }
+    }
+    
+    this.deviceLayouts.set(layouts);
+    return newIsDeviceSpecific;
   }
 
   /**
