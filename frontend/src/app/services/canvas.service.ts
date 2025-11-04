@@ -457,7 +457,7 @@ export class CanvasService {
   // ================== Custom Elements ==================
 
   /**
-   * Aggiunge un elemento di testo custom
+   * Aggiunge un elemento di testo custom a TUTTI i dispositivi
    */
   addCustomText(left: number, top: number, width: number, height: number): string {
     this.customElementCounter++;
@@ -481,12 +481,13 @@ export class CanvasService {
       }
     };
 
-    this.addCanvasItem(newItem);
+    // Aggiungi l'elemento a TUTTI i dispositivi
+    this.addCanvasItemToAllDevices(newItem);
     return newId;
   }
 
   /**
-   * Aggiunge un elemento immagine custom
+   * Aggiunge un elemento immagine custom a TUTTI i dispositivi
    */
   addCustomImage(left: number, top: number, width: number, height: number): string {
     this.customElementCounter++;
@@ -502,8 +503,28 @@ export class CanvasService {
       content: '' // URL vuoto di default
     };
 
-    this.addCanvasItem(newItem);
+    // Aggiungi l'elemento a TUTTI i dispositivi
+    this.addCanvasItemToAllDevices(newItem);
     return newId;
+  }
+
+  /**
+   * Aggiunge un elemento a TUTTI i dispositivi
+   */
+  private addCanvasItemToAllDevices(item: CanvasItem): void {
+    const layouts = new Map(this.deviceLayouts());
+    
+    for (const device of this.devicePresets) {
+      const currentLayout = new Map(layouts.get(device.id) || new Map());
+      
+      // Verifica che non esista già
+      if (!currentLayout.has(item.id)) {
+        currentLayout.set(item.id, { ...item }); // Copia l'item per ogni dispositivo
+        layouts.set(device.id, currentLayout);
+      }
+    }
+    
+    this.deviceLayouts.set(layouts);
   }
 
   /**

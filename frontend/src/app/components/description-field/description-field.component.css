@@ -34,8 +34,12 @@
   font-family: inherit;
   transition: all var(--transition-1);
   overflow-y: auto;
-  word-wrap: break-word;
-  overflow-wrap: break-word;
+  word-wrap: break-word !important;
+  overflow-wrap: break-word !important;
+  hyphens: none !important;
+  -webkit-hyphens: none !important;
+  -moz-hyphens: none !important;
+  -ms-hyphens: none !important;
 }
 
 .description-field__textarea:focus {
@@ -56,8 +60,12 @@
   font-size: 0.9rem;
   line-height: 1.6;
   white-space: pre-wrap;
-  word-wrap: break-word;
-  overflow-wrap: break-word;
+  word-wrap: break-word !important;
+  overflow-wrap: break-word !important;
+  hyphens: none !important;
+  -webkit-hyphens: none !important;
+  -moz-hyphens: none !important;
+  -ms-hyphens: none !important;
   overflow-y: auto;
 }
 
