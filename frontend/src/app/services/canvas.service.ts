@@ -206,15 +206,28 @@ export class CanvasService {
   }
 
   /**
-   * Rimuove un elemento dal canvas del dispositivo corrente
+   * Rimuove un elemento dal canvas
+   * - Elementi custom (custom-text, custom-image): rimossi da TUTTI i dispositivi
+   * - Elementi predefiniti: rimossi solo dal dispositivo corrente
    */
   removeCanvasItem(itemId: string): void {
-    const deviceId = this.selectedDevice().id;
     const layouts = new Map(this.deviceLayouts());
-    const currentLayout = new Map(layouts.get(deviceId) || new Map());
     
-    currentLayout.delete(itemId);
-    layouts.set(deviceId, currentLayout);
+    // Se è un elemento custom, rimuovilo da TUTTI i dispositivi
+    if (itemId.startsWith('custom-')) {
+      for (const device of this.devicePresets) {
+        const currentLayout = new Map(layouts.get(device.id) || new Map());
+        currentLayout.delete(itemId);
+        layouts.set(device.id, currentLayout);
+      }
+    } else {
+      // Elemento predefinito: rimuovi solo dal dispositivo corrente
+      const deviceId = this.selectedDevice().id;
+      const currentLayout = new Map(layouts.get(deviceId) || new Map());
+      currentLayout.delete(itemId);
+      layouts.set(deviceId, currentLayout);
+    }
+    
     // Forza il change detection creando una nuova Map
     this.deviceLayouts.set(new Map(layouts));
   }
@@ -528,10 +541,25 @@ export class CanvasService {
   }
 
   /**
-   * Aggiorna il contenuto di un elemento custom
+   * Aggiorna il contenuto di un elemento custom su TUTTI i dispositivi
+   * (il contenuto è condiviso, solo la posizione è specifica per dispositivo)
    */
   updateCustomElementContent(itemId: string, content: string): void {
-    this.updateCanvasItem(itemId, { content });
+    const layouts = new Map(this.deviceLayouts());
+    
+    // Aggiorna il contenuto su TUTTI i dispositivi
+    for (const device of this.devicePresets) {
+      const currentLayout = new Map(layouts.get(device.id) || new Map());
+      const existingItem = currentLayout.get(itemId);
+      
+      if (existingItem) {
+        const updatedItem = { ...existingItem, content };
+        currentLayout.set(itemId, updatedItem);
+        layouts.set(device.id, currentLayout);
+      }
+    }
+    
+    this.deviceLayouts.set(layouts);
   }
 
   /**
