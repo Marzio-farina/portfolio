@@ -94,6 +94,12 @@ export class ProjectDetailModal implements OnDestroy {
   // Traccia progetti già caricati per evitare loop
   private loadedProjectIds = new Set<number>();
   
+  // Variabili per tracciare i cambiamenti dell'effect (debug)
+  private previousProjectId: number | null = null;
+  private previousLayoutConfig: string | null | undefined = null;
+  private previousProjectRef: any = null;
+  private effectRunCount = 0;
+  
   /**
    * Computed per tutti gli elementi del dispositivo corrente come array
    * Include elementi predefiniti E custom (ora specifici per dispositivo)
@@ -124,6 +130,19 @@ export class ProjectDetailModal implements OnDestroy {
       }
     });
     
+    if (this.canvasService.drawStartPos() && this.canvasService.drawCurrentPos()) {
+      const startPos = this.canvasService.drawStartPos()!;
+      const currentPos = this.canvasService.drawCurrentPos()!;
+      const drawBottom = Math.max(startPos.y, currentPos.y) + 40;
+      maxBottom = Math.max(maxBottom, drawBottom);
+    }
+    
+    console.log('📏 canvasHeight()', {
+      deviceId: this.canvasService.selectedDevice().id,
+      itemsCount: items.size,
+      maxBottom
+    });
+    
     return maxBottom;
   });
 
@@ -131,9 +150,16 @@ export class ProjectDetailModal implements OnDestroy {
   viewportHeight = computed(() => {
     const deviceHeight = this.canvasService.selectedDevice().height;
     const contentHeight = this.canvasHeight();
+    const height = Math.max(deviceHeight, contentHeight);
     
-    // Usa il maggiore tra l'altezza del dispositivo e quella necessaria per il contenuto
-    return Math.max(deviceHeight, contentHeight);
+    console.log('📐 viewportHeight()', {
+      deviceId: this.canvasService.selectedDevice().id,
+      deviceHeight,
+      contentHeight,
+      resultingHeight: height
+    });
+    
+    return height;
   });
 
   /**
@@ -154,16 +180,57 @@ export class ProjectDetailModal implements OnDestroy {
 
     // Carica il layout personalizzato quando il progetto cambia (solo ID progetto come dipendenza)
     effect(() => {
-      const projectId = this.project().id;
-      const layoutConfig = this.project().layout_config;
+      this.effectRunCount++;
+      const currentProject = this.project();
+      const projectId = currentProject.id;
+      const layoutConfig = currentProject.layout_config;
+      
+      // Traccia i cambiamenti rispetto all'esecuzione precedente
+      const changes: string[] = [];
+      const hasProjectRefChanged = this.previousProjectRef !== currentProject;
+      const hasProjectIdChanged = this.previousProjectId !== projectId;
+      const hasLayoutConfigChanged = this.previousLayoutConfig !== layoutConfig;
+      
+      if (hasProjectRefChanged) changes.push('project object reference');
+      if (hasProjectIdChanged) changes.push(`projectId (${this.previousProjectId} → ${projectId})`);
+      if (hasLayoutConfigChanged) {
+        const prevConfig = this.previousLayoutConfig;
+        const prevConfigPreview = prevConfig 
+          ? (typeof prevConfig === 'string' ? prevConfig.substring(0, 50) : 'object')
+          : 'null';
+        const currConfig = layoutConfig;
+        const currConfigPreview = currConfig 
+          ? (typeof currConfig === 'string' ? currConfig.substring(0, 50) : 'object')
+          : 'null';
+        changes.push(`layoutConfig (${prevConfigPreview}... → ${currConfigPreview}...)`);
+      }
+      
+      console.log('🔄 Effect loadCanvas triggered (#' + this.effectRunCount + '):', { 
+        projectId, 
+        hasLayoutConfig: !!layoutConfig,
+        layoutConfig: layoutConfig,
+        alreadyLoaded: this.loadedProjectIds.has(projectId),
+        isCreating: untracked(() => this.canvasService.isCreatingElement()),
+        projectRefChanged: hasProjectRefChanged,
+        changes: changes.length > 0 ? changes : ['no tracked changes detected'],
+        projectTitle: currentProject.title
+      });
+      
+      // Aggiorna i valori precedenti
+      this.previousProjectId = projectId;
+      this.previousLayoutConfig = layoutConfig;
+      this.previousProjectRef = currentProject;
       
       // NON ricaricare se si sta creando un elemento (per evitare di cancellare il rettangolo di disegno)
-      if (this.canvasService.isCreatingElement()) {
+      // Usa untracked per non rendere isCreatingElement una dipendenza dell'effect
+      if (untracked(() => this.canvasService.isCreatingElement())) {
+        console.log('⏸️ Skip: creazione elemento in corso');
         return;
       }
       
       // Carica solo se non è già stato caricato per questo progetto
       if (layoutConfig && !this.loadedProjectIds.has(projectId)) {
+        console.log('✅ Caricamento layout per progetto', projectId);
         untracked(() => {
           // Converti l'oggetto in stringa JSON se necessario
           const layoutConfigJson = typeof layoutConfig === 'string' 
@@ -172,6 +239,14 @@ export class ProjectDetailModal implements OnDestroy {
           this.loadCanvasLayout(layoutConfigJson, this.project());
           this.loadedProjectIds.add(projectId);
         });
+      } else if (!layoutConfig && !this.loadedProjectIds.has(projectId)) {
+        console.log('✅ Nessun layout salvato, uso default per progetto', projectId);
+        untracked(() => {
+          this.loadCanvasLayout(null, this.project());
+          this.loadedProjectIds.add(projectId);
+        });
+      } else {
+        console.log('⏭️ Skip: progetto già caricato');
       }
     });
 
@@ -199,7 +274,8 @@ export class ProjectDetailModal implements OnDestroy {
     // Aggiorna il form quando cambia il progetto
     effect(() => {
       // NON aggiornare il form se si sta creando un elemento
-      if (this.canvasService.isCreatingElement()) {
+      // Usa untracked per non rendere isCreatingElement una dipendenza dell'effect
+      if (untracked(() => this.canvasService.isCreatingElement())) {
         return;
       }
       
@@ -450,6 +526,10 @@ export class ProjectDetailModal implements OnDestroy {
           // Rimuovi l'ID per forzare il ricaricamento del layout
           this.loadedProjectIds.delete(updatedProject.id);
           
+          console.log('🔄 Aggiornamento selectedProject dopo upload media:', {
+            projectId: updatedProject.id,
+            hasLayoutConfig: !!updatedProject.layout_config
+          });
           this.projectDetailModalService.selectedProject.set(updatedProject);
           this.projectDetailModalService.markAsModified(updatedProject);
         },
@@ -470,6 +550,11 @@ export class ProjectDetailModal implements OnDestroy {
         
         // Rimuovi l'ID per forzare il ricaricamento del layout
         this.loadedProjectIds.delete(updatedProject.id);
+        
+        console.log('🔄 Aggiornamento selectedProject dopo salvataggio normale:', {
+          projectId: updatedProject.id,
+          hasLayoutConfig: !!updatedProject.layout_config
+        });
         
         // IMPORTANTE: Aggiorna prima selectedProject per aggiornare il dialog
         // POI marca come modificato per aggiornare la lista (questo evita conflitti)
@@ -844,7 +929,17 @@ export class ProjectDetailModal implements OnDestroy {
     const y = event.clientY - rect.top;
     
     this.canvasService.startDrawing(x, y);
+    
+    // Aggiungi listener globale per mouseup (caso in cui l'utente rilascia fuori dal canvas)
+    document.addEventListener('mouseup', this.onGlobalMouseUp, { once: true });
   }
+  
+  /**
+   * Handler globale per mouseup (cattura anche se rilasciato fuori dal canvas)
+   */
+  private onGlobalMouseUp = (event: MouseEvent): void => {
+    this.onCanvasMouseUp(event);
+  };
   
   /**
    * Gestisce la fine del disegno e crea l'elemento
@@ -861,8 +956,16 @@ export class ProjectDetailModal implements OnDestroy {
   
   /**
    * Annulla la creazione di un elemento
+   * NON cancella se si sta già disegnando (per evitare interruzioni durante il drag)
    */
   cancelElementCreation(): void {
+    // Se si sta già disegnando (drawStartPos è impostato), NON cancellare
+    // Questo evita che il mouseleave interrompa il drag
+    if (this.canvasService.drawStartPos()) {
+      console.log('⏸️ Annullamento ignorato: disegno in corso');
+      return;
+    }
+    
     this.canvasService.cancelElementCreation();
   }
 
@@ -959,7 +1062,15 @@ export class ProjectDetailModal implements OnDestroy {
    */
   getItemStyle(itemId: string): { left: number; top: number; width: number; height: number } {
     const item = this.canvasService.canvasItems().get(itemId);
-    return item || { left: 0, top: 0, width: 200, height: 150 };
+    const result = item || { left: 0, top: 0, width: 200, height: 150 };
+    
+    if (!item) {
+      console.warn(`⚠️ getItemStyle(${itemId}): elemento NON trovato in canvasItems, uso fallback {0,0}`);
+      console.log('  canvasItems keys:', Array.from(this.canvasService.canvasItems().keys()));
+      console.log('  selectedDevice:', this.canvasService.selectedDevice().id);
+    }
+    
+    return result;
   }
 
   /**

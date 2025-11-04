@@ -93,10 +93,19 @@
 }
 
 .project-detail-modal__btn--save:hover:not(:disabled) {
-  background: color-mix(in srgb, var(--accent-primary) 110%, white);
+  background: color-mix(in srgb, var(--accent-primary) 110%, white) !important;
   transform: translateY(-1px);
   box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
   opacity: 1 !important; /* Forza opacità 1 all'hover */
+}
+
+/* Fix: previene trasparenza da qualsiasi regola generica */
+.project-detail-modal__btn--save:hover {
+  opacity: 1 !important;
+}
+
+.project-detail-modal__btn--save {
+  opacity: 1 !important;
 }
 
 .project-detail-modal__btn--preview {

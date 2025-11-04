@@ -212,18 +212,8 @@ export class ProjectService {
     const technologies = this.extractTechnologies(dto);
     const technologiesString = technologies.map(t => t.title).join(', ');
 
-    // Parse layout_config se presente
-    let layoutConfig: Record<string, { left: number; top: number; width: number; height: number }> | null = null;
-    if (dto.layout_config) {
-      try {
-        layoutConfig = typeof dto.layout_config === 'string' 
-          ? JSON.parse(dto.layout_config) 
-          : dto.layout_config;
-      } catch (e) {
-        console.error('Errore nel parsing di layout_config:', e);
-        layoutConfig = null;
-      }
-    }
+    // Mantieni layout_config come stringa (sarà parsato nel componente quando necessario)
+    const layoutConfig = dto.layout_config ?? null;
 
     return {
       id: dto.id,

@@ -32,7 +32,7 @@ export type Progetto = {
   video: string;        // url video
   technologies: Technology[]; // array di tecnologie per i tag
   technologiesString?: string; // stringa per retrocompatibilità (opzionale)
-  layout_config?: Record<string, { left: number; top: number; width: number; height: number }> | null; // Configurazione layout con absolute positioning
+  layout_config?: string | null; // Configurazione JSON per il layout della griglia (stringa JSON serializzata)
 };
 
 export interface Technology {

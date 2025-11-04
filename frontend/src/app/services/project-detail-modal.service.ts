@@ -27,6 +27,12 @@ export class ProjectDetailModalService {
    */
   open(project: Progetto): void {
     const wasAlreadyOpen = this.isOpen();
+    console.log('📂 ProjectDetailModalService.open():', {
+      projectId: project.id,
+      projectTitle: project.title,
+      wasAlreadyOpen,
+      hasLayoutConfig: !!project.layout_config
+    });
     this.selectedProject.set(project);
     this.isOpen.set(true);
     // Resetta i flag solo quando si apre una NUOVA modal (non quando si riapre dopo un salvataggio)
@@ -51,6 +57,16 @@ export class ProjectDetailModalService {
    * Marca che è stata effettuata una modifica e salva il progetto aggiornato
    */
   markAsModified(updatedProject: Progetto): void {
+    console.log('💾 ProjectDetailModalService.markAsModified():', {
+      projectId: updatedProject.id,
+      projectTitle: updatedProject.title,
+      hasLayoutConfig: !!updatedProject.layout_config,
+      layoutConfigPreview: updatedProject.layout_config 
+        ? (typeof updatedProject.layout_config === 'string' 
+          ? updatedProject.layout_config.substring(0, 80) 
+          : 'object')
+        : 'null'
+    });
     this.hasChanges.set(true);
     this.updatedProject.set(updatedProject); // Salva il progetto aggiornato per aggiornamento immediato
     this.invalidateCacheOnNextLoad.set(true); // Marca che la cache deve essere invalidata
