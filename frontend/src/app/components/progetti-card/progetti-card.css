@@ -29,11 +29,18 @@
 
 .card-wrapper:hover{
   transform: translateY(var(--hover-translate, -2px)) scale(var(--hover-scale, 1.012)) rotate(var(--hover-rotate, 0deg));
-  /* box-shadow: var(--hover-shadow, 0 8px 22px rgba(0,0,0,.18)); */
-  /* Espande il gradiente radiale dal centro verso i bordi */
   background-size: 200% 200%;
   /* Transizione per espansione (al hover) - ease-out per effetto più fluido */
   transition: background-size 0.4s ease-out, transform var(--transition-1), box-shadow var(--transition-1);
+}
+
+.card-wrapper.is-deleting {
+  cursor: default;
+}
+
+.card-wrapper.is-deleting:hover{
+  transform: translateY(var(--hover-translate, -2px)) scale(var(--hover-scale, 1.012)) rotate(var(--hover-rotate, 0deg));
+  background-size: 200% 200%;
 }
 
 .card {
@@ -522,13 +529,61 @@
   pointer-events: auto; /* Cliccabile all'hover */
 }
 
-.card-wrapper .admin-x-btn:hover {
-  transform: scale(1.08);
-  box-shadow: 0 6px 18px rgba(239, 68, 68, 0.35);
+.card-wrapper.is-deleting .admin-x-btn,
+.card-wrapper.is-deleting:hover .admin-x-btn {
+  opacity: 1;
+  pointer-events: auto;
 }
 
-.card-wrapper .admin-x-btn:active {
-  transform: scale(1.0);
+.card-wrapper .admin-x-btn.is-cancel {
+  border-color: var(--accent-primary);
+  color: var(--accent-primary);
+}
+
+.card-wrapper .admin-x-btn.is-cancel:hover {
+  box-shadow: 0 6px 18px rgba(59, 130, 246, 0.35);
+}
+
+.card-deletion-overlay {
+  position: absolute;
+  top: 8px;
+  right: 8px;
+  left: 8px;
+  bottom: 0;
+  border-radius: 16px;
+  overflow: hidden;
+  z-index: 8;
+  background: rgba(15, 23, 42, 0.45);
+  backdrop-filter: blur(4px);
+  pointer-events: none;
+  display: flex;
+}
+
+[data-theme="light"] .card-deletion-overlay {
+  background: rgba(255, 255, 255, 0.68);
+}
+
+.card-deletion-skeleton {
+  width: 100%;
+  height: 100%;
+  border-radius: inherit;
+  background: linear-gradient(120deg, rgba(255, 255, 255, 0.1) 25%, rgba(255, 255, 255, 0.4) 37%, rgba(255, 255, 255, 0.1) 63%);
+  background-size: 400% 100%;
+  animation: cardDeletionShimmer 1.2s ease-in-out infinite;
+  opacity: 0.8;
+}
+
+[data-theme="dark"] .card-deletion-skeleton {
+  background: linear-gradient(120deg, rgba(30, 41, 59, 0.4) 25%, rgba(148, 163, 184, 0.6) 37%, rgba(30, 41, 59, 0.4) 63%);
+}
+
+@keyframes cardDeletionShimmer {
+  0% {
+    background-position: 200% 0;
+  }
+  100% {
+    background-position: -200% 0;
+  }
 }
 
 /* X interna molto grande e centrata */
@@ -537,4 +592,8 @@
   font-size: 30px !important; /* aumenta la dimensione della X */
   line-height: 1;
   font-weight: 900;
+}
+
+.card-wrapper.is-deleting .admin-x-btn > span {
+  font-size: 28px !important;
 }

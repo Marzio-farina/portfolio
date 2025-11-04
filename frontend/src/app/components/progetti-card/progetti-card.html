@@ -1,6 +1,8 @@
 <div class="card-wrapper"
      (mouseenter)="play()" (mouseleave)="pause()"
      (click)="onCardClick()"
+     [class.is-deleting]="deleting()"
+     [attr.aria-busy]="deleting()"
      [style.--hover-rotate]="hoverRotate()"
      [style.--hover-translate]="hoverTranslate()"
      [style.--hover-scale]="hoverScale()"
@@ -11,9 +13,19 @@
      tabindex="0"
      [attr.aria-label]="'Apri dettagli progetto: ' + progetto().title">
   @if (isAuthenticated() && isEditing()) {
-    <button class="admin-x-btn" type="button" aria-label="Elimina progetto" (click)="onAdminButtonClick($event)">
-      <span aria-hidden="true">×</span>
+    <button class="admin-x-btn"
+            type="button"
+            [class.is-cancel]="deleting()"
+            [attr.aria-label]="deleting() ? 'Annulla eliminazione progetto' : 'Elimina progetto'"
+            [attr.title]="deleting() ? 'Annulla eliminazione' : 'Elimina progetto'"
+            (click)="onAdminButtonClick($event)">
+      <span aria-hidden="true">{{ deleting() ? '↩' : '×' }}</span>
     </button>
+  }
+  @if (deleting()) {
+    <div class="card-deletion-overlay" aria-hidden="true">
+      <div class="card-deletion-skeleton"></div>
+    </div>
   }
   <div class="card" [class.no-video]="!progetto().video">
     <div class="media"><img class="poster" [src]="progetto().poster" alt="{{ progetto().title }}"><video #videoEl class="video" [src]="progetto().video" muted playsinline preload="metadata" loop></video></div>

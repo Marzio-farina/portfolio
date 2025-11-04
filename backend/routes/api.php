@@ -190,6 +190,7 @@ Route::middleware(['api', "throttle:{$throttleLimit}", 'db.connection'])
             Route::put('projects/{project}', [ProjectController::class, 'update']);
             Route::post('projects/{project}', [ProjectController::class, 'update']); // POST per supportare FormData con file
             Route::patch('projects/{project}/layout', [ProjectController::class, 'updateLayout']); // Aggiorna solo il layout
+            Route::patch('projects/{id}/restore', [ProjectController::class, 'restore']); // Ripristina progetto soft-deleted
             Route::delete('projects/{project}', [ProjectController::class, 'destroy']);
             
             // Categories - creazione ed eliminazione richiedono autenticazione

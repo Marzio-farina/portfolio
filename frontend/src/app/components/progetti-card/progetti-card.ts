@@ -9,6 +9,7 @@ import { AuthService } from '../../services/auth.service';
 import { EditModeService } from '../../services/edit-mode.service';
 import { ProjectService } from '../../services/project.service';
 import { TenantService } from '../../services/tenant.service';
+import { Subscription } from 'rxjs';
 
 import { Progetto } from '../../core/models/project';
 
@@ -44,6 +45,8 @@ export class ProgettiCard {
   deletedError = output<{ id: number; error: any }>();
   clicked = output<Progetto>();
   categoryChanged = output<Progetto>();
+  deleting = signal(false);
+  deletingClass = computed(() => this.deleting() ? 'is-deleting' : '');
   
   // Lista categorie per la select (passata dal parent)
   categories = input<Array<{ id: number; title: string }>>([]);
@@ -51,6 +54,7 @@ export class ProgettiCard {
   
   // Flag per prevenire loop infinito
   private isUpdatingCategory = false;
+  private deleteSubscription: Subscription | null = null;
   
   // Popup tag nascosti
   showHiddenTechsPopup = signal(false);
@@ -208,6 +212,13 @@ export class ProgettiCard {
     
     // Carica le tecnologie disponibili per la ricerca
     this.loadTechnologies();
+
+    this.destroyRef.onDestroy(() => {
+      if (this.deleteSubscription) {
+        this.deleteSubscription.unsubscribe();
+        this.deleteSubscription = null;
+      }
+    });
   }
   
   /**
@@ -354,18 +365,57 @@ export class ProgettiCard {
   onAdminButtonClick(event: Event): void {
     event.stopPropagation();
     const id = this.progetto().id;
-    this.api.delete$(id).subscribe({
+
+    if (this.deleting()) {
+      this.cancelDeletion();
+      return;
+    }
+
+    this.deleting.set(true);
+
+    this.deleteSubscription = this.api.delete$(id).subscribe({
       next: () => {
+        this.deleteSubscription = null;
+        this.deleting.set(false);
         this.deleted.emit(id);
       },
       error: (err) => {
-        // Emetti l'errore al componente parent per mostrare una notifica
+        this.deleteSubscription = null;
+        this.deleting.set(false);
         this.deletedError.emit({ id, error: err });
       }
     });
   }
 
+  private cancelDeletion(): void {
+    const id = this.progetto().id;
+    
+    if (this.deleteSubscription) {
+      this.deleteSubscription.unsubscribe();
+      this.deleteSubscription = null;
+    }
+    
+    // Ripristina immediatamente lo stato della UI per reattività
+    this.deleting.set(false);
+    
+    // Chiama l'endpoint di ripristino in background per annullare la soft-delete sul server
+    this.api.restore$(id)
+      .pipe(takeUntilDestroyed(this.destroyRef))
+      .subscribe({
+        next: (restoredProject) => {
+          // Notifica il parent che il progetto è stato modificato (ripristinato)
+          this.categoryChanged.emit(restoredProject);
+        },
+        error: (err) => {
+          // La card è già tornata normale, quindi non serve fare altro
+        }
+      });
+  }
+
   onCardClick(): void {
+    if (this.deleting()) {
+      return;
+    }
     // Emetti il progetto per aprire il modal
     this.clicked.emit(this.progetto());
   }

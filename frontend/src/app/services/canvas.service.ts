@@ -548,7 +548,6 @@ export class CanvasService {
    * Inizia la creazione di un elemento con drag-to-draw
    */
   startElementCreation(type: 'text' | 'image' | 'video'): void {
-    console.log('🎨 CanvasService.startElementCreation():', { type });
     this.isCreatingElement.set(type);
   }
 
@@ -556,7 +555,6 @@ export class CanvasService {
    * Cancella la creazione di un elemento
    */
   cancelElementCreation(): void {
-    console.log('❌ CanvasService.cancelElementCreation() chiamato da:', new Error().stack?.split('\n')[2]?.trim());
     this.isCreatingElement.set(null);
     this.drawStartPos.set(null);
     this.drawCurrentPos.set(null);
@@ -574,7 +572,6 @@ export class CanvasService {
    */
   startDrawing(x: number, y: number): void {
     if (!this.isCreatingElement()) return;
-    console.log('🖌️ CanvasService.startDrawing():', { x, y, type: this.isCreatingElement() });
     this.drawStartPos.set({ x, y });
     this.drawCurrentPos.set({ x, y });
   }
@@ -595,17 +592,7 @@ export class CanvasService {
     const startPos = this.drawStartPos();
     const currentPos = this.drawCurrentPos();
 
-    console.log('✅ CanvasService.finalizeDrawing():', { 
-      type, 
-      startPos, 
-      currentPos,
-      hasType: !!type,
-      hasStartPos: !!startPos,
-      hasCurrentPos: !!currentPos
-    });
-
     if (!type || !startPos || !currentPos) {
-      console.log('❌ Annullamento: dati mancanti');
       this.cancelElementCreation();
       return null;
     }
@@ -616,11 +603,8 @@ export class CanvasService {
     const width = Math.abs(currentPos.x - startPos.x);
     const height = Math.abs(currentPos.y - startPos.y);
 
-    console.log('📐 Dimensioni calcolate:', { left, top, width, height });
-
     // Dimensioni minime
     if (width < 50 || height < 30) {
-      console.log('❌ Annullamento: dimensioni troppo piccole (min: 50x30)');
       this.cancelElementCreation();
       return null;
     }
@@ -629,7 +613,6 @@ export class CanvasService {
     let newId: string;
     if (type === 'text') {
       newId = this.addCustomText(left, top, width, height);
-      console.log('📝 Elemento testo creato:', newId);
     } else if (type === 'video') {
       // Elemento predefinito video (non custom)
       const videoItem: any = {
@@ -642,10 +625,8 @@ export class CanvasService {
       };
       this.addCanvasItem(videoItem);
       newId = 'video';
-      console.log('🎥 Elemento video creato:', newId);
     } else {
       newId = this.addCustomImage(left, top, width, height);
-      console.log('🖼️ Elemento immagine creato:', newId);
     }
 
     // Reset stato
@@ -691,12 +672,6 @@ export class CanvasService {
       const elementsToFilter = this.getEmptyPredefinedElements(project);
       const layouts = new Map<string, Map<string, CanvasItem>>();
       
-      console.log('📦 Caricamento defaultLayout (filtrato):', {
-        'Elementi da filtrare': Array.from(elementsToFilter),
-        'Project video': project?.video || 'N/A',
-        'Project technologies': project?.technologies?.length || 0
-      });
-      
       for (const device of this.devicePresets) {
         const newLayout = new Map(this.defaultLayout);
         // Rimuovi elementi vuoti
@@ -704,33 +679,19 @@ export class CanvasService {
           newLayout.delete(itemId);
         });
         
-        console.log(`  ${device.id}: ${newLayout.size} elementi`, Array.from(newLayout.keys()));
         layouts.set(device.id, newLayout);
       }
       this.deviceLayouts.set(layouts);
-      
-      // Log finale: verifica che canvasItems sia popolato
-      setTimeout(() => {
-        const currentDeviceId = this.selectedDevice().id;
-        const items = this.canvasItems();
-        console.log('✅ Layout caricato. canvasItems per device', currentDeviceId, ':', {
-          size: items.size,
-          keys: Array.from(items.keys()),
-          values: Array.from(items.entries()).map(([k, v]) => ({ id: k, left: v.left, top: v.top, width: v.width, height: v.height }))
-        });
-      }, 100);
       
       return;
     }
 
     try {
       const parsed = JSON.parse(layoutConfigJson);
-      console.log('📦 Layout dal JSON:', parsed);
       const layouts = new Map<string, Map<string, CanvasItem>>();
       
       // Elementi predefiniti da escludere se vuoti nel progetto
       const elementsToFilter = this.getEmptyPredefinedElements(project);
-      console.log('🔍 Elementi da filtrare:', Array.from(elementsToFilter));
       
       // COMPATIBILITÀ: Se esiste __customElements (vecchio formato), caricalo
       const sharedCustoms = new Map<string, CanvasItem>();
@@ -768,16 +729,13 @@ export class CanvasService {
         
         // Se il layout è completamente vuoto per questo dispositivo, usa il default FILTRATO
         if (deviceLayout.size === 0) {
-          console.log(`⚠️ Layout vuoto per ${deviceId}, uso defaultLayout filtrato`);
           const newLayout = new Map(this.defaultLayout);
           // Rimuovi elementi vuoti
           elementsToFilter.forEach(itemId => {
             newLayout.delete(itemId);
           });
-          console.log(`  ${deviceId} dopo filtro: ${newLayout.size} elementi`, Array.from(newLayout.keys()));
           layouts.set(deviceId, newLayout);
         } else {
-          console.log(`  ${deviceId}: ${deviceLayout.size} elementi dal JSON`, Array.from(deviceLayout.keys()));
           layouts.set(deviceId, deviceLayout);
         }
       }

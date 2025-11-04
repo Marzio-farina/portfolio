@@ -1095,6 +1095,58 @@ class ProjectController extends Controller
     }
 
     /**
+     * PATCH /api/projects/{id}/restore
+     * Ripristina un progetto soft-deleted (imposta deleted_at a null)
+     */
+    public function restore(int $id): JsonResponse
+    {
+        // Verifica autenticazione
+        $user = Auth::user();
+        if (!$user) {
+            return response()->json(['ok' => false, 'message' => 'Non autenticato'], 401);
+        }
+
+        // Trova il progetto anche se soft-deleted
+        $project = Project::withTrashed()->find($id);
+        
+        if (!$project) {
+            return response()->json(['ok' => false, 'message' => 'Progetto non trovato'], 404);
+        }
+
+        // Verifica autorizzazione
+        $userId = $user->id;
+        $userEmail = $user->email;
+        $isAdmin = $userEmail === env('PUBLIC_USER_EMAIL', 'marziofarina@icloud.com');
+        $projectUserId = $project->user_id ?? null;
+
+        $canRestore = (
+            $projectUserId === $userId || 
+            ($projectUserId === null && $isAdmin) ||
+            $isAdmin
+        );
+
+        if (!$canRestore) {
+            return response()->json([
+                'ok' => false, 
+                'message' => 'Non autorizzato'
+            ], 403);
+        }
+
+        // Ripristina il progetto (imposta deleted_at a null)
+        $project->restore();
+        
+        Log::info('Project restored successfully', ['project_id' => $id]);
+
+        // Carica le relazioni per la risposta
+        $project->load(['category:id,title', 'technologies:id,title,description']);
+
+        return response()->json([
+            'ok' => true,
+            'data' => new ProjectResource($project)
+        ], 200, [], JSON_UNESCAPED_UNICODE);
+    }
+
+    /**
      * Validate and sanitize per_page parameter
      * 
      * Ensures per_page is within acceptable bounds to prevent

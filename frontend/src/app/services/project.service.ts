@@ -160,6 +160,22 @@ export class ProjectService {
   }
 
   /**
+   * Ripristina un progetto soft-deleted (imposta deleted_at a null)
+   * 
+   * @param id ID del progetto da ripristinare
+   * @returns Observable del progetto ripristinato
+   */
+  restore$(id: number): Observable<Progetto> {
+    const url = apiUrl(`projects/${id}/restore`);
+    return this.http.patch<{ ok: boolean; data: any }>(url, {}).pipe(
+      map(response => {
+        const dto = response.data;
+        return this.dtoToProgetto(dto);
+      })
+    );
+  }
+
+  /**
    * Ottiene tutte le categorie dal backend
    * 
    * @param userId ID utente per filtrare (opzionale)
