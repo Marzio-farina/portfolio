@@ -14,10 +14,9 @@ export interface CanvasItem {
   width: number;   // larghezza in pixel
   height: number;  // altezza in pixel
   type?: 'image' | 'video' | 'category' | 'technologies' | 'description' | 'custom-text' | 'custom-image';
-  content?: string; // Contenuto per elementi custom (testo o URL immagine) - condiviso tra dispositivi
-  contentByDevice?: Record<string, string>; // Contenuto specifico per dispositivo (opzionale)
+  content?: string; // Contenuto per elementi custom (testo o URL immagine)
   textStyle?: TextStyle; // Stili del testo per elementi custom-text
-  isDeviceSpecific?: boolean; // Flag per indicare se il contenuto è specifico per dispositivo
+  isDeviceSpecific?: boolean; // Se true, elemento visibile SOLO sul dispositivo corrente
 }
 
 export interface DeviceLayout {
@@ -544,46 +543,25 @@ export class CanvasService {
 
   /**
    * Aggiorna il contenuto di un elemento custom
-   * Se isDeviceSpecific, salva solo per il dispositivo corrente
-   * Altrimenti, aggiorna su TUTTI i dispositivi
+   * Se isDeviceSpecific, l'elemento esiste solo sul dispositivo corrente
+   * Altrimenti, aggiorna su TUTTI i dispositivi dove l'elemento esiste
    */
   updateCustomElementContent(itemId: string, content: string, isDeviceSpecific: boolean = false): void {
     const layouts = new Map(this.deviceLayouts());
-    const deviceId = this.selectedDevice().id;
     
-    if (isDeviceSpecific) {
-      // Modalità device-specific: salva il contenuto solo per il dispositivo corrente
-      const currentLayout = new Map(layouts.get(deviceId) || new Map());
+    // Aggiorna il contenuto su tutti i dispositivi dove l'elemento esiste
+    // (se device-specific, esiste solo su un dispositivo)
+    for (const device of this.devicePresets) {
+      const currentLayout = new Map(layouts.get(device.id) || new Map());
       const existingItem = currentLayout.get(itemId);
       
       if (existingItem) {
-        const contentByDevice = existingItem.contentByDevice || {};
-        contentByDevice[deviceId] = content;
-        
         const updatedItem = { 
           ...existingItem, 
-          contentByDevice,
-          isDeviceSpecific: true
+          content
         };
         currentLayout.set(itemId, updatedItem);
-        layouts.set(deviceId, currentLayout);
-      }
-    } else {
-      // Modalità condivisa: aggiorna il contenuto su TUTTI i dispositivi
-      for (const device of this.devicePresets) {
-        const currentLayout = new Map(layouts.get(device.id) || new Map());
-        const existingItem = currentLayout.get(itemId);
-        
-        if (existingItem) {
-          const updatedItem = { 
-            ...existingItem, 
-            content,
-            isDeviceSpecific: false,
-            contentByDevice: undefined // Rimuovi contentByDevice se si torna a modalità condivisa
-          };
-          currentLayout.set(itemId, updatedItem);
-          layouts.set(device.id, currentLayout);
-        }
+        layouts.set(device.id, currentLayout);
       }
     }
     
@@ -592,6 +570,8 @@ export class CanvasService {
   
   /**
    * Toggle modalità device-specific per un elemento custom text
+   * Se attivato: elemento visibile SOLO sul dispositivo corrente
+   * Se disattivato: elemento visibile su TUTTI i dispositivi
    */
   toggleDeviceSpecificContent(itemId: string): boolean {
     const layouts = new Map(this.deviceLayouts());
@@ -603,25 +583,73 @@ export class CanvasService {
     
     const newIsDeviceSpecific = !existingItem.isDeviceSpecific;
     
-    // Aggiorna il flag su TUTTI i dispositivi
-    for (const device of this.devicePresets) {
-      const layout = new Map(layouts.get(device.id) || new Map());
-      const item = layout.get(itemId);
-      
-      if (item) {
-        const updatedItem = { 
-          ...item, 
-          isDeviceSpecific: newIsDeviceSpecific
-        };
+    console.log('🔄 Toggle device-specific per', itemId, ':', {
+      from: existingItem.isDeviceSpecific || false,
+      to: newIsDeviceSpecific,
+      currentDevice: deviceId,
+      action: newIsDeviceSpecific ? 'RIMUOVI da altri dispositivi' : 'AGGIUNGI a tutti i dispositivi'
+    });
+    
+    if (newIsDeviceSpecific) {
+      // Attiva device-specific: RIMUOVI l'elemento da tutti i dispositivi TRANNE quello corrente
+      for (const device of this.devicePresets) {
+        const layout = new Map(layouts.get(device.id) || new Map());
         
-        // Se si disattiva device-specific, pulisci contentByDevice
-        if (!newIsDeviceSpecific) {
-          updatedItem.contentByDevice = undefined;
+        if (device.id === deviceId) {
+          // Dispositivo corrente: segna come device-specific
+          const item = layout.get(itemId);
+          if (item) {
+            const updatedItem = { 
+              ...item, 
+              isDeviceSpecific: true
+            };
+            layout.set(itemId, updatedItem);
+            layouts.set(device.id, layout);
+          }
+        } else {
+          // Altri dispositivi: RIMUOVI l'elemento
+          layout.delete(itemId);
+          layouts.set(device.id, layout);
         }
-        
-        layout.set(itemId, updatedItem);
-        layouts.set(device.id, layout);
       }
+      
+      console.log('✅ Elemento visibile SOLO su', deviceId);
+    } else {
+      // Disattiva device-specific: RIAGGIUNGE l'elemento a tutti i dispositivi
+      for (const device of this.devicePresets) {
+        const layout = new Map(layouts.get(device.id) || new Map());
+        
+        if (device.id === deviceId) {
+          // Dispositivo corrente: rimuovi flag device-specific
+          const item = layout.get(itemId);
+          if (item) {
+            const updatedItem = { 
+              ...item, 
+              isDeviceSpecific: false
+            };
+            // Rimuovi contentByDevice se presente (compatibilità con vecchi dati)
+            delete (updatedItem as any).contentByDevice;
+            
+            layout.set(itemId, updatedItem);
+            layouts.set(device.id, layout);
+          }
+        } else {
+          // Altri dispositivi: RIAGGIUNGE l'elemento con gli stessi dati del dispositivo corrente
+          if (existingItem) {
+            const newItem = {
+              ...existingItem,
+              isDeviceSpecific: false
+            };
+            // Rimuovi contentByDevice se presente (compatibilità con vecchi dati)
+            delete (newItem as any).contentByDevice;
+            
+            layout.set(itemId, newItem);
+            layouts.set(device.id, layout);
+          }
+        }
+      }
+      
+      console.log('✅ Elemento visibile su TUTTI i dispositivi');
     }
     
     this.deviceLayouts.set(layouts);

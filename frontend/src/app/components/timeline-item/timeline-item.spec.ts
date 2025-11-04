@@ -14,6 +14,11 @@ describe('TimelineItem', () => {
 
     fixture = TestBed.createComponent(TimelineItem);
     component = fixture.componentInstance;
+    
+    // Set required inputs
+    fixture.componentRef.setInput('title', 'Test Title');
+    fixture.componentRef.setInput('years', '2020-2023');
+    
     fixture.detectChanges();
   });
 

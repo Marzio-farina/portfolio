@@ -1,5 +1,5 @@
 import { ComponentFixture, TestBed } from '@angular/core/testing';
-
+import { COMMON_TEST_PROVIDERS } from '../../../testing/test-utils';
 import { About } from './about';
 
 describe('About', () => {
@@ -8,7 +8,8 @@ describe('About', () => {
 
   beforeEach(async () => {
     await TestBed.configureTestingModule({
-      imports: [About]
+      imports: [About],
+      providers: COMMON_TEST_PROVIDERS
     })
     .compileComponents();
 
@@ -19,5 +20,11 @@ describe('About', () => {
 
   it('should create', () => {
     expect(component).toBeTruthy();
+  });
+
+  describe('Component State', () => {
+    it('component dovrebbe avere properties definite', () => {
+      expect(component).toBeDefined();
+    });
   });
 });

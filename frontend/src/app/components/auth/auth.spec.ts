@@ -1,5 +1,5 @@
 import { ComponentFixture, TestBed } from '@angular/core/testing';
-
+import { COMMON_TEST_PROVIDERS } from '../../../testing/test-utils';
 import { Auth } from './auth';
 
 describe('Auth', () => {
@@ -8,7 +8,8 @@ describe('Auth', () => {
 
   beforeEach(async () => {
     await TestBed.configureTestingModule({
-      imports: [Auth]
+      imports: [Auth],
+      providers: COMMON_TEST_PROVIDERS
     })
     .compileComponents();
 
@@ -19,5 +20,30 @@ describe('Auth', () => {
 
   it('should create', () => {
     expect(component).toBeTruthy();
+  });
+
+  describe('Forms', () => {
+    it('loginForm dovrebbe essere definito', () => {
+      expect(component.loginForm).toBeDefined();
+    });
+
+    it('registerForm dovrebbe essere definito', () => {
+      expect(component.registerForm).toBeDefined();
+    });
+
+    it('recoverForm dovrebbe essere definito', () => {
+      expect(component.recoverForm).toBeDefined();
+    });
+  });
+
+  describe('Signals', () => {
+    it('loading signal dovrebbe esistere', () => {
+      expect(component.loading).toBeDefined();
+    });
+
+    it('loading dovrebbe essere modificabile', () => {
+      component.loading.set(true);
+      expect(component.loading()).toBe(true);
+    });
   });
 });

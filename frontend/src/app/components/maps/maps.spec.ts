@@ -1,5 +1,5 @@
 import { ComponentFixture, TestBed } from '@angular/core/testing';
-
+import { COMMON_TEST_PROVIDERS } from '../../../testing/test-utils';
 import { Maps } from './maps';
 
 describe('Maps', () => {
@@ -8,7 +8,8 @@ describe('Maps', () => {
 
   beforeEach(async () => {
     await TestBed.configureTestingModule({
-      imports: [Maps]
+      imports: [Maps],
+      providers: COMMON_TEST_PROVIDERS
     })
     .compileComponents();
 

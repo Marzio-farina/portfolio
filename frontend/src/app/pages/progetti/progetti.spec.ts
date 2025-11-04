@@ -1,5 +1,5 @@
 import { ComponentFixture, TestBed } from '@angular/core/testing';
-
+import { COMMON_TEST_PROVIDERS } from '../../../testing/test-utils';
 import { Progetti } from './progetti';
 
 describe('Progetti', () => {
@@ -8,7 +8,8 @@ describe('Progetti', () => {
 
   beforeEach(async () => {
     await TestBed.configureTestingModule({
-      imports: [Progetti]
+      imports: [Progetti],
+      providers: COMMON_TEST_PROVIDERS
     })
     .compileComponents();
 
@@ -19,5 +20,12 @@ describe('Progetti', () => {
 
   it('should create', () => {
     expect(component).toBeTruthy();
+  });
+
+  describe('Signals', () => {
+    it('component dovrebbe avere properties definite', () => {
+      expect(component.projects).toBeDefined();
+      expect(component.loading).toBeDefined();
+    });
   });
 });

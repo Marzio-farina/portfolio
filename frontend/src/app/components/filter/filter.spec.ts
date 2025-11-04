@@ -14,6 +14,10 @@ describe('Filter', () => {
 
     fixture = TestBed.createComponent(Filter);
     component = fixture.componentInstance;
+    
+    // Set required inputs
+    fixture.componentRef.setInput('categories', ['Tutti', 'Web', 'Mobile']);
+    
     fixture.detectChanges();
   });
 

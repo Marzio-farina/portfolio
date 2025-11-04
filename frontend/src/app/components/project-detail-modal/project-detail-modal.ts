@@ -667,16 +667,9 @@ export class ProjectDetailModal implements OnDestroy {
   
   /**
    * Ottiene il contenuto corretto per un elemento custom text in base al dispositivo
+   * Nota: se isDeviceSpecific, l'elemento esiste solo sul dispositivo corrente
    */
   getCustomTextContent(item: CanvasItem): string {
-    const deviceId = this.canvasService.selectedDevice().id;
-    
-    // Se è device-specific e ha contentByDevice, usa quello
-    if (item.isDeviceSpecific && item.contentByDevice && item.contentByDevice[deviceId]) {
-      return item.contentByDevice[deviceId];
-    }
-    
-    // Altrimenti usa il contenuto condiviso
     return item.content || '';
   }
   

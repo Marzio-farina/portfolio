@@ -14,6 +14,11 @@ describe('ResumeSection', () => {
 
     fixture = TestBed.createComponent(ResumeSection);
     component = fixture.componentInstance;
+    
+    // Set required inputs
+    fixture.componentRef.setInput('id', 'test-section');
+    fixture.componentRef.setInput('title', 'Test Section');
+    
     fixture.detectChanges();
   });
 

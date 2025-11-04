@@ -1,5 +1,5 @@
 import { ComponentFixture, TestBed } from '@angular/core/testing';
-
+import { TEST_HTTP_PROVIDERS } from '../../../testing/test-utils';
 import { PingTest } from './ping-test';
 
 describe('PingTest', () => {
@@ -8,7 +8,8 @@ describe('PingTest', () => {
 
   beforeEach(async () => {
     await TestBed.configureTestingModule({
-      imports: [PingTest]
+      imports: [PingTest],
+      providers: TEST_HTTP_PROVIDERS
     })
     .compileComponents();
 
