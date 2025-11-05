@@ -1,4 +1,6 @@
 import { TestBed } from '@angular/core/testing';
+import { provideHttpClient } from '@angular/common/http';
+import { provideHttpClientTesting } from '@angular/common/http/testing';
 import { ProfileService, ProfileData } from './profile.service';
 import { AboutProfileService } from './about-profile.service';
 import { of } from 'rxjs';
@@ -37,6 +39,8 @@ describe('ProfileService', () => {
     TestBed.configureTestingModule({
       providers: [
         ProfileService,
+        provideHttpClient(),
+        provideHttpClientTesting(),
         { provide: AboutProfileService, useValue: aboutServiceSpy }
       ]
     });

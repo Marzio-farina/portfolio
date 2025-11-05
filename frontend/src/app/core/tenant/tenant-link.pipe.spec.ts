@@ -126,8 +126,10 @@ describe('TenantLinkPipe', () => {
     });
 
     it('dovrebbe normalizzare input misti', () => {
+      // La pipe usa .filter(Boolean), quindi rimuove 0, false, null, undefined
       const result = pipe.transform(['about', 0, false, 'section', null] as any);
-      expect(result).toEqual(['/', 'mario-rossi', 'about', '0', 'false', 'section']);
+      // Solo 'about' e 'section' vengono mantenuti (0, false, null sono falsy e vengono filtrati)
+      expect(result).toEqual(['/', 'mario-rossi', 'about', 'section']);
     });
   });
 });

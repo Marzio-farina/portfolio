@@ -558,14 +558,13 @@ describe('ProjectService', () => {
         done();
       });
 
-      const req = httpMock.expectOne(req => {
-        // Verifica che abbia parametri per bypass cache
-        const hasNoCacheParam = req.url.includes('_nocache=1');
-        const hasTimestamp = req.url.includes('_t=');
-        return hasNoCacheParam && hasTimestamp;
-      });
-
+      const req = httpMock.expectOne(req => req.url.includes('/projects'));
+      
+      // Verifica che abbia parametri per bypass cache
+      expect(req.request.params.has('_nocache')).toBe(true);
+      expect(req.request.params.has('_t')).toBe(true);
       expect(req.request.headers.get('Cache-Control')).toBeTruthy();
+      
       req.flush({ data: [], meta: { current_page: 1, per_page: 12, total: 0, last_page: 1 } });
     });
 
@@ -587,7 +586,10 @@ describe('ProjectService', () => {
 
       service.list$(1, 12).subscribe(() => done());
 
-      const req = httpMock.expectOne(req => req.url.includes(`_s=${mockTimestamp}`));
+      const req = httpMock.expectOne(req => req.url.includes('/projects'));
+      
+      // Verifica che abbia il parametro session timestamp
+      expect(req.request.params.get('_s')).toBe(mockTimestamp);
       expect(req.request.headers.get('Cache-Control')).toBeFalsy();
       
       req.flush({ data: [], meta: { current_page: 1, per_page: 12, total: 0, last_page: 1 } });

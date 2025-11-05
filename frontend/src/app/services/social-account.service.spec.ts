@@ -261,9 +261,14 @@ describe('SocialAccountService', () => {
   // ========================================
   describe('Edge Cases', () => {
     it('dovrebbe gestire provider con caratteri speciali', (done) => {
-      service.upsert$({ provider: 'custom-provider-123' }).subscribe(() => done());
+      service.upsert$({ provider: 'custom-provider-123' }).subscribe((result) => {
+        expect(result).toBeDefined();
+        expect(result.provider).toBe('custom-provider-123');
+        done();
+      });
 
       const req = httpMock.expectOne(req => req.url.includes('/social-accounts'));
+      expect(req.request.body.provider).toBe('custom-provider-123');
       req.flush({ provider: 'custom-provider-123', handle: null, url: null });
     });
 
@@ -303,9 +308,14 @@ describe('SocialAccountService', () => {
     });
 
     it('dovrebbe gestire delete con provider speciale', (done) => {
-      service.delete$('custom-provider-123').subscribe(() => done());
+      service.delete$('custom-provider-123').subscribe((result) => {
+        expect(result).toBeDefined();
+        expect(result.message).toBe('Deleted');
+        done();
+      });
 
       const req = httpMock.expectOne(req => req.url.includes('/social-accounts/custom-provider-123'));
+      expect(req.request.method).toBe('DELETE');
       req.flush({ message: 'Deleted' });
     });
   });
@@ -315,9 +325,20 @@ describe('SocialAccountService', () => {
   // ========================================
   describe('Concurrent Operations', () => {
     it('dovrebbe gestire upsert multipli sequenziali', (done) => {
-      service.upsert$({ provider: 'github' }).subscribe(() => {
-        service.upsert$({ provider: 'linkedin' }).subscribe(() => {
-          service.upsert$({ provider: 'twitter' }).subscribe(() => {
+      let completedCount = 0;
+      
+      service.upsert$({ provider: 'github' }).subscribe((result1) => {
+        expect(result1.provider).toBe('github');
+        completedCount++;
+        
+        service.upsert$({ provider: 'linkedin' }).subscribe((result2) => {
+          expect(result2.provider).toBe('linkedin');
+          completedCount++;
+          
+          service.upsert$({ provider: 'twitter' }).subscribe((result3) => {
+            expect(result3.provider).toBe('twitter');
+            completedCount++;
+            expect(completedCount).toBe(3);
             done();
           });
           
@@ -334,16 +355,26 @@ describe('SocialAccountService', () => {
     });
 
     it('dovrebbe gestire delete multipli', (done) => {
-      service.delete$('github').subscribe(() => {
-        service.delete$('linkedin').subscribe(() => {
+      let deletedCount = 0;
+      
+      service.delete$('github').subscribe((result1) => {
+        expect(result1.message).toBe('Deleted');
+        deletedCount++;
+        
+        service.delete$('linkedin').subscribe((result2) => {
+          expect(result2.message).toBe('Deleted');
+          deletedCount++;
+          expect(deletedCount).toBe(2);
           done();
         });
         
         const req2 = httpMock.expectOne(req => req.url.includes('/social-accounts/linkedin'));
+        expect(req2.request.method).toBe('DELETE');
         req2.flush({ message: 'Deleted' });
       });
 
       const req1 = httpMock.expectOne(req => req.url.includes('/social-accounts/github'));
+      expect(req1.request.method).toBe('DELETE');
       req1.flush({ message: 'Deleted' });
     });
   });
@@ -357,12 +388,18 @@ describe('SocialAccountService', () => {
       const total = 10;
 
       for (let i = 0; i < total; i++) {
-        service.upsert$({ provider: `provider-${i}` }).subscribe(() => {
+        service.upsert$({ provider: `provider-${i}` }).subscribe((result) => {
+          expect(result).toBeDefined();
+          expect(result.provider).toBe(`provider-${count}`);
           count++;
-          if (count === total) done();
+          if (count === total) {
+            expect(count).toBe(total);
+            done();
+          }
         });
 
         const req = httpMock.expectOne(req => req.url.includes('/social-accounts'));
+        expect(req.request.method).toBe('POST');
         req.flush({ provider: `provider-${i}`, handle: null, url: null });
       }
     });

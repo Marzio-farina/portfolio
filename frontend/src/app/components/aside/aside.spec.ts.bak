@@ -50,50 +50,58 @@ describe('Aside', () => {
   // ========================================
   describe('Responsive Behavior', () => {
     it('viewMode dovrebbe essere large per width >= 1250', () => {
-      // width è un signal readonly, non può essere modificato direttamente
-      // Verifichiamo solo che viewMode sia definito e valido
-      expect(component.viewMode()).toBeDefined();
-      const validModes = ['small', 'medium', 'large'];
-      expect(validModes).toContain(component.viewMode());
+      // Simula larghezza grande
+      if (component['isBrowser']) {
+        component['width'].set(1300);
+        expect(component.viewMode()).toBe('large');
+      } else {
+        expect(component.viewMode()).toBe('large'); // Default in SSR
+      }
     });
 
     it('viewMode dovrebbe essere small per width < 580', () => {
-      // width è un signal readonly basato su window.innerWidth
-      // Verifichiamo che viewMode funzioni correttamente
-      expect(component.viewMode()).toBeDefined();
+      if (component['isBrowser']) {
+        component['width'].set(500);
+        expect(component.viewMode()).toBe('small');
+      }
     });
 
     it('viewMode dovrebbe essere medium per width intermedio', () => {
-      // width è un signal readonly basato su window.innerWidth
-      // Verifichiamo che viewMode sia uno dei valori validi
-      const validModes = ['small', 'medium', 'large'];
-      expect(validModes).toContain(component.viewMode());
+      if (component['isBrowser']) {
+        component['width'].set(800);
+        expect(component.viewMode()).toBe('medium');
+      }
     });
 
     it('showContacts dovrebbe essere true in viewMode large', () => {
-      // showContacts è un computed che dipende da viewMode o expanded
-      expect(component.showContacts()).toBeDefined();
-      expect(typeof component.showContacts()).toBe('boolean');
+      if (component['isBrowser']) {
+        component['width'].set(1300);
+        expect(component.showContacts()).toBe(true);
+      }
     });
 
     it('showButton dovrebbe essere false in viewMode large', () => {
-      // showButton è un computed che dipende da viewMode
-      expect(component.showButton()).toBeDefined();
-      expect(typeof component.showButton()).toBe('boolean');
+      if (component['isBrowser']) {
+        component['width'].set(1300);
+        expect(component.showButton()).toBe(false);
+      }
     });
 
     it('isSmall dovrebbe essere true per viewMode small', () => {
-      // isSmall è un computed che dipende da viewMode
-      expect(component.isSmall()).toBeDefined();
-      expect(typeof component.isSmall()).toBe('boolean');
+      if (component['isBrowser']) {
+        component['width'].set(500);
+        expect(component.isSmall()).toBe(true);
+      }
     });
 
-    it('expanded dovrebbe essere modificabile', () => {
+    it('expanded dovrebbe aggiornarsi con viewMode', () => {
       component.expanded.set(false);
-      expect(component.expanded()).toBe(false);
-      
-      component.expanded.set(true);
-      expect(component.expanded()).toBe(true);
+      if (component['isBrowser']) {
+        component['width'].set(1300); // Large mode
+        fixture.detectChanges();
+        // L'effect imposta expanded=true per large
+        expect(component.expanded()).toBe(true);
+      }
     });
   });
 
@@ -314,7 +322,7 @@ describe('Aside', () => {
   describe('Toggle Functions', () => {
     it('toggleContacts dovrebbe toggleare expanded in non-large mode', () => {
       if (component['isBrowser']) {
-        // width è readonly, verifichiamo solo che socialLinks funzioni
+        component['width'].set(800); // Medium mode
         component.expanded.set(false);
         
         component.toggleContacts();
@@ -326,18 +334,13 @@ describe('Aside', () => {
     });
 
     it('toggleContacts non dovrebbe fare nulla in large mode', () => {
-      // Verifica comportamento solo se effettivamente in large mode
-      const initialExpanded = component.expanded();
-      const initialViewMode = component.viewMode();
-      
-      component.toggleContacts();
-      
-      if (initialViewMode === 'large') {
+      if (component['isBrowser']) {
+        component['width'].set(1300); // Large mode
+        const initialExpanded = component.expanded();
+        
+        component.toggleContacts();
         // Non dovrebbe cambiare in large mode
         expect(component.expanded()).toBe(initialExpanded);
-      } else {
-        // In small/medium mode dovrebbe cambiare
-        expect(component.expanded()).not.toBe(initialExpanded);
       }
     });
 
@@ -379,17 +382,12 @@ describe('Aside', () => {
   // TEST: Loading State
   // ========================================
   describe('Loading State', () => {
-    it('loading dovrebbe essere un segnale booleano', () => {
-      // Il component chiama reload() all'init, quindi loading può essere true o false
-      expect(component.loading()).toBeDefined();
-      expect(typeof component.loading()).toBe('boolean');
+    it('loading dovrebbe iniziare a false', () => {
+      expect(component.loading()).toBe(false);
     });
 
-    it('errorMsg dovrebbe essere null quando non ci sono errori', () => {
-      // Se il caricamento ha successo, errorMsg dovrebbe essere null
-      if (!component.loading()) {
-        expect(component.errorMsg()).toBeNull();
-      }
+    it('errorMsg dovrebbe iniziare a null', () => {
+      expect(component.errorMsg()).toBeNull();
     });
   });
 

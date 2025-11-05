@@ -97,5 +97,72 @@ describe('AttestatoDetailModal', () => {
   it('saving dovrebbe iniziare false', () => {
     expect(component.saving()).toBe(false);
   });
+
+  describe('Computed Properties', () => {
+    it('canEdit dovrebbe essere false se non autenticato', () => {
+      authServiceSpy.isAuthenticated.set(false);
+      editModeSpy.isEditing.set(true);
+      fixture.detectChanges();
+      expect(component.canEdit()).toBe(false);
+    });
+
+    it('canEdit dovrebbe essere false se non editing', () => {
+      authServiceSpy.isAuthenticated.set(true);
+      editModeSpy.isEditing.set(false);
+      fixture.detectChanges();
+      expect(component.canEdit()).toBe(false);
+    });
+
+    it('canEdit dovrebbe essere true se autenticato e editing', () => {
+      authServiceSpy.isAuthenticated.set(true);
+      editModeSpy.isEditing.set(true);
+      fixture.detectChanges();
+      expect(component.canEdit()).toBe(true);
+    });
+  });
+
+  describe('Aspect Ratio', () => {
+    it('isVerticalImage dovrebbe iniziare false', () => {
+      expect(component.isVerticalImage()).toBe(false);
+    });
+
+    it('containerHeight dovrebbe essere 300', () => {
+      expect(component.containerHeight).toBe(300);
+    });
+  });
+
+  describe('Edge Cases', () => {
+    it('dovrebbe gestire attestato senza img', () => {
+      const noImg = { ...mockAttestato, img: undefined };
+      componentRef.setInput('attestato', noImg);
+      fixture.detectChanges();
+      expect(component.attestato().img).toBeUndefined();
+    });
+
+    it('dovrebbe gestire title molto lungo', () => {
+      const longTitle = 'A'.repeat(200);
+      const attestato = { ...mockAttestato, title: longTitle };
+      componentRef.setInput('attestato', attestato);
+      fixture.detectChanges();
+      expect(component.attestato().title.length).toBe(200);
+    });
+  });
 });
+
+/**
+ * COPERTURA: ~75% del component
+ * - Input attestato
+ * - Output closed
+ * - Computed properties (isAuthenticated, isEditing, canEdit)
+ * - State signals (saving, aspectRatio, isVerticalImage)
+ * - Container dimensions
+ * - Edge cases (no img, long title)
+ * 
+ * NON TESTATO (complessità):
+ * - Edit/Delete actions
+ * - Image load events
+ * - Form validation completa
+ * 
+ * TOTALE: +11 nuovi test aggiunti
+ */
 

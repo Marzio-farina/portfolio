@@ -268,14 +268,16 @@ describe('TestimonialService', () => {
     });
 
     it('dovrebbe includere timestamp per evitare cache', (done) => {
-      service.list$(1, 8).subscribe(() => done());
-
-      const req = httpMock.expectOne(req => {
-        const hasTimestamp = req.url.includes('_t=');
-        return hasTimestamp;
+      service.list$(1, 8).subscribe(() => {
+        done();
       });
+
+      const req = httpMock.expectOne(req => req.url.includes('/testimonials'));
       
-      expect(req.request.url).toContain('_t=');
+      // Verifica che i parametri includano il timestamp
+      expect(req.request.params.has('_t')).toBe(true);
+      expect(req.request.params.get('_t')).toBeTruthy();
+      
       req.flush({ data: [] });
     });
 

@@ -13,12 +13,9 @@ describe('AvatarEditor', () => {
   let defaultAvatarServiceSpy: jasmine.SpyObj<DefaultAvatarService>;
 
   beforeEach(async () => {
-    defaultAvatarServiceSpy = jasmine.createSpyObj('DefaultAvatarService', ['getDefaultAvatars'], {
+    defaultAvatarServiceSpy = jasmine.createSpyObj('DefaultAvatarService', [], {
       list$: of([])
     });
-    
-    // Mock del metodo getDefaultAvatars
-    defaultAvatarServiceSpy.getDefaultAvatars.and.returnValue(of([]));
 
     await TestBed.configureTestingModule({
       imports: [AvatarEditor],
@@ -125,17 +122,13 @@ describe('AvatarEditor', () => {
   });
 
   describe('Image Load Events', () => {
-    it('onImgLoad dovrebbe impostare imageLoaded', () => {
-      component.onImgLoad();
+    it('onImageLoad dovrebbe impostare imageLoaded', () => {
+      component.onImageLoad();
       expect(component.imageLoaded()).toBe(true);
     });
 
-    it('imageLoaded signal dovrebbe essere modificabile', () => {
-      component.imageLoaded.set(false);
-      expect(component.imageLoaded()).toBe(false);
-      
-      component.imageLoaded.set(true);
-      expect(component.imageLoaded()).toBe(true);
+    it('onImageError dovrebbe gestire errore', () => {
+      expect(() => component.onImageError()).not.toThrow();
     });
   });
 
@@ -219,7 +212,7 @@ describe('AvatarEditor', () => {
  * - Input properties (initialUrl, width, height, size, context, editing)
  * - Host bindings (display, width, height calculations)
  * - State management (uploadedUrl, imageLoaded, canNavigate)
- * - Image load events (onImgLoad)
+ * - Image load events (onImageLoad, onImageError)
  * - Context variations (testimonial, aside, generic)
  * - Size variations (piccolo, grande, fallback)
  * - Edge cases (long URL, size 0, editing toggle)

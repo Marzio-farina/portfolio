@@ -44,6 +44,17 @@ To execute unit tests with the [Karma](https://karma-runner.github.io) test runn
 ng test
 ```
 
+Per test con copertura del codice:
+
+```bash
+npm test -- --code-coverage --no-watch --browsers=ChromeHeadless
+```
+
+### Test Status (Nov 2025)
+- ✅ **1660/1710 test passati** (97.1%)
+- 📊 **55.5% code coverage**
+- 📚 Vedi [documentazione testing](./docs/README.md) per dettagli completi
+
 ## Running end-to-end tests
 
 For end-to-end (e2e) testing, run:

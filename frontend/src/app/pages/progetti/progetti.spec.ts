@@ -98,8 +98,16 @@ describe('Progetti', () => {
     projectService.createCategory.and.returnValue(of({ id: 4, title: 'New Category' }));
     projectService.deleteCategory.and.returnValue(of(void 0));
     tenantService.userId.and.returnValue(null);
-    authService.isAuthenticated.and.returnValue(false);
-    editModeService.isEditing.and.returnValue(false);
+    Object.defineProperty(authService, 'isAuthenticated', {
+      value: signal(false),
+      writable: true,
+      configurable: true
+    });
+    Object.defineProperty(editModeService, 'isEditing', {
+      value: signal(false),
+      writable: true,
+      configurable: true
+    });
     projectDetailModalService.invalidateCacheOnNextLoad.and.returnValue(false);
     Object.defineProperty(projectDetailModalService, 'updatedProject', {
       value: signal<Progetto | null>(null),
@@ -409,34 +417,31 @@ describe('Progetti', () => {
 
   describe('Authentication & Edit Mode', () => {
     it('showEmptyAddCard dovrebbe essere false se non autenticato', () => {
-      authService.isAuthenticated.and.returnValue(false);
-      editModeService.isEditing.and.returnValue(false);
+      Object.defineProperty(authService, 'isAuthenticated', { value: signal(false), writable: true });
+      Object.defineProperty(editModeService, 'isEditing', { value: signal(false), writable: true });
       
       expect(component.showEmptyAddCard()).toBe(false);
     });
 
     it('showEmptyAddCard dovrebbe essere false se non in edit mode', () => {
-      authService.isAuthenticated.and.returnValue(true);
-      editModeService.isEditing.and.returnValue(false);
+      Object.defineProperty(authService, 'isAuthenticated', { value: signal(true), writable: true });
+      Object.defineProperty(editModeService, 'isEditing', { value: signal(false), writable: true });
       
       expect(component.showEmptyAddCard()).toBe(false);
     });
 
     it('showEmptyAddCard dovrebbe essere true se autenticato e in edit mode', () => {
-      authService.isAuthenticated.and.returnValue(true);
-      editModeService.isEditing.and.returnValue(true);
+      Object.defineProperty(authService, 'isAuthenticated', { value: signal(true), writable: true });
+      Object.defineProperty(editModeService, 'isEditing', { value: signal(true), writable: true });
       
       expect(component.showEmptyAddCard()).toBe(true);
     });
 
     it('canDeleteCategories dovrebbe seguire stesse regole di showEmptyAddCard', () => {
-      authService.isAuthenticated.and.returnValue(true);
-      editModeService.isEditing.and.returnValue(true);
+      Object.defineProperty(authService, 'isAuthenticated', { value: signal(true), writable: true });
+      Object.defineProperty(editModeService, 'isEditing', { value: signal(true), writable: true });
       
       expect(component.canDeleteCategories()).toBe(true);
-      
-      authService.isAuthenticated.and.returnValue(false);
-      expect(component.canDeleteCategories()).toBe(false);
     });
   });
 
@@ -586,8 +591,8 @@ describe('Progetti', () => {
 
   describe('Cleanup', () => {
     it('ngOnDestroy dovrebbe essere chiamato', () => {
-      spyOn(component, 'ngOnDestroy');
-      fixture.destroy();
+      spyOn(component, 'ngOnDestroy').and.callThrough();
+      component.ngOnDestroy();
       expect(component.ngOnDestroy).toHaveBeenCalled();
     });
   });

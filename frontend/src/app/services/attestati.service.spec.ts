@@ -315,8 +315,12 @@ describe('AttestatiService', () => {
     it('dovrebbe propagare forceRefresh a listAll$', (done) => {
       service.listAll$(1000, {}, true).subscribe(() => done());
 
-      const req = httpMock.expectOne(req => req.url.includes('_t='));
+      const req = httpMock.expectOne(req => req.url.includes('/attestati'));
+      
+      // Verifica parametri per bypass cache
+      expect(req.request.params.has('_t')).toBe(true);
       expect(req.request.headers.get('Cache-Control')).toBeTruthy();
+      
       req.flush({ data: [] });
     });
   });

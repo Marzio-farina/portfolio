@@ -425,17 +425,22 @@ describe('BaseApiService', () => {
       const mockData1 = [{ page: 1 }];
       const mockData2 = [{ page: 2 }];
       
-      service.getData('/api/items', { page: 1 }).subscribe();
-      service.getData('/api/items', { page: 2 }).subscribe(data => {
-        done();
+      // Prima chiamata
+      service.getData('/api/items', { page: 1 }).subscribe(() => {
+        // Seconda chiamata dopo che la prima è completata
+        service.getData('/api/items', { page: 2 }).subscribe(data => {
+          expect(data).toEqual(mockData2);
+          done();
+        });
+        
+        // Flush seconda richiesta
+        const req2 = httpMock.expectOne(req => req.params.get('page') === '2');
+        req2.flush(mockData2);
       });
 
-      // Due richieste HTTP diverse
-      const requests = httpMock.match('/api/items');
-      expect(requests.length).toBe(2);
-      
-      requests[0].flush(mockData1);
-      requests[1].flush(mockData2);
+      // Flush prima richiesta
+      const req1 = httpMock.expectOne(req => req.params.get('page') === '1');
+      req1.flush(mockData1);
     });
 
     it('dovrebbe generare stessa cache key per stessi parametri', (done) => {
@@ -458,20 +463,25 @@ describe('BaseApiService', () => {
 
     it('dovrebbe gestire parametri con ordine diverso', (done) => {
       // HttpParams non garantisce ordine, quindi potrebbero essere cache key diverse
-      const mockData1 = [{ id: 1 }];
-      const mockData2 = [{ id: 2 }];
+      const mockData = [{ id: 1 }];
       
-      service.getData('/api/items', { b: 2, a: 1 }).subscribe();
-      service.getData('/api/items', { a: 1, b: 2 }).subscribe(data => {
-        // Completato (potrebbe essere cache hit o nuova richiesta)
-        done();
+      service.getData('/api/items', { b: 2, a: 1 }).subscribe(() => {
+        service.getData('/api/items', { a: 1, b: 2 }).subscribe(data => {
+          // Completato (potrebbe essere cache hit o nuova richiesta)
+          expect(data).toBeDefined();
+          done();
+        });
+        
+        // Flush seconda richiesta se presente
+        const req2 = httpMock.match(req => req.url.includes('/api/items'));
+        if (req2.length > 0) {
+          req2[0].flush(mockData);
+        }
       });
 
-      // Flush tutte le richieste pendenti
-      const requests = httpMock.match('/api/items');
-      requests.forEach((req, i) => {
-        req.flush(i === 0 ? mockData1 : mockData2);
-      });
+      // Flush prima richiesta
+      const req1 = httpMock.expectOne(req => req.url.includes('/api/items'));
+      req1.flush(mockData);
     });
   });
 
