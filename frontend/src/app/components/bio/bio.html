@@ -11,7 +11,7 @@
     </svg>
   </div>
   <div class="bio-read-more">Leggi</div>
-  <div class="bio-content" [innerHTML]="initialText() | nl2br"></div>
+  <div class="bio-content" [innerHTML]="initialText()"></div>
 </div>
 
 <!-- Bio Dialog -->
@@ -23,12 +23,47 @@
           <path d="M18 6L6 18M6 6l12 12"/>
         </svg>
       </button>
-      <div class="bio-dialog-content" [class.typing]="isMobileTyping()" [innerHTML]="mobileDialogText() | nl2br"></div>
+      <div class="bio-dialog-content" [class.typing]="isMobileTyping()" [class.revealing]="isMobileRevealing()" [innerHTML]="mobileDialogText() | highlightKeywords"></div>
     </div>
   </div>
 }
 
 <!-- Bio normale per desktop -->
 <div class="bio-desktop-container">
-  <p class="bio-desktop" [class.typing]="isTyping()" [innerHTML]="displayedText() | nl2br"></p>
+  @if (profileLoading()) {
+    <!-- Skeleton loader per bio desktop -->
+    <div class="bio-desktop-skeleton">
+      <div class="skeleton h-4 w-full mb-3"></div>
+      <div class="skeleton h-4 w-11/12 mb-6"></div>
+      
+      <div class="skeleton h-4 w-full mb-3"></div>
+      <div class="skeleton h-4 w-10/12 mb-6"></div>
+      
+      <div class="skeleton h-4 w-full mb-3"></div>
+      <div class="skeleton h-4 w-full mb-3"></div>
+      <div class="skeleton h-4 w-9/12 mb-6"></div>
+      
+      <div class="skeleton h-4 w-full mb-3"></div>
+      <div class="skeleton h-4 w-11/12 mb-6"></div>
+      
+      <div class="skeleton h-4 w-full mb-3"></div>
+      <div class="skeleton h-4 w-full mb-3"></div>
+      <div class="skeleton h-4 w-10/12 mb-6"></div>
+      
+      <div class="skeleton h-4 w-full mb-3"></div>
+      <div class="skeleton h-4 w-11/12 mb-6"></div>
+      
+      <div class="skeleton h-4 w-9/12 mb-3"></div>
+      <div class="skeleton h-4 w-7/12 mb-6"></div>
+      
+      <div class="skeleton h-4 w-full mb-3"></div>
+      <div class="skeleton h-4 w-full mb-3"></div>
+      <div class="skeleton h-4 w-8/12 mb-6"></div>
+      
+      <div class="skeleton h-4 w-full mb-3"></div>
+      <div class="skeleton h-4 w-10/12"></div>
+    </div>
+  } @else {
+    <p class="bio-desktop" [class.revealing]="isRevealing()" [innerHTML]="fullText() | highlightKeywords"></p>
+  }
 </div>

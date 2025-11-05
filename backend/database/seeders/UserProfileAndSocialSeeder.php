@@ -42,9 +42,8 @@ Le tecnologie che utilizzo più frequentemente sono Laravel, Angular, .NET ed El
 
 Negli anni ho realizzato progetti personalizzati per aziende e privati, ottimizzando processi interni e sviluppando gestionali dedicati per rendere più efficiente il mio stesso lavoro e quello dei miei clienti.
 
-Ogni nuovo progetto rappresenta per me una sfida stimolante e un\'occasione per imparare qualcosa di nuovo — perché la mia filosofia è semplice ma incrollabile:
-
-Non mollare mai.
+Ogni nuovo progetto rappresenta per me una sfida stimolante e un\'occasione per imparare qualcosa di nuovo.
+Perché la mia filosofia è semplice ma incrollabile: "Non mollare mai".
 
 Nel mio percorso continuo a ricercare l\'equilibrio tra precisione tecnica e creatività, convinto che un software ben progettato debba essere non solo stabile e performante, ma anche piacevole da usare e da guardare.
 

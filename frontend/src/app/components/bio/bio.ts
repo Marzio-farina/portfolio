@@ -1,13 +1,14 @@
-import { Component, signal, OnDestroy, inject } from '@angular/core';
+import { Component, signal, OnDestroy, inject, ViewEncapsulation } from '@angular/core';
 import { ProfileService, ProfileData } from '../../services/profile.service';
 import { TenantService } from '../../services/tenant.service';
-import { Nl2brPipe } from '../../pipes/nl2br.pipe';
+import { HighlightKeywordsPipe } from '../../pipes/highlight-keywords.pipe';
 
 @Component({
   selector: 'app-bio',
-  imports: [Nl2brPipe],
+  imports: [HighlightKeywordsPipe],
   templateUrl: './bio.html',
-  styleUrl: './bio.css'
+  styleUrl: './bio.css',
+  encapsulation: ViewEncapsulation.None // Permette agli stili di applicarsi al contenuto dinamico
 })
 export class Bio implements OnDestroy {
   // ========================================================================
@@ -29,17 +30,17 @@ export class Bio implements OnDestroy {
   // Bio dialog state
   bioDialogOpen = signal(false);
   
-  // Typewriter effect state
-  displayedText = signal(''); // Per desktop
-  isTyping = signal(false); // Per desktop
+  // Reveal effect state
+  fullText = signal(''); // Testo completo per desktop
+  isRevealing = signal(false); // Stato reveal per desktop
   initialText = signal(''); // Testo iniziale visibile nel riquadro mobile
 
   // Mobile dialog state
   mobileDialogText = signal(''); // Testo per il dialog mobile
   isMobileTyping = signal(false); // Stato typewriter per mobile
+  isMobileRevealing = signal(false); // Stato reveal keyword per mobile
   
-  // Typewriter interval
-  private typewriterInterval?: number;
+  // Intervals
   private mobileTypewriterInterval?: number;
   private resizeListener?: () => void;
 
@@ -74,6 +75,7 @@ export class Bio implements OnDestroy {
     // Reset delle variabili mobile
     this.mobileDialogText.set('');
     this.isMobileTyping.set(false);
+    this.isMobileRevealing.set(false);
   }
 
   // ========================================================================
@@ -115,7 +117,7 @@ export class Bio implements OnDestroy {
   }
 
   /**
-   * Start typewriter effect for desktop when data loads
+   * Start reveal effect for desktop when data loads
    */
   private startTypewriterEffectForAllDevices(bioText: string): void {
     if (!bioText) return;
@@ -124,22 +126,14 @@ export class Bio implements OnDestroy {
     const maxVisibleChars = this.calculateVisibleChars(bioText);
     this.initialText.set(bioText.substring(0, maxVisibleChars));
 
-    // Inizia typewriter per desktop - reset e avvia da vuoto
-    this.displayedText.set('');
-    this.isTyping.set(true);
-
-    let currentIndex = 0;
-    const typingSpeed = 1; // Velocità 1ms tra ogni carattere
-
-    this.typewriterInterval = window.setInterval(() => {
-      if (currentIndex < bioText.length) {
-        this.displayedText.set(bioText.substring(0, currentIndex + 1));
-        currentIndex++;
-      } else {
-        this.isTyping.set(false);
-        this.stopTypewriterEffect();
-      }
-    }, typingSpeed);
+    // Desktop: mostra subito tutto il testo e attiva animazione reveal
+    this.fullText.set(bioText);
+    this.isRevealing.set(true);
+    
+    // Disattiva lo stato reveal dopo 2.5 secondi (durata animazione)
+    setTimeout(() => {
+      this.isRevealing.set(false);
+    }, 2500);
   }
 
   /**
@@ -154,7 +148,7 @@ export class Bio implements OnDestroy {
     this.isMobileTyping.set(true);
 
     let currentIndex = 0;
-    const typingSpeed = 8; // Velocità 8ms tra ogni carattere
+    const typingSpeed = 3; // Velocità 3ms tra ogni carattere
 
     this.mobileTypewriterInterval = window.setInterval(() => {
       if (currentIndex < bioText.length) {
@@ -163,6 +157,12 @@ export class Bio implements OnDestroy {
       } else {
         this.isMobileTyping.set(false);
         this.stopTypewriterEffect();
+        
+        // Attiva effetto reveal keyword dopo il typewriter
+        this.isMobileRevealing.set(true);
+        setTimeout(() => {
+          this.isMobileRevealing.set(false);
+        }, 3000); // Durata effetto shimmer keyword
       }
     }, typingSpeed);
   }
@@ -224,18 +224,13 @@ export class Bio implements OnDestroy {
   }
 
   /**
-   * Stop typewriter effect
+   * Stop typewriter effect (solo per mobile)
    */
   private stopTypewriterEffect(): void {
-    if (this.typewriterInterval) {
-      clearInterval(this.typewriterInterval);
-      this.typewriterInterval = undefined;
-    }
     if (this.mobileTypewriterInterval) {
       clearInterval(this.mobileTypewriterInterval);
       this.mobileTypewriterInterval = undefined;
     }
-    this.isTyping.set(false);
   }
 
   /**

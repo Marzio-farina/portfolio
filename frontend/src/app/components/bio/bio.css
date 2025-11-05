@@ -56,7 +56,7 @@
   font-size: 0.9rem;
   height: 100%;
   overflow: hidden;
-  white-space: normal !important;
+  white-space: pre-line !important; /* Preserva newline come spaziatura naturale */
   word-wrap: break-word !important;
   overflow-wrap: break-word !important;
   hyphens: none !important;
@@ -148,9 +148,10 @@
 }
 
 /* Bio desktop - nascosta su mobile */
-.bio-desktop {
+.bio-desktop,
+.bio-desktop-skeleton {
   display: none;
-  white-space: normal !important;
+  white-space: pre-line !important; /* Preserva newline come spaziatura naturale */
   word-wrap: break-word !important;
   overflow-wrap: break-word !important;
   hyphens: none !important;
@@ -163,16 +164,45 @@
   transition: opacity 0.2s ease;
 }
 
-/* Cursore lampeggiante per bio desktop */
-.bio-desktop.typing::after {
-  content: '|';
-  color: var(--accent-primary);
-  animation: blink 1s infinite;
-  font-weight: bold;
-  margin-left: 2px;
+/* Skeleton specifico per bio desktop */
+.bio-desktop-skeleton {
+  margin: 0 0 20px;
+  animation: fadeIn 0.3s ease-in;
 }
 
-/* Cursore lampeggiante per bio dialog */
+/* Stili keyword spostati in styles.css (globali) */
+
+/* Effetto reveal dal centro verso i bordi per bio desktop */
+.bio-desktop.revealing {
+  animation: revealFromCenter 2.5s cubic-bezier(0.4, 0, 0.2, 1) forwards;
+  -webkit-mask-image: radial-gradient(circle at center, black 0%, black 100%);
+  mask-image: radial-gradient(circle at center, black 0%, black 100%);
+  -webkit-mask-size: 0% 0%;
+  mask-size: 0% 0%;
+  -webkit-mask-position: center;
+  mask-position: center;
+  -webkit-mask-repeat: no-repeat;
+  mask-repeat: no-repeat;
+}
+
+/* Animazione reveal: gradiente radiale si espande dal centro verso i bordi */
+@keyframes revealFromCenter {
+  0% {
+    -webkit-mask-size: 0% 0%; /* Inizia dal centro (nascosto) */
+    mask-size: 0% 0%;
+    opacity: 0;
+  }
+  5% {
+    opacity: 1;
+  }
+  100% {
+    -webkit-mask-size: 200% 200%; /* Si espande verso i bordi */
+    mask-size: 200% 200%;
+    opacity: 1;
+  }
+}
+
+/* Cursore lampeggiante per bio dialog mobile */
 .bio-dialog-content.typing::after {
   content: '|';
   color: var(--accent-primary);
@@ -182,7 +212,6 @@
 }
 
 /* Nascondi cursore quando non si sta scrivendo */
-.bio-desktop:not(.typing)::after,
 .bio-dialog-content:not(.typing)::after {
   display: none;
 }
@@ -283,7 +312,7 @@
   color: var(--text-primary);
   line-height: 1.5;
   font-size: 0.9rem;
-  white-space: normal !important;
+  white-space: pre-line !important; /* Preserva newline come spaziatura naturale */
   word-wrap: break-word !important;
   overflow-wrap: break-word !important;
   hyphens: none !important;
@@ -383,7 +412,8 @@
     display: none;
   }
   
-  .bio-desktop {
+  .bio-desktop,
+  .bio-desktop-skeleton {
     display: block;
   }
 
