@@ -138,7 +138,6 @@ export class AuthService {
         }
         
         this.authenticatedUserId.set(user.id);
-        this.logger.log('User ID loaded successfully', { userId: user.id });
       },
       error: (err: HttpErrorResponse | any) => {
         // Fa logout SOLO se il token non è valido (401)
