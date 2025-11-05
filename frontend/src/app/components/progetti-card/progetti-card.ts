@@ -1007,13 +1007,14 @@ export class ProgettiCard {
       return;
     }
     
-    this.cancelTechEdit();
-    
     const techId = tech.id; // Già verificato sopra
     const oldTitle = tech.title!;
     
-    // OPTIMISTIC UPDATE: Aggiorna il titolo localmente
+    // OPTIMISTIC UPDATE: Aggiorna il titolo localmente PRIMA di cancellare edit
     this.updateTechnologyOptimistic(techId, newTitle);
+    
+    // Chiudi l'editing DOPO aver applicato l'override
+    this.cancelTechEdit();
     
     // Chiamata API con bassa priorità
     this.http.put<{ ok: boolean; data: Technology }>(apiUrl(`technologies/${techId}`), {
@@ -1022,18 +1023,15 @@ export class ProgettiCard {
       .pipe(delay(150))
       .subscribe({
         next: (response) => {
-          // Aggiorna nella lista disponibili
+          // Aggiorna nella lista disponibili con dati reali dal backend
           this.availableTechnologies.update(techs => 
             techs.map(t => t.id === techId ? response.data : t)
           );
           
-          // Rimuovi override (ora è nel progetto reale)
-          this.removeOptimisticTitleOverride(techId);
+          // Mantieni override fino al prossimo refresh naturale del progetto
+          // Questo garantisce visualizzazione coerente anche dopo ricarica
           
           this.showSuccessNotification(`Tecnologia "${oldTitle}" rinominata in "${newTitle}"`);
-          
-          // Notifica il parent per refresh (aggiorna progetto reale)
-          this.categoryChanged.emit(this.progetto());
         },
         error: (err) => {
           console.error('❌ Errore modifica tecnologia:', err);
