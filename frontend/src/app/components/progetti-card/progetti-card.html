@@ -6,7 +6,8 @@
 </app-notification>
 
 <div class="card-wrapper"
-     (mouseenter)="play()" (mouseleave)="pause()"
+     (mouseenter)="play()" 
+     (mouseleave)="onCardMouseLeave()"
      (click)="onCardClick()"
      [class.is-deleting]="deleting()"
      [attr.aria-busy]="deleting()"

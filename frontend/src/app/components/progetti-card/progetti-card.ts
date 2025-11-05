@@ -548,6 +548,17 @@ export class ProgettiCard {
   }
   
   /**
+   * Handler per mouseleave della card
+   */
+  onCardMouseLeave(): void {
+    // Pausa video
+    this.pause();
+    
+    // Chiudi popup tecnologie se aperto
+    this.closeHiddenTechsPopup();
+  }
+  
+  /**
    * Espande il bottone + per mostrare input
    */
   onExpandAddTech(event: Event): void {
