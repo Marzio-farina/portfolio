@@ -118,13 +118,29 @@
           </div>
         }
         @for (tech of visibleTechs(); track trackByTech($index, tech)) {
-          <span 
-            class="technology-tag" 
-            [class.optimistic]="isOptimisticTech(tech)"
-            [class.removing]="isRemovingTech(tech)"
-            [title]="tech.title">
-            {{ truncateTechTitle(tech.title) }}
-          </span>
+          @if (isEditingTech(tech)) {
+            <!-- Input inline per modifica -->
+            <input
+              type="text"
+              class="technology-tag technology-tag-editing"
+              [value]="techEditValue()"
+              (input)="onTechEditInput($event)"
+              (keydown)="onTechEditKeydown($event, tech)"
+              (blur)="onTechEditBlur(tech)"
+              (click)="$event.stopPropagation()"
+              placeholder="Nome tecnologia..."
+              maxlength="50"
+              #techEditInput>
+          } @else {
+            <span 
+              class="technology-tag" 
+              [class.optimistic]="isOptimisticTech(tech)"
+              [class.removing]="isRemovingTech(tech)"
+              [title]="tech.title"
+              (dblclick)="onTechDoubleClick($event, tech)">
+              {{ truncateTechTitle(tech.title) }}
+            </span>
+          }
         }
         @if (isAuthenticated() && isEditing()) {
           @if (!isAddTechExpanded()) {

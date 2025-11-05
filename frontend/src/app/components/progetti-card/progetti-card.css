@@ -319,6 +319,23 @@
   color: var(--accent-primary);
 }
 
+/* Input inline per editing tecnologia */
+.technology-tag-editing {
+  background: var(--bg-primary) !important;
+  border: 2px solid var(--accent-primary) !important;
+  color: var(--text-primary) !important;
+  font-weight: 600 !important;
+  cursor: text !important;
+  min-width: 80px;
+  max-width: 120px;
+  padding: 2px 6px !important;
+}
+
+.technology-tag-editing:focus {
+  outline: none;
+  box-shadow: 0 0 0 3px var(--accent-primary-alpha);
+}
+
 /* Tecnologia ottimistica (appena aggiunta, in attesa di salvataggio) */
 .technology-tag.optimistic {
   opacity: 0.7;

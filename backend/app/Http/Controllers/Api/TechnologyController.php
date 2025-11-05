@@ -125,5 +125,63 @@ class TechnologyController extends Controller
             'is_new' => true
         ], 201, [], JSON_UNESCAPED_UNICODE);
     }
+    
+    /**
+     * Update an existing technology
+     * 
+     * Updates a technology's title and description.
+     * 
+     * @param Request $request HTTP request with technology data
+     * @param int $id Technology ID
+     * @return JsonResponse Updated technology
+     */
+    public function update(Request $request, int $id): JsonResponse
+    {
+        $technology = Technology::findOrFail($id);
+        
+        $validated = $request->validate([
+            'title' => 'required|string|max:100',
+            'description' => 'nullable|string|max:500',
+            'type' => 'nullable|string|in:frontend,backend,tools',
+        ]);
+        
+        // Normalizza usando DataNormalizationFactory
+        $validated = DataNormalizationFactory::trimAllStrings($validated);
+        $validated = DataNormalizationFactory::normalizeNullableFields($validated, ['description', 'type']);
+        
+        // Verifica se esiste già una tecnologia con lo stesso titolo (diversa da questa)
+        $existing = Technology::where('title', $validated['title'])
+            ->where('id', '!=', $id)
+            ->where(function ($q) use ($technology) {
+                $q->whereNull('user_id')
+                  ->orWhere('user_id', $technology->user_id);
+            })
+            ->first();
+        
+        if ($existing) {
+            return response()->json([
+                'ok' => false,
+                'message' => 'Esiste già una tecnologia con questo nome',
+            ], 409, [], JSON_UNESCAPED_UNICODE);
+        }
+        
+        // Aggiorna la tecnologia
+        $technology->update([
+            'title' => $validated['title'],
+            'description' => $validated['description'] ?? null,
+            'type' => $validated['type'] ?? null,
+        ]);
+        
+        return response()->json([
+            'ok' => true,
+            'data' => [
+                'id' => $technology->id,
+                'title' => $technology->title,
+                'description' => $technology->description,
+                'user_id' => $technology->user_id,
+            ],
+            'message' => 'Tecnologia aggiornata con successo',
+        ], 200, [], JSON_UNESCAPED_UNICODE);
+    }
 }
 

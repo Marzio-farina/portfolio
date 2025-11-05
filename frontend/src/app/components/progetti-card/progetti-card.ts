@@ -155,6 +155,10 @@ export class ProgettiCard {
   newTechValue = signal('');
   private addTechTimer: any = null;
   
+  // Modifica inline tecnologie (doppio click)
+  techEditingId = signal<number | string | null>(null); // ID o tempId della tech in editing
+  techEditValue = signal('');
+  
   // Tecnologie disponibili per ricerca
   availableTechnologies = signal<Technology[]>([]);
   addingTechnology = signal(false);
@@ -850,6 +854,164 @@ export class ProgettiCard {
       return title;
     }
     return title.substring(0, maxLength) + '...';
+  }
+  
+  /**
+   * Verifica se una tecnologia è in modalità editing
+   */
+  isEditingTech(tech: Technology | OptimisticTechnology | HiddenTechnology): boolean {
+    const editingId = this.techEditingId();
+    if (!editingId) return false;
+    
+    if (this.isOptimisticTech(tech)) {
+      return tech.tempId === editingId;
+    }
+    return tech.id === editingId;
+  }
+  
+  /**
+   * Gestisce doppio click su badge tecnologia (attiva editing)
+   */
+  onTechDoubleClick(event: Event, tech: Technology | OptimisticTechnology): void {
+    event.stopPropagation();
+    
+    // Solo in edit mode
+    if (!this.isAuthenticated() || !this.isEditing()) return;
+    
+    // Non permettere editing di tecnologie ottimistiche
+    if (this.isOptimisticTech(tech)) {
+      this.showErrorNotification('Impossibile modificare una tecnologia in fase di salvataggio.');
+      return;
+    }
+    
+    // Attiva modalità editing
+    const techId = this.isOptimisticTech(tech) ? tech.tempId : tech.id;
+    this.techEditingId.set(techId);
+    this.techEditValue.set(tech.title);
+    
+    // Focus sull'input
+    setTimeout(() => {
+      const input = document.querySelector('.technology-tag-editing') as HTMLInputElement;
+      if (input) {
+        input.focus();
+        input.select();
+      }
+    }, 0);
+  }
+  
+  /**
+   * Gestisce input durante modifica tecnologia
+   */
+  onTechEditInput(event: Event): void {
+    const input = event.target as HTMLInputElement;
+    this.techEditValue.set(input.value);
+  }
+  
+  /**
+   * Gestisce keydown durante modifica tecnologia
+   */
+  onTechEditKeydown(event: KeyboardEvent, tech: Technology | OptimisticTechnology): void {
+    if (event.key === 'Enter') {
+      event.preventDefault();
+      event.stopPropagation();
+      this.saveTechEdit(tech);
+    } else if (event.key === 'Escape') {
+      event.preventDefault();
+      event.stopPropagation();
+      this.cancelTechEdit();
+    }
+  }
+  
+  /**
+   * Gestisce blur durante modifica tecnologia
+   */
+  onTechEditBlur(tech: Technology | OptimisticTechnology): void {
+    // Salva automaticamente al blur
+    setTimeout(() => {
+      if (this.techEditingId()) {
+        this.saveTechEdit(tech);
+      }
+    }, 100);
+  }
+  
+  /**
+   * Annulla modifica tecnologia
+   */
+  private cancelTechEdit(): void {
+    this.techEditingId.set(null);
+    this.techEditValue.set('');
+  }
+  
+  /**
+   * Salva modifica tecnologia (ottimistico)
+   */
+  private saveTechEdit(tech: Technology | OptimisticTechnology): void {
+    const newTitle = this.techEditValue().trim();
+    
+    // Valida input
+    if (!newTitle || newTitle === tech.title) {
+      this.cancelTechEdit();
+      return;
+    }
+    
+    // Verifica se esiste già una tecnologia con questo nome
+    const allTechs = this.allTechnologies();
+    const alreadyExists = allTechs.some(t => 
+      t.title.toLowerCase() === newTitle.toLowerCase() && 
+      (this.isOptimisticTech(t) ? t.tempId : t.id) !== (this.isOptimisticTech(tech) ? tech.tempId : tech.id)
+    );
+    
+    if (alreadyExists) {
+      this.showErrorNotification(`La tecnologia "${newTitle}" esiste già.`);
+      this.cancelTechEdit();
+      return;
+    }
+    
+    this.cancelTechEdit();
+    
+    // OPTIMISTIC UPDATE: Aggiorna il titolo localmente
+    const oldTitle = tech.title;
+    this.updateTechnologyOptimistic(tech.id, newTitle);
+    
+    // Chiamata API con bassa priorità
+    this.http.put<{ ok: boolean; data: Technology }>(apiUrl(`technologies/${tech.id}`), {
+      title: newTitle
+    })
+      .pipe(delay(150))
+      .subscribe({
+        next: (response) => {
+          // Aggiorna nella lista disponibili
+          this.availableTechnologies.update(techs => 
+            techs.map(t => t.id === tech.id ? response.data : t)
+          );
+          
+          this.showSuccessNotification(`Tecnologia "${oldTitle}" rinominata in "${newTitle}"`);
+          
+          // Notifica il parent per refresh
+          this.categoryChanged.emit(this.progetto());
+        },
+        error: (err) => {
+          console.error('❌ Errore modifica tecnologia:', err);
+          
+          // Ripristina titolo originale
+          this.updateTechnologyOptimistic(tech.id, oldTitle);
+          
+          this.showErrorNotification(`Impossibile modificare "${oldTitle}". Riprova.`);
+        }
+      });
+  }
+  
+  /**
+   * Aggiorna il titolo di una tecnologia in modo ottimistico
+   */
+  private updateTechnologyOptimistic(techId: number, newTitle: string): void {
+    // Aggiorna nella lista disponibili
+    this.availableTechnologies.update(techs => 
+      techs.map(t => t.id === techId ? { ...t, title: newTitle } : t)
+    );
+    
+    // Forza refresh del computed allTechnologies
+    // Il progetto verrà aggiornato dal parent quando l'API completa
   }
   
   /**
