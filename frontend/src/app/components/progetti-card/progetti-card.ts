@@ -1074,19 +1074,18 @@ export class ProgettiCard {
       .pipe(delay(150))
       .subscribe({
         next: (updatedProject) => {
-          // Rimuovi dalla lista "being removed" (ora è rimossa per davvero)
+          // PRIMA rimuovi da "being removed"
           this.techsBeingRemoved.update(set => {
             const newSet = new Set(set);
             newSet.delete(techId);
             return newSet;
           });
           
-          this.showSuccessNotification(`Tecnologia "${techTitle}" rimossa dal progetto`);
+          // POI aggiorna il parent con il progetto aggiornato dal backend
+          // updatedProject ha technologies sincronizzate correttamente (senza techId)
+          this.categoryChanged.emit(updatedProject);
           
-          // NON emettiamo categoryChanged durante rimozione ottimistica
-          // per evitare che il parent aggiorni progetto() e faccia riapparire
-          // i tag ancora in techsBeingRemoved. Il progetto si aggiornerà
-          // al prossimo refresh o quando tutte le rimozioni saranno complete.
+          this.showSuccessNotification(`Tecnologia "${techTitle}" rimossa dal progetto`);
         },
         error: (err) => {
           console.error('❌ Errore rimozione tecnologia:', err);
