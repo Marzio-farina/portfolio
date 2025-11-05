@@ -405,7 +405,7 @@
 
 /* Container per i tag nascosti - layout a griglia */
 .hidden-techs-popup {
-  position: fixed;
+  position: absolute;
   z-index: 9999;
   display: grid;
   grid-template-columns: auto auto;

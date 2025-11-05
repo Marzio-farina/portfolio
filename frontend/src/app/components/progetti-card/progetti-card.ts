@@ -90,7 +90,7 @@ export class ProgettiCard {
   
   // Popup tag nascosti
   showHiddenTechsPopup = signal(false);
-  popupTop = signal('0px');
+  popupBottom = signal('40px'); // Distanza dal bottom del wrapper
   popupLeft = signal('0px');
   private popupCloseTimer?: number;
   
@@ -495,10 +495,9 @@ export class ProgettiCard {
   
   /**
    * Calcola la posizione del popup in base al badge +N
+   * Posizionamento relativo al wrapper (non alla finestra)
    */
   private calculatePopupPosition(element: HTMLElement): void {
-    const rect = element.getBoundingClientRect();
-    
     // Calcola quanti tag ci sono
     const numTags = this.hiddenTechs().length;
     const tagHeight = 32; // Altezza approssimativa di un tag
@@ -508,14 +507,14 @@ export class ProgettiCard {
     const numRows = Math.min(numTags, 6);
     const totalHeight = (numRows * tagHeight) + ((numRows - 1) * gap);
     
-    // Top: parte da 200px fisso (tag più basso vicino al +N) e sottrae altezza per distribuire verso l'alto
-    const baseTop = rect.top - 415;
-    const top = baseTop - totalHeight;
+    // Posizionamento relativo al badge +N
+    // Bottom: sopra il badge (40px dal bottom del wrapper)
+    const bottom = 40;
     
-    // Left: fisso, vicino al bordo sinistro
-    const left = 40;
+    // Left: allineato a sinistra rispetto al badge
+    const left = 0;
     
-    this.popupTop.set(`${top}px`);
+    this.popupBottom.set(`${bottom}px`);
     this.popupLeft.set(`${left}px`);
   }
   

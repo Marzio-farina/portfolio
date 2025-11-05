@@ -101,7 +101,7 @@
             @if (showHiddenTechsPopup()) {
               <div 
                 class="hidden-techs-popup"
-                [style.top]="popupTop()"
+                [style.bottom]="popupBottom()"
                 [style.left]="popupLeft()">
                 @for (tech of hiddenTechs(); track trackByTech($index, tech)) {
                   <div 
