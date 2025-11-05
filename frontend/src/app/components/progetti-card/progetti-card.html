@@ -1,3 +1,10 @@
+<!-- Sistema di notifiche per feedback tecnologie -->
+<app-notification 
+  [notifications]="notifications()"
+  [showMultiple]="showMultipleNotifications"
+  [mostSevereNotification]="getMostSevereNotification()">
+</app-notification>
+
 <div class="card-wrapper"
      (mouseenter)="play()" (mouseleave)="pause()"
      (click)="onCardClick()"
@@ -95,10 +102,12 @@
                 class="hidden-techs-popup"
                 [style.top]="popupTop()"
                 [style.left]="popupLeft()">
-                @for (tech of hiddenTechs(); track tech.id) {
+                @for (tech of hiddenTechs(); track trackByTech($index, tech)) {
                   <div 
                     class="hidden-tech-item"
                     [class.others]="tech.isOthers"
+                    [class.optimistic]="isOptimisticTech(tech)"
+                    [class.removing]="isRemovingTech(tech)"
                     [attr.title]="tech.isOthers ? 'Tecnologie rimanenti non visualizzate' : tech.title">
                     {{ tech.title }}
                   </div>
@@ -107,8 +116,14 @@
             }
           </div>
         }
-        @for (tech of visibleTechs(); track tech.id) {
-          <span class="technology-tag" [title]="tech.title">{{ tech.title }}</span>
+        @for (tech of visibleTechs(); track trackByTech($index, tech)) {
+          <span 
+            class="technology-tag" 
+            [class.optimistic]="isOptimisticTech(tech)"
+            [class.removing]="isRemovingTech(tech)"
+            [title]="tech.title">
+            {{ tech.title }}
+          </span>
         }
         @if (isAuthenticated() && isEditing()) {
           @if (!isAddTechExpanded()) {
@@ -125,7 +140,6 @@
                 type="text"
                 class="add-tech-input"
                 [value]="newTechValue()"
-                [disabled]="addingTechnology()"
                 (input)="onTechInput($event)"
                 (keydown)="onTechSubmit($event)"
                 (blur)="onTechBlur()"
@@ -153,7 +167,6 @@
                 type="text"
                 class="add-tech-input"
                 [value]="newTechValue()"
-                [disabled]="addingTechnology()"
                 (input)="onTechInput($event)"
                 (keydown)="onTechSubmit($event)"
                 (blur)="onTechBlur()"

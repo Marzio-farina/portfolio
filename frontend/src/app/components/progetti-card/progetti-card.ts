@@ -14,6 +14,7 @@ import { TenantService } from '../../services/tenant.service';
 import { DeletionConfirmationService } from '../../services/deletion-confirmation.service';
 import { AdminDeleteButton } from '../shared/admin-delete-button/admin-delete-button';
 import { DeletionOverlay } from '../shared/deletion-overlay/deletion-overlay';
+import { Notification, NotificationItem, NotificationType } from '../notification/notification';
 import { Subscription } from 'rxjs';
 
 import { Progetto } from '../../core/models/project';
@@ -26,9 +27,20 @@ interface Technology {
   description?: string | null;
 }
 
+interface OptimisticTechnology extends Technology {
+  isOptimistic: true;
+  tempId: string; // ID temporaneo univoco
+  isRemoving?: boolean; // Flag per animazione di rimozione
+}
+
+interface HiddenTechnology extends Partial<Technology>, Partial<OptimisticTechnology> {
+  column: number;
+  isOthers: boolean;
+}
+
 @Component({
   selector: 'app-progetti-card',
-  imports: [MatSelectModule, MatFormFieldModule, NgOptimizedImage, AdminDeleteButton, DeletionOverlay],
+  imports: [MatSelectModule, MatFormFieldModule, NgOptimizedImage, AdminDeleteButton, DeletionOverlay, Notification],
   providers: [DeletionConfirmationService],
   templateUrl: './progetti-card.html',
   styleUrl: './progetti-card.css'
@@ -69,6 +81,20 @@ export class ProgettiCard {
   // Flag per prevenire loop infinito
   private isUpdatingCategory = false;
   
+  // Tecnologie ottimistiche (mostrate immediatamente prima del salvataggio)
+  optimisticTechnologies = signal<OptimisticTechnology[]>([]);
+  
+  // Notifiche per feedback utente
+  notifications = signal<NotificationItem[]>([]);
+  showMultipleNotifications = true;
+  
+  // Tecnologie combinate (reali + ottimistiche)
+  allTechnologies = computed<(Technology | OptimisticTechnology)[]>(() => {
+    const realTechs = this.progetto().technologies || [];
+    const optimisticTechs = this.optimisticTechnologies();
+    return [...realTechs, ...optimisticTechs];
+  });
+  
   // Popup tag nascosti
   showHiddenTechsPopup = signal(false);
   popupTop = signal('0px');
@@ -76,7 +102,7 @@ export class ProgettiCard {
   
   // Tag nascosti grezzi (senza layout)
   hiddenTechsRaw = computed(() => {
-    const techs = this.progetto().technologies || [];
+    const techs = this.allTechnologies();
     const isEditMode = this.isAuthenticated() && this.isEditing();
     const isInputExpanded = this.isAddTechExpanded();
     
@@ -97,7 +123,7 @@ export class ProgettiCard {
   });
   
   // Tag nascosti con layout a due colonne e "Altri X tag"
-  hiddenTechs = computed(() => {
+  hiddenTechs = computed<HiddenTechnology[]>(() => {
     const techs = this.hiddenTechsRaw();
     
     if (techs.length <= 12) {
@@ -120,12 +146,12 @@ export class ProgettiCard {
         isOthers: false
       })),
       {
-        id: -1,
+        id: -999, // ID speciale per "Altri X"
         title: `Altri ${remainingCount} tag`,
         description: null,
         column: 2,
         isOthers: true
-      } as any
+      }
     ];
   });
   
@@ -140,7 +166,7 @@ export class ProgettiCard {
   
   // Gestione visualizzazione tecnologie (max sulla stessa riga)
   visibleTechs = computed(() => {
-    const techs = this.progetto().technologies || [];
+    const techs = this.allTechnologies();
     const isEditMode = this.isAuthenticated() && this.isEditing();
     const isInputExpanded = this.isAddTechExpanded();
     
@@ -526,14 +552,16 @@ export class ProgettiCard {
   }
   
   private startAddTechTimer(): void {
+    // Timer di 3 secondi per collassare se non si scrive nulla
     this.addTechTimer = setTimeout(() => {
       this.collapseAddTech(true);
-    }, 5000);
+    }, 3000);
   }
   
   private resetAddTechTimer(): void {
     if (this.addTechTimer) {
       clearTimeout(this.addTechTimer);
+      this.addTechTimer = null;
     }
     this.startAddTechTimer();
   }
@@ -570,14 +598,34 @@ export class ProgettiCard {
       return;
     }
     
-    // Verifica se la tecnologia è già nel progetto
+    // Verifica se la tecnologia è già nel progetto (incluse ottimistiche)
     const currentTechs = this.progetto().technologies || [];
-    if (currentTechs.some(t => t.id === tech.id)) {
+    const optimisticTechs = this.optimisticTechnologies();
+    if (currentTechs.some(t => t.id === tech.id) || optimisticTechs.some(t => t.id === tech.id)) {
       // Già presente, collassa senza fare nulla
       this.isAddTechExpanded.set(false);
       this.newTechValue.set('');
       return;
     }
+    
+    // OPTIMISTIC UPDATE: Aggiungi subito come tecnologia ottimistica
+    const tempId = `temp-${Date.now()}-${Math.random()}`;
+    const optimisticTech: OptimisticTechnology = {
+      ...tech,
+      isOptimistic: true,
+      tempId,
+      isRemoving: false
+    };
+    
+    this.optimisticTechnologies.update(techs => [...techs, optimisticTech]);
+    // NON collassare l'input, permetti aggiunta rapida di più tecnologie
+    this.newTechValue.set('');
+    
+    // Focus sull'input per continuare ad aggiungere
+    setTimeout(() => {
+      const input = document.querySelector('.add-tech-input') as HTMLInputElement;
+      input?.focus();
+    }, 0);
     
     // Aggiungi la tecnologia tramite API
     this.addingTechnology.set(true);
@@ -587,21 +635,27 @@ export class ProgettiCard {
       .pipe(takeUntilDestroyed(this.destroyRef))
       .subscribe({
         next: (updatedProject) => {
+          // Rimuovi dalla lista ottimistica (ora è nel progetto reale)
+          this.optimisticTechnologies.update(techs => 
+            techs.filter(t => t.tempId !== tempId)
+          );
           this.addingTechnology.set(false);
-          this.isAddTechExpanded.set(false);
-          this.newTechValue.set('');
-          if (this.addTechTimer) {
-            clearTimeout(this.addTechTimer);
-            this.addTechTimer = null;
-          }
+          
+          // Mostra notifica di successo
+          this.showSuccessNotification(`Tecnologia "${tech.title}" aggiunta al progetto "${this.progetto().title}"`);
+          
           // Notifica il parent dell'update
           this.categoryChanged.emit(updatedProject);
         },
         error: (err) => {
           console.error('❌ Errore aggiornamento progetto:', err);
+          
+          // Mostra notifica di errore
+          this.showErrorNotification(`Impossibile aggiungere "${tech.title}" al progetto. Riprova.`);
+          
+          // Anima la rimozione della tecnologia ottimistica
+          this.removeOptimisticTechnology(tempId);
           this.addingTechnology.set(false);
-          this.isAddTechExpanded.set(false);
-          this.newTechValue.set('');
         }
       });
   }
@@ -610,11 +664,51 @@ export class ProgettiCard {
    * Crea una nuova tecnologia e poi la aggiunge al progetto
    */
   private createAndAddTechnology(techName: string): void {
-    this.addingTechnology.set(true);
     const userId = this.tenant.userId();
+    const trimmedName = techName.trim();
+    
+    // Verifica se la tecnologia con questo nome è già nel progetto (o nelle ottimistiche)
+    const currentTechs = this.progetto().technologies || [];
+    const optimisticTechs = this.optimisticTechnologies();
+    
+    const alreadyExists = currentTechs.some(t => t.title.toLowerCase() === trimmedName.toLowerCase()) ||
+                         optimisticTechs.some(t => t.title.toLowerCase() === trimmedName.toLowerCase());
+    
+    if (alreadyExists) {
+      // Tecnologia già presente, mostra avviso
+      this.showErrorNotification(`La tecnologia "${trimmedName}" è già presente nel progetto.`);
+      this.newTechValue.set('');
+      // Focus sull'input per continuare ad aggiungere
+      setTimeout(() => {
+        const input = document.querySelector('.add-tech-input') as HTMLInputElement;
+        input?.focus();
+      }, 0);
+      return;
+    }
+    
+    // OPTIMISTIC UPDATE: Crea tecnologia temporanea con ID temporaneo
+    const tempId = `temp-new-${Date.now()}-${Math.random()}`;
+    const optimisticTech: OptimisticTechnology = {
+      id: -1, // ID provvisorio (sarà sostituito)
+      title: trimmedName,
+      isOptimistic: true,
+      tempId,
+      isRemoving: false
+    };
+    
+    this.optimisticTechnologies.update(techs => [...techs, optimisticTech]);
+    this.newTechValue.set('');
+    
+    // Focus sull'input per continuare ad aggiungere
+    setTimeout(() => {
+      const input = document.querySelector('.add-tech-input') as HTMLInputElement;
+      input?.focus();
+    }, 0);
+    
+    this.addingTechnology.set(true);
     
     const body = {
-      title: techName.trim(),
+      title: trimmedName,
       user_id: userId
     };
     
@@ -634,31 +728,124 @@ export class ProgettiCard {
             .pipe(takeUntilDestroyed(this.destroyRef))
             .subscribe({
               next: (updatedProject) => {
+                // Rimuovi dalla lista ottimistica
+                this.optimisticTechnologies.update(techs => 
+                  techs.filter(t => t.tempId !== tempId)
+                );
                 this.addingTechnology.set(false);
-                this.isAddTechExpanded.set(false);
-                this.newTechValue.set('');
-                if (this.addTechTimer) {
-                  clearTimeout(this.addTechTimer);
-                  this.addTechTimer = null;
-                }
+                
+                // Mostra notifica di successo
+                this.showSuccessNotification(`Nuova tecnologia "${techName}" aggiunta al progetto "${this.progetto().title}"`);
+                
                 // Notifica il parent dell'update
                 this.categoryChanged.emit(updatedProject);
               },
               error: (err) => {
                 console.error('❌ Errore aggiornamento progetto con nuova tecnologia:', err);
+                this.showErrorNotification(`Impossibile aggiungere "${techName}" al progetto. Riprova.`);
+                this.removeOptimisticTechnology(tempId);
                 this.addingTechnology.set(false);
-                this.isAddTechExpanded.set(false);
-                this.newTechValue.set('');
               }
             });
         },
         error: (err) => {
           console.error('❌ Errore creazione tecnologia:', err);
+          this.showErrorNotification(`Impossibile creare la tecnologia "${techName}". Riprova.`);
+          this.removeOptimisticTechnology(tempId);
           this.addingTechnology.set(false);
-          this.isAddTechExpanded.set(false);
-          this.newTechValue.set('');
         }
       });
+  }
+  
+  /**
+   * Rimuove una tecnologia ottimistica con animazione di distruzione
+   */
+  private removeOptimisticTechnology(tempId: string): void {
+    // Prima attiva l'animazione di rimozione
+    this.optimisticTechnologies.update(techs => 
+      techs.map(t => t.tempId === tempId ? { ...t, isRemoving: true } : t)
+    );
+    
+    // Dopo 400ms (durata animazione), rimuovila completamente
+    setTimeout(() => {
+      this.optimisticTechnologies.update(techs => 
+        techs.filter(t => t.tempId !== tempId)
+      );
+    }, 400);
+  }
+  
+  /**
+   * Verifica se una tecnologia è ottimistica
+   */
+  isOptimisticTech(tech: Technology | OptimisticTechnology | HiddenTechnology): tech is OptimisticTechnology {
+    return 'isOptimistic' in tech && tech.isOptimistic === true;
+  }
+  
+  /**
+   * Verifica se una tecnologia ottimistica è in fase di rimozione
+   */
+  isRemovingTech(tech: Technology | OptimisticTechnology | HiddenTechnology): boolean {
+    return this.isOptimisticTech(tech) && tech.isRemoving === true;
+  }
+  
+  /**
+   * Track function per @for delle tecnologie (supporta reali + ottimistiche)
+   */
+  trackByTech(index: number, tech: Technology | OptimisticTechnology | HiddenTechnology): string | number {
+    if (this.isOptimisticTech(tech) && tech.tempId) {
+      return tech.tempId;
+    }
+    return tech.id ?? index;
+  }
+  
+  /**
+   * Aggiunge una notifica di successo
+   */
+  private showSuccessNotification(message: string): void {
+    const notification: NotificationItem = {
+      id: `success-${Date.now()}-${Math.random()}`,
+      message,
+      type: 'success',
+      timestamp: Date.now(),
+      fieldId: 'technology-add'
+    };
+    
+    this.notifications.update(notifs => [...notifs, notification]);
+  }
+  
+  /**
+   * Aggiunge una notifica di errore
+   */
+  private showErrorNotification(message: string): void {
+    const notification: NotificationItem = {
+      id: `error-${Date.now()}-${Math.random()}`,
+      message,
+      type: 'error',
+      timestamp: Date.now(),
+      fieldId: 'technology-add'
+    };
+    
+    this.notifications.update(notifs => [...notifs, notification]);
+  }
+  
+  /**
+   * Ottiene la notifica più grave
+   */
+  getMostSevereNotification(): NotificationItem | null {
+    const currentNotifications = this.notifications();
+    if (currentNotifications.length === 0) return null;
+    
+    const severityOrder: Record<NotificationType, number> = {
+      error: 4,
+      warning: 3,
+      success: 2,
+      info: 1
+    };
+    
+    return currentNotifications.reduce((mostSevere, current) => {
+      if (!mostSevere) return current;
+      return severityOrder[current.type] > severityOrder[mostSevere.type] ? current : mostSevere;
+    }, currentNotifications[0]);
   }
   
   onTechInput(event: Event): void {
@@ -669,12 +856,15 @@ export class ProgettiCard {
   }
   
   onTechBlur(): void {
+    // Collassa dopo un breve delay, salvando se c'è testo
     if (this.addTechTimer) {
       clearTimeout(this.addTechTimer);
+      this.addTechTimer = null;
     }
+    
     this.addTechTimer = setTimeout(() => {
-      this.collapseAddTech(true);
-    }, 500);
+      this.collapseAddTech(true); // Salva se c'è testo
+    }, 300);
   }
   
   onTechSubmit(event: KeyboardEvent): void {
