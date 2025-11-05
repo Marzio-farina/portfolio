@@ -110,7 +110,7 @@ describe('Auth', () => {
     });
 
     it('BRANCH: form valid + API success → dovrebbe impostare success message', (done) => {
-      const mockResponse = { user: { email: 'test@example.com', name: 'Test' }, token: 'abc123' };
+      const mockResponse = { user: { id: 1, email: 'test@example.com', name: 'Test' }, token: 'abc123' };
       authService.login.and.returnValue(of(mockResponse));
       
       component.loginForm.patchValue({
@@ -179,7 +179,7 @@ describe('Auth', () => {
     });
 
     it('BRANCH: form valid + API success → dovrebbe reset form e mostrare success', (done) => {
-      const mockResponse = { user: { email: 'new@example.com', name: 'Nuovo' }, token: 'xyz789' };
+      const mockResponse = { user: { id: 2, email: 'new@example.com', name: 'Nuovo' }, token: 'xyz789' };
       authService.register.and.returnValue(of(mockResponse));
       
       component.registerForm.patchValue({
@@ -1065,7 +1065,7 @@ describe('Auth', () => {
   // ========================================
   describe('Loading States', () => {
     it('loading dovrebbe diventare true durante login', () => {
-      authService.login.and.returnValue(of({ user: { email: 'test' }, token: 'abc' }));
+      authService.login.and.returnValue(of({ user: { id: 1, email: 'test', name: 'Test' }, token: 'abc' }));
       
       component.loginForm.patchValue({ email: 'test@test.com', password: 'pass' });
       component.submitLogin();
@@ -1076,7 +1076,7 @@ describe('Auth', () => {
     });
 
     it('loading dovrebbe tornare false dopo login success', (done) => {
-      authService.login.and.returnValue(of({ user: { email: 'test' }, token: 'abc' }));
+      authService.login.and.returnValue(of({ user: { id: 1, email: 'test', name: 'Test' }, token: 'abc' }));
       
       component.loginForm.patchValue({ email: 'test@test.com', password: 'pass' });
       component.submitLogin();
@@ -1184,7 +1184,7 @@ describe('Auth', () => {
         component.mode.set('register');
         
         // 3. Register con successo
-        authService.register.and.returnValue(of({ user: { email: 'new@test.com', name: 'New' }, token: 'xyz' }));
+        authService.register.and.returnValue(of({ user: { id: 3, email: 'new@test.com', name: 'New' }, token: 'xyz' }));
         component.registerForm.patchValue({
           name: 'New User',
           email: 'new@test.com',
