@@ -1082,7 +1082,11 @@ export class ProgettiCard {
           });
           
           this.showSuccessNotification(`Tecnologia "${techTitle}" rimossa dal progetto`);
-          this.categoryChanged.emit(updatedProject);
+          
+          // NON emettiamo categoryChanged durante rimozione ottimistica
+          // per evitare che il parent aggiorni progetto() e faccia riapparire
+          // i tag ancora in techsBeingRemoved. Il progetto si aggiornerà
+          // al prossimo refresh o quando tutte le rimozioni saranno complete.
         },
         error: (err) => {
           console.error('❌ Errore rimozione tecnologia:', err);
