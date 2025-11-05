@@ -672,8 +672,8 @@ export class ProgettiCard {
     this.addingTechnology.set(true);
     const newTechnologyIds = [...currentTechs.map(t => t.id), tech.id];
     
+    // NON usa takeUntilDestroyed per permettere il completamento anche dopo navigazione
     this.api.update$(this.progetto().id, { technology_ids: newTechnologyIds })
-      .pipe(takeUntilDestroyed(this.destroyRef))
       .subscribe({
         next: (updatedProject) => {
           // Rimuovi dalla lista ottimistica (ora è nel progetto reale)
@@ -752,8 +752,8 @@ export class ProgettiCard {
       user_id: userId
     };
     
+    // NON usa takeUntilDestroyed per permettere il completamento anche dopo navigazione
     this.http.post<{ ok: boolean; data: Technology; is_new: boolean }>(apiUrl('technologies'), body)
-      .pipe(takeUntilDestroyed(this.destroyRef))
       .subscribe({
         next: (response) => {
           // Aggiungi la nuova tecnologia alla lista disponibili
@@ -764,8 +764,8 @@ export class ProgettiCard {
           const currentTechs = this.progetto().technologies || [];
           const newTechnologyIds = [...currentTechs.map(t => t.id), response.data.id];
           
+          // NON usa takeUntilDestroyed per permettere il completamento anche dopo navigazione
           this.api.update$(this.progetto().id, { technology_ids: newTechnologyIds })
-            .pipe(takeUntilDestroyed(this.destroyRef))
             .subscribe({
               next: (updatedProject) => {
                 // Rimuovi dalla lista ottimistica
