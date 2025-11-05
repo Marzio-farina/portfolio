@@ -23,6 +23,7 @@ use App\Http\Controllers\Api\UserPublicController;
 use App\Http\Controllers\Api\WhatIDoController;
 use App\Http\Controllers\AuthController;
 use App\Http\Controllers\ContactController;
+use App\Http\Controllers\HealthCheckController;
 use Illuminate\Cookie\Middleware\AddQueuedCookiesToResponse;
 use Illuminate\Cookie\Middleware\EncryptCookies;
 use Illuminate\Foundation\Http\Middleware\VerifyCsrfToken;
@@ -54,6 +55,18 @@ Route::get('ping', function () {
         'time' => now()->toIso8601String(),
     ], 200, [], JSON_UNESCAPED_UNICODE);
 })->name('ping');
+
+/**
+ * Health check completo - verifica database, cache, storage
+ * Utile per monitoring e deployment automation
+ */
+Route::get('health', [HealthCheckController::class, 'index'])->name('health');
+
+/**
+ * Health check semplice - solo status code
+ * Più veloce per load balancer checks
+ */
+Route::get('health/simple', [HealthCheckController::class, 'simple'])->name('health.simple');
 
 /**
  * Diagnostic endpoint for debugging
@@ -140,22 +153,30 @@ Route::middleware(['api', "throttle:{$throttleLimit}", 'db.connection'])
         $writeThrottleLimit = app()->environment('local') ? '100,1' : '20,1';
         Route::middleware("throttle:{$writeThrottleLimit}")->group(function () {
             Route::post('testimonials', [TestimonialController::class, 'store']);
+        });
+
+        // ====================================================================
+        // Upload Endpoints (with custom rate limiting for uploads)
+        // ====================================================================
+        Route::middleware('throttle:uploads')->group(function () {
             Route::post('avatars/upload', [AvatarController::class, 'upload']); // Upload avatar
         });
 
         // ====================================================================
-        // Contact Form (with custom rate limiting)
+        // Contact Form (with custom rate limiting for spam protection)
         // ====================================================================
-        Route::middleware('throttle:10,1')
+        Route::middleware('throttle:contact')
             ->post('/contact', [ContactController::class, 'send']);
 
         // ====================================================================
-        // Authentication Endpoints
+        // Authentication Endpoints (with strict rate limiting for brute-force protection)
         // ====================================================================
-        Route::post('/register', [AuthController::class, 'register']);
-        Route::post('/login', [AuthController::class, 'login']);
-        Route::post('/auth/forgot-password', [AuthController::class, 'forgotPassword']);
-        Route::post('/auth/reset-password', [AuthController::class, 'resetPassword']);
+        Route::middleware('throttle:auth')->group(function () {
+            Route::post('/register', [AuthController::class, 'register']);
+            Route::post('/login', [AuthController::class, 'login']);
+            Route::post('/auth/forgot-password', [AuthController::class, 'forgotPassword']);
+            Route::post('/auth/reset-password', [AuthController::class, 'resetPassword']);
+        });
 
         // ====================================================================
         // Protected Routes (require authentication)

@@ -4,19 +4,15 @@ import { Router, ActivatedRoute } from '@angular/router';
 import { TenantRouterService } from '../../services/tenant-router.service';
 import { TenantService } from '../../services/tenant.service';
 import { ProjectService } from '../../services/project.service';
+import { CategoryService } from '../../services/category.service';
 import { Notification, NotificationType } from '../notification/notification';
 import { HttpClient } from '@angular/common/http';
 import { Observable, map } from 'rxjs';
 import { apiUrl } from '../../core/api/api-url';
 import { environment } from '../../../environments/environment';
 import { Progetto } from '../../core/models/project';
+import { Category } from '../../core/models/category.model';
 import { PosterUploaderComponent, PosterData } from '../poster-uploader/poster-uploader.component';
-
-interface Category {
-  id: number;
-  title: string;
-  description?: string;
-}
 
 @Component({
   selector: 'app-add-project',
@@ -28,6 +24,7 @@ interface Category {
 export class AddProject implements OnInit {
   private fb = inject(FormBuilder);
   private projectService = inject(ProjectService);
+  private categoryService = inject(CategoryService);
   private router = inject(Router);
   private route = inject(ActivatedRoute);
   private tenantRouter = inject(TenantRouterService);
@@ -191,13 +188,13 @@ export class AddProject implements OnInit {
 
   private loadCategories(): void {
     this.loadingCategories.set(true);
-    // Carica le categorie dai progetti esistenti o da un endpoint dedicato
-    // Per ora carichiamo da un endpoint dedicato se esiste, altrimenti da progetti
-    this.http.get<Category[]>(apiUrl('categories')).pipe(
-      map(cats => cats || [])
-    ).subscribe({
+    
+    // Usa CategoryService che ha caching con shareReplay
+    // Questo previene chiamate HTTP duplicate
+    this.categoryService.list$().subscribe({
       next: (cats) => {
-        this.categories.set(cats);
+        const validCategories = cats ? cats.filter(c => c !== null) : [];
+        this.categories.set(validCategories as any);
         this.loadingCategories.set(false);
         // Dopo il caricamento, controlla se c'è una categoria preselezionata
         this.applyPreselectedCategoryIfNeeded();

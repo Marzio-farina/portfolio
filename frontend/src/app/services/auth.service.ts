@@ -1,10 +1,12 @@
 import { Injectable, inject, signal } from '@angular/core';
 import { HttpClient, HttpErrorResponse } from '@angular/common/http';
 import { Observable, ReplaySubject } from 'rxjs';
-import { shareReplay, switchMap } from 'rxjs/operators';
+import { shareReplay, switchMap, catchError } from 'rxjs/operators';
+import { of } from 'rxjs';
 
 import { apiUrl } from '../core/api/api-url';
 import { TenantService } from './tenant.service';
+import { LoggerService } from '../core/logger.service';
 
 // ========================================================================
 // Interfaces
@@ -54,6 +56,7 @@ export class AuthService {
 
   private readonly http = inject(HttpClient);
   private readonly tenant = inject(TenantService);
+  private readonly logger = inject(LoggerService);
 
   // ========================================================================
   // State Management
@@ -78,10 +81,26 @@ export class AuthService {
    */
   readonly me$ = this.meRefresh$.pipe(
     switchMap(() => {
-      const slug = this.tenant.userSlug();
-      const url = apiUrl(slug ? `/${slug}/public-profile` : '/public-profile');
-      
-      return this.http.get<PublicProfile>(url);
+      try {
+        const slug = this.tenant.userSlug();
+        const url = apiUrl(slug ? `/${slug}/public-profile` : '/public-profile');
+        
+        // Defensive: verifica che l'URL sia valido
+        if (!url) {
+          this.logger.error('Invalid profile URL', { slug });
+          return of({ user: null } as PublicProfile);
+        }
+        
+        return this.http.get<PublicProfile>(url).pipe(
+          catchError(error => {
+            this.logger.error('Failed to load user profile', error);
+            return of({ user: null } as PublicProfile);
+          })
+        );
+      } catch (error) {
+        this.logger.error('Error in profile stream', error);
+        return of({ user: null } as PublicProfile);
+      }
     }),
     shareReplay({ bufferSize: 1, refCount: false })
   );
@@ -102,17 +121,39 @@ export class AuthService {
    * Carica l'ID dell'utente autenticato dal backend
    */
   private loadAuthenticatedUserId(): void {
-    this.http.get<{ id: number; email: string; name: string }>(apiUrl('/me')).subscribe({
+    const url = apiUrl('/me');
+    
+    // Defensive: verifica URL valido
+    if (!url) {
+      this.logger.error('Invalid /me endpoint URL');
+      return;
+    }
+
+    this.http.get<{ id: number; email: string; name: string }>(url).subscribe({
       next: (user) => {
+        // Defensive: verifica che l'utente abbia un ID valido
+        if (!user || !user.id || typeof user.id !== 'number') {
+          this.logger.warn('Invalid user data received', { user });
+          return;
+        }
+        
         this.authenticatedUserId.set(user.id);
+        this.logger.log('User ID loaded successfully', { userId: user.id });
       },
       error: (err: HttpErrorResponse | any) => {
         // Fa logout SOLO se il token non è valido (401)
         // Non fare logout per errori temporanei di rete o timeout
         const status = err?.status || err?.originalError?.status;
+        
         if (status === 401) {
+          this.logger.warn('Token invalid (401), logging out');
           this.setToken(null);
           this.authenticatedUserId.set(null);
+        } else {
+          this.logger.error('Failed to load authenticated user ID', err, {
+            status,
+            keepToken: true
+          });
         }
         // Per altri errori (timeout, rete, 500, ecc.) mantieni il token
       }
@@ -132,24 +173,34 @@ export class AuthService {
    * @returns True if user has valid token and matches current tenant
    */
   isAuthenticated(): boolean {
-    const hasToken = !!this.token();
-    if (!hasToken) return false;
-    
-    // Se non c'è uno slug utente nel tenant, l'autenticazione è valida (path generico)
-    const tenantUserId = this.tenant.userId();
-    if (!tenantUserId) {
-      return true; // Autenticazione valida su path senza slug
+    try {
+      const hasToken = !!this.token();
+      
+      // Early return: nessun token
+      if (!hasToken) {
+        return false;
+      }
+      
+      // Se non c'è uno slug utente nel tenant, l'autenticazione è valida (path generico)
+      const tenantUserId = this.tenant?.userId();
+      if (!tenantUserId) {
+        return true; // Autenticazione valida su path senza slug
+      }
+      
+      // Se c'è uno slug utente, verifica che l'utente autenticato corrisponda
+      const authUserId = this.authenticatedUserId();
+      if (!authUserId) {
+        // Se non abbiamo ancora caricato l'ID, considera autenticato (verrà verificato al primo accesso)
+        return true;
+      }
+      
+      // L'autenticazione è valida solo se l'utente autenticato corrisponde al tenant corrente
+      return authUserId === tenantUserId;
+      
+    } catch (error) {
+      this.logger.error('Error checking authentication status', error);
+      return false; // In caso di errore, considera non autenticato per sicurezza
     }
-    
-    // Se c'è uno slug utente, verifica che l'utente autenticato corrisponda
-    const authUserId = this.authenticatedUserId();
-    if (!authUserId) {
-      // Se non abbiamo ancora caricato l'ID, considera autenticato (verrà verificato al primo accesso)
-      return true;
-    }
-    
-    // L'autenticazione è valida solo se l'utente autenticato corrisponde al tenant corrente
-    return authUserId === tenantUserId;
   }
 
   /**

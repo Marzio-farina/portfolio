@@ -8,6 +8,7 @@ import { ThemeService } from '../../services/theme.service';
 import { AuthService } from '../../services/auth.service';
 import { EditModeService } from '../../services/edit-mode.service';
 import { ProjectService } from '../../services/project.service';
+import { TechnologyService } from '../../services/technology.service';
 import { TenantService } from '../../services/tenant.service';
 import { Subscription } from 'rxjs';
 
@@ -34,6 +35,7 @@ export class ProgettiCard {
   private readonly auth = inject(AuthService);
   private readonly editModeService = inject(EditModeService);
   private readonly api = inject(ProjectService);
+  private readonly technologyService = inject(TechnologyService);
   private readonly http = inject(HttpClient);
   private readonly tenant = inject(TenantService);
   private readonly destroyRef = inject(DestroyRef);
@@ -222,17 +224,14 @@ export class ProgettiCard {
   }
   
   /**
-   * Carica tutte le tecnologie disponibili dal backend (globali + specifiche utente)
+   * Carica tutte le tecnologie disponibili dal backend usando il servizio con caching.
+   * IMPORTANTE: Usa TechnologyService per evitare chiamate HTTP duplicate.
+   * Con 9 card visibili, senza caching avresti 9 chiamate HTTP!
    */
   private loadTechnologies(): void {
-    const userId = this.tenant.userId();
-    let url = apiUrl('technologies');
-    
-    if (userId) {
-      url += `?user_id=${userId}`;
-    }
-    
-    this.http.get<Technology[]>(url)
+    // Usa TechnologyService che ha caching con shareReplay
+    // La prima card fa la chiamata HTTP, le altre 8 usano la cache
+    this.technologyService.list$()
       .pipe(takeUntilDestroyed(this.destroyRef))
       .subscribe({
         next: (techs) => {

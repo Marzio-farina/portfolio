@@ -3,6 +3,7 @@
 namespace App\Http\Controllers\Api;
 
 use App\Http\Controllers\Controller;
+use App\Http\Requests\UploadAvatarRequest;
 use App\Models\Icon;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
@@ -26,19 +27,15 @@ class AvatarController extends Controller
      * Accepts image file upload, validates it, resizes if necessary,
      * stores it in public storage and creates icon record.
      * 
-     * @param Request $request HTTP request with image file
+     * @param UploadAvatarRequest $request HTTP request validato con immagine
      * @return JsonResponse Created icon data or validation errors
      */
-    public function upload(Request $request): JsonResponse
+    public function upload(UploadAvatarRequest $request): JsonResponse
     {
-        // Validazione del file
-        $validated = $request->validate([
-            'avatar' => 'required|image|mimes:jpeg,png,jpg,gif,webp|max:2048', // Max 2MB
-            'alt_text' => 'nullable|string|max:100',
-        ]);
-
         try {
-            $file = $request->file('avatar');
+            // File già validato dalla Request class
+            $file = $request->getValidatedFile();
+            $altText = $request->getAltText();
 
             // Genera nome file unico
             $extension = $file->getClientOriginalExtension();
@@ -87,7 +84,7 @@ class AvatarController extends Controller
             // Crea il record nella tabella icons con path relativo
             $icon = Icon::create([
                 'img' => $imgPath,
-                'alt' => $validated['alt_text'] ?? 'Avatar visitatore',
+                'alt' => $altText,
                 'type' => 'user_uploaded'
             ]);
             

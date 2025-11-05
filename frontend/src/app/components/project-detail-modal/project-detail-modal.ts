@@ -3,6 +3,8 @@ import { ReactiveFormsModule, FormBuilder, FormGroup, Validators } from '@angula
 import { HttpClient } from '@angular/common/http';
 import { ProjectDetailModalService } from '../../services/project-detail-modal.service';
 import { ProjectService } from '../../services/project.service';
+import { TechnologyService } from '../../services/technology.service';
+import { CategoryService } from '../../services/category.service';
 import { EditModeService } from '../../services/edit-mode.service';
 import { AuthService } from '../../services/auth.service';
 import { CanvasService, CanvasItem, DragState, ResizeState } from '../../services/canvas.service';
@@ -35,6 +37,8 @@ import { TextFormattingToolbarComponent, TextStyle } from '../text-formatting-to
 export class ProjectDetailModal implements OnDestroy {
   private projectDetailModalService = inject(ProjectDetailModalService);
   private projectService = inject(ProjectService);
+  private technologyService = inject(TechnologyService);
+  private categoryService = inject(CategoryService);
   private editModeService = inject(EditModeService);
   private authService = inject(AuthService);
   private fb = inject(FormBuilder);
@@ -257,15 +261,16 @@ export class ProjectDetailModal implements OnDestroy {
   }
 
   /**
-   * Carica le tecnologie dal backend
+   * Carica le tecnologie dal backend usando il servizio con caching
    */
   private loadTechnologies(): void {
     this.loadingTechnologies.set(true);
-    this.http.get<Technology[]>(apiUrl('technologies')).pipe(
-      map(techs => techs || [])
-    ).subscribe({
+    
+    // Usa TechnologyService che ha caching con shareReplay
+    // Questo previene chiamate HTTP duplicate
+    this.technologyService.list$().subscribe({
       next: (techs) => {
-        this.availableTechnologies.set(techs);
+        this.availableTechnologies.set(techs || []);
         this.loadingTechnologies.set(false);
       },
       error: () => {

@@ -10,6 +10,8 @@ use App\Http\Requests\UpdateProfileRequest;
 use App\Mail\PasswordResetNotification;
 use App\Models\Role;
 use App\Models\User;
+use App\Services\LoggerService;
+use App\Services\TransactionService;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Cache;
@@ -34,47 +36,93 @@ class AuthController extends Controller
      */
     public function register(RegisterRequest $request): JsonResponse
     {
-        // Force role to 'Guest' for any new registration (ignore client-provided role)
-        $roleId = Role::where('title', 'Guest')->value('id');
-        if (!$roleId) {
-            // Create Guest role if missing
-            $guest = Role::create(['title' => 'Guest']);
-            $roleId = $guest->id;
+        try {
+            // Usa transaction per garantire atomicità
+            $result = TransactionService::execute(function () use ($request) {
+                // Force role to 'Guest' for any new registration (ignore client-provided role)
+                $roleId = Role::where('title', 'Guest')->value('id');
+                
+                // Crea ruolo Guest se mancante (defensive programming)
+                if (!$roleId) {
+                    $guest = Role::create(['title' => 'Guest']);
+                    $roleId = $guest->id;
+                    
+                    LoggerService::logWarning('Guest role was missing and has been created', [
+                        'role_id' => $roleId
+                    ]);
+                }
+
+                // Create new user with hashed password
+                $user = User::create([
+                    'name' => $request->name ?? '',
+                    'surname' => $request->surname,
+                    'date_of_birth' => $request->date_of_birth,
+                    'email' => $request->email,
+                    'password' => Hash::make($request->password),
+                    'role_id' => $roleId,
+                    'icon_id' => $request->icon_id,
+                ]);
+
+                // Verifica che l'utente sia stato creato
+                if (!$user || !$user->id) {
+                    throw new \RuntimeException('Creazione utente fallita');
+                }
+
+                // Generate unique slug: nome-cognome[-n]
+                $base = Str::slug(trim(($user->name ?? '') . ' ' . ($user->surname ?? '')));
+                if (empty($base)) {
+                    $base = 'user-' . $user->id;
+                }
+                
+                $slug = $base;
+                $counter = 2;
+                $maxAttempts = 100; // Previeni loop infinito
+                
+                while (User::where('slug', $slug)->where('id', '!=', $user->id)->exists() && $counter < $maxAttempts) {
+                    $slug = $base . '-' . $counter;
+                    $counter++;
+                }
+                
+                if ($counter >= $maxAttempts) {
+                    // Fallback con UUID se non troviamo slug unico
+                    $slug = 'user-' . Str::uuid();
+                    LoggerService::logWarning('Slug generation reached max attempts, using UUID', [
+                        'user_id' => $user->id,
+                        'base' => $base
+                    ]);
+                }
+                
+                $user->slug = $slug;
+                $user->save();
+
+                // Create empty user profile
+                $user->profile()->create([]);
+
+                return $user;
+            });
+
+            // Generate authentication token
+            $token = $result->createToken('spa')->plainTextToken;
+
+            LoggerService::logAction('User registered successfully', [
+                'user_id' => $result->id,
+                'email' => $result->email,
+            ]);
+
+            return response()->json([
+                'token' => $token,
+                'user' => $result
+            ], 201);
+            
+        } catch (\Throwable $e) {
+            LoggerService::logError('User registration failed', $e, [
+                'email' => $request->email,
+            ]);
+
+            return response()->json([
+                'message' => 'Registrazione fallita. Riprova più tardi.'
+            ], 500);
         }
-
-        // Create new user with hashed password
-        $user = User::create([
-            'name' => $request->name,
-            'surname' => $request->surname,
-            'date_of_birth' => $request->date_of_birth,
-            'email' => $request->email,
-            'password' => Hash::make($request->password),
-            'role_id' => $roleId,
-            'icon_id' => $request->icon_id,
-        ]);
-
-        // Generate unique slug: nome-cognome[-n]
-        $base = Str::slug(trim(($user->name ?? '').' '.($user->surname ?? '')));
-        if ($base === '') { $base = 'user-'.$user->id; }
-        $slug = $base;
-        $i = 2;
-        while (User::where('slug', $slug)->where('id', '!=', $user->id)->exists()) {
-            $slug = $base.'-'.$i;
-            $i++;
-        }
-        $user->slug = $slug;
-        $user->save();
-
-        // Create empty user profile
-        $user->profile()->create([]);
-
-        // Generate authentication token
-        $token = $user->createToken('spa')->plainTextToken;
-
-        return response()->json([
-            'token' => $token,
-            'user' => $user
-        ], 201);
     }
 
     /**
@@ -85,23 +133,53 @@ class AuthController extends Controller
      */
     public function login(LoginRequest $request): JsonResponse
     {
-        // Find user by email
-        $user = User::where('email', $request->email)->first();
+        try {
+            // Early return: validazione email
+            if (empty($request->email)) {
+                LoggerService::logSecurity('Login attempt with empty email');
+                return response()->json([
+                    'message' => 'Invalid credentials'
+                ], 401);
+            }
 
-        // Validate credentials
-        if (!$user || !Hash::check($request->password, $user->password)) {
+            // Find user by email
+            $user = User::where('email', $request->email)->first();
+
+            // Early return: utente non trovato
+            if (!$user) {
+                LoggerService::logFailedLogin($request->email, 'User not found');
+                return response()->json([
+                    'message' => 'Invalid credentials'
+                ], 401);
+            }
+
+            // Verifica password
+            if (!Hash::check($request->password, $user->password ?? '')) {
+                LoggerService::logFailedLogin($request->email, 'Invalid password');
+                return response()->json([
+                    'message' => 'Invalid credentials'
+                ], 401);
+            }
+
+            // Generate authentication token
+            $token = $user->createToken('spa')->plainTextToken;
+            
+            LoggerService::logSuccessfulLogin($user->id, $user->email);
+
             return response()->json([
-                'message' => 'Invalid credentials'
-            ], 401);
+                'token' => $token,
+                'user' => $user
+            ]);
+            
+        } catch (\Throwable $e) {
+            LoggerService::logError('Login failed', $e, [
+                'email' => $request->email ?? 'unknown',
+            ]);
+
+            return response()->json([
+                'message' => 'Login fallito. Riprova più tardi.'
+            ], 500);
         }
-
-        // Generate authentication token
-        $token = $user->createToken('spa')->plainTextToken;
-
-        return response()->json([
-            'token' => $token,
-            'user' => $user
-        ]);
     }
 
     /**

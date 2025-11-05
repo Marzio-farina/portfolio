@@ -3,6 +3,7 @@
 use App\Http\Middleware\EnsureTokenIsFresh;
 use App\Http\Middleware\HttpCache;
 use App\Http\Middleware\DatabaseConnectionMiddleware;
+use App\Http\Middleware\SecurityHeadersMiddleware;
 use Illuminate\Foundation\Application;
 use Illuminate\Foundation\Configuration\Exceptions;
 use Illuminate\Validation\ValidationException;
@@ -20,6 +21,7 @@ return Application::configure(basePath: dirname(__DIR__))
     ->withMiddleware(function (Middleware $middleware): void {
         $middleware->use([
             HandleCors::class,
+            SecurityHeadersMiddleware::class, // Security headers globali
         ]);
         $middleware->trustProxies(at: '*');
         $middleware->alias([

@@ -1,28 +1,31 @@
 import { Injectable } from '@angular/core';
-import { HttpClient } from '@angular/common/http';
 import { Observable } from 'rxjs';
-import { map } from 'rxjs/operators';
 import { AvatarData } from '../components/avatar/avatar';
-import { apiUrl } from '../core/api/api-url';
+import { DefaultAvatarService } from './default-avatar.service';
 
+/**
+ * Avatar Service (DEPRECATO - usa DefaultAvatarService)
+ * 
+ * Questo servizio è mantenuto per retrocompatibilità.
+ * Internamente usa DefaultAvatarService che ha il caching implementato.
+ * 
+ * @deprecated Usa DefaultAvatarService.getDefaultAvatars() direttamente
+ */
 @Injectable({
   providedIn: 'root'
 })
 export class AvatarService {
 
-  constructor(private http: HttpClient) {}
+  constructor(private defaultAvatarService: DefaultAvatarService) {}
 
   /**
    * Get default avatar images from the backend API
    * 
-   * The backend returns full absolute URLs, so no need for URL construction
-   * in the frontend - just use the img field directly
-   * 
+   * @deprecated Usa DefaultAvatarService.getDefaultAvatars() direttamente
    * @returns Observable array of AvatarData with complete URLs
    */
   getAvatars(): Observable<AvatarData[]> {
-    return this.http.get<{ avatars: AvatarData[] }>(apiUrl('testimonials/default-avatars')).pipe(
-      map(response => response.avatars)
-    );
+    // Delega a DefaultAvatarService che ha il caching
+    return this.defaultAvatarService.getDefaultAvatars();
   }
 }
