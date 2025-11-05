@@ -541,11 +541,15 @@ describe('ProjectService', () => {
   // ========================================
   describe('Cache Management', () => {
     it('dovrebbe usare sessionStorage per cache timestamp', (done) => {
-      spyOn(sessionStorage, 'getItem').and.returnValue(null);
+      // Se getItem ritorna null, NON chiamerà setItem (usa _t invece di _s)
+      // Per testare setItem, dobbiamo simulare una sessione esistente
+      const existingTimestamp = '1234567890';
+      spyOn(sessionStorage, 'getItem').and.returnValue(existingTimestamp);
       spyOn(sessionStorage, 'setItem');
 
       service.list$(1, 12).subscribe(() => {
-        expect(sessionStorage.setItem).toHaveBeenCalled();
+        // Con sessione esistente, dovrebbe chiamare setItem per mantenere il timestamp
+        expect(sessionStorage.setItem).toHaveBeenCalledWith('projects_session_timestamp', existingTimestamp);
         done();
       });
 

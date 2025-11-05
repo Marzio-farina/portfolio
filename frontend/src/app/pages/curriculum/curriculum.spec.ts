@@ -312,17 +312,23 @@ describe('Curriculum', () => {
 
   describe('CV Share', () => {
     it('share dovrebbe copiare link negli appunti', async () => {
+      // Assicurati che cvFileService ritorni la risposta corretta
+      cvFileService.getDefault$.and.returnValue(of(mockCvFileResponse));
+      
       const writeTextSpy = jasmine.createSpy('writeText').and.returnValue(Promise.resolve());
       Object.defineProperty(navigator, 'clipboard', {
         value: { writeText: writeTextSpy },
-        configurable: true
+        configurable: true,
+        writable: true
       });
 
+      // Chiama share e attendi il completamento
       await component.share();
       
-      // Attendi che le promise si risolvano
-      await new Promise(resolve => setTimeout(resolve, 100));
+      // Attendi che le promise e observables si risolvano
+      await new Promise(resolve => setTimeout(resolve, 200));
 
+      // Verifica che writeText sia stato chiamato con il view_url del mock
       expect(writeTextSpy).toHaveBeenCalledWith('https://example.com/cv-view.pdf');
     });
 

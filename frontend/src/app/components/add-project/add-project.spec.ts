@@ -200,8 +200,12 @@ describe('AddProject Component', () => {
       component.addProjectForm.patchValue({
         title: 'New Project',
         category_id: 1,
-        description: 'Description'
+        description: 'Description',
+        poster_file: mockFile  // Required field!
       });
+
+      // Verifica che il form sia valido
+      expect(component.addProjectForm.valid).toBe(true);
 
       component.onSubmit();
 
