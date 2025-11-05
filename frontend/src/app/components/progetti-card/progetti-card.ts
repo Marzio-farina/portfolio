@@ -973,8 +973,15 @@ export class ProgettiCard {
       return;
     }
     
-    // Valida input
-    if (!newTitle || newTitle === tech.title) {
+    // Se il testo è vuoto, rimuovi la tecnologia dal progetto
+    if (!newTitle) {
+      this.cancelTechEdit();
+      this.removeTechnologyFromProject(tech);
+      return;
+    }
+    
+    // Se il titolo non è cambiato, annulla
+    if (newTitle === tech.title) {
       this.cancelTechEdit();
       return;
     }
@@ -1027,6 +1034,59 @@ export class ProgettiCard {
           this.updateTechnologyOptimistic(techId, oldTitle);
           
           this.showErrorNotification(`Impossibile modificare "${oldTitle}". Riprova.`);
+        }
+      });
+  }
+  
+  /**
+   * Rimuove una tecnologia dal progetto (ottimistico)
+   */
+  private removeTechnologyFromProject(tech: Technology | OptimisticTechnology | HiddenTechnology): void {
+    const techId = tech.id!;
+    const techTitle = tech.title!;
+    const currentTechs = this.progetto().technologies || [];
+    
+    // Rimuovi la tecnologia dalla lista
+    const newTechnologyIds = currentTechs
+      .filter(t => t.id !== techId)
+      .map(t => t.id);
+    
+    // OPTIMISTIC UPDATE: Rimuovi override se esiste
+    this.removeOptimisticTitleOverride(techId);
+    
+    // Crea badge ottimistico "removing" temporaneo per animazione
+    const tempId = `temp-remove-${techId}-${Date.now()}`;
+    const removingTech: OptimisticTechnology = {
+      id: techId,
+      title: techTitle,
+      isOptimistic: true,
+      tempId,
+      isRemoving: true,
+      projectId: this.progetto().id
+    };
+    
+    this.optimisticTechService.addOptimisticTechnology(this.progetto().id, removingTech);
+    
+    // Chiamata API con bassa priorità
+    this.api.update$(this.progetto().id, { technology_ids: newTechnologyIds })
+      .pipe(delay(150))
+      .subscribe({
+        next: (updatedProject) => {
+          // Rimuovi badge removing dopo l'animazione
+          setTimeout(() => {
+            this.optimisticTechService.removeOptimisticTechnology(this.progetto().id, tempId);
+          }, 400);
+          
+          this.showSuccessNotification(`Tecnologia "${techTitle}" rimossa dal progetto`);
+          this.categoryChanged.emit(updatedProject);
+        },
+        error: (err) => {
+          console.error('❌ Errore rimozione tecnologia:', err);
+          
+          // Rimuovi badge removing
+          this.optimisticTechService.removeOptimisticTechnology(this.progetto().id, tempId);
+          
+          this.showErrorNotification(`Impossibile rimuovere "${techTitle}". Riprova.`);
         }
       });
   }
