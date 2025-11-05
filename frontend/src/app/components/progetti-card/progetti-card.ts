@@ -87,9 +87,13 @@ export class ProgettiCard {
     const realTechs = this.progetto().technologies || [];
     const optimisticTechs = this.optimisticTechService.getTechnologiesForProject(this.progetto().id);
     const overrides = this.techTitleOverrides();
+    const beingRemoved = this.techsBeingRemoved();
+    
+    // Filtra tecnologie in fase di rimozione
+    const filteredRealTechs = realTechs.filter(tech => !beingRemoved.has(tech.id));
     
     // Applica override ottimistici ai titoli
-    const realTechsWithOverrides = realTechs.map(tech => {
+    const realTechsWithOverrides = filteredRealTechs.map(tech => {
       const overrideTitle = overrides.get(tech.id);
       return overrideTitle ? { ...tech, title: overrideTitle } : tech;
     });
@@ -170,6 +174,10 @@ export class ProgettiCard {
   // Override ottimistici per titoli tecnologie modificate
   // Map<techId, newTitle>
   techTitleOverrides = signal<Map<number, string>>(new Map());
+  
+  // Tecnologie in fase di rimozione (nascoste dalla visualizzazione)
+  // Set<techId>
+  techsBeingRemoved = signal<Set<number>>(new Set());
   
   // Tecnologie disponibili per ricerca
   availableTechnologies = signal<Technology[]>([]);
@@ -1051,31 +1059,27 @@ export class ProgettiCard {
       .filter(t => t.id !== techId)
       .map(t => t.id);
     
-    // OPTIMISTIC UPDATE: Rimuovi override se esiste
+    // OPTIMISTIC UPDATE: Marca come "in fase di rimozione" per nasconderla immediatamente
+    this.techsBeingRemoved.update(set => {
+      const newSet = new Set(set);
+      newSet.add(techId);
+      return newSet;
+    });
+    
+    // Rimuovi override se esiste
     this.removeOptimisticTitleOverride(techId);
-    
-    // Crea badge ottimistico "removing" temporaneo per animazione
-    const tempId = `temp-remove-${techId}-${Date.now()}`;
-    const removingTech: OptimisticTechnology = {
-      id: techId,
-      title: techTitle,
-      isOptimistic: true,
-      tempId,
-      isRemoving: true,
-      projectId: this.progetto().id
-    };
-    
-    this.optimisticTechService.addOptimisticTechnology(this.progetto().id, removingTech);
     
     // Chiamata API con bassa priorità
     this.api.update$(this.progetto().id, { technology_ids: newTechnologyIds })
       .pipe(delay(150))
       .subscribe({
         next: (updatedProject) => {
-          // Rimuovi badge removing dopo l'animazione
-          setTimeout(() => {
-            this.optimisticTechService.removeOptimisticTechnology(this.progetto().id, tempId);
-          }, 400);
+          // Rimuovi dalla lista "being removed" (ora è rimossa per davvero)
+          this.techsBeingRemoved.update(set => {
+            const newSet = new Set(set);
+            newSet.delete(techId);
+            return newSet;
+          });
           
           this.showSuccessNotification(`Tecnologia "${techTitle}" rimossa dal progetto`);
           this.categoryChanged.emit(updatedProject);
@@ -1083,8 +1087,12 @@ export class ProgettiCard {
         error: (err) => {
           console.error('❌ Errore rimozione tecnologia:', err);
           
-          // Rimuovi badge removing
-          this.optimisticTechService.removeOptimisticTechnology(this.progetto().id, tempId);
+          // Ripristina tecnologia (rimuovi dalla lista "being removed")
+          this.techsBeingRemoved.update(set => {
+            const newSet = new Set(set);
+            newSet.delete(techId);
+            return newSet;
+          });
           
           this.showErrorNotification(`Impossibile rimuovere "${techTitle}". Riprova.`);
         }
