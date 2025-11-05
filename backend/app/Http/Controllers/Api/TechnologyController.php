@@ -108,8 +108,8 @@ class TechnologyController extends Controller
         // Crea la nuova tecnologia (già normalizzati da DataNormalizationFactory)
         $technology = Technology::create([
             'title' => $validated['title'],
-            'description' => $validated['description'],
-            'type' => $validated['type'],
+            'description' => $validated['description'] ?? null,
+            'type' => $validated['type'] ?? null,
             'user_id' => $userId,
         ]);
         
