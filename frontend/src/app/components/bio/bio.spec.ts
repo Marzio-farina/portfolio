@@ -29,6 +29,8 @@ describe('Bio', () => {
   let tenantService: jasmine.SpyObj<TenantService>;
 
   const mockProfile = {
+    id: 1,
+    email: 'mario.rossi@example.com',
     bio: 'Sono un Full Stack Developer con passione per Angular e Laravel. Creo applicazioni web scalabili.',
     name: 'Mario',
     surname: 'Rossi'
@@ -283,7 +285,7 @@ describe('Bio', () => {
     });
 
     it('BRANCH: bio vuoto → early return', () => {
-      component.profile.set({ bio: '', name: 'Test', surname: 'User' });
+      component.profile.set({ id: 1, email: 'test@test.com', bio: '', name: 'Test', surname: 'User' });
       
       component.openBioDialog();
       
@@ -307,7 +309,7 @@ describe('Bio', () => {
 
     it('BRANCH: typewriter completo → isMobileTyping = false', fakeAsync(() => {
       const shortBio = 'Short';
-      component.profile.set({ bio: shortBio, name: 'Test', surname: 'User' });
+      component.profile.set({ id: 1, email: 'test@test.com', bio: shortBio, name: 'Test', surname: 'User' });
       
       component.openBioDialog();
       
@@ -321,7 +323,7 @@ describe('Bio', () => {
 
     it('BRANCH: dopo typewriter → isMobileRevealing = true', fakeAsync(() => {
       const shortBio = 'Test bio';
-      component.profile.set({ bio: shortBio, name: 'Test', surname: 'User' });
+      component.profile.set({ id: 1, email: 'test@test.com', bio: shortBio, name: 'Test', surname: 'User' });
       
       component.openBioDialog();
       
@@ -566,7 +568,7 @@ describe('Bio', () => {
   describe('Real World Workflows', () => {
     it('workflow: load → open dialog → typewriter → close', fakeAsync(() => {
       const shortBio = 'Short bio text';
-      component.profile.set({ bio: shortBio, name: 'Test', surname: 'User' });
+      component.profile.set({ id: 1, email: 'test@test.com', bio: shortBio, name: 'Test', surname: 'User' });
       
       // 1. Open dialog
       component.openBioDialog();

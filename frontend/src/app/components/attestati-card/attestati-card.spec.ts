@@ -28,12 +28,15 @@ describe('AttestatiCard', () => {
   const mockAttestato: Attestato = {
     id: 1,
     title: 'Certified Angular Developer',
-    institution: 'Angular University',
-    image: 'https://example.com/cert.jpg',
-    issue_date: '2023-01-15',
-    description: 'Advanced Angular certification',
-    credential_id: 'ANG-2023-001',
-    credential_url: 'https://angular.io/cert/001'
+    issuer: 'Angular University',
+    date: '2023-01-15',
+    badgeUrl: 'https://angular.io/cert/001',
+    img: {
+      src: 'https://example.com/cert.jpg',
+      alt: 'Angular Certificate',
+      width: 800,
+      height: 600
+    }
   };
 
   beforeEach(async () => {
@@ -87,21 +90,21 @@ describe('AttestatiCard', () => {
     it('dovrebbe gestire attestato con tutti i campi', () => {
       const fullAttestato: Attestato = {
         id: 2,
-        title: 'Full Cert',
-        institution: 'Institution',
-        image: 'img.jpg',
-        issue_date: '2024-01-01',
-        description: 'Full description',
-        credential_id: 'CRED-123',
-        credential_url: 'https://cert.com',
-        expires_at: '2025-01-01'
+        title: 'Full Attestato',
+        issuer: 'Institution',
+        date: '2024-01-01',
+        badgeUrl: 'https://cert.com',
+        img: {
+          src: 'img.jpg',
+          alt: 'Full Certificate'
+        }
       };
       
       fixture.componentRef.setInput('attestato', fullAttestato);
       fixture.detectChanges();
       
-      expect(component.attestato().description).toBe('Full description');
-      expect(component.attestato().expires_at).toBe('2025-01-01');
+      expect(component.attestato().title).toBe('Full Attestato');
+      expect(component.attestato().date).toBe('2025-01-01');
     });
   });
 
@@ -335,18 +338,19 @@ describe('AttestatiCard', () => {
       const attestatoWithNulls: Attestato = {
         id: 2,
         title: 'Test',
-        institution: 'Institution',
-        image: 'img.jpg',
-        issue_date: '2023-01-01',
-        description: null,
-        credential_id: null,
-        credential_url: null
+        issuer: 'Institution',
+        date: '2023-01-01',
+        badgeUrl: null,
+        img: {
+          src: 'img.jpg',
+          alt: 'Test'
+        }
       };
       
       fixture.componentRef.setInput('attestato', attestatoWithNulls);
       fixture.detectChanges();
       
-      expect(component.attestato().description).toBeNull();
+      expect(component.attestato().badgeUrl).toBeNull();
     });
 
     it('dovrebbe gestire id = 0', () => {
@@ -364,10 +368,10 @@ describe('AttestatiCard', () => {
 
     it('dovrebbe gestire image URL molto lunga', () => {
       const longUrl = 'https://example.com/' + 'A'.repeat(500) + '.jpg';
-      fixture.componentRef.setInput('attestato', { ...mockAttestato, image: longUrl });
+      fixture.componentRef.setInput('attestato', { ...mockAttestato, img: { src: longUrl, alt: 'Long URL' } });
       fixture.detectChanges();
       
-      expect(component.attestato().image).toBe(longUrl);
+      expect(component.attestato().img?.src).toBe(longUrl);
     });
 
     it('dovrebbe gestire title molto lungo', () => {
