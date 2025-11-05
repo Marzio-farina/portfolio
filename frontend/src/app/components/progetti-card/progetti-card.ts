@@ -796,6 +796,17 @@ export class ProgettiCard {
   }
   
   /**
+   * Tronca il titolo di una tecnologia a 7 caratteri con ellipsis
+   */
+  truncateTechTitle(title: string): string {
+    const maxLength = 7;
+    if (title.length <= maxLength) {
+      return title;
+    }
+    return title.substring(0, maxLength) + '...';
+  }
+  
+  /**
    * Aggiunge una notifica di successo
    */
   private showSuccessNotification(message: string): void {

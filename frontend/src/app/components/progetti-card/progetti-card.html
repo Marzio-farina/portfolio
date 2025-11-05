@@ -109,7 +109,7 @@
                     [class.optimistic]="isOptimisticTech(tech)"
                     [class.removing]="isRemovingTech(tech)"
                     [attr.title]="tech.isOthers ? 'Tecnologie rimanenti non visualizzate' : tech.title">
-                    {{ tech.title }}
+                    {{ tech.isOthers ? tech.title : truncateTechTitle(tech.title!) }}
                   </div>
                 }
               </div>
@@ -122,7 +122,7 @@
             [class.optimistic]="isOptimisticTech(tech)"
             [class.removing]="isRemovingTech(tech)"
             [title]="tech.title">
-            {{ tech.title }}
+            {{ truncateTechTitle(tech.title) }}
           </span>
         }
         @if (isAuthenticated() && isEditing()) {
