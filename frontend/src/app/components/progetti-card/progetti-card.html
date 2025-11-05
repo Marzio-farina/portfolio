@@ -104,14 +104,29 @@
                 [style.bottom]="popupBottom()"
                 [style.left]="popupLeft()">
                 @for (tech of hiddenTechs(); track trackByTech($index, tech)) {
-                  <div 
-                    class="hidden-tech-item"
-                    [class.others]="tech.isOthers"
-                    [class.optimistic]="isOptimisticTech(tech)"
-                    [class.removing]="isRemovingTech(tech)"
-                    [attr.title]="tech.isOthers ? 'Tecnologie rimanenti non visualizzate' : tech.title">
-                    {{ tech.isOthers ? tech.title : truncateTechTitle(tech.title!) }}
-                  </div>
+                  @if (isEditingTech(tech)) {
+                    <!-- Input inline per modifica nel popup -->
+                    <input
+                      type="text"
+                      class="hidden-tech-item hidden-tech-item-editing"
+                      [value]="techEditValue()"
+                      (input)="onTechEditInput($event)"
+                      (keydown)="onTechEditKeydown($event, tech)"
+                      (blur)="onTechEditBlur(tech)"
+                      (click)="$event.stopPropagation()"
+                      placeholder="Nome tecnologia..."
+                      maxlength="50">
+                  } @else {
+                    <div 
+                      class="hidden-tech-item"
+                      [class.others]="tech.isOthers"
+                      [class.optimistic]="isOptimisticTech(tech)"
+                      [class.removing]="isRemovingTech(tech)"
+                      [attr.title]="tech.isOthers ? 'Tecnologie rimanenti non visualizzate' : tech.title"
+                      (dblclick)="onTechDoubleClick($event, tech)">
+                      {{ tech.isOthers ? tech.title : truncateTechTitle(tech.title!) }}
+                    </div>
+                  }
                 }
               </div>
             }

@@ -884,7 +884,7 @@ export class ProgettiCard {
   /**
    * Gestisce doppio click su badge tecnologia (attiva editing)
    */
-  onTechDoubleClick(event: Event, tech: Technology | OptimisticTechnology): void {
+  onTechDoubleClick(event: Event, tech: Technology | OptimisticTechnology | HiddenTechnology): void {
     event.stopPropagation();
     
     // Solo in edit mode
@@ -896,14 +896,21 @@ export class ProgettiCard {
       return;
     }
     
-    // Attiva modalità editing
-    const techId = this.isOptimisticTech(tech) ? tech.tempId : tech.id;
-    this.techEditingId.set(techId);
-    this.techEditValue.set(tech.title);
+    // Non permettere editing del badge "Altri X tag"
+    if ('isOthers' in tech && tech.isOthers) {
+      return;
+    }
     
-    // Focus sull'input
+    // Attiva modalità editing
+    const techId = this.isOptimisticTech(tech) ? tech.tempId : (tech.id ?? null);
+    if (!techId) return; // Safety check
+    
+    this.techEditingId.set(techId);
+    this.techEditValue.set(tech.title!);
+    
+    // Focus sull'input (cerca sia .technology-tag-editing che .hidden-tech-item-editing)
     setTimeout(() => {
-      const input = document.querySelector('.technology-tag-editing') as HTMLInputElement;
+      const input = document.querySelector('.technology-tag-editing, .hidden-tech-item-editing') as HTMLInputElement;
       if (input) {
         input.focus();
         input.select();
@@ -922,7 +929,7 @@ export class ProgettiCard {
   /**
    * Gestisce keydown durante modifica tecnologia
    */
-  onTechEditKeydown(event: KeyboardEvent, tech: Technology | OptimisticTechnology): void {
+  onTechEditKeydown(event: KeyboardEvent, tech: Technology | OptimisticTechnology | HiddenTechnology): void {
     if (event.key === 'Enter') {
       event.preventDefault();
       event.stopPropagation();
@@ -937,7 +944,7 @@ export class ProgettiCard {
   /**
    * Gestisce blur durante modifica tecnologia
    */
-  onTechEditBlur(tech: Technology | OptimisticTechnology): void {
+  onTechEditBlur(tech: Technology | OptimisticTechnology | HiddenTechnology): void {
     // Salva automaticamente al blur
     setTimeout(() => {
       if (this.techEditingId()) {
@@ -957,8 +964,14 @@ export class ProgettiCard {
   /**
    * Salva modifica tecnologia (ottimistico)
    */
-  private saveTechEdit(tech: Technology | OptimisticTechnology): void {
+  private saveTechEdit(tech: Technology | OptimisticTechnology | HiddenTechnology): void {
     const newTitle = this.techEditValue().trim();
+    
+    // Safety check per ID
+    if (!tech.id) {
+      this.cancelTechEdit();
+      return;
+    }
     
     // Valida input
     if (!newTitle || newTitle === tech.title) {
@@ -981,12 +994,14 @@ export class ProgettiCard {
     
     this.cancelTechEdit();
     
+    const techId = tech.id; // Già verificato sopra
+    const oldTitle = tech.title!;
+    
     // OPTIMISTIC UPDATE: Aggiorna il titolo localmente
-    const oldTitle = tech.title;
-    this.updateTechnologyOptimistic(tech.id, newTitle);
+    this.updateTechnologyOptimistic(techId, newTitle);
     
     // Chiamata API con bassa priorità
-    this.http.put<{ ok: boolean; data: Technology }>(apiUrl(`technologies/${tech.id}`), {
+    this.http.put<{ ok: boolean; data: Technology }>(apiUrl(`technologies/${techId}`), {
       title: newTitle
     })
       .pipe(delay(150))
@@ -994,11 +1009,11 @@ export class ProgettiCard {
         next: (response) => {
           // Aggiorna nella lista disponibili
           this.availableTechnologies.update(techs => 
-            techs.map(t => t.id === tech.id ? response.data : t)
+            techs.map(t => t.id === techId ? response.data : t)
           );
           
           // Rimuovi override (ora è nel progetto reale)
-          this.removeOptimisticTitleOverride(tech.id);
+          this.removeOptimisticTitleOverride(techId);
           
           this.showSuccessNotification(`Tecnologia "${oldTitle}" rinominata in "${newTitle}"`);
           
@@ -1009,7 +1024,7 @@ export class ProgettiCard {
           console.error('❌ Errore modifica tecnologia:', err);
           
           // Ripristina titolo originale
-          this.updateTechnologyOptimistic(tech.id, oldTitle);
+          this.updateTechnologyOptimistic(techId, oldTitle);
           
           this.showErrorNotification(`Impossibile modificare "${oldTitle}". Riprova.`);
         }
