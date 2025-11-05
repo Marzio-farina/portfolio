@@ -189,7 +189,7 @@ export class ProgettiCard {
   });
   
   hiddenTechsCount = computed(() => {
-    const techs = this.progetto().technologies || [];
+    const techs = this.allTechnologies(); // Include tecnologie ottimistiche
     const isEditMode = this.isAuthenticated() && this.isEditing();
     const isInputExpanded = this.isAddTechExpanded();
     
