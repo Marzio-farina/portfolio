@@ -11,45 +11,55 @@
      [style.--radial-gradient-color]="radialGradientColor()"
      role="button"
      tabindex="0"
-     [attr.aria-label]="'Apri dettagli progetto: ' + progetto().title">
+     [attr.aria-label]="'Apri dettagli progetto: ' + (progetto().title || 'Progetto')">
   @if (isAuthenticated() && isEditing()) {
-    <button class="admin-x-btn"
-            type="button"
-            [class.is-cancel]="deleting()"
-            [attr.aria-label]="deleting() ? 'Annulla eliminazione progetto' : 'Elimina progetto'"
-            [attr.title]="deleting() ? 'Annulla eliminazione' : 'Elimina progetto'"
-            (click)="onAdminButtonClick($event)">
-      <span aria-hidden="true">{{ deleting() ? '↩' : '×' }}</span>
-    </button>
+    <app-admin-delete-button
+      [isDeleting]="deleting()"
+      deleteLabel="Elimina progetto"
+      cancelLabel="Annulla eliminazione progetto"
+      (buttonClick)="onAdminButtonClick($event)">
+    </app-admin-delete-button>
   }
   @if (deleting()) {
-    <div class="card-deletion-overlay" aria-hidden="true">
-      <div class="card-deletion-skeleton"></div>
-    </div>
+    <app-deletion-overlay [blurAmount]="12" />
   }
   <div class="card" [class.no-video]="!progetto().video">
     <div class="media">
       <!-- Usa NgOptimizedImage con fill mode per gestire aspect ratio variabili -->
-      <img 
-        class="poster" 
-        [ngSrc]="progetto().poster" 
-        [alt]="progetto().title"
-        fill
-        [priority]="priority()"
-        sizes="(max-width: 640px) 100vw, (max-width: 1024px) 50vw, 33vw">
-      <video 
-        #videoEl 
-        class="video" 
-        [src]="progetto().video" 
-        muted 
-        playsinline 
-        preload="none"
-        loop>
-      </video>
+      <!-- Wrappato in @if basato su priority per evitare errori quando l'indice cambia -->
+      @if (progetto() && progetto().poster && progetto().poster.length > 0) {
+        @if (priority()) {
+          <img 
+            class="poster" 
+            [ngSrc]="progetto().poster" 
+            [alt]="progetto().title || 'Project image'"
+            fill
+            priority
+            sizes="(max-width: 640px) 100vw, (max-width: 1024px) 50vw, 33vw">
+        } @else {
+          <img 
+            class="poster" 
+            [ngSrc]="progetto().poster" 
+            [alt]="progetto().title || 'Project image'"
+            fill
+            sizes="(max-width: 640px) 100vw, (max-width: 1024px) 50vw, 33vw">
+        }
+      }
+      @if (progetto() && progetto().video && progetto().video.length > 0) {
+        <video 
+          #videoEl 
+          class="video" 
+          [src]="progetto().video" 
+          muted 
+          playsinline 
+          preload="none"
+          loop>
+        </video>
+      }
     </div>
   </div>
   <div class="meta">
-    <h3 class="title">{{ progetto().title }}</h3>
+    <h3 class="title">{{ progetto().title || 'Progetto' }}</h3>
     @if (isAuthenticated() && isEditing()) {
       <mat-form-field class="category-select-field" (click)="onSelectClick($event)">
         <mat-select 
@@ -66,7 +76,7 @@
         </mat-select>
       </mat-form-field>
     } @else {
-      <p class="category">{{ progetto().category }}</p>
+      <p class="category">{{ progetto().category || 'Categoria' }}</p>
     }
     @if (progetto().technologies && progetto().technologies.length > 0) {
       <div class="technologies" (click)="$event.stopPropagation()">

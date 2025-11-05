@@ -4,8 +4,10 @@ namespace App\Http\Controllers\Api;
 
 use App\Http\Controllers\Controller;
 use App\Models\Technology;
+use App\Services\Factories\DataNormalizationFactory;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Auth;
 
 /**
  * Technology API Controller
@@ -74,8 +76,12 @@ class TechnologyController extends Controller
             'user_id' => 'nullable|integer|exists:users,id',
         ]);
         
+        // Normalizza usando DataNormalizationFactory
+        $validated = DataNormalizationFactory::trimAllStrings($validated);
+        $validated = DataNormalizationFactory::normalizeNullableFields($validated, ['description', 'type', 'user_id']);
+        
         // Usa l'user_id dal request o dall'utente autenticato
-        $userId = $validated['user_id'] ?? auth()->id();
+        $userId = $validated['user_id'] ?? Auth::id();
         
         // Verifica se esiste già una tecnologia con lo stesso titolo per questo utente
         $existing = Technology::where('title', $validated['title'])
@@ -99,11 +105,11 @@ class TechnologyController extends Controller
             ], 200, [], JSON_UNESCAPED_UNICODE);
         }
         
-        // Crea la nuova tecnologia
+        // Crea la nuova tecnologia (già normalizzati da DataNormalizationFactory)
         $technology = Technology::create([
-            'title' => trim($validated['title']),
-            'description' => $validated['description'] ?? null,
-            'type' => $validated['type'] ?? null,
+            'title' => $validated['title'],
+            'description' => $validated['description'],
+            'type' => $validated['type'],
             'user_id' => $userId,
         ]);
         

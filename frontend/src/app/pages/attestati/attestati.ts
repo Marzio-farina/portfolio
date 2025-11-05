@@ -229,6 +229,21 @@ export class Attestati {
     this.loadAttestati(true);
   }
 
+  onCardDeleteError(event: { id: number; error: any }): void {
+    console.error('Errore eliminazione attestato:', event.error);
+    this.addNotification('error', 'Errore durante l\'eliminazione dell\'attestato.', `attestato-delete-error-${event.id}`);
+  }
+
+  onAttestatoChanged(attestato: Attestato): void {
+    // Aggiorna l'attestato nella lista (utile per restore)
+    const index = this.attestati().findIndex(a => a.id === attestato.id);
+    if (index !== -1) {
+      const updated = [...this.attestati()];
+      updated[index] = attestato;
+      this.attestati.set(updated);
+    }
+  }
+
 
   /**
    * Aggiunge una notifica alla lista

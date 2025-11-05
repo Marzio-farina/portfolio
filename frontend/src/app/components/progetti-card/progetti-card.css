@@ -57,6 +57,7 @@
 .media {
   position: relative; /* Necessario per fill mode di NgOptimizedImage */
   aspect-ratio: 16 / 9;
+  width: 100%; /* Garantisce che il contenitore abbia una larghezza, così aspect-ratio calcola l'altezza */
   overflow: hidden;
   line-height: 0;
   font-size: 0;
@@ -508,101 +509,5 @@
 .card.no-video:hover .poster { opacity: 1; }
 .card.no-video:hover .video  { opacity: 0; }
 
-/* Button admin X con cerchio rosso - visibile solo all'hover della card */
-.card-wrapper .admin-x-btn {
-  position: absolute;
-  top: 10px;
-  right: 10px;
-  width: 42px;
-  height: 42px;
-  border-radius: 50%;
-  border: 4px solid #ef4444; /* rosso spesso */
-  background: transparent;
-  color: #ef4444;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  font-size: 0; /* gestiamo la dimensione sulla span interna */
-  line-height: 1;
-  font-weight: 800;
-  transition: transform var(--transition-1), box-shadow var(--transition-1), opacity var(--transition-1);
-  z-index: 10; /* Sopra tutti gli altri elementi */
-  padding: 0;
-  cursor: pointer;
-  opacity: 0; /* Nascosto di default */
-  pointer-events: none; /* Non cliccabile quando nascosto */
-}
-
-.card-wrapper:hover .admin-x-btn {
-  opacity: 1; /* Visibile all'hover */
-  pointer-events: auto; /* Cliccabile all'hover */
-}
-
-.card-wrapper.is-deleting .admin-x-btn,
-.card-wrapper.is-deleting:hover .admin-x-btn {
-  opacity: 1;
-  pointer-events: auto;
-}
-
-.card-wrapper .admin-x-btn.is-cancel {
-  border-color: var(--accent-primary);
-  color: var(--accent-primary);
-}
-
-.card-wrapper .admin-x-btn.is-cancel:hover {
-  box-shadow: 0 6px 18px rgba(59, 130, 246, 0.35);
-}
-
-.card-deletion-overlay {
-  position: absolute;
-  top: 8px;
-  right: 8px;
-  left: 8px;
-  bottom: 0;
-  border-radius: 16px;
-  overflow: hidden;
-  z-index: 8;
-  background: rgba(15, 23, 42, 0.45);
-  backdrop-filter: blur(4px);
-  pointer-events: none;
-  display: flex;
-}
-
-[data-theme="light"] .card-deletion-overlay {
-  background: rgba(255, 255, 255, 0.68);
-}
-
-.card-deletion-skeleton {
-  width: 100%;
-  height: 100%;
-  border-radius: inherit;
-  background: linear-gradient(120deg, rgba(255, 255, 255, 0.1) 25%, rgba(255, 255, 255, 0.4) 37%, rgba(255, 255, 255, 0.1) 63%);
-  background-size: 400% 100%;
-  animation: cardDeletionShimmer 1.2s ease-in-out infinite;
-  opacity: 0.8;
-}
-
-[data-theme="dark"] .card-deletion-skeleton {
-  background: linear-gradient(120deg, rgba(30, 41, 59, 0.4) 25%, rgba(148, 163, 184, 0.6) 37%, rgba(30, 41, 59, 0.4) 63%);
-}
-
-@keyframes cardDeletionShimmer {
-  0% {
-    background-position: 200% 0;
-  }
-  100% {
-    background-position: -200% 0;
-  }
-}
-
-/* X interna molto grande e centrata */
-.card-wrapper .admin-x-btn > span {
-  display: block;
-  font-size: 30px !important; /* aumenta la dimensione della X */
-  line-height: 1;
-  font-weight: 900;
-}
-
-.card-wrapper.is-deleting .admin-x-btn > span {
-  font-size: 28px !important;
-}
+/* Gli stili per admin-x-btn e deletion-overlay sono ora nei componenti shared */
+/* AdminDeleteButton e DeletionOverlay */

@@ -6,12 +6,13 @@ use App\Http\Controllers\Controller;
 use App\Http\Resources\TestimonialResource;
 use App\Models\Testimonial;
 use App\Models\Icon;
+use App\Services\Factories\DataNormalizationFactory;
+use App\Services\Factories\FileUtilsFactory;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Facades\Storage;
-use Illuminate\Support\Str;
 use Intervention\Image\Facades\Image;
 
 /**
@@ -82,13 +83,9 @@ class TestimonialController extends Controller
             'rating' => 'required|integer|min:1|max:5',
         ]);
 
-        // Normalizza stringhe vuote in null per i campi nullable
+        // Normalizza stringhe vuote in null usando DataNormalizationFactory
         $nullableFields = ['author_surname', 'avatar_url', 'icon_id', 'role_company', 'company'];
-        foreach ($nullableFields as $field) {
-            if (isset($validated[$field]) && $validated[$field] === '') {
-                $validated[$field] = null;
-            }
-        }
+        $validated = DataNormalizationFactory::normalizeNullableFields($validated, $nullableFields);
 
         // Gestione dell'icona: priorità icon_id > avatar_file > avatar_url
         $iconId = null;
@@ -251,9 +248,9 @@ class TestimonialController extends Controller
     private function handleAvatarUpload($file, string $authorName): ?int
     {
         try {
-            // Genera nome file unico
+            // Genera nome file unico usando FileUtilsFactory
             $extension = $file->getClientOriginalExtension();
-            $filename = 'testimonial_avatar_' . Str::uuid() . '.' . $extension;
+            $filename = FileUtilsFactory::generateUuidFilename($extension, 'testimonial_avatar');
             // Se è configurato Supabase (disk src) usa sempre avatars/original/, altrimenti locale avatars/
             $useSupabase = (bool) (config('filesystems.disks.src.url') ?: env('SUPABASE_PUBLIC_URL'));
             $relativePath = $useSupabase

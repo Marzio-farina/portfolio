@@ -62,7 +62,12 @@
       </div>
     }
     @for (a of attestati(); track a.id; let i = $index) {
-      <app-attestati-card [attestato]="a" [priority]="i <= 3" (deleted)="onCardDeleted($event)"/>
+      <app-attestati-card 
+        [attestato]="a" 
+        [priority]="i < 6" 
+        (deleted)="onCardDeleted($event)"
+        (deletedError)="onCardDeleteError($event)"
+        (attestatoChanged)="onAttestatoChanged($event)" />
     }
   }
 </div>

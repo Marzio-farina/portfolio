@@ -1,22 +1,47 @@
-<article class="attestato-card" (click)="onCardClick()">
+<article class="attestato-card" 
+         (click)="onCardClick()"
+         [class.is-deleting]="deleting()"
+         [attr.aria-busy]="deleting()">
   @if (isAuthenticated() && isEditing()) {
-    <button class="admin-x-btn" type="button" aria-label="Azione amministratore" (click)="onAdminButtonClick($event)">
-      <span aria-hidden="true">×</span>
-    </button>
+    <app-admin-delete-button
+      [isDeleting]="deleting()"
+      deleteLabel="Elimina attestato"
+      cancelLabel="Annulla eliminazione attestato"
+      (buttonClick)="onAdminButtonClick($event)">
+    </app-admin-delete-button>
   }
+  
+  <!-- Overlay applicato al contenuto visibile -->
+  @if (deleting()) {
+    <app-deletion-overlay [blurAmount]="10" />
+  }
+  
   @if (attestato().img; as img) {
     @if (img.src) {
       <div class="cover" [style.aspect-ratio]="aspectRatio() || defaultAR">
-        <img
-          [ngSrc]="img.src"
-          fill
-          [alt]="img.alt || attestato().title"
-          [sizes]="'100vw'"
-          [priority]="priority()"
-          decoding="async"
-          (load)="onImgLoad($event)"
-          (error)="onImgError($event)"
-        />
+        <!-- Wrappato in @if basato su priority per evitare errori quando l'indice cambia -->
+        @if (priority()) {
+          <img
+            [ngSrc]="img.src"
+            fill
+            [alt]="img.alt || attestato().title"
+            [sizes]="'100vw'"
+            priority
+            decoding="async"
+            (load)="onImgLoad($event)"
+            (error)="onImgError($event)"
+          />
+        } @else {
+          <img
+            [ngSrc]="img.src"
+            fill
+            [alt]="img.alt || attestato().title"
+            [sizes]="'100vw'"
+            decoding="async"
+            (load)="onImgLoad($event)"
+            (error)="onImgError($event)"
+          />
+        }
       </div>
     }
   }

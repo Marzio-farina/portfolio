@@ -11,6 +11,9 @@ import { EditModeService } from '../../services/edit-mode.service';
 import { ProjectService } from '../../services/project.service';
 import { TechnologyService } from '../../services/technology.service';
 import { TenantService } from '../../services/tenant.service';
+import { DeletionConfirmationService } from '../../services/deletion-confirmation.service';
+import { AdminDeleteButton } from '../shared/admin-delete-button/admin-delete-button';
+import { DeletionOverlay } from '../shared/deletion-overlay/deletion-overlay';
 import { Subscription } from 'rxjs';
 
 import { Progetto } from '../../core/models/project';
@@ -25,7 +28,8 @@ interface Technology {
 
 @Component({
   selector: 'app-progetti-card',
-  imports: [MatSelectModule, MatFormFieldModule, NgOptimizedImage],
+  imports: [MatSelectModule, MatFormFieldModule, NgOptimizedImage, AdminDeleteButton, DeletionOverlay],
+  providers: [DeletionConfirmationService],
   templateUrl: './progetti-card.html',
   styleUrl: './progetti-card.css'
 })
@@ -50,8 +54,13 @@ export class ProgettiCard {
   deletedError = output<{ id: number; error: any }>();
   clicked = output<Progetto>();
   categoryChanged = output<Progetto>();
-  deleting = signal(false);
-  deletingClass = computed(() => this.deleting() ? 'is-deleting' : '');
+  
+  // Service per gestione cancellazione con conferma
+  deletionService = inject(DeletionConfirmationService);
+  
+  // Espone lo stato deleting del service
+  deleting = computed(() => this.deletionService.isDeleting());
+  deletingClass = computed(() => this.deletionService.deletingClass());
   
   // Lista categorie per la select (passata dal parent)
   categories = input<Array<{ id: number; title: string }>>([]);
@@ -59,7 +68,6 @@ export class ProgettiCard {
   
   // Flag per prevenire loop infinito
   private isUpdatingCategory = false;
-  private deleteSubscription: Subscription | null = null;
   
   // Popup tag nascosti
   showHiddenTechsPopup = signal(false);
@@ -192,6 +200,9 @@ export class ProgettiCard {
   radialGradientColor = signal<string>('transparent'); // Colore per il gradiente radiale
 
   constructor() {
+    // Inizializza il service per gestione cancellazione
+    this.deletionService.initialize(this.destroyRef);
+    
     // Genera valori leggeri per non disturbare la UX
     const angles = ['-0.4deg', '0deg', '0.4deg'];
     const translations = ['-2px', '-3px', '-4px'];
@@ -217,13 +228,6 @@ export class ProgettiCard {
     
     // Carica le tecnologie disponibili per la ricerca
     this.loadTechnologies();
-
-    this.destroyRef.onDestroy(() => {
-      if (this.deleteSubscription) {
-        this.deleteSubscription.unsubscribe();
-        this.deleteSubscription = null;
-      }
-    });
   }
   
   /**
@@ -364,54 +368,22 @@ export class ProgettiCard {
     v.pause();
   }
 
+  /**
+   * Gestisce il click sul bottone admin (X o ↩)
+   */
   onAdminButtonClick(event: Event): void {
     event.stopPropagation();
     const id = this.progetto().id;
 
-    if (this.deleting()) {
-      this.cancelDeletion();
-      return;
-    }
-
-    this.deleting.set(true);
-
-    this.deleteSubscription = this.api.delete$(id).subscribe({
-      next: () => {
-        this.deleteSubscription = null;
-        this.deleting.set(false);
-        this.deleted.emit(id);
-      },
-      error: (err) => {
-        this.deleteSubscription = null;
-        this.deleting.set(false);
-        this.deletedError.emit({ id, error: err });
-      }
-    });
-  }
-
-  private cancelDeletion(): void {
-    const id = this.progetto().id;
-    
-    if (this.deleteSubscription) {
-      this.deleteSubscription.unsubscribe();
-      this.deleteSubscription = null;
-    }
-    
-    // Ripristina immediatamente lo stato della UI per reattività
-    this.deleting.set(false);
-    
-    // Chiama l'endpoint di ripristino in background per annullare la soft-delete sul server
-    this.api.restore$(id)
-      .pipe(takeUntilDestroyed(this.destroyRef))
-      .subscribe({
-        next: (restoredProject) => {
-          // Notifica il parent che il progetto è stato modificato (ripristinato)
-          this.categoryChanged.emit(restoredProject);
-        },
-        error: (err) => {
-          // La card è già tornata normale, quindi non serve fare altro
-        }
-      });
+    // Usa il service per gestire la logica di conferma
+    this.deletionService.handleAdminClick(
+      id,
+      this.api.delete$(id),
+      this.api.restore$(id), // API di restore per progetti
+      (deletedId) => this.deleted.emit(deletedId),
+      (error) => this.deletedError.emit({ id, error }),
+      (restoredProject) => this.categoryChanged.emit(restoredProject)
+    );
   }
 
   onCardClick(): void {

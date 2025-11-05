@@ -7,12 +7,14 @@ use App\Http\Resources\ProjectResource;
 use App\Models\Project;
 use App\Models\Category;
 use App\Models\User;
+use App\Services\Factories\AuthorizationFactory;
+use App\Services\Factories\FileUploadFactory;
+use App\Services\Factories\FileUtilsFactory;
+use App\Services\Factories\SlugFactory;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Log;
-use Illuminate\Support\Facades\Storage;
-use Illuminate\Support\Str;
 
 /**
  * Project API Controller
@@ -200,11 +202,8 @@ class ProjectController extends Controller
                 'description_in_array_is_null' => $projectData['description'] === null,
             ]);
 
-            // Prepara la struttura cartelle: project/{id_utente}{nome_utente}/{nome_project}
-            // Usa l'utente target (non sempre l'utente autenticato)
-            $userFolder = $this->generateUserFolderName($targetUser);
-            $projectFolder = $this->slugifyProjectName($validated['title']);
-            $baseFolder = "project/{$userFolder}/{$projectFolder}";
+            // Genera path usando SlugFactory
+            $baseFolder = SlugFactory::generateProjectPath($targetUser, $validated['title']);
 
             // Gestione poster file (OBBLIGATORIO)
             $posterFile = $request->file('poster_file');
@@ -215,158 +214,41 @@ class ProjectController extends Controller
                 'base_folder' => $baseFolder,
             ]);
 
-            $extension = $posterFile->getClientOriginalExtension();
-            $filename = 'poster.' . $extension;
-            $relativePath = "{$baseFolder}/{$filename}";
+            $filename = FileUploadFactory::generateFilename($posterFile, 'poster');
+            $relativePath = FileUploadFactory::buildRelativePath($baseFolder, $filename);
 
-            // Verifica se siamo in produzione o se abbiamo configurato Supabase
-            $isProduction = app()->environment('production');
-            $hasSupabaseConfig = !empty(config('filesystems.disks.src.key')) && 
-                                !empty(config('filesystems.disks.src.secret')) &&
-                                !empty(config('filesystems.disks.src.endpoint'));
-            
-            Log::info('Controllo ambiente per salvataggio poster', [
-                'is_production' => $isProduction,
-                'app_env' => app()->environment(),
-                'has_supabase_config' => $hasSupabaseConfig,
-                'should_use_supabase' => $isProduction || $hasSupabaseConfig,
-            ]);
-
-            if ($isProduction || $hasSupabaseConfig) {
-                Log::info('Salvataggio poster su SUPABASE', [
+            try {
+                // Upload usando FileUploadFactory
+                $projectData['poster'] = FileUploadFactory::upload($posterFile, $relativePath, 'poster progetto');
+                Log::info('Poster URL generato', ['poster_url' => $projectData['poster']]);
+            } catch (\RuntimeException $e) {
+                Log::error('Errore upload poster progetto', [
+                    'error' => $e->getMessage(),
                     'relative_path' => $relativePath,
-                    'base_folder' => $baseFolder,
-                    'disk_config' => [
-                        'driver' => config('filesystems.disks.src.driver'),
-                        'bucket' => config('filesystems.disks.src.bucket'),
-                        'endpoint' => config('filesystems.disks.src.endpoint'),
-                        'has_key' => !empty(config('filesystems.disks.src.key')),
-                        'has_secret' => !empty(config('filesystems.disks.src.secret')),
-                        'region' => config('filesystems.disks.src.region'),
-                    ]
                 ]);
-                
-                try {
-                    // PRODUZIONE: salva su Supabase
-                    $binary = file_get_contents($posterFile->getRealPath());
-                    $binarySize = strlen($binary);
-                    Log::info('Binary caricato', ['size' => $binarySize]);
-                    
-                    // Prova a salvare il file
-                    $ok = Storage::disk('src')->put($relativePath, $binary);
-                    
-                    if (!$ok) {
-                        Log::error('Errore salvataggio poster su Supabase - put() ritorna false', [
-                            'relative_path' => $relativePath,
-                            'binary_size' => $binarySize,
-                        ]);
-                        throw new \RuntimeException('Failed writing poster to src disk - put() returned false');
-                    }
-                    
-                    // Verifica che il file sia stato effettivamente salvato
-                    $exists = Storage::disk('src')->exists($relativePath);
-                    if (!$exists) {
-                        Log::error('File non trovato dopo il salvataggio', [
-                            'relative_path' => $relativePath,
-                        ]);
-                        throw new \RuntimeException('File not found after upload - verification failed');
-                    }
-                    
-                    Log::info('Poster salvato e verificato su Supabase', [
-                        'relative_path' => $relativePath,
-                        'file_exists' => $exists,
-                    ]);
-                    
-                    $baseUrl = rtrim(config('filesystems.disks.src.url') ?: env('SUPABASE_PUBLIC_URL'), '/');
-                    $projectData['poster'] = $baseUrl . '/' . $relativePath;
-                    Log::info('Poster URL generato', ['poster_url' => $projectData['poster']]);
-                    
-                } catch (\Exception $e) {
-                    Log::error('Eccezione durante salvataggio poster su Supabase', [
-                        'error' => $e->getMessage(),
-                        'trace' => $e->getTraceAsString(),
-                        'relative_path' => $relativePath,
-                    ]);
-                    throw $e;
-                }
-            } else {
-                Log::info('Salvataggio poster in LOCALE', ['filename' => $filename, 'base_folder' => $baseFolder]);
-                // LOCALE: salva su storage locale mantenendo la stessa struttura
-                $localPath = "public/{$baseFolder}";
-                $posterFile->storeAs($localPath, $filename);
-                $projectData['poster'] = "storage/{$baseFolder}/{$filename}";
-                Log::info('Poster salvato in locale', ['poster_path' => $projectData['poster']]);
+                throw $e;
             }
 
             // Gestione video file (OPZIONALE)
             if ($request->hasFile('video_file')) {
                 Log::info('Gestione video file presente');
                 $videoFile = $request->file('video_file');
-                $extension = $videoFile->getClientOriginalExtension();
-                // Genera nome randomico di 10 caratteri (0-9, a-z)
-                $randomName = $this->generateRandomFilename(10);
-                $filename = $randomName . '.' . $extension;
-                $relativePath = "{$baseFolder}/{$filename}";
-
-                // Verifica se siamo in produzione o se abbiamo configurato Supabase
-                $isProduction = app()->environment('production');
-                $hasSupabaseConfig = !empty(config('filesystems.disks.src.key')) && 
-                                    !empty(config('filesystems.disks.src.secret')) &&
-                                    !empty(config('filesystems.disks.src.endpoint'));
                 
-                if ($isProduction || $hasSupabaseConfig) {
-                    Log::info('Salvataggio video su SUPABASE', [
+                // Genera nome randomico usando FileUtilsFactory
+                $extension = $videoFile->getClientOriginalExtension();
+                $filename = FileUtilsFactory::generateRandomFilenameWithExtension($extension, 10);
+                $relativePath = FileUploadFactory::buildRelativePath($baseFolder, $filename);
+                
+                try {
+                    // Upload usando FileUploadFactory
+                    $projectData['video'] = FileUploadFactory::upload($videoFile, $relativePath, 'video progetto');
+                    Log::info('Video caricato con successo', ['video_url' => $projectData['video']]);
+                } catch (\RuntimeException $e) {
+                    Log::error('Errore upload video progetto', [
+                        'error' => $e->getMessage(),
                         'relative_path' => $relativePath,
-                        'is_production' => $isProduction,
-                        'has_supabase_config' => $hasSupabaseConfig,
                     ]);
-                    
-                    try {
-                        // PRODUZIONE: salva su Supabase
-                        $binary = file_get_contents($videoFile->getRealPath());
-                        $binarySize = strlen($binary);
-                        Log::info('Video binary caricato', ['size' => $binarySize]);
-                        
-                        $ok = Storage::disk('src')->put($relativePath, $binary);
-                        if (!$ok) {
-                            Log::error('Errore salvataggio video su Supabase - put() ritorna false', [
-                                'relative_path' => $relativePath,
-                                'binary_size' => $binarySize,
-                            ]);
-                            throw new \RuntimeException('Failed writing video to src disk - put() returned false');
-                        }
-                        
-                        // Verifica che il file sia stato effettivamente salvato
-                        $exists = Storage::disk('src')->exists($relativePath);
-                        if (!$exists) {
-                            Log::error('Video non trovato dopo il salvataggio', [
-                                'relative_path' => $relativePath,
-                            ]);
-                            throw new \RuntimeException('Video file not found after upload - verification failed');
-                        }
-                        
-                        Log::info('Video salvato e verificato su Supabase', [
-                            'relative_path' => $relativePath,
-                            'file_exists' => $exists,
-                        ]);
-                        
-                        $baseUrl = rtrim(config('filesystems.disks.src.url') ?: env('SUPABASE_PUBLIC_URL'), '/');
-                        $projectData['video'] = $baseUrl . '/' . $relativePath;
-                        
-                    } catch (\Exception $e) {
-                        Log::error('Eccezione durante salvataggio video su Supabase', [
-                            'error' => $e->getMessage(),
-                            'trace' => $e->getTraceAsString(),
-                            'relative_path' => $relativePath,
-                        ]);
-                        throw $e;
-                    }
-                } else {
-                    Log::info('Salvataggio video in LOCALE', ['filename' => $filename, 'base_folder' => $baseFolder]);
-                    // LOCALE: salva su storage locale mantenendo la stessa struttura
-                    $localPath = "public/{$baseFolder}";
-                    $videoFile->storeAs($localPath, $filename);
-                    $projectData['video'] = "storage/{$baseFolder}/{$filename}";
+                    throw $e;
                 }
             } else {
                 Log::info('Nessun file video presente');
@@ -441,19 +323,9 @@ class ProjectController extends Controller
             return response()->json(['ok' => false, 'message' => 'Non autenticato'], 401);
         }
 
-        // Verifica autorizzazione: l'utente deve essere il proprietario o admin
-        $userId = $user->id;
-        $userEmail = $user->email;
-        $isAdmin = $userEmail === env('PUBLIC_USER_EMAIL', 'marziofarina@icloud.com');
-        $projectUserId = $project->user_id ?? null;
-
-        $canUpdate = (
-            $projectUserId === $userId || 
-            ($projectUserId === null && $isAdmin) ||
-            $isAdmin
-        );
-
-        if (!$canUpdate) {
+        // Verifica autorizzazione usando AuthorizationFactory
+        if (!AuthorizationFactory::canUpdate($user, $project)) {
+            AuthorizationFactory::logUnauthorizedAttempt($user, $project, 'update');
             return response()->json([
                 'ok' => false, 
                 'message' => 'Non autorizzato'
@@ -487,9 +359,9 @@ class ProjectController extends Controller
         $uploadMaxSize = ini_get('upload_max_filesize');
         $postMaxSize = ini_get('post_max_size');
         
-        // Converte i limiti PHP in bytes per confronto
-        $uploadMaxBytes = $this->convertToBytes($uploadMaxSize);
-        $postMaxBytes = $this->convertToBytes($postMaxSize);
+        // Converte i limiti PHP in bytes per confronto usando FileUtilsFactory
+        $uploadMaxBytes = FileUtilsFactory::convertToBytes($uploadMaxSize);
+        $postMaxBytes = FileUtilsFactory::convertToBytes($postMaxSize);
         
         if ($contentLength && (int)$contentLength > $postMaxBytes) {
             $errorMessage = "Il file è troppo grande. Limite PHP post_max_size: {$postMaxSize}. Dimensione richiesta: " . round((int)$contentLength / 1024 / 1024, 2) . "MB. Per aumentare il limite, modifica il file php.ini o usa un server web configurato.";
@@ -810,50 +682,29 @@ class ProjectController extends Controller
             }
 
             // Gestione upload file se presenti
-            // Prepara la struttura cartelle: project/{id_utente}{nome_utente}/{nome_project}
             $targetUser = $project->user_id 
                 ? User::find($project->user_id) 
-                : User::find(env('PUBLIC_USER_ID', 1));
+                : User::find(AuthorizationFactory::getPublicUserId());
             
-            $userFolder = $this->generateUserFolderName($targetUser);
-            $projectFolder = $this->slugifyProjectName($project->title);
-            $baseFolder = "project/{$userFolder}/{$projectFolder}";
+            $baseFolder = SlugFactory::generateProjectPath($targetUser, $project->title);
 
             // Gestione poster file (se presente)
             if ($request->hasFile('poster_file')) {
                 Log::info('Aggiornamento poster file');
                 $posterFile = $request->file('poster_file');
-                $extension = $posterFile->getClientOriginalExtension();
-                $filename = 'poster.' . $extension;
-                $relativePath = "{$baseFolder}/{$filename}";
+                
+                $filename = FileUploadFactory::generateFilename($posterFile, 'poster');
+                $relativePath = FileUploadFactory::buildRelativePath($baseFolder, $filename);
 
-                $isProduction = app()->environment('production');
-                $hasSupabaseConfig = !empty(config('filesystems.disks.src.key')) && 
-                                    !empty(config('filesystems.disks.src.secret')) &&
-                                    !empty(config('filesystems.disks.src.endpoint'));
-
-                if ($isProduction || $hasSupabaseConfig) {
-                    try {
-                        $binary = file_get_contents($posterFile->getRealPath());
-                        $ok = Storage::disk('src')->put($relativePath, $binary);
-                        if (!$ok || !Storage::disk('src')->exists($relativePath)) {
-                            throw new \RuntimeException('Failed writing poster to src disk');
-                        }
-                        $baseUrl = rtrim(config('filesystems.disks.src.url') ?: env('SUPABASE_PUBLIC_URL'), '/');
-                        $project->poster = $baseUrl . '/' . $relativePath;
-                        $hasChanges = true;
-                    } catch (\Exception $e) {
-                        Log::error('Errore salvataggio poster durante update', [
-                            'error' => $e->getMessage(),
-                            'relative_path' => $relativePath,
-                        ]);
-                        throw $e;
-                    }
-                } else {
-                    $localPath = "public/{$baseFolder}";
-                    $posterFile->storeAs($localPath, $filename);
-                    $project->poster = "storage/{$baseFolder}/{$filename}";
+                try {
+                    $project->poster = FileUploadFactory::upload($posterFile, $relativePath, 'poster progetto update');
                     $hasChanges = true;
+                } catch (\RuntimeException $e) {
+                    Log::error('Errore salvataggio poster durante update', [
+                        'error' => $e->getMessage(),
+                        'relative_path' => $relativePath,
+                    ]);
+                    throw $e;
                 }
             }
 
@@ -874,95 +725,37 @@ class ProjectController extends Controller
                     'base_folder' => $baseFolder,
                 ]);
                 
-                // Usa il file già recuperato
                 $videoFile = $videoFileForSave;
                 $extension = $videoFile->getClientOriginalExtension();
-                // Genera nome randomico di 10 caratteri (0-9, a-z)
-                $randomName = $this->generateRandomFilename(10);
-                $filename = $randomName . '.' . $extension;
-                $relativePath = "{$baseFolder}/{$filename}";
+                
+                // Genera nome randomico usando FileUtilsFactory
+                $filename = FileUtilsFactory::generateRandomFilenameWithExtension($extension, 10);
+                $relativePath = FileUploadFactory::buildRelativePath($baseFolder, $filename);
                 
                 Log::info('Dettagli video file', [
                     'original_name' => $videoFile->getClientOriginalName(),
                     'mime_type' => $videoFile->getMimeType(),
                     'size' => $videoFile->getSize(),
                     'extension' => $extension,
-                    'random_name' => $randomName,
                     'filename' => $filename,
                     'relative_path' => $relativePath,
                 ]);
 
-                $isProduction = app()->environment('production');
-                $hasSupabaseConfig = !empty(config('filesystems.disks.src.key')) && 
-                                    !empty(config('filesystems.disks.src.secret')) &&
-                                    !empty(config('filesystems.disks.src.endpoint'));
-
-                Log::info('Controllo ambiente per salvataggio video', [
-                    'is_production' => $isProduction,
-                    'has_supabase_config' => $hasSupabaseConfig,
-                    'should_use_supabase' => $isProduction || $hasSupabaseConfig,
-                ]);
-
-                if ($isProduction || $hasSupabaseConfig) {
-                    try {
-                        Log::info('Salvataggio video su SUPABASE', [
-                            'relative_path' => $relativePath,
-                        ]);
-                        
-                        $binary = file_get_contents($videoFile->getRealPath());
-                        $binarySize = strlen($binary);
-                        Log::info('Video binary caricato', ['size' => $binarySize]);
-                        
-                        $ok = Storage::disk('src')->put($relativePath, $binary);
-                        if (!$ok) {
-                            Log::error('Errore salvataggio video su Supabase - put() ritorna false', [
-                                'relative_path' => $relativePath,
-                                'binary_size' => $binarySize,
-                            ]);
-                            throw new \RuntimeException('Failed writing video to src disk - put() returned false');
-                        }
-                        
-                        // Verifica che il file sia stato effettivamente salvato
-                        $exists = Storage::disk('src')->exists($relativePath);
-                        if (!$exists) {
-                            Log::error('Video non trovato dopo il salvataggio', [
-                                'relative_path' => $relativePath,
-                            ]);
-                            throw new \RuntimeException('Video file not found after upload - verification failed');
-                        }
-                        
-                        Log::info('Video salvato e verificato su Supabase', [
-                            'relative_path' => $relativePath,
-                            'file_exists' => $exists,
-                        ]);
-                        
-                        $baseUrl = rtrim(config('filesystems.disks.src.url') ?: env('SUPABASE_PUBLIC_URL'), '/');
-                        $videoUrl = $baseUrl . '/' . $relativePath;
-                        $project->video = $videoUrl;
-                        $hasChanges = true;
-                        
-                        Log::info('Video URL generato e assegnato al progetto', [
-                            'video_url' => $videoUrl,
-                            'project_video_field' => $project->video,
-                        ]);
-                        
-                    } catch (\Exception $e) {
-                        Log::error('Eccezione durante salvataggio video su Supabase', [
-                            'error' => $e->getMessage(),
-                            'trace' => $e->getTraceAsString(),
-                            'relative_path' => $relativePath,
-                        ]);
-                        throw $e;
-                    }
-                } else {
-                    Log::info('Salvataggio video in LOCALE', [
-                        'filename' => $filename,
-                        'base_folder' => $baseFolder,
-                    ]);
-                    $localPath = "public/{$baseFolder}";
-                    $videoFile->storeAs($localPath, $filename);
-                    $project->video = "storage/{$baseFolder}/{$filename}";
+                try {
+                    // Upload usando FileUploadFactory
+                    $project->video = FileUploadFactory::upload($videoFile, $relativePath, 'video progetto update');
                     $hasChanges = true;
+                    
+                    Log::info('Video URL generato e assegnato al progetto', [
+                        'video_url' => $project->video,
+                        'project_video_field' => $project->video,
+                    ]);
+                } catch (\RuntimeException $e) {
+                    Log::error('Eccezione durante salvataggio video', [
+                        'error' => $e->getMessage(),
+                        'relative_path' => $relativePath,
+                    ]);
+                    throw $e;
                 }
                 
                 Log::info('=== FINE AGGIORNAMENTO VIDEO FILE ===', [
@@ -1031,58 +824,9 @@ class ProjectController extends Controller
             return response()->json(['ok' => false, 'message' => 'Non autenticato'], 401);
         }
 
-        $userId = $user->id;
-        $userEmail = $user->email;
-        $isAdmin = $userEmail === env('PUBLIC_USER_EMAIL', 'marziofarina@icloud.com');
-        
-        // Debug: verifica se la colonna user_id esiste
-        try {
-            $projectUserId = $project->user_id;
-        } catch (\Exception $e) {
-            // Se la colonna non esiste, assumiamo che l'admin possa eliminare qualsiasi progetto
-            Log::warning('Project user_id column may not exist', [
-                'project_id' => $project->id,
-                'user_id' => $userId,
-                'is_admin' => $isAdmin,
-                'error' => $e->getMessage()
-            ]);
-            
-            if ($isAdmin) {
-                $project->delete();
-                return response()->json(null, 204);
-            }
-            
-            return response()->json([
-                'ok' => false, 
-                'message' => 'Non autorizzato - colonna user_id non trovata nel database'
-            ], 403);
-        }
-
-        Log::info('Project delete attempt', [
-            'project_id' => $project->id,
-            'project_user_id' => $projectUserId,
-            'authenticated_user_id' => $userId,
-            'authenticated_user_email' => $userEmail,
-            'is_admin' => $isAdmin
-        ]);
-
-        // Verifica proprietà del progetto:
-        // - L'utente è il proprietario del progetto OPPURE
-        // - Il progetto non ha user_id (null) e l'utente è l'admin OPPURE
-        // - L'utente è l'admin (può eliminare qualsiasi progetto)
-        $canDelete = (
-            $projectUserId === $userId || 
-            ($projectUserId === null && $isAdmin) ||
-            $isAdmin  // L'admin può eliminare qualsiasi progetto
-        );
-
-        if (!$canDelete) {
-            Log::warning('Project delete denied', [
-                'project_id' => $project->id,
-                'project_user_id' => $projectUserId,
-                'authenticated_user_id' => $userId,
-                'is_admin' => $isAdmin
-            ]);
+        // Verifica autorizzazione usando AuthorizationFactory
+        if (!AuthorizationFactory::canDelete($user, $project)) {
+            AuthorizationFactory::logUnauthorizedAttempt($user, $project, 'delete');
             return response()->json([
                 'ok' => false, 
                 'message' => 'Non autorizzato'
@@ -1113,19 +857,9 @@ class ProjectController extends Controller
             return response()->json(['ok' => false, 'message' => 'Progetto non trovato'], 404);
         }
 
-        // Verifica autorizzazione
-        $userId = $user->id;
-        $userEmail = $user->email;
-        $isAdmin = $userEmail === env('PUBLIC_USER_EMAIL', 'marziofarina@icloud.com');
-        $projectUserId = $project->user_id ?? null;
-
-        $canRestore = (
-            $projectUserId === $userId || 
-            ($projectUserId === null && $isAdmin) ||
-            $isAdmin
-        );
-
-        if (!$canRestore) {
+        // Verifica autorizzazione usando AuthorizationFactory
+        if (!AuthorizationFactory::canUpdate($user, $project)) {
+            AuthorizationFactory::logUnauthorizedAttempt($user, $project, 'restore');
             return response()->json([
                 'ok' => false, 
                 'message' => 'Non autorizzato'
@@ -1162,99 +896,6 @@ class ProjectController extends Controller
     }
 
     /**
-     * Genera il nome della cartella utente: {id_utente}{nome_utente}
-     * 
-     * Esempio: 1marziofarina
-     * 
-     * @param \App\Models\User $user
-     * @return string
-     */
-    private function generateUserFolderName($user): string
-    {
-        $username = $user->name ?? $user->email ?? 'user';
-        // Rimuovi spazi e caratteri speciali, mantieni solo alfanumerici
-        $username = preg_replace('/[^a-zA-Z0-9]/', '', $username);
-        return $user->id . $username;
-    }
-
-    /**
-     * Genera uno slug dal nome del progetto per la cartella
-     * 
-     * Esempio: "Mio Progetto" -> "mio-progetto"
-     * 
-     * @param string $projectName
-     * @return string
-     */
-    private function slugifyProjectName(string $projectName): string
-    {
-        // Converte in minuscolo
-        $slug = mb_strtolower($projectName, 'UTF-8');
-        
-        // Sostituisce spazi e caratteri speciali con trattini
-        $slug = preg_replace('/[^a-z0-9]+/', '-', $slug);
-        
-        // Rimuove trattini multipli
-        $slug = preg_replace('/-+/', '-', $slug);
-        
-        // Rimuove trattini iniziali/finali
-        $slug = trim($slug, '-');
-        
-        // Limita la lunghezza (max 50 caratteri)
-        $slug = mb_substr($slug, 0, 50);
-        
-        // Se vuoto, usa un fallback
-        if (empty($slug)) {
-            $slug = 'project-' . time();
-        }
-        
-        return $slug;
-    }
-
-    /**
-     * Converte valori come "2M", "100M", "8G" in bytes
-     */
-    private function convertToBytes(string $value): int
-    {
-        $value = trim($value);
-        $last = strtolower($value[strlen($value) - 1]);
-        $value = (int) $value;
-        
-        switch ($last) {
-            case 'g':
-                $value *= 1024;
-                // no break
-            case 'm':
-                $value *= 1024;
-                // no break
-            case 'k':
-                $value *= 1024;
-        }
-        
-        return $value;
-    }
-
-    /**
-     * Genera un nome file randomico usando caratteri alfanumerici (0-9, a-z)
-     * 
-     * Esempio: "a3b9c2d4e1"
-     * 
-     * @param int $length Lunghezza del nome (default: 10)
-     * @return string
-     */
-    private function generateRandomFilename(int $length = 10): string
-    {
-        $characters = '0123456789abcdefghijklmnopqrstuvwxyz';
-        $randomName = '';
-        $max = strlen($characters) - 1;
-        
-        for ($i = 0; $i < $length; $i++) {
-            $randomName .= $characters[random_int(0, $max)];
-        }
-        
-        return $randomName;
-    }
-
-    /**
      * Aggiorna il layout della griglia per un progetto
      * 
      * @param Request $request
@@ -1269,19 +910,9 @@ class ProjectController extends Controller
             return response()->json(['ok' => false, 'message' => 'Non autenticato'], 401);
         }
 
-        // Verifica autorizzazione
-        $userId = $user->id;
-        $userEmail = $user->email;
-        $isAdmin = $userEmail === env('PUBLIC_USER_EMAIL', 'marziofarina@icloud.com');
-        $projectUserId = $project->user_id ?? null;
-
-        $canUpdate = (
-            $projectUserId === $userId || 
-            ($projectUserId === null && $isAdmin) ||
-            $isAdmin
-        );
-
-        if (!$canUpdate) {
+        // Verifica autorizzazione usando AuthorizationFactory
+        if (!AuthorizationFactory::canUpdate($user, $project)) {
+            AuthorizationFactory::logUnauthorizedAttempt($user, $project, 'updateLayout');
             return response()->json([
                 'ok' => false, 
                 'message' => 'Non autorizzato'

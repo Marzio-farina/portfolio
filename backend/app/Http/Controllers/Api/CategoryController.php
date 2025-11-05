@@ -4,6 +4,7 @@ namespace App\Http\Controllers\Api;
 
 use App\Http\Controllers\Controller;
 use App\Models\Category;
+use App\Services\Factories\DataNormalizationFactory;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 
@@ -71,6 +72,10 @@ class CategoryController extends Controller
             'title' => 'required|string|max:50',
             'description' => 'nullable|string|max:250',
         ]);
+        
+        // Normalizza usando DataNormalizationFactory
+        $validated = DataNormalizationFactory::trimAllStrings($validated);
+        $validated = DataNormalizationFactory::normalizeNullableFields($validated, ['description']);
         
         // Verifica che non esista già una categoria con lo stesso titolo per questo utente
         $exists = Category::where('title', $validated['title'])

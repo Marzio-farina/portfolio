@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use App\Http\Requests\ContactRequest;
 use App\Mail\ContactFormSubmitted;
+use App\Services\Factories\DataNormalizationFactory;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Mail;
@@ -121,16 +122,23 @@ class ContactController extends Controller
      */
     private function buildRawMessage(array $data): string
     {
-        $message = "New contact form submission:\n\n";
-        $message .= "Name: {$data['name']}\n";
-        $message .= "Surname: {$data['surname']}\n";
-        $message .= "Email: {$data['email']}\n";
+        // Sanifica input per sicurezza
+        $name = DataNormalizationFactory::sanitizeInput($data['name']);
+        $surname = DataNormalizationFactory::sanitizeInput($data['surname']);
+        $email = DataNormalizationFactory::sanitizeInput($data['email']);
+        $subject = !empty($data['subject']) ? DataNormalizationFactory::sanitizeInput($data['subject']) : '';
+        $messageText = DataNormalizationFactory::sanitizeInput($data['message']);
         
-        if (!empty($data['subject'])) {
-            $message .= "Subject: {$data['subject']}\n";
+        $message = "New contact form submission:\n\n";
+        $message .= "Name: {$name}\n";
+        $message .= "Surname: {$surname}\n";
+        $message .= "Email: {$email}\n";
+        
+        if (!empty($subject)) {
+            $message .= "Subject: {$subject}\n";
         }
         
-        $message .= "\nMessage:\n{$data['message']}\n";
+        $message .= "\nMessage:\n{$messageText}\n";
 
         return $message;
     }

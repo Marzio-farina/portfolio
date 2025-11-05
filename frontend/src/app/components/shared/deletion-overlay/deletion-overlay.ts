@@ -1,0 +1,119 @@
+import { Component, input } from '@angular/core';
+
+/**
+ * Overlay di conferma cancellazione con skeleton loader
+ * 
+ * L'overlay si posiziona sul contenuto della card creando un effetto
+ * di blur e oscuramento durante la conferma di cancellazione.
+ */
+@Component({
+  selector: 'app-deletion-overlay',
+  standalone: true,
+  template: `
+    <div class="card-deletion-overlay" 
+         [style.backdrop-filter]="'blur(' + blurAmount() + 'px)'"
+         aria-hidden="true">
+      <div class="shimmer-wrapper">
+        <div class="shimmer"></div>
+      </div>
+    </div>
+  `,
+  styles: [`
+    .card-deletion-overlay {
+      position: absolute;
+      top: 8px;     /* Margine di 8px dall'alto */
+      left: 8px;    /* Margine di 8px da sinistra */
+      right: 8px;   /* Margine di 8px da destra */
+      bottom: 8px;  /* Margine di 8px dal basso */
+      background: transparent; /* Trasparente - l'effetto è dato dallo shimmer */
+      backdrop-filter: blur(8px); /* Default blur - può essere sovrascritto via input */
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      z-index: 10000; /* Sopra tutte le tecnologie (z-index: 9999) ma sotto admin button */
+      border-radius: 16px; /* Angoli smussati come le card */
+      animation: fadeIn 0.3s ease-out;
+      pointer-events: none; /* Permette ai click di passare attraverso all'admin button */
+      overflow: hidden;
+    }
+
+    @keyframes fadeIn {
+      from {
+        opacity: 0;
+      }
+      to {
+        opacity: 1;
+      }
+    }
+
+    /* Wrapper per shimmer effect - replica lo skeleton di caricamento */
+    .shimmer-wrapper {
+      position: absolute;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      overflow: hidden;
+      border-radius: inherit;
+    }
+
+    /* Effetto shimmer animato - stesso stile dello skeleton di caricamento */
+    .shimmer {
+      width: 100%;
+      height: 100%;
+      background: linear-gradient(
+        120deg,
+        rgba(255, 255, 255, 0.08) 0%,
+        rgba(255, 255, 255, 0.08) 25%,
+        rgba(255, 255, 255, 0.25) 37%,
+        rgba(255, 255, 255, 0.08) 63%,
+        rgba(255, 255, 255, 0.08) 100%
+      );
+      background-size: 400% 100%;
+      animation: shimmer 2.0s ease-in-out infinite;
+    }
+
+    /* Shimmer per tema dark */
+    :host-context([data-theme="dark"]) .shimmer {
+      background: linear-gradient(
+        120deg,
+        rgba(30, 41, 59, 0.4) 0%,
+        rgba(30, 41, 59, 0.4) 25%,
+        rgba(148, 163, 184, 0.6) 37%,
+        rgba(30, 41, 59, 0.4) 63%,
+        rgba(30, 41, 59, 0.4) 100%
+      );
+      background-size: 400% 100%;
+    }
+
+    /* Shimmer per tema light */
+    :host-context([data-theme="light"]) .shimmer,
+    :host-context(:not([data-theme])) .shimmer {
+      background: linear-gradient(
+        120deg,
+        rgba(148, 163, 184, 0.2) 0%,
+        rgba(148, 163, 184, 0.2) 25%,
+        rgba(203, 213, 225, 0.5) 37%,
+        rgba(148, 163, 184, 0.2) 63%,
+        rgba(148, 163, 184, 0.2) 100%
+      );
+      background-size: 400% 100%;
+    }
+
+    @keyframes shimmer {
+      0% {
+        background-position: 200% 0;
+      }
+      100% {
+        background-position: -200% 0;
+      }
+    }
+  `]
+})
+export class DeletionOverlay {
+  /**
+   * Quantità di blur in pixel (default: 8)
+   */
+  blurAmount = input<number>(8);
+}
+
