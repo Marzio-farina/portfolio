@@ -16,6 +16,7 @@ import { OptimisticTechnologyService, OptimisticTechnology } from '../../service
 import { AdminDeleteButton } from '../shared/admin-delete-button/admin-delete-button';
 import { DeletionOverlay } from '../shared/deletion-overlay/deletion-overlay';
 import { Notification, NotificationItem, NotificationType } from '../notification/notification';
+import { delay } from 'rxjs/operators';
 import { Subscription } from 'rxjs';
 
 import { Progetto } from '../../core/models/project';
@@ -673,7 +674,9 @@ export class ProgettiCard {
     const newTechnologyIds = [...currentTechs.map(t => t.id), tech.id];
     
     // NON usa takeUntilDestroyed per permettere il completamento anche dopo navigazione
+    // Delay di 150ms per bassa priorità (lascia spazio a chiamate caricamento pagina)
     this.api.update$(this.progetto().id, { technology_ids: newTechnologyIds })
+      .pipe(delay(150))
       .subscribe({
         next: (updatedProject) => {
           // Rimuovi dalla lista ottimistica (ora è nel progetto reale)
@@ -753,7 +756,9 @@ export class ProgettiCard {
     };
     
     // NON usa takeUntilDestroyed per permettere il completamento anche dopo navigazione
+    // Delay di 150ms per bassa priorità (lascia spazio a chiamate caricamento pagina)
     this.http.post<{ ok: boolean; data: Technology; is_new: boolean }>(apiUrl('technologies'), body)
+      .pipe(delay(150))
       .subscribe({
         next: (response) => {
           // Aggiungi la nuova tecnologia alla lista disponibili
@@ -765,7 +770,9 @@ export class ProgettiCard {
           const newTechnologyIds = [...currentTechs.map(t => t.id), response.data.id];
           
           // NON usa takeUntilDestroyed per permettere il completamento anche dopo navigazione
+          // Delay di 150ms per bassa priorità (lascia spazio a chiamate caricamento pagina)
           this.api.update$(this.progetto().id, { technology_ids: newTechnologyIds })
+            .pipe(delay(150))
             .subscribe({
               next: (updatedProject) => {
                 // Rimuovi dalla lista ottimistica
