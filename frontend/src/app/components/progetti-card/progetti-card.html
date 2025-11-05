@@ -88,7 +88,7 @@
     @if (progetto().technologies && progetto().technologies.length > 0) {
       <div class="technologies" (click)="$event.stopPropagation()">
         @if (hiddenTechsCount() > 0) {
-          <div class="more-techs-wrapper" (mouseleave)="closeHiddenTechsPopup()">
+          <div class="more-techs-wrapper">
             <button 
               class="more-techs-badge" 
               type="button" 

@@ -92,6 +92,7 @@ export class ProgettiCard {
   showHiddenTechsPopup = signal(false);
   popupTop = signal('0px');
   popupLeft = signal('0px');
+  private popupCloseTimer?: number;
   
   // Tag nascosti grezzi (senza layout)
   hiddenTechsRaw = computed(() => {
@@ -472,17 +473,24 @@ export class ProgettiCard {
     
     if (willOpen) {
       this.calculatePopupPosition(event.target as HTMLElement);
+      this.showHiddenTechsPopup.set(true);
+      this.startPopupCloseTimer();
+    } else {
+      // Chiusura manuale tramite click
+      this.closeHiddenTechsPopup();
     }
-    
-    this.showHiddenTechsPopup.set(willOpen);
   }
   
   /**
    * Apre il popup tag nascosti (hover)
    */
   openHiddenTechsPopup(event: Event): void {
-    this.calculatePopupPosition(event.target as HTMLElement);
-    this.showHiddenTechsPopup.set(true);
+    // Apri solo se non è già aperto
+    if (!this.showHiddenTechsPopup()) {
+      this.calculatePopupPosition(event.target as HTMLElement);
+      this.showHiddenTechsPopup.set(true);
+      this.startPopupCloseTimer();
+    }
   }
   
   /**
@@ -512,9 +520,30 @@ export class ProgettiCard {
   }
   
   /**
+   * Avvia timer per chiudere il popup dopo 7 secondi
+   */
+  private startPopupCloseTimer(): void {
+    // Cancella timer esistente
+    if (this.popupCloseTimer) {
+      clearTimeout(this.popupCloseTimer);
+    }
+    
+    // Nuovo timer di 7 secondi
+    this.popupCloseTimer = window.setTimeout(() => {
+      this.showHiddenTechsPopup.set(false);
+      this.popupCloseTimer = undefined;
+    }, 7000);
+  }
+  
+  /**
    * Chiude il popup tag nascosti
    */
   closeHiddenTechsPopup(): void {
+    // Cancella timer se esiste
+    if (this.popupCloseTimer) {
+      clearTimeout(this.popupCloseTimer);
+      this.popupCloseTimer = undefined;
+    }
     this.showHiddenTechsPopup.set(false);
   }
   
