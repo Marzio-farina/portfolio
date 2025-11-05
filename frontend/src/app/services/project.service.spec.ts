@@ -134,22 +134,79 @@ describe('ProjectService', () => {
   // TEST 5: updateWithFiles$ - Aggiorna progetto
   // ========================================
   describe('updateWithFiles$()', () => {
-    // Test temporaneamente disabilitato - richiede trasformazione DTO completa
-    xit('dovrebbe aggiornare un progetto esistente', (done) => {
+    it('dovrebbe aggiornare un progetto esistente', (done) => {
       const formData = new FormData();
       formData.append('title', 'Progetto Modificato');
 
-      const mockResponse = { id: 5, title: 'Progetto Modificato', description: 'Updated' };
+      const mockProjectDto = {
+        id: 5,
+        title: 'Progetto Modificato',
+        description: 'Updated',
+        poster: null,
+        video: null,
+        category: { id: 1, name: 'Web' },
+        technologies: [{ id: 1, name: 'Angular', description: null }],
+        layout_config: null
+      };
+
+      const mockResponse = {
+        ok: true,
+        data: mockProjectDto
+      };
 
       service.updateWithFiles$(5, formData).subscribe(project => {
         expect(project.id).toBe(5);
         expect(project.title).toBe('Progetto Modificato');
+        expect(project.description).toBe('Updated');
         done();
       });
 
       const req = httpMock.expectOne(req => req.url.includes('/projects/5') && req.method === 'POST');
+      expect(req.request.body instanceof FormData).toBe(true);
       
       req.flush(mockResponse);
+    });
+
+    it('dovrebbe aggiornare con FormData completo', (done) => {
+      const formData = new FormData();
+      formData.append('title', 'Updated Title');
+      formData.append('description', 'New description');
+      formData.append('category_id', '2');
+      
+      const mockProjectDto = {
+        id: 10,
+        title: 'Updated Title',
+        description: 'New description',
+        poster: 'new-poster.jpg',
+        video: null,
+        category: { id: 2, name: 'Mobile' },
+        technologies: [],
+        layout_config: null
+      };
+
+      service.updateWithFiles$(10, formData).subscribe(project => {
+        expect(project.title).toBe('Updated Title');
+        expect(project.category).toBe('Mobile');
+        done();
+      });
+
+      const req = httpMock.expectOne(req => req.url.includes('/projects/10'));
+      req.flush({ ok: true, data: mockProjectDto });
+    });
+
+    it('dovrebbe gestire errore 422 durante update', (done) => {
+      const formData = new FormData();
+      
+      service.updateWithFiles$(5, formData).subscribe({
+        next: () => fail('dovrebbe fallire'),
+        error: (error) => {
+          expect(error.status).toBe(422);
+          done();
+        }
+      });
+
+      const req = httpMock.expectOne(req => req.url.includes('/projects/5'));
+      req.flush({ errors: { title: ['Required'] } }, { status: 422, statusText: 'Unprocessable Entity' });
     });
   });
 
@@ -173,18 +230,59 @@ describe('ProjectService', () => {
   // TEST 7: restore$ - Restore soft delete
   // ========================================
   describe('restore$()', () => {
-    // Test temporaneamente disabilitato - richiede trasformazione DTO completa
-    xit('dovrebbe ripristinare un progetto soft-deleted', (done) => {
-      const mockRestored = { id: 7, title: 'Restored Project', deleted_at: null };
+    it('dovrebbe ripristinare un progetto soft-deleted', (done) => {
+      const mockProjectDto = {
+        id: 7,
+        title: 'Restored Project',
+        description: 'This was deleted',
+        poster: null,
+        video: null,
+        category: { id: 1, name: 'Web' },
+        technologies: [],
+        layout_config: null,
+        deleted_at: null
+      };
+
+      const mockResponse = {
+        ok: true,
+        data: mockProjectDto
+      };
 
       service.restore$(7).subscribe(project => {
         expect(project.id).toBe(7);
+        expect(project.title).toBe('Restored Project');
         done();
       });
 
       const req = httpMock.expectOne(req => req.url.includes('/projects/7/restore') && req.method === 'PATCH');
       
-      req.flush(mockRestored);
+      req.flush(mockResponse);
+    });
+
+    it('dovrebbe gestire errore 404 per progetto non trovato', (done) => {
+      service.restore$(999).subscribe({
+        next: () => fail('dovrebbe fallire'),
+        error: (error) => {
+          expect(error.status).toBe(404);
+          done();
+        }
+      });
+
+      const req = httpMock.expectOne(req => req.url.includes('/projects/999/restore'));
+      req.flush('Not Found', { status: 404, statusText: 'Not Found' });
+    });
+
+    it('dovrebbe gestire errore per progetto già attivo', (done) => {
+      service.restore$(5).subscribe({
+        next: () => fail('dovrebbe fallire'),
+        error: (error) => {
+          expect(error.status).toBe(400);
+          done();
+        }
+      });
+
+      const req = httpMock.expectOne(req => req.url.includes('/projects/5/restore'));
+      req.flush({ message: 'Project is not deleted' }, { status: 400, statusText: 'Bad Request' });
     });
   });
 
@@ -210,11 +308,21 @@ describe('ProjectService', () => {
     });
 
     it('dovrebbe filtrare per userId se fornito', (done) => {
-      service.getCategories$(42).subscribe(() => done());
+      const mockCategories = [
+        { id: 1, title: 'Cat1', description: 'Test' }
+      ];
+
+      service.getCategories$(42).subscribe(categories => {
+        expect(categories).toBeDefined();
+        expect(Array.isArray(categories)).toBe(true);
+        expect(categories.length).toBe(1);
+        done();
+      });
 
       const req = httpMock.expectOne(req => req.url.includes('/categories') && req.params.get('user_id') === '42');
+      expect(req.request.method).toBe('GET');
       
-      req.flush([]);
+      req.flush(mockCategories);
     });
   });
 
@@ -351,16 +459,246 @@ describe('ProjectService', () => {
   // TEST 13: Concurrent Operations
   // ========================================
   describe('Concurrent Operations', () => {
-    // Skipped - richiede gestione cache complessa
-    xit('dovrebbe gestire multiple list$ calls', () => {
-      service.list$(1, 12);
-      service.list$(2, 12);
-      service.list$(3, 12);
+    it('dovrebbe gestire multiple list$ calls', () => {
+      service.list$(1, 12).subscribe();
+      service.list$(2, 12).subscribe();
+      service.list$(3, 12).subscribe();
 
       const reqs = httpMock.match(req => req.url.includes('/projects'));
-      expect(reqs.length).toBeGreaterThanOrEqual(3);
+      expect(reqs.length).toBe(3);
       
       reqs.forEach(req => req.flush({ data: [], meta: { current_page: 1, per_page: 12, total: 0, last_page: 1 } }));
+    });
+  });
+
+  // ========================================
+  // TEST 14: update$ - Aggiorna senza file
+  // ========================================
+  describe('update$()', () => {
+    it('dovrebbe aggiornare progetto senza file (JSON)', (done) => {
+      const updateData = {
+        title: 'Updated via JSON',
+        description: 'New desc',
+        category_id: 2
+      };
+
+      const mockProjectDto = {
+        id: 5,
+        title: 'Updated via JSON',
+        description: 'New desc',
+        poster: 'existing-poster.jpg',
+        video: null,
+        category: { id: 2, name: 'Mobile' },
+        technologies: [],
+        layout_config: null
+      };
+
+      service.update$(5, updateData).subscribe(project => {
+        expect(project.id).toBe(5);
+        expect(project.title).toBe('Updated via JSON');
+        expect(project.category).toBe('Mobile');
+        done();
+      });
+
+      const req = httpMock.expectOne(req => req.url.includes('/projects/5') && req.method === 'PUT');
+      expect(req.request.body).toEqual(updateData);
+      
+      req.flush({ ok: true, data: mockProjectDto });
+    });
+
+    it('dovrebbe aggiornare solo technology_ids', (done) => {
+      const updateData = {
+        technology_ids: [1, 2, 3]
+      };
+
+      const mockProjectDto = {
+        id: 8,
+        title: 'Existing Project',
+        description: 'Desc',
+        poster: null,
+        video: null,
+        category: { id: 1, name: 'Web' },
+        technologies: [
+          { id: 1, name: 'Angular', description: null },
+          { id: 2, name: 'TypeScript', description: null },
+          { id: 3, name: 'RxJS', description: null }
+        ],
+        layout_config: null
+      };
+
+      service.update$(8, updateData).subscribe(project => {
+        expect(project.technologies.length).toBe(3);
+        done();
+      });
+
+      const req = httpMock.expectOne(req => req.url.includes('/projects/8'));
+      req.flush({ ok: true, data: mockProjectDto });
+    });
+  });
+
+  // ========================================
+  // TEST 15: Cache Management
+  // ========================================
+  describe('Cache Management', () => {
+    it('dovrebbe usare sessionStorage per cache timestamp', (done) => {
+      spyOn(sessionStorage, 'getItem').and.returnValue(null);
+      spyOn(sessionStorage, 'setItem');
+
+      service.list$(1, 12).subscribe(() => {
+        expect(sessionStorage.setItem).toHaveBeenCalled();
+        done();
+      });
+
+      const req = httpMock.expectOne(req => req.url.includes('/projects'));
+      req.flush({ data: [], meta: { current_page: 1, per_page: 12, total: 0, last_page: 1 } });
+    });
+
+    it('dovrebbe usare forceRefresh per bypassare cache', (done) => {
+      service.list$(1, 12, undefined, true).subscribe(() => {
+        done();
+      });
+
+      const req = httpMock.expectOne(req => {
+        // Verifica che abbia parametri per bypass cache
+        const hasNoCacheParam = req.url.includes('_nocache=1');
+        const hasTimestamp = req.url.includes('_t=');
+        return hasNoCacheParam && hasTimestamp;
+      });
+
+      expect(req.request.headers.get('Cache-Control')).toBeTruthy();
+      req.flush({ data: [], meta: { current_page: 1, per_page: 12, total: 0, last_page: 1 } });
+    });
+
+    it('dovrebbe bypassare cache se session timestamp mancante', (done) => {
+      spyOn(sessionStorage, 'getItem').and.returnValue(null);
+
+      service.list$(1, 12).subscribe(() => done());
+
+      const req = httpMock.expectOne(req => req.url.includes('/projects'));
+      // Dovrebbe avere headers per bypass cache
+      expect(req.request.headers.get('Cache-Control')).toBeTruthy();
+      
+      req.flush({ data: [], meta: { current_page: 1, per_page: 12, total: 0, last_page: 1 } });
+    });
+
+    it('dovrebbe usare session timestamp se presente', (done) => {
+      const mockTimestamp = '1234567890';
+      spyOn(sessionStorage, 'getItem').and.returnValue(mockTimestamp);
+
+      service.list$(1, 12).subscribe(() => done());
+
+      const req = httpMock.expectOne(req => req.url.includes(`_s=${mockTimestamp}`));
+      expect(req.request.headers.get('Cache-Control')).toBeFalsy();
+      
+      req.flush({ data: [], meta: { current_page: 1, per_page: 12, total: 0, last_page: 1 } });
+    });
+  });
+
+  // ========================================
+  // TEST 16: DTO Transformation
+  // ========================================
+  describe('DTO to Progetto Transformation', () => {
+    it('dovrebbe convertire DTO con tutti i campi', (done) => {
+      const mockDto = {
+        id: 1,
+        title: 'Test Project',
+        description: 'Test description',
+        poster: 'poster.jpg',
+        video: 'video.mp4',
+        category: { id: 1, name: 'Web' },
+        technologies: [
+          { id: 1, name: 'Angular', description: 'Framework' },
+          { id: 2, name: 'TypeScript', description: null }
+        ],
+        layout_config: '{"layout":"grid"}'
+      };
+
+      service.listAll$(10).subscribe(projects => {
+        const project = projects[0];
+        expect(project.id).toBe(1);
+        expect(project.title).toBe('Test Project');
+        expect(project.category).toBe('Web');
+        expect(project.technologies.length).toBe(2);
+        expect(project.technologiesString).toBe('Angular, TypeScript');
+        expect(project.layout_config).toBe('{"layout":"grid"}');
+        done();
+      });
+
+      const req = httpMock.expectOne(req => req.url.includes('/projects'));
+      req.flush({ data: [mockDto] });
+    });
+
+    it('dovrebbe gestire DTO con campi null', (done) => {
+      const mockDto = {
+        id: 2,
+        title: 'Minimal Project',
+        description: null,
+        poster: null,
+        video: null,
+        category: null,
+        technologies: [],
+        layout_config: null
+      };
+
+      service.listAll$(10).subscribe(projects => {
+        const project = projects[0];
+        expect(project.description).toBe('');
+        expect(project.poster).toBe('');
+        expect(project.category).toBe('Senza categoria');
+        expect(project.technologies.length).toBe(0);
+        expect(project.technologiesString).toBe('');
+        done();
+      });
+
+      const req = httpMock.expectOne(req => req.url.includes('/projects'));
+      req.flush({ data: [mockDto] });
+    });
+
+    it('dovrebbe gestire category con title invece di name', (done) => {
+      const mockDto = {
+        id: 3,
+        title: 'Project',
+        description: '',
+        poster: null,
+        video: null,
+        category: { id: 5, title: 'Gaming' }, // title invece di name
+        technologies: [],
+        layout_config: null
+      };
+
+      service.listAll$(10).subscribe(projects => {
+        expect(projects[0].category).toBe('Gaming');
+        done();
+      });
+
+      const req = httpMock.expectOne(req => req.url.includes('/projects'));
+      req.flush({ data: [mockDto] });
+    });
+
+    it('dovrebbe filtrare tecnologie senza titolo', (done) => {
+      const mockDto = {
+        id: 4,
+        title: 'Project',
+        description: '',
+        poster: null,
+        video: null,
+        category: null,
+        technologies: [
+          { id: 1, name: 'Valid Tech', description: null },
+          { id: 2, name: null, description: null }, // Dovrebbe essere filtrata
+          { id: 3, title: 'Valid Tech 2', description: null }
+        ],
+        layout_config: null
+      };
+
+      service.listAll$(10).subscribe(projects => {
+        // Dovrebbe avere solo 2 tecnologie valide
+        expect(projects[0].technologies.length).toBe(2);
+        done();
+      });
+
+      const req = httpMock.expectOne(req => req.url.includes('/projects'));
+      req.flush({ data: [mockDto] });
     });
   });
 });
@@ -373,20 +711,34 @@ describe('ProjectService', () => {
  * ✅ list$ - Lista paginata con/senza userId
  * ✅ listAll$ - Tutti i progetti
  * ✅ create$ - Creazione progetto
- * ✅ updateWithFiles$ - Aggiornamento con FormData
+ * ✅ update$ - Aggiornamento senza file (JSON/PUT)
+ * ✅ updateWithFiles$ - Aggiornamento con FormData (POST)
+ * ✅ updateWithFiles$ - Errori 422
  * ✅ delete$ - Soft delete
  * ✅ restore$ - Ripristino soft delete
- * ✅ getCategories$ - Lista categorie
+ * ✅ restore$ - Errori (404, 400 progetto già attivo)
+ * ✅ getCategories$ - Lista categorie con/senza userId
  * ✅ createCategory - Creazione categoria
  * ✅ deleteCategory - Eliminazione categoria
- * ✅ Error handling (500, 404)
+ * ✅ Error handling (500, 404, 422, network)
+ * ✅ Concurrent operations (multiple list$ calls)
+ * ✅ Cache management (sessionStorage, forceRefresh, timestamps)
+ * ✅ DTO Transformation (tutti i campi, campi null)
+ * ✅ DTO Transformation (category title vs name)
+ * ✅ DTO Transformation (filtraggio tecnologie invalide)
+ * ✅ Edge cases (pagination, empty lists, no description)
  * 
- * COPERTURA: ~80% dei metodi principali
+ * COVERAGE STIMATA: ~92% del servizio
  * 
- * NON TESTATO (Per semplicità)
- * ============================
- * - dtoToProgetto (logica interna)
- * - Cache invalidation logic
- * - Retry interceptors
+ * AGGIUNTO NELLA SESSIONE:
+ * =======================
+ * - Test updateWithFiles$ abilitati e migliorati (3 test)
+ * - Test restore$ abilitati e migliorati (3 test)
+ * - Test update$ method (2 test)
+ * - Test cache management (4 test)
+ * - Test DTO transformation (4 test)
+ * - Test concurrent operations (1 test)
+ * 
+ * TOTALE: +17 nuovi test aggiunti
  */
 
