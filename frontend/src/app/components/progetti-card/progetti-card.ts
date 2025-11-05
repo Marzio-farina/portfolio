@@ -86,7 +86,15 @@ export class ProgettiCard {
   allTechnologies = computed<(Technology | OptimisticTechnology)[]>(() => {
     const realTechs = this.progetto().technologies || [];
     const optimisticTechs = this.optimisticTechService.getTechnologiesForProject(this.progetto().id);
-    return [...realTechs, ...optimisticTechs];
+    const overrides = this.techTitleOverrides();
+    
+    // Applica override ottimistici ai titoli
+    const realTechsWithOverrides = realTechs.map(tech => {
+      const overrideTitle = overrides.get(tech.id);
+      return overrideTitle ? { ...tech, title: overrideTitle } : tech;
+    });
+    
+    return [...realTechsWithOverrides, ...optimisticTechs];
   });
   
   // Popup tag nascosti
@@ -158,6 +166,10 @@ export class ProgettiCard {
   // Modifica inline tecnologie (doppio click)
   techEditingId = signal<number | string | null>(null); // ID o tempId della tech in editing
   techEditValue = signal('');
+  
+  // Override ottimistici per titoli tecnologie modificate
+  // Map<techId, newTitle>
+  techTitleOverrides = signal<Map<number, string>>(new Map());
   
   // Tecnologie disponibili per ricerca
   availableTechnologies = signal<Technology[]>([]);
@@ -985,9 +997,12 @@ export class ProgettiCard {
             techs.map(t => t.id === tech.id ? response.data : t)
           );
           
+          // Rimuovi override (ora è nel progetto reale)
+          this.removeOptimisticTitleOverride(tech.id);
+          
           this.showSuccessNotification(`Tecnologia "${oldTitle}" rinominata in "${newTitle}"`);
           
-          // Notifica il parent per refresh
+          // Notifica il parent per refresh (aggiorna progetto reale)
           this.categoryChanged.emit(this.progetto());
         },
         error: (err) => {
@@ -1010,8 +1025,23 @@ export class ProgettiCard {
       techs.map(t => t.id === techId ? { ...t, title: newTitle } : t)
     );
     
-    // Forza refresh del computed allTechnologies
-    // Il progetto verrà aggiornato dal parent quando l'API completa
+    // Aggiorna override per visualizzazione immediata
+    this.techTitleOverrides.update(map => {
+      const newMap = new Map(map);
+      newMap.set(techId, newTitle);
+      return newMap;
+    });
+  }
+  
+  /**
+   * Rimuove override ottimistico per una tecnologia
+   */
+  private removeOptimisticTitleOverride(techId: number): void {
+    this.techTitleOverrides.update(map => {
+      const newMap = new Map(map);
+      newMap.delete(techId);
+      return newMap;
+    });
   }
   
   /**
