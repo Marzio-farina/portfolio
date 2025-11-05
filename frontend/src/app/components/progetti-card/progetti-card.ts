@@ -12,6 +12,7 @@ import { ProjectService } from '../../services/project.service';
 import { TechnologyService } from '../../services/technology.service';
 import { TenantService } from '../../services/tenant.service';
 import { DeletionConfirmationService } from '../../services/deletion-confirmation.service';
+import { OptimisticTechnologyService, OptimisticTechnology } from '../../services/optimistic-technology.service';
 import { AdminDeleteButton } from '../shared/admin-delete-button/admin-delete-button';
 import { DeletionOverlay } from '../shared/deletion-overlay/deletion-overlay';
 import { Notification, NotificationItem, NotificationType } from '../notification/notification';
@@ -25,12 +26,6 @@ interface Technology {
   id: number;
   title: string;
   description?: string | null;
-}
-
-interface OptimisticTechnology extends Technology {
-  isOptimistic: true;
-  tempId: string; // ID temporaneo univoco
-  isRemoving?: boolean; // Flag per animazione di rimozione
 }
 
 interface HiddenTechnology extends Partial<Technology>, Partial<OptimisticTechnology> {
@@ -58,6 +53,7 @@ export class ProgettiCard {
   private readonly http = inject(HttpClient);
   private readonly tenant = inject(TenantService);
   private readonly destroyRef = inject(DestroyRef);
+  private readonly optimisticTechService = inject(OptimisticTechnologyService);
   
   isAuthenticated = computed(() => this.auth.isAuthenticated());
   isEditing = computed(() => this.editModeService.isEditing());
@@ -81,17 +77,14 @@ export class ProgettiCard {
   // Flag per prevenire loop infinito
   private isUpdatingCategory = false;
   
-  // Tecnologie ottimistiche (mostrate immediatamente prima del salvataggio)
-  optimisticTechnologies = signal<OptimisticTechnology[]>([]);
-  
   // Notifiche per feedback utente
   notifications = signal<NotificationItem[]>([]);
   showMultipleNotifications = true;
   
-  // Tecnologie combinate (reali + ottimistiche)
+  // Tecnologie combinate (reali + ottimistiche dal service globale)
   allTechnologies = computed<(Technology | OptimisticTechnology)[]>(() => {
     const realTechs = this.progetto().technologies || [];
-    const optimisticTechs = this.optimisticTechnologies();
+    const optimisticTechs = this.optimisticTechService.getTechnologiesForProject(this.progetto().id);
     return [...realTechs, ...optimisticTechs];
   });
   
@@ -228,6 +221,9 @@ export class ProgettiCard {
   constructor() {
     // Inizializza il service per gestione cancellazione
     this.deletionService.initialize(this.destroyRef);
+    
+    // Pulisce le tecnologie ottimistiche vecchie (> 5 minuti)
+    this.optimisticTechService.cleanupOldTechnologies();
     
     // Genera valori leggeri per non disturbare la UX
     const angles = ['-0.4deg', '0deg', '0.4deg'];
@@ -600,11 +596,16 @@ export class ProgettiCard {
     
     // Verifica se la tecnologia è già nel progetto (incluse ottimistiche)
     const currentTechs = this.progetto().technologies || [];
-    const optimisticTechs = this.optimisticTechnologies();
+    const optimisticTechs = this.optimisticTechService.getTechnologiesForProject(this.progetto().id);
+    
     if (currentTechs.some(t => t.id === tech.id) || optimisticTechs.some(t => t.id === tech.id)) {
-      // Già presente, collassa senza fare nulla
-      this.isAddTechExpanded.set(false);
+      // Già presente, mostra avviso
+      this.showErrorNotification(`La tecnologia "${tech.title}" è già presente nel progetto.`);
       this.newTechValue.set('');
+      setTimeout(() => {
+        const input = document.querySelector('.add-tech-input') as HTMLInputElement;
+        input?.focus();
+      }, 0);
       return;
     }
     
@@ -614,10 +615,11 @@ export class ProgettiCard {
       ...tech,
       isOptimistic: true,
       tempId,
-      isRemoving: false
+      isRemoving: false,
+      projectId: this.progetto().id
     };
     
-    this.optimisticTechnologies.update(techs => [...techs, optimisticTech]);
+    this.optimisticTechService.addOptimisticTechnology(this.progetto().id, optimisticTech);
     // NON collassare l'input, permetti aggiunta rapida di più tecnologie
     this.newTechValue.set('');
     
@@ -636,9 +638,7 @@ export class ProgettiCard {
       .subscribe({
         next: (updatedProject) => {
           // Rimuovi dalla lista ottimistica (ora è nel progetto reale)
-          this.optimisticTechnologies.update(techs => 
-            techs.filter(t => t.tempId !== tempId)
-          );
+          this.optimisticTechService.removeOptimisticTechnology(this.progetto().id, tempId);
           this.addingTechnology.set(false);
           
           // Mostra notifica di successo
@@ -669,7 +669,7 @@ export class ProgettiCard {
     
     // Verifica se la tecnologia con questo nome è già nel progetto (o nelle ottimistiche)
     const currentTechs = this.progetto().technologies || [];
-    const optimisticTechs = this.optimisticTechnologies();
+    const optimisticTechs = this.optimisticTechService.getTechnologiesForProject(this.progetto().id);
     
     const alreadyExists = currentTechs.some(t => t.title.toLowerCase() === trimmedName.toLowerCase()) ||
                          optimisticTechs.some(t => t.title.toLowerCase() === trimmedName.toLowerCase());
@@ -693,10 +693,11 @@ export class ProgettiCard {
       title: trimmedName,
       isOptimistic: true,
       tempId,
-      isRemoving: false
+      isRemoving: false,
+      projectId: this.progetto().id
     };
     
-    this.optimisticTechnologies.update(techs => [...techs, optimisticTech]);
+    this.optimisticTechService.addOptimisticTechnology(this.progetto().id, optimisticTech);
     this.newTechValue.set('');
     
     // Focus sull'input per continuare ad aggiungere
@@ -729,20 +730,18 @@ export class ProgettiCard {
             .subscribe({
               next: (updatedProject) => {
                 // Rimuovi dalla lista ottimistica
-                this.optimisticTechnologies.update(techs => 
-                  techs.filter(t => t.tempId !== tempId)
-                );
+                this.optimisticTechService.removeOptimisticTechnology(this.progetto().id, tempId);
                 this.addingTechnology.set(false);
                 
                 // Mostra notifica di successo
-                this.showSuccessNotification(`Nuova tecnologia "${techName}" aggiunta al progetto "${this.progetto().title}"`);
+                this.showSuccessNotification(`Nuova tecnologia "${trimmedName}" aggiunta al progetto "${this.progetto().title}"`);
                 
                 // Notifica il parent dell'update
                 this.categoryChanged.emit(updatedProject);
               },
               error: (err) => {
                 console.error('❌ Errore aggiornamento progetto con nuova tecnologia:', err);
-                this.showErrorNotification(`Impossibile aggiungere "${techName}" al progetto. Riprova.`);
+                this.showErrorNotification(`Impossibile aggiungere "${trimmedName}" al progetto. Riprova.`);
                 this.removeOptimisticTechnology(tempId);
                 this.addingTechnology.set(false);
               }
@@ -750,7 +749,7 @@ export class ProgettiCard {
         },
         error: (err) => {
           console.error('❌ Errore creazione tecnologia:', err);
-          this.showErrorNotification(`Impossibile creare la tecnologia "${techName}". Riprova.`);
+          this.showErrorNotification(`Impossibile creare la tecnologia "${trimmedName}". Riprova.`);
           this.removeOptimisticTechnology(tempId);
           this.addingTechnology.set(false);
         }
@@ -761,16 +760,14 @@ export class ProgettiCard {
    * Rimuove una tecnologia ottimistica con animazione di distruzione
    */
   private removeOptimisticTechnology(tempId: string): void {
+    const projectId = this.progetto().id;
+    
     // Prima attiva l'animazione di rimozione
-    this.optimisticTechnologies.update(techs => 
-      techs.map(t => t.tempId === tempId ? { ...t, isRemoving: true } : t)
-    );
+    this.optimisticTechService.markAsRemoving(projectId, tempId);
     
     // Dopo 400ms (durata animazione), rimuovila completamente
     setTimeout(() => {
-      this.optimisticTechnologies.update(techs => 
-        techs.filter(t => t.tempId !== tempId)
-      );
+      this.optimisticTechService.removeOptimisticTechnology(projectId, tempId);
     }, 400);
   }
   
