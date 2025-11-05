@@ -31,20 +31,22 @@
     <form [formGroup]="editForm">
       @if (attestato().img; as img) {
         <div class="attestato-detail-modal__image" [class.image-vertical]="isVerticalImage()">
-          <div 
-            class="attestato-detail-modal__image-container"
-            [style.width.px]="containerWidth()"
-            [style.height.px]="containerHeight">
-            <img
-              [ngSrc]="img.src"
-              fill
-              [alt]="img.alt || attestato().title"
-              [sizes]="img.sizes || '100vw'"
-              [priority]="true"
-              (load)="onImgLoad($event)"
-              class="attestato-detail-modal__image-img"
-            />
-          </div>
+          @if (img.src) {
+            <div
+              class="attestato-detail-modal__image-container"
+              [style.width.px]="containerWidth()"
+              [style.height.px]="containerHeight">
+              <img
+                [ngSrc]="img.src"
+                fill
+                [alt]="img.alt || attestato().title"
+                [sizes]="img.sizes || '100vw'"
+                [priority]="true"
+                (load)="onImgLoad($event)"
+                class="attestato-detail-modal__image-img"
+              />
+            </div>
+          }
         </div>
       }
 

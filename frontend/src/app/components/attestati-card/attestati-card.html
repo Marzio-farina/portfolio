@@ -5,19 +5,20 @@
     </button>
   }
   @if (attestato().img; as img) {
-    <div class="cover" [style.aspect-ratio]="aspectRatio() || defaultAR">
-      <img
-        [ngSrc]="img.src"
-        fill
-        [alt]="img.alt || attestato().title"
-        [sizes]="'100vw'"
-        [priority]="priority()"
-        [attr.loading]="priority() ? null : 'lazy'"
-        decoding="async"
-        (load)="onImgLoad($event)"
-        (error)="onImgError($event)"
-      />
-    </div>
+    @if (img.src) {
+      <div class="cover" [style.aspect-ratio]="aspectRatio() || defaultAR">
+        <img
+          [ngSrc]="img.src"
+          fill
+          [alt]="img.alt || attestato().title"
+          [sizes]="'100vw'"
+          [priority]="priority()"
+          decoding="async"
+          (load)="onImgLoad($event)"
+          (error)="onImgError($event)"
+        />
+      </div>
+    }
   }
 
   <header class="meta">
