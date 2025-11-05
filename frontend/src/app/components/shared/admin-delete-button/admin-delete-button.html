@@ -1,0 +1,14 @@
+<button 
+  class="admin-x-btn"
+  type="button"
+  [class.is-cancel]="isDeleting()"
+  [attr.aria-label]="isDeleting() 
+    ? (cancelLabel() || 'Annulla eliminazione') 
+    : (deleteLabel() || 'Elimina')"
+  [attr.title]="isDeleting() 
+    ? (cancelLabel() || 'Annulla eliminazione') 
+    : (deleteLabel() || 'Elimina')"
+  (click)="buttonClick.emit($event)">
+  <span aria-hidden="true">{{ isDeleting() ? '↩' : '×' }}</span>
+</button>
+
