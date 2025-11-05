@@ -169,9 +169,9 @@ export class ProgettiCard {
     }
     
     // In edit mode, dobbiamo lasciare spazio per il bottone +
-    // Se ci sono 3+ tag, mostra badge "+N" + primi 2 tag + bottone +
+    // Se ci sono 3+ tag, mostra badge "+N" + ultimi 2 tag + bottone +
     if (isEditMode && techs.length >= 3) {
-      return techs.slice(0, 2); // Primi 2 tag (coerente con view mode)
+      return techs.slice(-2); // Ultimi 2 tag
     }
     
     // In view mode o se ci sono meno di 3 tag, mostra tutti
@@ -181,7 +181,7 @@ export class ProgettiCard {
     
     // Se ci sono più di 3 tag in view mode
     if (techs.length > 3 && !isEditMode) {
-      return techs.slice(0, 2); // Primi 2 tag + badge "+N"
+      return techs.slice(-2); // Ultimi 2 tag + badge "+N"
     }
     
     return techs;
