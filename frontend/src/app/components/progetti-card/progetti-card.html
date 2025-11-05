@@ -28,7 +28,25 @@
     </div>
   }
   <div class="card" [class.no-video]="!progetto().video">
-    <div class="media"><img class="poster" [src]="progetto().poster" alt="{{ progetto().title }}"><video #videoEl class="video" [src]="progetto().video" muted playsinline preload="metadata" loop></video></div>
+    <div class="media">
+      <!-- Usa NgOptimizedImage con fill mode per gestire aspect ratio variabili -->
+      <img 
+        class="poster" 
+        [ngSrc]="progetto().poster" 
+        [alt]="progetto().title"
+        fill
+        [priority]="priority()"
+        sizes="(max-width: 640px) 100vw, (max-width: 1024px) 50vw, 33vw">
+      <video 
+        #videoEl 
+        class="video" 
+        [src]="progetto().video" 
+        muted 
+        playsinline 
+        preload="none"
+        loop>
+      </video>
+    </div>
   </div>
   <div class="meta">
     <h3 class="title">{{ progetto().title }}</h3>

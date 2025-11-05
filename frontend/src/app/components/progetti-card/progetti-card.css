@@ -55,12 +55,21 @@
 /* l'effetto hover ora è sul wrapper e coinvolge anche il testo */
 
 .media {
-  position: relative;
+  position: relative; /* Necessario per fill mode di NgOptimizedImage */
   aspect-ratio: 16 / 9;
   overflow: hidden;
   line-height: 0;
   font-size: 0;
   display: block;
+  background: var(--bg-secondary); /* Placeholder color durante il caricamento */
+}
+
+/* Ottimizzazione LCP: riduci layout shift con contenimento */
+.media img.poster {
+  content-visibility: auto; /* Rendering ottimizzato per immagini fuori viewport */
+  contain: layout style paint; /* Isola rendering dell'immagine */
+  object-fit: cover; /* Mantieni aspect ratio e copri contenitore */
+  object-position: center; /* Centra l'immagine */
 }
 
 .meta {

@@ -82,9 +82,10 @@
                 </div>
             </div>
         }
-        @for (p of filtered(); track p.id) {
+        @for (p of filtered(); track p.id; let i = $index) {
             <app-progetti-card 
               [progetto]="p"
+              [priority]="i < 3"
               [categories]="categoriesWithId()"
               (deleted)="onProjectDeleted($event)"
               (deletedError)="onProjectDeleteError($event)"

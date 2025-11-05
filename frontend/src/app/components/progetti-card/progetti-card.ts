@@ -2,6 +2,7 @@ import { Component, ElementRef, input, ViewChild, signal, inject, effect, comput
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { MatSelectModule } from '@angular/material/select';
 import { MatFormFieldModule } from '@angular/material/form-field';
+import { NgOptimizedImage } from '@angular/common';
 import { HttpClient } from '@angular/common/http';
 import { apiUrl } from '../../core/api/api-url';
 import { ThemeService } from '../../services/theme.service';
@@ -24,12 +25,14 @@ interface Technology {
 
 @Component({
   selector: 'app-progetti-card',
-  imports: [MatSelectModule, MatFormFieldModule],
+  imports: [MatSelectModule, MatFormFieldModule, NgOptimizedImage],
   templateUrl: './progetti-card.html',
   styleUrl: './progetti-card.css'
 })
 export class ProgettiCard {
   progetto = input.required<Progetto>();
+  priority = input<boolean>(false); // Per immagini above-the-fold
+  
   @ViewChild('videoEl', { static: false }) videoEl?: ElementRef<HTMLVideoElement>;
   private readonly themeService = inject(ThemeService);
   private readonly auth = inject(AuthService);
