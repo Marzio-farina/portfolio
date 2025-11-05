@@ -116,12 +116,12 @@ describe('TestimonialCarouselCard', () => {
       const result = component.truncateAuthor(null as any);
       
       // BRANCH: if (!author || ...) return author
-      expect(result).toBe(null);
+      expect(result).toBeNull();
     });
 
     it('BRANCH: author undefined → ritorna undefined', () => {
       const result = component.truncateAuthor(undefined as any);
-      expect(result).toBe(undefined);
+      expect(result).toBeUndefined();
     });
 
     it('BRANCH: author vuoto → ritorna vuoto', () => {
