@@ -35,8 +35,8 @@ describe('AttestatiService', () => {
     it('dovrebbe recuperare lista paginata attestati', (done) => {
       const mockResponse = {
         data: [
-          { id: 1, title: 'Cert 1', institution: 'Inst 1', image: 'img1.jpg' },
-          { id: 2, title: 'Cert 2', institution: 'Inst 2', image: 'img2.jpg' }
+          { id: 1, title: 'Cert 1', issuer: 'Inst 1' },
+          { id: 2, title: 'Cert 2', issuer: 'Inst 2' }
         ],
         meta: { current_page: 1, per_page: 12, total: 2, last_page: 1 }
       };
@@ -73,7 +73,7 @@ describe('AttestatiService', () => {
     it('dovrebbe creare nuovo attestato con FormData', (done) => {
       const formData = new FormData();
       formData.append('title', 'New Attestato');
-      formData.append('institution', 'Test Institution');
+      formData.append('issuer', 'Test Institution');
 
       service.create$(formData).subscribe(result => {
         expect(result.id).toBe(100);
@@ -143,8 +143,8 @@ describe('AttestatiService', () => {
 
     it('dovrebbe gestire ultima pagina con elementi rimanenti', (done) => {
       const mockData = [
-        { id: 41, title: 'Cert 41', institution: 'Inst', image: '' },
-        { id: 42, title: 'Cert 42', institution: 'Inst', image: '' }
+        { id: 41, title: 'Cert 41', issuer: 'Inst' },
+        { id: 42, title: 'Cert 42', issuer: 'Inst' }
       ];
 
       service.list$(5, 10).subscribe(result => {
@@ -179,12 +179,12 @@ describe('AttestatiService', () => {
   // TEST: Filters e Query Params
   // ========================================
   describe('Filters e Query Params', () => {
-    it('dovrebbe applicare filtro per institution', (done) => {
-      service.list$(1, 12, { institution: 'MIT' }).subscribe(() => done());
+    it('dovrebbe applicare filtro per issuer', (done) => {
+      service.list$(1, 12, { issuer: 'MIT' }).subscribe(() => done());
 
       const req = httpMock.expectOne(req => 
         req.url.includes('/attestati') && 
-        req.params.get('institution') === 'MIT'
+        req.params.get('issuer') === 'MIT'
       );
       req.flush({ data: [] });
     });
@@ -214,7 +214,7 @@ describe('AttestatiService', () => {
 
     it('dovrebbe combinare multipli filtri', (done) => {
       const filters = {
-        institution: 'Harvard',
+        issuer: 'Harvard',
         year: '2023',
         is_featured: 'true'
       };
@@ -222,10 +222,10 @@ describe('AttestatiService', () => {
       service.list$(1, 12, filters).subscribe(() => done());
 
       const req = httpMock.expectOne(req => {
-        const hasInstitution = req.params.get('institution') === 'Harvard';
+        const hasIssuer = req.params.get('issuer') === 'Harvard';
         const hasYear = req.params.get('year') === '2023';
         const hasFeatured = req.params.get('is_featured') === 'true';
-        return hasInstitution && hasYear && hasFeatured;
+        return hasIssuer && hasYear && hasFeatured;
       });
       req.flush({ data: [] });
     });
@@ -251,12 +251,12 @@ describe('AttestatiService', () => {
   describe('listAll$()', () => {
     it('dovrebbe recuperare tutti gli attestati con filtri', (done) => {
       const mockData = [
-        { id: 1, title: 'Cert 1', institution: 'MIT', image: 'img1.jpg' },
-        { id: 2, title: 'Cert 2', institution: 'MIT', image: 'img2.jpg' },
-        { id: 3, title: 'Cert 3', institution: 'MIT', image: 'img3.jpg' }
+        { id: 1, title: 'Cert 1', issuer: 'MIT' },
+        { id: 2, title: 'Cert 2', issuer: 'MIT' },
+        { id: 3, title: 'Cert 3', issuer: 'MIT' }
       ];
 
-      service.listAll$(1000, { institution: 'MIT' }).subscribe(attestati => {
+      service.listAll$(1000, { issuer: 'MIT' }).subscribe(attestati => {
         expect(attestati.length).toBe(3);
         expect(attestati.every(a => a.issuer === 'MIT')).toBe(true);
         done();
@@ -264,7 +264,7 @@ describe('AttestatiService', () => {
 
       const req = httpMock.expectOne(req => 
         req.url.includes('/attestati') && 
-        req.params.get('institution') === 'MIT'
+        req.params.get('issuer') === 'MIT'
       );
       req.flush({ data: mockData });
     });
@@ -390,7 +390,7 @@ describe('AttestatiService', () => {
       const mockData = [{
         id: 1,
         title: 'No Image Cert',
-        institution: 'Test Inst',
+        issuer: 'Test Inst',
         image: null
       }];
 
@@ -429,7 +429,7 @@ describe('AttestatiService', () => {
  * ✅ list$ - Con userId
  * ✅ list$ - Con parametri custom
  * ✅ Pagination avanzata (page custom, ultima pagina, page oltre totale)
- * ✅ Filters e query params (institution, date range, featured, status)
+ * ✅ Filters e query params (issuer, date range, featured, status)
  * ✅ Filters combinati multipli
  * ✅ Status published di default
  * ✅ Override status
