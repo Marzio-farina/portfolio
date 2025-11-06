@@ -34,11 +34,11 @@ module.exports = function (config) {
     browsers: ['Chrome'],
     restartOnFileChange: true,
     
-    // Timeout configurazioni (aumentati per test pesanti)
-    browserDisconnectTimeout: 10000,      // Tempo prima di considerare il browser disconnesso (default: 2000ms)
-    browserDisconnectTolerance: 3,        // Numero di disconnessioni tollerate (default: 0)
-    browserNoActivityTimeout: 60000,      // Timeout per inattività del browser (default: 30000ms → 60000ms)
-    captureTimeout: 120000,               // Tempo per catturare il browser (default: 60000ms → 120000ms)
+    // Timeout configurazioni (aumentati significativamente per suite completa di 2795+ test)
+    browserDisconnectTimeout: 30000,      // Tempo prima di considerare il browser disconnesso (30s)
+    browserDisconnectTolerance: 5,        // Numero di disconnessioni tollerate
+    browserNoActivityTimeout: 300000,     // Timeout per inattività del browser (5 minuti)
+    captureTimeout: 300000,               // Tempo per catturare il browser (5 minuti)
     
     // Configurazioni aggiuntive
     singleRun: false,

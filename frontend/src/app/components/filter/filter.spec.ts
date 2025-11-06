@@ -1,4 +1,4 @@
-import { ComponentFixture, TestBed } from '@angular/core/testing';
+import { ComponentFixture, TestBed, fakeAsync, tick } from '@angular/core/testing';
 
 import { Filter } from './filter';
 
@@ -273,20 +273,28 @@ describe('Filter', () => {
       expect(component.newCategoryValue()).toBe('');
     });
 
-    it('onCategoryBlur dovrebbe collassare con ritardo', (done) => {
+    it('onCategoryBlur dovrebbe collassare con ritardo', fakeAsync(() => {
       component.isAddExpanded.set(true);
       component.newCategoryValue.set('Test');
       
+      let emittedValue = '';
       component.addCategory.subscribe((cat) => {
-        expect(cat).toBe('Test');
-        expect(component.isAddExpanded()).toBe(false);
-        done();
+        emittedValue = cat;
       });
 
       component.onCategoryBlur();
       
-      // Dovrebbe collassare dopo 500ms e salvare
-    });
+      // Prima del timeout, non dovrebbe essere collassato
+      expect(component.isAddExpanded()).toBe(true);
+      
+      // Avanza il tempo di 500ms
+      tick(500);
+      
+      // Ora dovrebbe essere collassato e il valore emesso
+      expect(emittedValue).toBe('Test');
+      expect(component.isAddExpanded()).toBe(false);
+      expect(component.newCategoryValue()).toBe('');
+    }));
   });
 
   // ========================================

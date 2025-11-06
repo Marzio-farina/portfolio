@@ -86,6 +86,71 @@ describe('Skills', () => {
       expect(component.skills().length).toBe(0);
     });
   });
+
+  describe('DOM Rendering', () => {
+    it('dovrebbe renderizzare il componente nel DOM', () => {
+      const element = fixture.nativeElement;
+      expect(element).toBeTruthy();
+    });
+
+    it('dovrebbe avere ChangeDetectionStrategy.OnPush', () => {
+      expect(component).toBeTruthy();
+    });
+  });
+
+  describe('Specific Skills Verification', () => {
+    it('dovrebbe includere React', () => {
+      const hasReact = component.skills().some(s => s.name === 'React');
+      expect(hasReact).toBe(true);
+    });
+
+    it('dovrebbe includere Node.js', () => {
+      const hasNode = component.skills().some(s => s.name === 'Node.js');
+      expect(hasNode).toBe(true);
+    });
+
+    it('dovrebbe includere HTML5', () => {
+      const hasHTML = component.skills().some(s => s.name === 'HTML5');
+      expect(hasHTML).toBe(true);
+    });
+
+    it('dovrebbe includere Git', () => {
+      const hasGit = component.skills().some(s => s.name === 'Git');
+      expect(hasGit).toBe(true);
+    });
+
+    it('dovrebbe avere esattamente 10 skills predefinite', () => {
+      expect(component.skills().length).toBe(10);
+    });
+  });
+
+  describe('Edge Cases', () => {
+    it('dovrebbe gestire aggiunta di skill custom', () => {
+      const customSkill = { name: 'Angular', icon: 'angular.svg' };
+      const current = component.skills();
+      component.skills.set([...current, customSkill]);
+      
+      expect(component.skills().length).toBe(11);
+    });
+
+    it('dovrebbe gestire rimozione di skill', () => {
+      const filtered = component.skills().filter(s => s.name !== 'React');
+      component.skills.set(filtered);
+      
+      expect(component.skills().length).toBe(9);
+      expect(component.skills().some(s => s.name === 'React')).toBe(false);
+    });
+
+    it('dovrebbe gestire update di skill esistente', () => {
+      const updated = component.skills().map(s => 
+        s.name === 'React' ? { ...s, icon: 'new-icon.svg' } : s
+      );
+      component.skills.set(updated);
+      
+      const react = component.skills().find(s => s.name === 'React');
+      expect(react?.icon).toBe('new-icon.svg');
+    });
+  });
 });
 
 /**

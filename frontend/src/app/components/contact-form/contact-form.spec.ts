@@ -498,7 +498,7 @@ describe('ContactForm', () => {
       component.form.markAllAsTouched();
       
       const errors = component.getValidationErrors();
-      expect(errors.some(e => e.field === 'email')).toBe(true);
+      expect(errors.some(e => e.includes('email'))).toBe(true);
     });
 
     it('dovrebbe ritornare multiple errori per campo', () => {
@@ -506,7 +506,7 @@ describe('ContactForm', () => {
       component.form.markAllAsTouched();
       
       const errors = component.getValidationErrors();
-      const nameErrors = errors.filter(e => e.field === 'name');
+      const nameErrors = errors.filter(e => e.includes('nome'));
       expect(nameErrors.length).toBeGreaterThanOrEqual(1);
     });
   });

@@ -243,6 +243,7 @@ export class Auth {
     const errors = payload?.errors;
     if (status === 422 && errors?.email) return 'Email già registrata.';
     if (status === 409) return 'Email già registrata.';
+    if (status === 401) return 'Credenziali non valide.';
     if (/email.+(exists|taken)/i.test(msg)) return 'Email già registrata.';
     if (/invalid credentials|401/i.test(msg)) return 'Credenziali non valide.';
     return msg || 'Si è verificato un errore. Riprova.';

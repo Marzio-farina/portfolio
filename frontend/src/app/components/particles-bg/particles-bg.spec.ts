@@ -78,6 +78,21 @@ describe('ParticlesBgComponent', () => {
       expect(component.canvasRef).toBeDefined();
     });
 
+    it('dovrebbe inizializzare context 2D', () => {
+      fixture.detectChanges();
+      expect(component['ctx']).toBeDefined();
+    });
+
+    it('dovrebbe creare particelle all\'init', () => {
+      fixture.detectChanges();
+      expect(component['particles'].length).toBeGreaterThan(0);
+    });
+
+    it('dovrebbe avere animation frame attivo', () => {
+      fixture.detectChanges();
+      expect(component['animationId']).toBeGreaterThan(0);
+    });
+
     it('dovrebbe inizializzare animation loop', (done) => {
       fixture.detectChanges();
       

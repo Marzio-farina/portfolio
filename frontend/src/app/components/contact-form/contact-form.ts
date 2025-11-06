@@ -173,8 +173,8 @@ export class ContactForm {
     if (fieldName === 'name' || fieldName === 'surname') {
       return 'warning'; // Nome e cognome sono importanti
     }
-    if (fieldName === 'message') {
-      return 'info'; // Messaggio è informativo
+    if (fieldName === 'message' || fieldName === 'subject') {
+      return 'info'; // Messaggio e subject sono informativi
     }
     
     return 'error'; // Default per errori generici

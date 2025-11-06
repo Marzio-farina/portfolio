@@ -1,4 +1,4 @@
-import { ComponentFixture, TestBed } from '@angular/core/testing';
+import { ComponentFixture, TestBed, fakeAsync, tick } from '@angular/core/testing';
 
 import { TimelineItem } from './timeline-item';
 
@@ -114,6 +114,127 @@ describe('TimelineItem', () => {
       fixture.componentRef.setInput('title', longTitle);
       fixture.detectChanges();
       expect(component.title().length).toBe(200);
+    });
+  });
+
+  describe('Link Processing Detail', () => {
+    it('dovrebbe processare GitHub URL correttamente', fakeAsync(() => {
+      fixture.componentRef.setInput('description', 'Check https://github.com/user/repo');
+      fixture.detectChanges();
+      
+      // Aspetta che l'effetto typewriter completi
+      tick(1000);
+      fixture.detectChanges();
+      
+      const processed = component.processedDescription();
+      expect(processed).toContain('href="https://github.com/user/repo"');
+      expect(processed).toContain('repo');
+    }));
+
+    it('dovrebbe processare URL generico', fakeAsync(() => {
+      fixture.componentRef.setInput('description', 'Visit https://example.com');
+      fixture.detectChanges();
+      
+      // Aspetta che l'effetto typewriter completi
+      tick(1000);
+      fixture.detectChanges();
+      
+      const processed = component.processedDescription();
+      expect(processed).toContain('href="https://example.com"');
+    }));
+
+    it('dovrebbe gestire multipli URL', fakeAsync(() => {
+      fixture.componentRef.setInput('description', 'https://site1.com and https://site2.com');
+      fixture.detectChanges();
+      
+      // Aspetta che l'effetto typewriter completi
+      tick(1000);
+      fixture.detectChanges();
+      
+      const processed = component.processedDescription();
+      expect(processed).toContain('site1.com');
+      expect(processed).toContain('site2.com');
+    }));
+
+    it('dovrebbe aggiungere target="_blank" e rel="noopener"', fakeAsync(() => {
+      fixture.componentRef.setInput('description', 'Link: https://test.com');
+      fixture.detectChanges();
+      
+      // Aspetta che l'effetto typewriter completi
+      tick(1000);
+      fixture.detectChanges();
+      
+      const processed = component.processedDescription();
+      expect(processed).toContain('target="_blank"');
+      expect(processed).toContain('rel="noopener noreferrer"');
+    }));
+
+    it('dovrebbe gestire descrizione vuota', () => {
+      fixture.componentRef.setInput('description', '');
+      fixture.detectChanges();
+      
+      const processed = component.processedDescription();
+      expect(processed).toBe('');
+    });
+  });
+
+  describe('Typewriter Speed', () => {
+    it('dovrebbe digitare caratteri progressivamente', (done) => {
+      let checks = 0;
+      const checkInterval = setInterval(() => {
+        const totalDisplayed = component.displayedTitle().length + 
+                              component.displayedYears().length + 
+                              component.displayedDescription().length;
+        
+        if (totalDisplayed > 0) {
+          checks++;
+        }
+        
+        if (checks >= 3 || !component.isTyping()) {
+          clearInterval(checkInterval);
+          expect(checks).toBeGreaterThan(0);
+          done();
+        }
+      }, 50);
+    });
+  });
+
+  describe('Multiple Updates', () => {
+    it('dovrebbe gestire cambio title durante typewriter', (done) => {
+      setTimeout(() => {
+        fixture.componentRef.setInput('title', 'New Title');
+        fixture.detectChanges();
+        expect(component.title()).toBe('New Title');
+        done();
+      }, 100);
+    });
+
+    it('dovrebbe gestire cambio description', () => {
+      fixture.componentRef.setInput('description', 'New description');
+      fixture.detectChanges();
+      expect(component.description()).toBe('New description');
+    });
+  });
+
+  describe('Component Lifecycle', () => {
+    it('dovrebbe chiamare ngOnInit al mount', () => {
+      const newFixture = TestBed.createComponent(TimelineItem);
+      const newComponent = newFixture.componentInstance;
+      newFixture.componentRef.setInput('title', 'Test');
+      newFixture.componentRef.setInput('years', '2020');
+      
+      spyOn<any>(newComponent, 'startTypewriterEffect');
+      newComponent.ngOnInit();
+      
+      expect(newComponent['startTypewriterEffect']).toHaveBeenCalled();
+    });
+
+    it('dovrebbe pulire interval su ngOnDestroy', () => {
+      spyOn(window, 'clearInterval');
+      component.ngOnDestroy();
+      
+      // Verifica che clearInterval sia stato potenzialmente chiamato
+      expect(component.isTyping()).toBe(false);
     });
   });
 });

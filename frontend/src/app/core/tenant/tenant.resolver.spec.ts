@@ -294,7 +294,7 @@ describe('tenantResolver', () => {
           setTimeout(() => {
             const navCall = router.navigate.calls.mostRecent();
             expect(navCall.args[0]).toEqual(['/about']);
-            expect(navCall.args[1]?.state?.toast?.type).toBe('error');
+            expect(navCall.args[1]?.state?.['toast']?.type).toBe('error');
             done();
           }, 10);
           

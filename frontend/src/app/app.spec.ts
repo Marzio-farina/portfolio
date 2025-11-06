@@ -170,7 +170,7 @@ describe('App', () => {
     it('dovrebbe gestire timeout di idle', fakeAsync(() => {
       const timeoutSubject = idleService.onTimeout$ as Subject<unknown>;
       
-      timeoutSubject.next();
+      timeoutSubject.next(undefined);
       tick();
 
       expect(authService.logout).toHaveBeenCalled();
@@ -180,7 +180,7 @@ describe('App', () => {
     it('dovrebbe aggiungere notifica di warning su idle timeout', fakeAsync(() => {
       const timeoutSubject = idleService.onTimeout$ as Subject<unknown>;
       
-      timeoutSubject.next();
+      timeoutSubject.next(undefined);
       tick();
 
       const notifications = component.notifications();
@@ -511,7 +511,7 @@ describe('App', () => {
     it('workflow: idle timeout → logout → notifica → login modal', fakeAsync(() => {
       const timeoutSubject = idleService.onTimeout$ as Subject<unknown>;
       
-      timeoutSubject.next();
+      timeoutSubject.next(undefined);
       tick();
 
       expect(authService.logout).toHaveBeenCalled();

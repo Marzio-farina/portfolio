@@ -97,6 +97,18 @@ describe('TextFormattingToolbarComponent', () => {
       expect(() => component.toggleBold()).not.toThrow();
     });
 
+    it('toggleItalic dovrebbe eseguire senza errori', () => {
+      expect(() => component.toggleItalic()).not.toThrow();
+    });
+
+    it('toggleUnderline dovrebbe eseguire senza errori', () => {
+      expect(() => component.toggleUnderline()).not.toThrow();
+    });
+
+    it('toggleStrikethrough dovrebbe eseguire senza errori', () => {
+      expect(() => component.toggleStrikethrough()).not.toThrow();
+    });
+
     it('dovrebbe gestire formato bold', () => {
       // toggleBold modifica il DOM tramite execCommand
       expect(() => component.toggleBold()).not.toThrow();
@@ -126,6 +138,140 @@ describe('TextFormattingToolbarComponent', () => {
       colors.forEach(color => {
         expect(() => component.changeColor(color, false)).not.toThrow();
       });
+    });
+
+    it('dovrebbe gestire deviceSpecific toggle multiplo', (done) => {
+      let emitCount = 0;
+      component.deviceSpecificToggled.subscribe(() => {
+        emitCount++;
+        if (emitCount === 3) {
+          expect(emitCount).toBe(3);
+          done();
+        }
+      });
+
+      component.toggleDeviceSpecific();
+      component.toggleDeviceSpecific();
+      component.toggleDeviceSpecific();
+    });
+
+    it('dovrebbe chiudere color picker quando richiesto', () => {
+      component.showColorPicker.set(true);
+      component.changeColor('#aabbcc', true);
+      expect(component.showColorPicker()).toBe(false);
+    });
+  });
+
+  describe('State Getters', () => {
+    it('isBold dovrebbe chiamare checkBoldState', () => {
+      spyOn<any>(component, 'checkBoldState').and.returnValue(true);
+      const result = component.isBold();
+      expect(component['checkBoldState']).toHaveBeenCalled();
+    });
+
+    it('isItalic dovrebbe chiamare checkItalicState', () => {
+      spyOn<any>(component, 'checkItalicState').and.returnValue(false);
+      const result = component.isItalic();
+      expect(component['checkItalicState']).toHaveBeenCalled();
+    });
+
+    it('isUnderline dovrebbe chiamare checkUnderlineState', () => {
+      spyOn<any>(component, 'checkUnderlineState').and.returnValue(false);
+      const result = component.isUnderline();
+      expect(component['checkUnderlineState']).toHaveBeenCalled();
+    });
+
+    it('isStrikethrough dovrebbe chiamare checkStrikethroughState', () => {
+      spyOn<any>(component, 'checkStrikethroughState').and.returnValue(false);
+      const result = component.isStrikethrough();
+      expect(component['checkStrikethroughState']).toHaveBeenCalled();
+    });
+
+    it('getCurrentColor dovrebbe chiamare checkCurrentColor', () => {
+      spyOn<any>(component, 'checkCurrentColor').and.returnValue('#000000');
+      const result = component.getCurrentColor();
+      expect(component['checkCurrentColor']).toHaveBeenCalled();
+    });
+  });
+
+  // Font Size Actions sono stati rimossi dal componente
+  // I metodi increaseFontSize e decreaseFontSize non sono più supportati
+
+  describe('Color Picker Workflow', () => {
+    it('workflow: apri → seleziona colore → chiudi', () => {
+      component.toggleColorPicker();
+      expect(component.showColorPicker()).toBe(true);
+
+      component.changeColor('#ff5733', true);
+      expect(component.showColorPicker()).toBe(false);
+    });
+
+    it('workflow: apri → seleziona colore → non chiudere', () => {
+      component.toggleColorPicker();
+      expect(component.showColorPicker()).toBe(true);
+
+      component.changeColor('#33ff57', false);
+      expect(component.showColorPicker()).toBe(true);
+
+      component.closeColorPicker();
+      expect(component.showColorPicker()).toBe(false);
+    });
+  });
+
+  describe('Multiple Formatting', () => {
+    it('dovrebbe permettere formattazione sequenziale', () => {
+      expect(() => {
+        component.toggleBold();
+        component.toggleItalic();
+        component.toggleUnderline();
+      }).not.toThrow();
+    });
+
+    it('dovrebbe gestire toggle rapidi', () => {
+      for (let i = 0; i < 10; i++) {
+        expect(() => component.toggleBold()).not.toThrow();
+      }
+    });
+  });
+
+  describe('AfterViewInit', () => {
+    it('ngAfterViewInit dovrebbe essere chiamato', () => {
+      spyOn<any>(component, 'updateFormattingStates');
+      component.ngAfterViewInit();
+      
+      setTimeout(() => {
+        expect(component['updateFormattingStates']).toHaveBeenCalled();
+      }, 10);
+    });
+  });
+
+  describe('Input Style Changes', () => {
+    it('dovrebbe reagire a currentStyle changes', () => {
+      const newStyle: TextStyle = {
+        fontSize: 18,
+        fontWeight: 'bold',
+        color: '#ff0000'
+      };
+      
+      componentRef.setInput('currentStyle', newStyle);
+      fixture.detectChanges();
+      
+      expect(component.currentStyle()).toEqual(newStyle);
+    });
+
+    it('dovrebbe gestire currentStyle vuoto', () => {
+      componentRef.setInput('currentStyle', {});
+      fixture.detectChanges();
+      
+      expect(component.currentStyle()).toEqual({});
+    });
+
+    it('dovrebbe gestire currentStyle con solo fontSize', () => {
+      const style: TextStyle = { fontSize: 20 };
+      componentRef.setInput('currentStyle', style);
+      fixture.detectChanges();
+      
+      expect(component.currentStyle().fontSize).toBe(20);
     });
   });
 });

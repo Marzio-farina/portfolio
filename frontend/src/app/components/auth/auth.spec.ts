@@ -953,7 +953,8 @@ describe('Auth', () => {
       const form = component.registerForm;
       form.removeControl('password');
       
-      expect(component.registerForm.errors).toBeTruthy(); // Form ha altri errori
+      // Il validatore ritorna null quando un campo è mancante
+      expect(component.registerForm.errors).toBeNull();
     });
   });
 

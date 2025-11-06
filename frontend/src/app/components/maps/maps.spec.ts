@@ -127,6 +127,105 @@ describe('Maps', () => {
       expect(component.locationName()).toContain('São');
     });
   });
+
+  describe('Placeholder vs Skeleton Logic', () => {
+    it('showSkeleton dovrebbe essere true quando hasLocation false e non authenticated', () => {
+      component.hasLocation.set(false);
+      const skeleton = component.showSkeleton();
+      expect(skeleton).toBeDefined();
+    });
+
+    it('showPlaceholder dovrebbe essere computed signal', () => {
+      expect(component.showPlaceholder).toBeDefined();
+    });
+
+    it('showSkeleton dovrebbe essere computed signal', () => {
+      expect(component.showSkeleton).toBeDefined();
+    });
+  });
+
+  describe('DomSanitizer Integration', () => {
+    it('safeSrc dovrebbe usare DomSanitizer', () => {
+      component.src.set('https://maps.google.com/embed?q=test');
+      const safe = component.safeSrc();
+      expect(safe).toBeTruthy();
+    });
+
+    it('dovrebbe gestire cambio rapido di src', () => {
+      for (let i = 0; i < 5; i++) {
+        component.src.set(`https://maps.google.com/test${i}`);
+        expect(component.safeSrc()).toBeDefined();
+      }
+    });
+  });
+
+  describe('Loaded State', () => {
+    it('loaded dovrebbe rimanere true dopo set', () => {
+      component.onMapLoad();
+      expect(component.loaded()).toBe(true);
+      
+      // Anche dopo altro processing
+      component.src.set('new-url');
+      expect(component.loaded()).toBe(true);
+    });
+
+    it('dovrebbe gestire caricamento multiplo', () => {
+      expect(component.loaded()).toBe(false);
+      
+      component.onMapLoad();
+      expect(component.loaded()).toBe(true);
+      
+      component.onMapLoad();
+      expect(component.loaded()).toBe(true);
+    });
+  });
+
+  describe('Location Name Updates', () => {
+    it('dovrebbe aggiornare locationName dinamicamente', () => {
+      const locations = ['Milano', 'Roma', 'Napoli', 'Torino'];
+      
+      locations.forEach(loc => {
+        component.locationName.set(loc);
+        expect(component.locationName()).toBe(loc);
+      });
+    });
+
+    it('dovrebbe gestire locationName molto lungo', () => {
+      const longName = 'A'.repeat(200);
+      component.locationName.set(longName);
+      expect(component.locationName().length).toBe(200);
+    });
+  });
+
+  describe('hasLocation State Transitions', () => {
+    it('dovrebbe transizionare da false a true', () => {
+      expect(component.hasLocation()).toBe(false);
+      
+      component.hasLocation.set(true);
+      component.src.set('https://maps.google.com/test');
+      
+      expect(component.hasLocation()).toBe(true);
+      expect(component.src()).toBeTruthy();
+    });
+
+    it('dovrebbe transizionare da true a false', () => {
+      component.hasLocation.set(true);
+      component.src.set('https://maps.google.com/test');
+      
+      component.hasLocation.set(false);
+      component.src.set('');
+      
+      expect(component.hasLocation()).toBe(false);
+      expect(component.src()).toBe('');
+    });
+
+    it('dovrebbe gestire toggle rapido hasLocation', () => {
+      for (let i = 0; i < 10; i++) {
+        component.hasLocation.set(i % 2 === 0);
+        expect(component.hasLocation()).toBe(i % 2 === 0);
+      }
+    });
+  });
 });
 
 /**
