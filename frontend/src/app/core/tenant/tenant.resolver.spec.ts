@@ -22,6 +22,16 @@ describe('tenantResolver', () => {
   let router: jasmine.SpyObj<Router>;
   let route: ActivatedRouteSnapshot;
 
+  // Helper per gestire MaybeAsync (Observable o valore diretto)
+  const resolveAndSubscribe = (callback: (result: any) => void) => {
+    const result = tenantResolver(route, {} as any);
+    if (typeof result === 'object' && result !== null && 'subscribe' in result) {
+      result.subscribe(callback);
+    } else {
+      callback(result);
+    }
+  };
+
   beforeEach(() => {
     const tenantSpy = jasmine.createSpyObj('TenantService', ['resolveSlug$', 'setTenant', 'clear']);
     const routerSpy = jasmine.createSpyObj('Router', ['navigate']);
@@ -56,10 +66,10 @@ describe('tenantResolver', () => {
       (route.paramMap.get as jasmine.Spy).and.returnValue(null);
       
       TestBed.runInInjectionContext(() => {
-        tenantResolver(route, {} as any).subscribe(result => {
+        resolveAndSubscribe((res: any) => {
           // BRANCH: if (!slug) → clear + of(true)
           expect(tenantService.clear).toHaveBeenCalled();
-          expect(result).toBe(true);
+          expect(res).toBe(true);
           done();
         });
       });
@@ -69,7 +79,7 @@ describe('tenantResolver', () => {
       (route.paramMap.get as jasmine.Spy).and.returnValue('');
       
       TestBed.runInInjectionContext(() => {
-        tenantResolver(route, {} as any).subscribe(result => {
+        resolveAndSubscribe((result: any) => {
           // BRANCH: if (!slug) → true (empty string è falsy)
           expect(tenantService.clear).toHaveBeenCalled();
           expect(result).toBe(true);
@@ -82,7 +92,7 @@ describe('tenantResolver', () => {
       (route.paramMap.get as jasmine.Spy).and.returnValue(null);
       
       TestBed.runInInjectionContext(() => {
-        tenantResolver(route, {} as any).subscribe(() => {
+        resolveAndSubscribe(() => {
           expect(tenantService.resolveSlug$).not.toHaveBeenCalled();
           done();
         });
@@ -96,10 +106,10 @@ describe('tenantResolver', () => {
   describe('BRANCH: slug present + API success + id → setTenant', () => {
     it('dovrebbe chiamare setTenant se response.id presente', (done) => {
       (route.paramMap.get as jasmine.Spy).and.returnValue('mario-rossi');
-      tenantService.resolveSlug$.and.returnValue(of({ id: 123, name: 'Mario' }));
+      tenantService.resolveSlug$.and.returnValue(of({ id: 123 }));
       
       TestBed.runInInjectionContext(() => {
-        tenantResolver(route, {} as any).subscribe(result => {
+        resolveAndSubscribe((result: any) => {
           // BRANCH: map → if (id) → setTenant + true
           expect(tenantService.resolveSlug$).toHaveBeenCalledWith('mario-rossi');
           expect(tenantService.setTenant).toHaveBeenCalledWith('mario-rossi', 123);
@@ -111,10 +121,10 @@ describe('tenantResolver', () => {
 
     it('dovrebbe estrarre id da response.user.id se response.id mancante', (done) => {
       (route.paramMap.get as jasmine.Spy).and.returnValue('user');
-      tenantService.resolveSlug$.and.returnValue(of({ user: { id: 456 }, name: 'User' }));
+      tenantService.resolveSlug$.and.returnValue(of({ user: { id: 456 } } as any));
       
       TestBed.runInInjectionContext(() => {
-        tenantResolver(route, {} as any).subscribe(result => {
+        resolveAndSubscribe((result: any) => {
           // BRANCH: const id = res?.id ?? res?.user?.id ?? null
           expect(tenantService.setTenant).toHaveBeenCalledWith('user', 456);
           expect(result).toBe(true);
@@ -130,11 +140,11 @@ describe('tenantResolver', () => {
   describe('BRANCH: slug present + API success + NO id → clear + navigate', () => {
     it('dovrebbe chiamare clear + navigate se response.id mancante', (done) => {
       (route.paramMap.get as jasmine.Spy).and.returnValue('invalid-user');
-      tenantService.resolveSlug$.and.returnValue(of({ name: 'No ID' }));
+      tenantService.resolveSlug$.and.returnValue(of({ name: 'No ID' } as any));
       router.navigate.and.returnValue(Promise.resolve(true));
       
       TestBed.runInInjectionContext(() => {
-        tenantResolver(route, {} as any).subscribe(result => {
+        resolveAndSubscribe((result: any) => {
           // BRANCH: map → else (no id) → clear + navigate
           expect(tenantService.clear).toHaveBeenCalled();
           
@@ -162,11 +172,11 @@ describe('tenantResolver', () => {
 
     it('dovrebbe chiamare clear + navigate se response.user.id mancante', (done) => {
       (route.paramMap.get as jasmine.Spy).and.returnValue('user');
-      tenantService.resolveSlug$.and.returnValue(of({ user: { name: 'No ID' } }));
+      tenantService.resolveSlug$.and.returnValue(of({ user: { name: 'No ID' } } as any));
       router.navigate.and.returnValue(Promise.resolve(true));
       
       TestBed.runInInjectionContext(() => {
-        tenantResolver(route, {} as any).subscribe(result => {
+        resolveAndSubscribe((result: any) => {
           expect(tenantService.clear).toHaveBeenCalled();
           
           setTimeout(() => {
@@ -181,11 +191,11 @@ describe('tenantResolver', () => {
 
     it('dovrebbe chiamare clear + navigate se response è null', (done) => {
       (route.paramMap.get as jasmine.Spy).and.returnValue('user');
-      tenantService.resolveSlug$.and.returnValue(of(null));
+      tenantService.resolveSlug$.and.returnValue(of(null as any));
       router.navigate.and.returnValue(Promise.resolve(true));
       
       TestBed.runInInjectionContext(() => {
-        tenantResolver(route, {} as any).subscribe(result => {
+        resolveAndSubscribe((result: any) => {
           expect(tenantService.clear).toHaveBeenCalled();
           
           setTimeout(() => {
@@ -209,7 +219,7 @@ describe('tenantResolver', () => {
       router.navigate.and.returnValue(Promise.resolve(true));
       
       TestBed.runInInjectionContext(() => {
-        tenantResolver(route, {} as any).subscribe(result => {
+        resolveAndSubscribe((result: any) => {
           // BRANCH: catchError → clear + navigate + of(true)
           expect(tenantService.clear).toHaveBeenCalled();
           
@@ -240,7 +250,7 @@ describe('tenantResolver', () => {
       router.navigate.and.returnValue(Promise.resolve(true));
       
       TestBed.runInInjectionContext(() => {
-        tenantResolver(route, {} as any).subscribe(result => {
+        resolveAndSubscribe((result: any) => {
           // catchError sempre ritorna of(true)
           expect(result).toBe(true);
           done();
@@ -262,7 +272,7 @@ describe('tenantResolver', () => {
       }));
       
       TestBed.runInInjectionContext(() => {
-        tenantResolver(route, {} as any).subscribe(result => {
+        resolveAndSubscribe((result: any) => {
           expect(tenantService.setTenant).toHaveBeenCalledWith('mario-rossi', 42);
           expect(tenantService.clear).not.toHaveBeenCalled();
           expect(router.navigate).not.toHaveBeenCalled();
@@ -278,13 +288,13 @@ describe('tenantResolver', () => {
       router.navigate.and.returnValue(Promise.resolve(true));
       
       TestBed.runInInjectionContext(() => {
-        tenantResolver(route, {} as any).subscribe(result => {
+        resolveAndSubscribe((result: any) => {
           expect(tenantService.clear).toHaveBeenCalled();
           
           setTimeout(() => {
             const navCall = router.navigate.calls.mostRecent();
             expect(navCall.args[0]).toEqual(['/about']);
-            expect(navCall.args[1].state.toast.type).toBe('error');
+            expect(navCall.args[1]?.state?.toast?.type).toBe('error');
             done();
           }, 10);
           
@@ -297,7 +307,7 @@ describe('tenantResolver', () => {
       (route.paramMap.get as jasmine.Spy).and.returnValue(null);
       
       TestBed.runInInjectionContext(() => {
-        tenantResolver(route, {} as any).subscribe(result => {
+        resolveAndSubscribe((result: any) => {
           expect(tenantService.clear).toHaveBeenCalled();
           expect(tenantService.resolveSlug$).not.toHaveBeenCalled();
           expect(result).toBe(true);
@@ -314,10 +324,10 @@ describe('tenantResolver', () => {
           name: 'Test User',
           slug: 'user'
         }
-      }));
+      } as any));
       
       TestBed.runInInjectionContext(() => {
-        tenantResolver(route, {} as any).subscribe(result => {
+        resolveAndSubscribe((result: any) => {
           expect(tenantService.setTenant).toHaveBeenCalledWith('user', 99);
           expect(result).toBe(true);
           done();

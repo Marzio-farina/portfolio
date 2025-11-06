@@ -175,7 +175,6 @@ describe('ContactForm', () => {
       expect(component.form.get('message')?.hasError('minlength')).toBe(true);
     });
   });
-});
 
   // ========================================
   // TEST: showFieldError() - Tutti i Branches (10+ branches)
