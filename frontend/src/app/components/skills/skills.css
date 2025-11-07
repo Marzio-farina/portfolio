@@ -18,17 +18,17 @@
 
 /* Testo 3D con rotazione diagonale leggibile (stile TypeScript) */
 .skill-text-3d {
+  /* Position absolute rispetto al container .spline-container */
   position: absolute;
-  /* Centrato sopra la tastiera - area evidenziata */
-  top: 15%;
-  left: 50%;
-  transform-origin: center;
+  /* Vicino alla tastiera (che è spostata a sinistra x:-170, y:100) */
+  top: 45%;
+  left: 15%;
+  transform-origin: left center;
   z-index: 100;
   
   /* Rotazione diagonale leggibile - come nell'immagine TypeScript */
   transform-style: preserve-3d;
   transform: 
-    translateX(-50%)
     perspective(1500px)
     rotateX(5deg)
     rotateY(-8deg)
@@ -117,7 +117,6 @@
   from {
     opacity: 0;
     transform: 
-      translateX(-50%)
       perspective(1500px)
       rotateX(15deg)
       rotateY(-18deg)
@@ -128,7 +127,6 @@
   to {
     opacity: 1;
     transform: 
-      translateX(-50%)
       perspective(1500px)
       rotateX(5deg)
       rotateY(-8deg)
@@ -165,9 +163,9 @@
   }
 
   .skill-text-3d {
-    top: 10%;
+    top: 8%;
+    left: 12%;
     transform: 
-      translateX(-50%)
       perspective(1200px)
       rotateX(3deg)
       rotateY(-5deg)
@@ -182,6 +180,7 @@
   .skill-text-3d-desc {
     font-size: clamp(0.85rem, 2vw, 1.1rem);
     max-width: 320px;
+    text-align: left;
   }
 }
 
@@ -192,7 +191,8 @@
   }
 
   .skill-text-3d {
-    top: 8%;
+    top: 6%;
+    left: 8%;
   }
 
   .skill-text-3d-title {

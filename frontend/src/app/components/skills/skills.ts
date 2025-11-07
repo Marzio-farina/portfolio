@@ -96,17 +96,37 @@ export class SkillsSectionComponent {
     const keyboard = app.findObjectByName('keyboard');
     if (!keyboard?.scale) return;
 
-    // Scala aumentata per tastiera più grande e visibile
-    const enlargedScale = this.KEYBOARD_SCALE * 0.7;
+    // Scala ottimale per picking mouse preciso (non modificare!)
+    // Valori testati: 0.35-0.45 funzionano bene
+    // Valori < 0.3 causano problemi di picking mouse
+    const optimalScale = 0.35; // Scala fissa ottimale
 
     Object.assign(keyboard.scale, {
-      x: enlargedScale,
-      y: enlargedScale,
-      z: enlargedScale
+      x: optimalScale,
+      y: optimalScale,
+      z: optimalScale
     });
 
-    // Centra posizione
-    Object.assign(keyboard.position, { x: 0, y: 0, z: 0 });
+    // Posiziona tastiera leggermente a sinistra
+    Object.assign(keyboard.position, { 
+      x: -170,  // Spostata a sinistra
+      y: 100, 
+      z: 0 
+    });
+    
+    // Ottimizza camera per migliore vista
+    this.optimizeCamera(app);
+  }
+
+  private optimizeCamera(app: Application): void {
+    const camera = app.findObjectByName('Camera');
+    if (!camera) return;
+
+    // Avvicina la camera per ingrandire la vista senza cambiare scala
+    // Questo mantiene il picking preciso
+    if (camera.position) {
+      camera.position.z = camera.position.z * 0.7; // Avvicina del 30%
+    }
   }
 
   // ============================================
