@@ -9,6 +9,7 @@ import {
 } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { SplineReactLikeComponent } from '../spline-react-like/spline-react-like';
+import { ThreeText3DComponent } from '../three-text-3d/three-text-3d.component';
 import { Application } from '@splinetool/runtime';
 import { SplineKeyboardService } from '../../services/spline-keyboard.service';
 import { 
@@ -29,7 +30,7 @@ const SKILLS_DATA = createSkillsDataMap(SKILL_DEFINITIONS);
 
 @Component({
   selector: 'app-skills-section',
-  imports: [CommonModule, SplineReactLikeComponent],
+  imports: [CommonModule, SplineReactLikeComponent, ThreeText3DComponent],
   templateUrl: './skills.html',
   styleUrl: './skills.css',
   changeDetection: ChangeDetectionStrategy.OnPush
@@ -46,6 +47,7 @@ export class SkillsSectionComponent {
   private readonly pressedKey = signal<string | null>(null);
   private readonly warnedKeys = signal<Set<string>>(new Set());
   
+  
   // Computed (Angular 20 - auto-caching, no re-renders inutili)
   readonly hasHoveredSkill = computed(() => this.hoveredSkill() !== null);
   readonly skillLabel = computed(() => this.hoveredSkill()?.label ?? '');
@@ -60,7 +62,7 @@ export class SkillsSectionComponent {
     // Effect per tracking skill (Angular 20)
     effect(() => {
       const skill = this.hoveredSkill();
-      // Logging rimosso per console pulita
+      // Il testo viene aggiornato automaticamente tramite i computed signals
     });
   }
 
@@ -128,6 +130,7 @@ export class SkillsSectionComponent {
       camera.position.z = camera.position.z * 0.7; // Avvicina del 30%
     }
   }
+
 
   // ============================================
   // KEY MODIFICATIONS (DRY + Performance)

@@ -1,0 +1,333 @@
+
+> portfolio@0.0.0 test
+> ng test --no-watch --code-coverage --browsers=ChromeHeadless
+
+[33m❯[39m Building...
+/*! 🌼 daisyUI 5.2.3 */
+[32m✔[39m Building...
+[1mInitial chunk files[22m                           [2m | [22m[1mNames[22m                                      [2m | [22m [1mRaw size[22m
+[32mchunk-W74MTRQV.js[39m                             [2m | [22m[2m-[22m                                          [2m | [22m  [36m1.17 MB[39m[2m | [22m
+[32mchunk-2NSLP4EZ.js[39m                             [2m | [22m[2m-[22m                                          [2m | [22m  [36m1.13 MB[39m[2m | [22m
+[32mpolyfills.js[39m                                  [2m | [22m[2mpolyfills[22m                                  [2m | [22m  [36m1.03 MB[39m[2m | [22m
+[32mchunk-PJ3YBTVJ.js[39m                             [2m | [22m[2m-[22m                                          [2m | [22m[36m987.46 kB[39m[2m | [22m
+[32mchunk-ERWWWY7R.js[39m                             [2m | [22m[2m-[22m                                          [2m | [22m[36m373.44 kB[39m[2m | [22m
+[32mchunk-K63HIJW3.js[39m                             [2m | [22m[2m-[22m                                          [2m | [22m[36m303.64 kB[39m[2m | [22m
+[32mspec-add-testimonial.spec.js[39m                  [2m | [22m[2mspec-add-testimonial.spec[22m                  [2m | [22m[36m261.70 kB[39m[2m | [22m
+[32mchunk-SUDLFUTD.js[39m                             [2m | [22m[2m-[22m                                          [2m | [22m[36m242.36 kB[39m[2m | [22m
+[32mspec-add-project.spec.js[39m                      [2m | [22m[2mspec-add-project.spec[22m                      [2m | [22m[36m236.29 kB[39m[2m | [22m
+[32mchunk-YIGWYKT5.js[39m                             [2m | [22m[2m-[22m                                          [2m | [22m[36m230.40 kB[39m[2m | [22m
+[32mstyles.css[39m                                    [2m | [22m[2mstyles[22m                                     [2m | [22m[36m224.20 kB[39m[2m | [22m
+[32mspec-add-attestato.spec.js[39m                    [2m | [22m[2mspec-add-attestato.spec[22m                    [2m | [22m[36m203.35 kB[39m[2m | [22m
+[32mchunk-JZY7BUYL.js[39m                             [2m | [22m[2m-[22m                                          [2m | [22m[36m197.35 kB[39m[2m | [22m
+[32mchunk-2DI4BXTL.js[39m                             [2m | [22m[2m-[22m                                          [2m | [22m[36m194.98 kB[39m[2m | [22m
+[32mchunk-QRRXZ2WM.js[39m                             [2m | [22m[2m-[22m                                          [2m | [22m[36m190.28 kB[39m[2m | [22m
+[32mspec-progetti.spec.js[39m                         [2m | [22m[2mspec-progetti.spec[22m                         [2m | [22m[36m185.56 kB[39m[2m | [22m
+[32mchunk-ZLKGJYAB.js[39m                             [2m | [22m[2m-[22m                                          [2m | [22m[36m173.61 kB[39m[2m | [22m
+[32mspec-curriculum.spec.js[39m                       [2m | [22m[2mspec-curriculum.spec[22m                       [2m | [22m[36m146.99 kB[39m[2m | [22m
+[32mspec-attestati.spec.js[39m                        [2m | [22m[2mspec-attestati.spec[22m                        [2m | [22m[36m127.25 kB[39m[2m | [22m
+[32mchunk-3WQI6UU6.js[39m                             [2m | [22m[2m-[22m                                          [2m | [22m[36m119.95 kB[39m[2m | [22m
+[32mchunk-67OV2ZJE.js[39m                             [2m | [22m[2m-[22m                                          [2m | [22m[36m116.57 kB[39m[2m | [22m
+[32mchunk-7LLWPXYV.js[39m                             [2m | [22m[2m-[22m                                          [2m | [22m[36m110.29 kB[39m[2m | [22m
+[32mchunk-ZAOWN44U.js[39m                             [2m | [22m[2m-[22m                                          [2m | [22m[36m108.91 kB[39m[2m | [22m
+[32mspec-app.spec.js[39m                              [2m | [22m[2mspec-app.spec[22m                              [2m | [22m[36m107.04 kB[39m[2m | [22m
+[32mchunk-OYYHHTVN.js[39m                             [2m | [22m[2m-[22m                                          [2m | [22m[36m105.19 kB[39m[2m | [22m
+[32mchunk-JPFNUPPY.js[39m                             [2m | [22m[2m-[22m                                          [2m | [22m [36m96.49 kB[39m[2m | [22m
+[32mchunk-PWBTM4YQ.js[39m                             [2m | [22m[2m-[22m                                          [2m | [22m [36m91.89 kB[39m[2m | [22m
+[32mchunk-BJDTUJUI.js[39m                             [2m | [22m[2m-[22m                                          [2m | [22m [36m87.10 kB[39m[2m | [22m
+[32mchunk-6QDI72MC.js[39m                             [2m | [22m[2m-[22m                                          [2m | [22m [36m78.90 kB[39m[2m | [22m
+[32mchunk-I2HJGASL.js[39m                             [2m | [22m[2m-[22m                                          [2m | [22m [36m69.28 kB[39m[2m | [22m
+[32mjasmine-cleanup-1.js[39m                          [2m | [22m[2mjasmine-cleanup-1[22m                          [2m | [22m [36m67.20 kB[39m[2m | [22m
+[32mchunk-PMR2P55P.js[39m                             [2m | [22m[2m-[22m                                          [2m | [22m [36m66.66 kB[39m[2m | [22m
+[32mchunk-DWZMAM7P.js[39m                             [2m | [22m[2m-[22m                                          [2m | [22m [36m62.81 kB[39m[2m | [22m
+[32mchunk-AD2AQ2Q5.js[39m                             [2m | [22m[2m-[22m                                          [2m | [22m [36m61.51 kB[39m[2m | [22m
+[32mchunk-666V2EZW.js[39m                             [2m | [22m[2m-[22m                                          [2m | [22m [36m60.12 kB[39m[2m | [22m
+[32mchunk-LSHPBO4U.js[39m                             [2m | [22m[2m-[22m                                          [2m | [22m [36m58.43 kB[39m[2m | [22m
+[32mchunk-IS2QRRCT.js[39m                             [2m | [22m[2m-[22m                                          [2m | [22m [36m57.77 kB[39m[2m | [22m
+[32mspec-contatti.spec.js[39m                         [2m | [22m[2mspec-contatti.spec[22m                         [2m | [22m [36m56.02 kB[39m[2m | [22m
+[32mchunk-MQPVVCNG.js[39m                             [2m | [22m[2m-[22m                                          [2m | [22m [36m52.27 kB[39m[2m | [22m
+[32mspec-global-error-handler.spec.js[39m             [2m | [22m[2mspec-global-error-handler.spec[22m             [2m | [22m [36m47.89 kB[39m[2m | [22m
+[32mspec-auth.spec.js[39m                             [2m | [22m[2mspec-auth.spec[22m                             [2m | [22m [36m46.68 kB[39m[2m | [22m
+[32mspec-image-optimization.service.spec.js[39m       [2m | [22m[2mspec-image-optimization.service.spec[22m       [2m | [22m [36m46.33 kB[39m[2m | [22m
+[32mchunk-GUCGN6KZ.js[39m                             [2m | [22m[2m-[22m                                          [2m | [22m [36m46.27 kB[39m[2m | [22m
+[32mspec-about.spec.js[39m                            [2m | [22m[2mspec-about.spec[22m                            [2m | [22m [36m45.83 kB[39m[2m | [22m
+[32mspec-error-handler.interceptor.spec.js[39m        [2m | [22m[2mspec-error-handler.interceptor.spec[22m        [2m | [22m [36m45.46 kB[39m[2m | [22m
+[32mchunk-445FAYFK.js[39m                             [2m | [22m[2m-[22m                                          [2m | [22m [36m43.35 kB[39m[2m | [22m
+[32mchunk-IKI7GZPD.js[39m                             [2m | [22m[2m-[22m                                          [2m | [22m [36m40.26 kB[39m[2m | [22m
+[32mchunk-HRURXUGC.js[39m                             [2m | [22m[2m-[22m                                          [2m | [22m [36m37.41 kB[39m[2m | [22m
+[32mchunk-J4C3FNQB.js[39m                             [2m | [22m[2m-[22m                                          [2m | [22m [36m36.98 kB[39m[2m | [22m
+[32mchunk-RYRK5RDM.js[39m                             [2m | [22m[2m-[22m                                          [2m | [22m [36m36.80 kB[39m[2m | [22m
+[32mspec-http.interceptor.spec.js[39m                 [2m | [22m[2mspec-http.interceptor.spec[22m                 [2m | [22m [36m33.73 kB[39m[2m | [22m
+[32mchunk-4X27YTNX.js[39m                             [2m | [22m[2m-[22m                                          [2m | [22m [36m32.16 kB[39m[2m | [22m
+[32mchunk-W5NBDGLX.js[39m                             [2m | [22m[2m-[22m                                          [2m | [22m [36m30.45 kB[39m[2m | [22m
+[32mchunk-WBKFOWA4.js[39m                             [2m | [22m[2m-[22m                                          [2m | [22m [36m30.14 kB[39m[2m | [22m
+[32mspec-performance.interceptor.spec.js[39m          [2m | [22m[2mspec-performance.interceptor.spec[22m          [2m | [22m [36m29.85 kB[39m[2m | [22m
+[32mspec-project-detail-modal.spec.js[39m             [2m | [22m[2mspec-project-detail-modal.spec[22m             [2m | [22m [36m28.77 kB[39m[2m | [22m
+[32mspec-attestati-card.spec.js[39m                   [2m | [22m[2mspec-attestati-card.spec[22m                   [2m | [22m [36m27.08 kB[39m[2m | [22m
+[32mspec-canvas.service.spec.js[39m                   [2m | [22m[2mspec-canvas.service.spec[22m                   [2m | [22m [36m24.89 kB[39m[2m | [22m
+[32mspec-lazy-load.directive.spec.js[39m              [2m | [22m[2mspec-lazy-load.directive.spec[22m              [2m | [22m [36m24.70 kB[39m[2m | [22m
+[32mchunk-5UGHK6TR.js[39m                             [2m | [22m[2m-[22m                                          [2m | [22m [36m24.36 kB[39m[2m | [22m
+[32mchunk-TIOS7SRK.js[39m                             [2m | [22m[2m-[22m                                          [2m | [22m [36m24.19 kB[39m[2m | [22m
+[32mchunk-HLZXBEXQ.js[39m                             [2m | [22m[2m-[22m                                          [2m | [22m [36m23.90 kB[39m[2m | [22m
+[32mspec-tenant.resolver.spec.js[39m                  [2m | [22m[2mspec-tenant.resolver.spec[22m                  [2m | [22m [36m23.53 kB[39m[2m | [22m
+[32mchunk-O6WXCUJC.js[39m                             [2m | [22m[2m-[22m                                          [2m | [22m [36m22.50 kB[39m[2m | [22m
+[32mtest_main.js[39m                                  [2m | [22m[2mtest_main[22m                                  [2m | [22m [36m21.92 kB[39m[2m | [22m
+[32mspec-auth.service.spec.js[39m                     [2m | [22m[2mspec-auth.service.spec[22m                     [2m | [22m [36m21.57 kB[39m[2m | [22m
+[32mspec-poster-uploader.component.spec.js[39m        [2m | [22m[2mspec-poster-uploader.component.spec[22m        [2m | [22m [36m21.46 kB[39m[2m | [22m
+[32mspec-project.service.spec.js[39m                  [2m | [22m[2mspec-project.service.spec[22m                  [2m | [22m [36m21.14 kB[39m[2m | [22m
+[32mspec-social-account.service.spec.js[39m           [2m | [22m[2mspec-social-account.service.spec[22m           [2m | [22m [36m20.80 kB[39m[2m | [22m
+[32mchunk-VRYSFNJY.js[39m                             [2m | [22m[2m-[22m                                          [2m | [22m [36m20.77 kB[39m[2m | [22m
+[32mchunk-Z4ZLT7T3.js[39m                             [2m | [22m[2m-[22m                                          [2m | [22m [36m20.65 kB[39m[2m | [22m
+[32mspec-github-repository.service.spec.js[39m        [2m | [22m[2mspec-github-repository.service.spec[22m        [2m | [22m [36m20.45 kB[39m[2m | [22m
+[32mspec-optimistic-technology.service.spec.js[39m    [2m | [22m[2mspec-optimistic-technology.service.spec[22m    [2m | [22m [36m19.91 kB[39m[2m | [22m
+[32mspec-bio.spec.js[39m                              [2m | [22m[2mspec-bio.spec[22m                              [2m | [22m [36m19.68 kB[39m[2m | [22m
+[32mspec-contact-form.spec.js[39m                     [2m | [22m[2mspec-contact-form.spec[22m                     [2m | [22m [36m19.48 kB[39m[2m | [22m
+[32mchunk-O7HOKDG3.js[39m                             [2m | [22m[2m-[22m                                          [2m | [22m [36m19.43 kB[39m[2m | [22m
+[32mspec-notification.spec.js[39m                     [2m | [22m[2mspec-notification.spec[22m                     [2m | [22m [36m19.21 kB[39m[2m | [22m
+[32mspec-highlight-keywords.pipe.spec.js[39m          [2m | [22m[2mspec-highlight-keywords.pipe.spec[22m          [2m | [22m [36m18.14 kB[39m[2m | [22m
+[32mspec-attestato-detail-modal.spec.js[39m           [2m | [22m[2mspec-attestato-detail-modal.spec[22m           [2m | [22m [36m17.36 kB[39m[2m | [22m
+[32mchunk-OUA3MXY2.js[39m                             [2m | [22m[2m-[22m                                          [2m | [22m [36m17.34 kB[39m[2m | [22m
+[32mchunk-ZJMSZWJK.js[39m                             [2m | [22m[2m-[22m                                          [2m | [22m [36m17.18 kB[39m[2m | [22m
+[32mchunk-FS52L53P.js[39m                             [2m | [22m[2m-[22m                                          [2m | [22m [36m16.75 kB[39m[2m | [22m
+[32mspec-base-api.service.spec.js[39m                 [2m | [22m[2mspec-base-api.service.spec[22m                 [2m | [22m [36m16.42 kB[39m[2m | [22m
+[32mspec-aside.spec.js[39m                            [2m | [22m[2mspec-aside.spec[22m                            [2m | [22m [36m16.40 kB[39m[2m | [22m
+[32mspec-ping-test.spec.js[39m                        [2m | [22m[2mspec-ping-test.spec[22m                        [2m | [22m [36m16.24 kB[39m[2m | [22m
+[32mspec-deletion-confirmation.service.spec.js[39m    [2m | [22m[2mspec-deletion-confirmation.service.spec[22m    [2m | [22m [36m16.20 kB[39m[2m | [22m
+[32mspec-testimonials.spec.js[39m                     [2m | [22m[2mspec-testimonials.spec[22m                     [2m | [22m [36m16.16 kB[39m[2m | [22m
+[32mchunk-WNXRGBSE.js[39m                             [2m | [22m[2m-[22m                                          [2m | [22m [36m16.13 kB[39m[2m | [22m
+[32mchunk-6SCV4TAM.js[39m                             [2m | [22m[2m-[22m                                          [2m | [22m [36m16.11 kB[39m[2m | [22m
+[32mspec-default-avatar.service.spec.js[39m           [2m | [22m[2mspec-default-avatar.service.spec[22m           [2m | [22m [36m16.09 kB[39m[2m | [22m
+[32mspec-logger.service.spec.js[39m                   [2m | [22m[2mspec-logger.service.spec[22m                   [2m | [22m [36m16.08 kB[39m[2m | [22m
+[32mspec-timeout.interceptor.spec.js[39m              [2m | [22m[2mspec-timeout.interceptor.spec[22m              [2m | [22m [36m16.04 kB[39m[2m | [22m
+[32mspec-project-detail-modal.service.spec.js[39m     [2m | [22m[2mspec-project-detail-modal.service.spec[22m     [2m | [22m [36m15.96 kB[39m[2m | [22m
+[32mchunk-5OJ6KZSL.js[39m                             [2m | [22m[2m-[22m                                          [2m | [22m [36m15.90 kB[39m[2m | [22m
+[32mchunk-KN4TBZIP.js[39m                             [2m | [22m[2m-[22m                                          [2m | [22m [36m15.48 kB[39m[2m | [22m
+[32mspec-what-i-do-card.spec.js[39m                   [2m | [22m[2mspec-what-i-do-card.spec[22m                   [2m | [22m [36m15.37 kB[39m[2m | [22m
+[32mspec-custom-text-element.component.spec.js[39m    [2m | [22m[2mspec-custom-text-element.component.spec[22m    [2m | [22m [36m14.82 kB[39m[2m | [22m
+[32mspec-about-profile.service.spec.js[39m            [2m | [22m[2mspec-about-profile.service.spec[22m            [2m | [22m [36m14.30 kB[39m[2m | [22m
+[32mchunk-FKIO5KF4.js[39m                             [2m | [22m[2m-[22m                                          [2m | [22m [36m14.15 kB[39m[2m | [22m
+[32mchunk-AK53FNYN.js[39m                             [2m | [22m[2m-[22m                                          [2m | [22m [36m13.76 kB[39m[2m | [22m
+[32mspec-tenant-router.service.spec.js[39m            [2m | [22m[2mspec-tenant-router.service.spec[22m            [2m | [22m [36m13.41 kB[39m[2m | [22m
+[32mspec-attestato-detail-modal.service.spec.js[39m   [2m | [22m[2mspec-attestato-detail-modal.service.spec[22m   [2m | [22m [36m13.35 kB[39m[2m | [22m
+[32mchunk-SEGYIEPM.js[39m                             [2m | [22m[2m-[22m                                          [2m | [22m [36m13.26 kB[39m[2m | [22m
+[32mspec-attestati.service.spec.js[39m                [2m | [22m[2mspec-attestati.service.spec[22m                [2m | [22m [36m13.13 kB[39m[2m | [22m
+[32mspec-aside-secondary.spec.js[39m                  [2m | [22m[2mspec-aside-secondary.spec[22m                  [2m | [22m [36m13.11 kB[39m[2m | [22m
+[32mspec-tenant-link.directive.spec.js[39m            [2m | [22m[2mspec-tenant-link.directive.spec[22m            [2m | [22m [36m12.91 kB[39m[2m | [22m
+[32mspec-auth.guard.spec.js[39m                       [2m | [22m[2mspec-auth.guard.spec[22m                       [2m | [22m [36m12.77 kB[39m[2m | [22m
+[32mspec-testimonial.service.spec.js[39m              [2m | [22m[2mspec-testimonial.service.spec[22m              [2m | [22m [36m12.29 kB[39m[2m | [22m
+[32mchunk-74CGCXM6.js[39m                             [2m | [22m[2m-[22m                                          [2m | [22m [36m12.23 kB[39m[2m | [22m
+[32mspec-category.service.spec.js[39m                 [2m | [22m[2mspec-category.service.spec[22m                 [2m | [22m [36m12.18 kB[39m[2m | [22m
+[32mspec-progetti-card.spec.js[39m                    [2m | [22m[2mspec-progetti-card.spec[22m                    [2m | [22m [36m11.93 kB[39m[2m | [22m
+[32mspec-auth.interceptor.spec.js[39m                 [2m | [22m[2mspec-auth.interceptor.spec[22m                 [2m | [22m [36m11.78 kB[39m[2m | [22m
+[32mspec-filter.spec.js[39m                           [2m | [22m[2mspec-filter.spec[22m                           [2m | [22m [36m11.49 kB[39m[2m | [22m
+[32mspec-cv.service.spec.js[39m                       [2m | [22m[2mspec-cv.service.spec[22m                       [2m | [22m [36m11.34 kB[39m[2m | [22m
+[32mspec-testimonial-carousel-card.spec.js[39m        [2m | [22m[2mspec-testimonial-carousel-card.spec[22m        [2m | [22m [36m10.94 kB[39m[2m | [22m
+[32mchunk-CBVGBQ3C.js[39m                             [2m | [22m[2m-[22m                                          [2m | [22m [36m10.55 kB[39m[2m | [22m
+[32mchunk-5NBS6DA6.js[39m                             [2m | [22m[2m-[22m                                          [2m | [22m [36m10.35 kB[39m[2m | [22m
+[32mspec-cv-file.service.spec.js[39m                  [2m | [22m[2mspec-cv-file.service.spec[22m                  [2m | [22m [36m10.33 kB[39m[2m | [22m
+[32mspec-nl2br.pipe.spec.js[39m                       [2m | [22m[2mspec-nl2br.pipe.spec[22m                       [2m | [22m  [36m9.96 kB[39m[2m | [22m
+[32mspec-text-formatting-toolbar.component.spec.js[39m[2m | [22m[2mspec-text-formatting-toolbar.component.spec[22m[2m | [22m  [36m9.87 kB[39m[2m | [22m
+[32mchunk-CYCJXLPS.js[39m                             [2m | [22m[2m-[22m                                          [2m | [22m  [36m9.85 kB[39m[2m | [22m
+[32mchunk-R6SIWZ4I.js[39m                             [2m | [22m[2m-[22m                                          [2m | [22m  [36m9.49 kB[39m[2m | [22m
+[32mspec-theme.service.spec.js[39m                    [2m | [22m[2mspec-theme.service.spec[22m                    [2m | [22m  [36m9.45 kB[39m[2m | [22m
+[32mchunk-4GKUGE5N.js[39m                             [2m | [22m[2m-[22m                                          [2m | [22m  [36m9.28 kB[39m[2m | [22m
+[32mchunk-YWKBVJPD.js[39m                             [2m | [22m[2m-[22m                                          [2m | [22m  [36m9.19 kB[39m[2m | [22m
+[32mspec-category-field.component.spec.js[39m         [2m | [22m[2mspec-category-field.component.spec[22m         [2m | [22m  [36m8.93 kB[39m[2m | [22m
+[32mchunk-U2S5CFGS.js[39m                             [2m | [22m[2m-[22m                                          [2m | [22m  [36m8.82 kB[39m[2m | [22m
+[32mspec-what-i-do.service.spec.js[39m                [2m | [22m[2mspec-what-i-do.service.spec[22m                [2m | [22m  [36m8.81 kB[39m[2m | [22m
+[32mchunk-WH7CJ4SZ.js[39m                             [2m | [22m[2m-[22m                                          [2m | [22m  [36m8.67 kB[39m[2m | [22m
+[32mspec-cv-preview-modal.service.spec.js[39m         [2m | [22m[2mspec-cv-preview-modal.service.spec[22m         [2m | [22m  [36m8.64 kB[39m[2m | [22m
+[32mspec-cv-preview-modal.spec.js[39m                 [2m | [22m[2mspec-cv-preview-modal.spec[22m                 [2m | [22m  [36m8.56 kB[39m[2m | [22m
+[32mspec-idle.service.spec.js[39m                     [2m | [22m[2mspec-idle.service.spec[22m                     [2m | [22m  [36m8.53 kB[39m[2m | [22m
+[32mspec-timeline-item.spec.js[39m                    [2m | [22m[2mspec-timeline-item.spec[22m                    [2m | [22m  [36m8.48 kB[39m[2m | [22m
+[32mspec-maps.spec.js[39m                             [2m | [22m[2mspec-maps.spec[22m                             [2m | [22m  [36m8.32 kB[39m[2m | [22m
+[32mspec-avatar.spec.js[39m                           [2m | [22m[2mspec-avatar.spec[22m                           [2m | [22m  [36m8.26 kB[39m[2m | [22m
+[32mspec-contact.service.spec.js[39m                  [2m | [22m[2mspec-contact.service.spec[22m                  [2m | [22m  [36m8.12 kB[39m[2m | [22m
+[32mspec-github.service.spec.js[39m                   [2m | [22m[2mspec-github.service.spec[22m                   [2m | [22m  [36m8.05 kB[39m[2m | [22m
+[32mchunk-ECQXFGFG.js[39m                             [2m | [22m[2m-[22m                                          [2m | [22m  [36m8.03 kB[39m[2m | [22m
+[32mspec-avatar-editor.spec.js[39m                    [2m | [22m[2mspec-avatar-editor.spec[22m                    [2m | [22m  [36m7.98 kB[39m[2m | [22m
+[32mchunk-Z4OBJYCU.js[39m                             [2m | [22m[2m-[22m                                          [2m | [22m  [36m7.93 kB[39m[2m | [22m
+[32mspec-tenant.service.spec.js[39m                   [2m | [22m[2mspec-tenant.service.spec[22m                   [2m | [22m  [36m7.88 kB[39m[2m | [22m
+[32mspec-technology.service.spec.js[39m               [2m | [22m[2mspec-technology.service.spec[22m               [2m | [22m  [36m7.86 kB[39m[2m | [22m
+[32mspec-api-url.spec.js[39m                          [2m | [22m[2mspec-api-url.spec[22m                          [2m | [22m  [36m7.76 kB[39m[2m | [22m
+[32mchunk-YJXLJBTK.js[39m                             [2m | [22m[2m-[22m                                          [2m | [22m  [36m7.63 kB[39m[2m | [22m
+[32mspec-admin-delete-button.spec.js[39m              [2m | [22m[2mspec-admin-delete-button.spec[22m              [2m | [22m  [36m6.98 kB[39m[2m | [22m
+[32mchunk-FX3VXZEG.js[39m                             [2m | [22m[2m-[22m                                          [2m | [22m  [36m6.91 kB[39m[2m | [22m
+[32mspec-edit-mode.service.spec.js[39m                [2m | [22m[2mspec-edit-mode.service.spec[22m                [2m | [22m  [36m6.83 kB[39m[2m | [22m
+[32mspec-cv-upload-modal.service.spec.js[39m          [2m | [22m[2mspec-cv-upload-modal.service.spec[22m          [2m | [22m  [36m6.82 kB[39m[2m | [22m
+[32mchunk-GMWATMZY.js[39m                             [2m | [22m[2m-[22m                                          [2m | [22m  [36m6.72 kB[39m[2m | [22m
+[32mchunk-LWYIDN7M.js[39m                             [2m | [22m[2m-[22m                                          [2m | [22m  [36m6.72 kB[39m[2m | [22m
+[32mspec-cv-upload-modal.spec.js[39m                  [2m | [22m[2mspec-cv-upload-modal.spec[22m                  [2m | [22m  [36m6.69 kB[39m[2m | [22m
+[32mchunk-HOCAYKQV.js[39m                             [2m | [22m[2m-[22m                                          [2m | [22m  [36m6.47 kB[39m[2m | [22m
+[32mspec-device-selector.component.spec.js[39m        [2m | [22m[2mspec-device-selector.component.spec[22m        [2m | [22m  [36m6.45 kB[39m[2m | [22m
+[32mspec-description-field.component.spec.js[39m      [2m | [22m[2mspec-description-field.component.spec[22m      [2m | [22m  [36m6.36 kB[39m[2m | [22m
+[32mspec-custom-image-element.component.spec.js[39m   [2m | [22m[2mspec-custom-image-element.component.spec[22m   [2m | [22m  [36m6.36 kB[39m[2m | [22m
+[32mchunk-SXJJLNFJ.js[39m                             [2m | [22m[2m-[22m                                          [2m | [22m  [36m6.05 kB[39m[2m | [22m
+[32mspec-profile.service.spec.js[39m                  [2m | [22m[2mspec-profile.service.spec[22m                  [2m | [22m  [36m5.95 kB[39m[2m | [22m
+[32mspec-deletion-overlay.spec.js[39m                 [2m | [22m[2mspec-deletion-overlay.spec[22m                 [2m | [22m  [36m5.89 kB[39m[2m | [22m
+[32mspec-ping.spec.js[39m                             [2m | [22m[2mspec-ping.spec[22m                             [2m | [22m  [36m5.87 kB[39m[2m | [22m
+[32mspec-resume-section.spec.js[39m                   [2m | [22m[2mspec-resume-section.spec[22m                   [2m | [22m  [36m5.74 kB[39m[2m | [22m
+[32mchunk-4SW7VZME.js[39m                             [2m | [22m[2m-[22m                                          [2m | [22m  [36m5.63 kB[39m[2m | [22m
+[32mspec-technologies-selector.component.spec.js[39m  [2m | [22m[2mspec-technologies-selector.component.spec[22m  [2m | [22m  [36m5.60 kB[39m[2m | [22m
+[32mspec-skills.spec.js[39m                           [2m | [22m[2mspec-skills.spec[22m                           [2m | [22m  [36m5.52 kB[39m[2m | [22m
+[32mchunk-QJTIHXNC.js[39m                             [2m | [22m[2m-[22m                                          [2m | [22m  [36m5.51 kB[39m[2m | [22m
+[32mspec-particles-bg.spec.js[39m                     [2m | [22m[2mspec-particles-bg.spec[22m                     [2m | [22m  [36m5.36 kB[39m[2m | [22m
+[32mchunk-4MR54Q6Q.js[39m                             [2m | [22m[2m-[22m                                          [2m | [22m  [36m5.26 kB[39m[2m | [22m
+[32mspec-avatar.service.spec.js[39m                   [2m | [22m[2mspec-avatar.service.spec[22m                   [2m | [22m  [36m4.86 kB[39m[2m | [22m
+[32mspec-video-uploader.component.spec.js[39m         [2m | [22m[2mspec-video-uploader.component.spec[22m         [2m | [22m  [36m4.77 kB[39m[2m | [22m
+[32mspec-tenant-link.pipe.spec.js[39m                 [2m | [22m[2mspec-tenant-link.pipe.spec[22m                 [2m | [22m  [36m4.67 kB[39m[2m | [22m
+[32mspec-navbar.spec.js[39m                           [2m | [22m[2mspec-navbar.spec[22m                           [2m | [22m  [36m4.40 kB[39m[2m | [22m
+[32mchunk-G2QCA3IW.js[39m                             [2m | [22m[2m-[22m                                          [2m | [22m  [36m4.37 kB[39m[2m | [22m
+[32mchunk-C4AUAKHC.js[39m                             [2m | [22m[2m-[22m                                          [2m | [22m  [36m4.23 kB[39m[2m | [22m
+[32mchunk-F5TL2BON.js[39m                             [2m | [22m[2m-[22m                                          [2m | [22m  [36m4.19 kB[39m[2m | [22m
+[32mchunk-DQP2QOD6.js[39m                             [2m | [22m[2m-[22m                                          [2m | [22m  [36m4.09 kB[39m[2m | [22m
+[32mchunk-J3MNLOWC.js[39m                             [2m | [22m[2m-[22m                                          [2m | [22m  [36m3.69 kB[39m[2m | [22m
+[32mspec-dashboard.spec.js[39m                        [2m | [22m[2mspec-dashboard.spec[22m                        [2m | [22m  [36m3.45 kB[39m[2m | [22m
+[32mchunk-XMSHA34S.js[39m                             [2m | [22m[2m-[22m                                          [2m | [22m  [36m3.41 kB[39m[2m | [22m
+[32mchunk-TTULUY32.js[39m                             [2m | [22m[2m-[22m                                          [2m | [22m  [36m1.99 kB[39m[2m | [22m
+[32mchunk-5ZKYYAN4.js[39m                             [2m | [22m[2m-[22m                                          [2m | [22m  [36m1.95 kB[39m[2m | [22m
+[32mchunk-VI2OMHQE.js[39m                             [2m | [22m[2m-[22m                                          [2m | [22m[36m934 bytes[39m[2m | [22m
+[32mjasmine-cleanup-0.js[39m                          [2m | [22m[2mjasmine-cleanup-0[22m                          [2m | [22m[36m519 bytes[39m[2m | [22m
+
+[1m [22m                                             [2m | [22m[1mInitial total[22m                              [2m | [22m [1m11.36 MB[22m
+
+Application bundle generation complete. [17.687 seconds] - 2025-11-06T11:34:08.170Z
+
+[32m06 11 2025 12:34:09.486:INFO [karma-server]: [39mKarma v6.4.4 server started at http://localhost:9876/
+[32m06 11 2025 12:34:09.487:INFO [launcher]: [39mLaunching browsers ChromeHeadless with concurrency unlimited
+[32m06 11 2025 12:34:09.510:INFO [launcher]: [39mStarting browser ChromeHeadless
+[32m06 11 2025 12:34:11.239:INFO [Chrome Headless 142.0.0.0 (Windows 10)]: [39mConnected on socket URpL8qj3YGJ26QUgAAAB with id 9290347
+Chrome Headless 142.0.0.0 (Windows 10): Executed 0 of 3043[32m SUCCESS[39m (0 secs / 0 secs)
+[1A[2KChrome Headless 142.0.0.0 (Windows 10): Executed 1 of 3043[32m SUCCESS[39m (0 secs / 0.025 secs)
+[1A[2KChrome Headless 142.0.0.0 (Windows 10): Executed 2 of 3043[32m SUCCESS[39m (0 secs / 0.028 secs)
+[1A[2KChrome Headless 142.0.0.0 (Windows 10): Executed 3 of 3043[32m SUCCESS[39m (0 secs / 0.031 secs)
+[1A[2KChrome Headless 142.0.0.0 (Windows 10): Executed 4 of 3043[32m SUCCESS[39m (0 secs / 0.033 secs)
+[1A[2KChrome Headless 142.0.0.0 (Windows 10): Executed 5 of 3043[32m SUCCESS[39m (0 secs / 0.036 secs)
+[1A[2KChrome Headless 142.0.0.0 (Windows 10): Executed 6 of 3043[32m SUCCESS[39m (0 secs / 0.06 secs)
+[1A[2KChrome Headless 142.0.0.0 (Windows 10): Executed 7 of 3043[32m SUCCESS[39m (0 secs / 0.074 secs)
+[1A[2KChrome Headless 142.0.0.0 (Windows 10): Executed 8 of 3043[32m SUCCESS[39m (0 secs / 0.088 secs)
+[1A[2KChrome Headless 142.0.0.0 (Windows 10): Executed 9 of 3043[32m SUCCESS[39m (0 secs / 0.09 secs)
+[1A[2KChrome Headless 142.0.0.0 (Windows 10): Executed 10 of 3043[32m SUCCESS[39m (0 secs / 0.105 secs)
+[1A[2KChrome Headless 142.0.0.0 (Windows 10): Executed 11 of 3043[32m SUCCESS[39m (0 secs / 0.108 secs)
+[1A[2KChrome Headless 142.0.0.0 (Windows 10): Executed 12 of 3043[32m SUCCESS[39m (0 secs / 0.11 secs)
+[1A[2KChrome Headless 142.0.0.0 (Windows 10): Executed 13 of 3043[32m SUCCESS[39m (0 secs / 0.111 secs)
+[1A[2KChrome Headless 142.0.0.0 (Windows 10): Executed 14 of 3043[32m SUCCESS[39m (0 secs / 0.114 secs)
+[1A[2KChrome Headless 142.0.0.0 (Windows 10): Executed 15 of 3043[32m SUCCESS[39m (0 secs / 0.118 secs)
+[1A[2K[31mChrome Headless 142.0.0.0 (Windows 10) ThemeService localStorage Persistence dovrebbe gestire localStorage read-only FAILED[39m
+	Failed: Non dovrebbe lanciare errore
+	    at <Jasmine>
+	    at UserContext.<anonymous> (src/app/services/theme.service.spec.ts:191:9)
+	    at _ZoneDelegate.invoke (node_modules/zone.js/fesm2015/zone.js:398:28)
+	    at _ProxyZoneSpec.onInvoke (node_modules/zone.js/fesm2015/zone-testing.js:2132:39)
+	    at _ZoneDelegate.invoke (node_modules/zone.js/fesm2015/zone.js:397:34)
+	    at ZoneImpl.run (node_modules/zone.js/fesm2015/zone.js:113:43)
+Chrome Headless 142.0.0.0 (Windows 10): Executed 16 of 3043[31m (1 FAILED)[39m (0 secs / 0.121 secs)
+[1A[2KChrome Headless 142.0.0.0 (Windows 10): Executed 17 of 3043[31m (1 FAILED)[39m (0 secs / 0.126 secs)
+[1A[2KChrome Headless 142.0.0.0 (Windows 10): Executed 18 of 3043[31m (1 FAILED)[39m (0 secs / 0.128 secs)
+[1A[2KChrome Headless 142.0.0.0 (Windows 10): Executed 19 of 3043[31m (1 FAILED)[39m (0 secs / 0.129 secs)
+[1A[2KChrome Headless 142.0.0.0 (Windows 10): Executed 20 of 3043[31m (1 FAILED)[39m (0 secs / 0.15 secs)
+[1A[2KChrome Headless 142.0.0.0 (Windows 10): Executed 21 of 3043[31m (1 FAILED)[39m (0 secs / 0.195 secs)
+[1A[2KChrome Headless 142.0.0.0 (Windows 10): Executed 22 of 3043[31m (1 FAILED)[39m (0 secs / 0.227 secs)
+[1A[2KChrome Headless 142.0.0.0 (Windows 10): Executed 23 of 3043[31m (1 FAILED)[39m (0 secs / 0.229 secs)
+[1A[2KChrome Headless 142.0.0.0 (Windows 10): Executed 24 of 3043[31m (1 FAILED)[39m (0 secs / 0.232 secs)
+[1A[2KChrome Headless 142.0.0.0 (Windows 10): Executed 25 of 3043[31m (1 FAILED)[39m (0 secs / 0.25 secs)
+[1A[2KChrome Headless 142.0.0.0 (Windows 10): Executed 26 of 3043[31m (1 FAILED)[39m (0 secs / 0.277 secs)
+[1A[2KChrome Headless 142.0.0.0 (Windows 10): Executed 27 of 3043[31m (1 FAILED)[39m (0 secs / 0.305 secs)
+[1A[2KChrome Headless 142.0.0.0 (Windows 10): Executed 28 of 3043[31m (1 FAILED)[39m (0 secs / 0.307 secs)
+[1A[2KChrome Headless 142.0.0.0 (Windows 10): Executed 29 of 3043[31m (1 FAILED)[39m (0 secs / 0.326 secs)
+[1A[2KChrome Headless 142.0.0.0 (Windows 10): Executed 30 of 3043[31m (1 FAILED)[39m (0 secs / 0.357 secs)
+[1A[2KChrome Headless 142.0.0.0 (Windows 10): Executed 31 of 3043[31m (1 FAILED)[39m (0 secs / 0.386 secs)
+[1A[2KChrome Headless 142.0.0.0 (Windows 10): Executed 32 of 3043[31m (1 FAILED)[39m (0 secs / 0.387 secs)
+[1A[2KChrome Headless 142.0.0.0 (Windows 10): Executed 33 of 3043[31m (1 FAILED)[39m (0 secs / 0.388 secs)
+[1A[2KChrome Headless 142.0.0.0 (Windows 10): Executed 34 of 3043[31m (1 FAILED)[39m (0 secs / 0.429 secs)
+[1A[2KChrome Headless 142.0.0.0 (Windows 10): Executed 35 of 3043[31m (1 FAILED)[39m (0 secs / 0.45 secs)
+[1A[2KChrome Headless 142.0.0.0 (Windows 10): Executed 36 of 3043[31m (1 FAILED)[39m (0 secs / 0.455 secs)
+[1A[2KChrome Headless 142.0.0.0 (Windows 10): Executed 37 of 3043[31m (1 FAILED)[39m (0 secs / 0.457 secs)
+[1A[2KChrome Headless 142.0.0.0 (Windows 10): Executed 38 of 3043[31m (1 FAILED)[39m (0 secs / 0.463 secs)
+[1A[2KChrome Headless 142.0.0.0 (Windows 10): Executed 39 of 3043[31m (1 FAILED)[39m (0 secs / 0.466 secs)
+[1A[2KChrome Headless 142.0.0.0 (Windows 10): Executed 40 of 3043[31m (1 FAILED)[39m (0 secs / 0.468 secs)
+[1A[2KChrome Headless 142.0.0.0 (Windows 10): Executed 41 of 3043[31m (1 FAILED)[39m (0 secs / 0.47 secs)
+[1A[2KChrome Headless 142.0.0.0 (Windows 10): Executed 42 of 3043[31m (1 FAILED)[39m (0 secs / 0.472 secs)
+[1A[2KChrome Headless 142.0.0.0 (Windows 10): Executed 43 of 3043[31m (1 FAILED)[39m (0 secs / 0.474 secs)
+[1A[2KChrome Headless 142.0.0.0 (Windows 10): Executed 44 of 3043[31m (1 FAILED)[39m (0 secs / 0.477 secs)
+[1A[2KChrome Headless 142.0.0.0 (Windows 10): Executed 45 of 3043[31m (1 FAILED)[39m (0 secs / 0.479 secs)
+[1A[2KChrome Headless 142.0.0.0 (Windows 10): Executed 46 of 3043[31m (1 FAILED)[39m (0 secs / 0.481 secs)
+[1A[2KChrome Headless 142.0.0.0 (Windows 10): Executed 47 of 3043[31m (1 FAILED)[39m (0 secs / 0.484 secs)
+[1A[2KChrome Headless 142.0.0.0 (Windows 10): Executed 48 of 3043[31m (1 FAILED)[39m (0 secs / 0.486 secs)
+[1A[2KChrome Headless 142.0.0.0 (Windows 10): Executed 49 of 3043[31m (1 FAILED)[39m (0 secs / 0.489 secs)
+[1A[2KChrome Headless 142.0.0.0 (Windows 10): Executed 50 of 3043[31m (1 FAILED)[39m (0 secs / 0.491 secs)
+[1A[2KChrome Headless 142.0.0.0 (Windows 10): Executed 51 of 3043[31m (1 FAILED)[39m (0 secs / 0.494 secs)
+[1A[2KChrome Headless 142.0.0.0 (Windows 10): Executed 52 of 3043[31m (1 FAILED)[39m (0 secs / 0.501 secs)
+[1A[2KChrome Headless 142.0.0.0 (Windows 10): Executed 53 of 3043[31m (1 FAILED)[39m (0 secs / 0.503 secs)
+[1A[2KChrome Headless 142.0.0.0 (Windows 10): Executed 54 of 3043[31m (1 FAILED)[39m (0 secs / 0.504 secs)
+[1A[2KChrome Headless 142.0.0.0 (Windows 10): Executed 55 of 3043[31m (1 FAILED)[39m (0 secs / 0.506 secs)
+[1A[2KWARN: [36m'Spec 'TechnologyService Cache & Performance dovrebbe usare cache con cachedGet' has no expectations.'[39m
+Chrome Headless 142.0.0.0 (Windows 10): Executed 55 of 3043[31m (1 FAILED)[39m (0 secs / 0.506 secs)
+WARN: 'Spec 'TechnologyService Cache & Performance dovrebbe usare cache con cachedGet' has no expectations.'
+[1A[2KChrome Headless 142.0.0.0 (Windows 10): Executed 56 of 3043[31m (1 FAILED)[39m (0 secs / 0.508 secs)
+[1A[2KChrome Headless 142.0.0.0 (Windows 10): Executed 57 of 3043[31m (1 FAILED)[39m (0 secs / 0.51 secs)
+[1A[2K[31mChrome Headless 142.0.0.0 (Windows 10) ERROR[39m
+  An error was thrown in afterAll
+  Error: Expected one matching request for criteria "Match by function: ", found none.
+      at _HttpClientTestingBackend.expectOne (http://localhost:9876/darwin_arm64-fastbuild-ST-199a4f3c4e20/bin/packages/common/http/testing/src/backend.ts:112:13)
+      at Object.next (src/app/services/technology.service.spec.ts:139:20)
+      at ConsumerObserver.next (node_modules/rxjs/src/internal/Subscriber.ts:155:25)
+      at SafeSubscriber._next (node_modules/rxjs/src/internal/Subscriber.ts:113:22)
+      at SafeSubscriber.next (node_modules/rxjs/src/internal/Subscriber.ts:71:12)
+      at node_modules/rxjs/src/internal/Subject.ts:67:20
+      at errorContext (node_modules/rxjs/src/internal/util/errorContext.ts:29:5)
+      at ReplaySubject.next (node_modules/rxjs/src/internal/Subject.ts:60:5)
+      at ReplaySubject.next (node_modules/rxjs/src/internal/ReplaySubject.ts:65:11)
+      at Object.next (node_modules/rxjs/src/internal/operators/share.ts:225:33)
+Chrome Headless 142.0.0.0 (Windows 10): Executed 57 of 3043[31m (1 FAILED)[39m[31m ERROR[39m (0 secs / 0.51 secs)
+Chrome Headless 142.0.0.0 (Windows 10) ERROR
+  An error was thrown in afterAll
+  Error: Expected one matching request for criteria "Match by function: ", found none.
+      at _HttpClientTestingBackend.expectOne (http://localhost:9876/darwin_arm64-fastbuild-ST-199a4f3c4e20/bin/packages/common/http/testing/src/backend.ts:112:13)
+      at Object.next (src/app/services/technology.service.spec.ts:139:20)
+      at ConsumerObserver.next (node_modules/rxjs/src/internal/Subscriber.ts:155:25)
+      at SafeSubscriber._next (node_modules/rxjs/src/internal/Subscriber.ts:113:22)
+      at SafeSubscriber.next (node_modules/rxjs/src/internal/Subscriber.ts:71:12)
+      at node_modules/rxjs/src/internal/Subject.ts:67:20
+      at errorContext (node_modules/rxjs/src/internal/util/errorContext.ts:29:5)
+      at ReplaySubject.next (node_modules/rxjs/src/internal/Subject.ts:60:5)
+      at ReplaySubject.next (node_modules/rxjs/src/internal/ReplaySubject.ts:65:11)
+      at Object.next (node_modules/rxjs/src/internal/operators/share.ts:225:33)
+[1A[2KChrome Headless 142.0.0.0 (Windows 10): Executed 57 of 3043[31m (1 FAILED)[39m[31m ERROR[39m (1.35 secs / 0.51 secs)
+
+=============================== Coverage summary ===============================
+Statements   : Unknown% ( 0/0 )
+Branches     : Unknown% ( 0/0 )
+Functions    : Unknown% ( 0/0 )
+Lines        : Unknown% ( 0/0 )
+================================================================================
+[1A[2K[31mChrome Headless 142.0.0.0 (Windows 10) ERROR[39m
+  Disconnected , because no message in 300000 ms.
+Chrome Headless 142.0.0.0 (Windows 10): Executed 57 of 3043[31m (1 FAILED)[39m[31m DISCONNECTED[39m (5 mins 1.37 secs / 0.51 secs)
+Chrome Headless 142.0.0.0 (Windows 10) ERROR
+  Disconnected , because no message in 300000 ms.
+[1A[2KChrome Headless 142.0.0.0 (Windows 10): Executed 57 of 3043[31m (1 FAILED)[39m[31m DISCONNECTED[39m (5 mins 1.37 secs / 0.51 secs)
+
+=============================== Coverage summary ===============================
+Statements   : Unknown% ( 0/0 )
+Branches     : Unknown% ( 0/0 )
+Functions    : Unknown% ( 0/0 )
+Lines        : Unknown% ( 0/0 )
+================================================================================
+node:internal/webstreams/readablestream:1077
+      throw new ERR_INVALID_STATE.TypeError('Controller is already closed');
+      ^
+
+TypeError [ERR_INVALID_STATE]: Invalid state: Controller is already closed
+    at ReadableStreamDefaultController.enqueue (node:internal/webstreams/readablestream:1077:13)
+    at C:\Users\marzi\Desktop\Portfolio\frontend\node_modules\@angular\build\src\builders\karma\application_builder.js:266:28
+    at removeAllListeners (C:\Users\marzi\Desktop\Portfolio\frontend\node_modules\karma\lib\server.js:468:9)
+    at C:\Users\marzi\Desktop\Portfolio\frontend\node_modules\karma\lib\server.js:475:9
+    at Server.close (node:net:2358:9)
+    at Object.onceWrapper (node:events:632:28)
+    at Server.emit (node:events:518:28)
+    at emitCloseNT (node:net:2418:8)
+    at process.processTicksAndRejections (node:internal/process/task_queues:89:21) {
+  code: 'ERR_INVALID_STATE'
+}
+
+Node.js v22.16.0

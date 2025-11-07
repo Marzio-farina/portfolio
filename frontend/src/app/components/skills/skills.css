@@ -16,141 +16,15 @@
   padding: 4rem 2rem;
 }
 
-/* Testo 3D con rotazione diagonale leggibile (stile TypeScript) */
-.skill-text-3d {
-  /* Position absolute rispetto al container .spline-container */
-  position: absolute;
-  /* Vicino alla tastiera (che è spostata a sinistra x:-170, y:100) */
-  top: 45%;
-  left: 15%;
-  transform-origin: left center;
-  z-index: 100;
-  
-  /* Rotazione diagonale leggibile - come nell'immagine TypeScript */
-  transform-style: preserve-3d;
-  transform: 
-    perspective(1500px)
-    rotateX(5deg)
-    rotateY(-8deg)
-    rotateZ(-18deg)
-    translateZ(0px);
-  
-  /* Animazione fluida */
-  animation: text3dIsometricFadeIn 0.5s cubic-bezier(0.16, 1, 0.3, 1);
-  
-  /* Transizioni smooth per cambio testo */
-  transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1);
-  
-  /* Pointer events */
-  pointer-events: none;
-  
-  /* Completamente trasparente - nessun background */
-  background: transparent;
-  
-  /* Centra il testo */
-  text-align: center;
-}
+/* Il testo 3D è ora gestito da Three.js con geometrie reali estruse */
 
-.skill-text-3d-title {
-  /* Stile 3D GRANDE e LEGGIBILE professionale */
-  font-size: clamp(6rem, 14vw, 12rem);
-  font-weight: 900;
-  color: #ffffff;
-  margin: 0 0 1rem 0;
-  line-height: 1;
-  letter-spacing: 0.2em;
-  text-transform: uppercase;
-  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', 'Helvetica Neue', sans-serif;
-  
-  /* Effetto di estrusione (ombre ripetute) */
-  text-shadow:
-    0px 1px 0px #d9d9d9,
-    0px 2px 0px #cfcfcf,
-    0px 3px 0px #c6c6c6,
-    0px 4px 0px #bcbcbc,
-    0px 5px 0px #b2b2b2,
-    0px 6px 0px #a8a8a8,
-    0px 7px 0px #9e9e9e,
-    0px 8px 0px #949494,
-    0px 9px 0px #8a8a8a,
-    0px 10px 15px rgba(0, 0, 0, 0.35); /* Ombra finale morbida */
-  
-  /* Bianco puro per massima leggibilità */
-  color: #ffffffa4;
-  
-  /* Rendering ottimale */
-  -webkit-font-smoothing: antialiased;
-  -moz-osx-font-smoothing: grayscale;
-  text-rendering: optimizeLegibility;
-}
-
-.skill-text-3d-desc {
-  font-size: clamp(1rem, 2.5vw, 1.5rem);
-  font-weight: 400;
-  color: rgba(255, 255, 255, 0.95);
-  margin: 0.5rem auto 0;
-  line-height: 1.5;
-  max-width: 600px;
-  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', sans-serif;
-  
-  /* Effetto 3D leggero e leggibile (3 livelli) */
-  text-shadow: 
-    1px 1px 0 #d0d0d0,
-    2px 2px 0 #a0a0a0,
-    3px 3px 0 #707070,
-    4px 4px 15px rgba(0, 0, 0, 0.4),
-    0 0 20px rgba(255, 255, 255, 0.1);
-  
-  /* Italico per il testo descrittivo */
-  font-style: italic;
-  
-  /* Rendering ottimale */
-  -webkit-font-smoothing: antialiased;
-  -moz-osx-font-smoothing: grayscale;
-  text-rendering: optimizeLegibility;
-  
-  /* Centra il testo */
-  text-align: center;
-}
-
-@keyframes text3dIsometricFadeIn {
-  from {
-    opacity: 0;
-    transform: 
-      perspective(1500px)
-      rotateX(15deg)
-      rotateY(-18deg)
-      rotateZ(-18deg)
-      translateZ(0px)
-      translateY(30px);
-  }
-  to {
-    opacity: 1;
-    transform: 
-      perspective(1500px)
-      rotateX(5deg)
-      rotateY(-8deg)
-      rotateZ(-18deg)
-      translateZ(0px)
-      translateY(0);
-  }
-}
-
-/* Responsive: su schermi piccoli, riduce prospettiva */
+/* Responsive: su schermi piccoli, riduce dimensioni container */
 @media (max-width: 1024px) {
   .spline-container {
     height: 700px;
     min-height: 700px;
     margin: 4rem 0;
     padding: 2rem 1rem;
-  }
-
-  .skill-text-3d-title {
-    font-size: clamp(3rem, 8vw, 6rem);
-  }
-
-  .skill-text-3d-desc {
-    font-size: clamp(0.9rem, 2vw, 1.3rem);
   }
 }
 
@@ -161,57 +35,11 @@
     margin: 3rem 0;
     padding: 2rem 1rem;
   }
-
-  .skill-text-3d {
-    top: 8%;
-    left: 12%;
-    transform: 
-      perspective(1200px)
-      rotateX(3deg)
-      rotateY(-5deg)
-      rotateZ(-12deg)
-      translateZ(0px);
-  }
-  
-  .skill-text-3d-title {
-    font-size: clamp(2.5rem, 7vw, 4rem);
-  }
-  
-  .skill-text-3d-desc {
-    font-size: clamp(0.85rem, 2vw, 1.1rem);
-    max-width: 320px;
-    text-align: left;
-  }
 }
 
 @media (max-width: 520px) {
   .spline-container {
     height: 500px;
     min-height: 500px;
-  }
-
-  .skill-text-3d {
-    top: 6%;
-    left: 8%;
-  }
-
-  .skill-text-3d-title {
-    font-size: clamp(1.8rem, 6vw, 3rem);
-    /* Estrusione ridotta e pulita su mobile */
-    text-shadow: 
-      2px 2px 0 #d0d0d0,
-      4px 4px 0 #a0a0a0,
-      6px 6px 0 #707070,
-      8px 8px 15px rgba(0, 0, 0, 0.5);
-  }
-
-  .skill-text-3d-desc {
-    font-size: clamp(0.75rem, 1.8vw, 1rem);
-    max-width: 280px;
-    /* Estrusione minima su mobile */
-    text-shadow: 
-      1px 1px 0 #c0c0c0,
-      2px 2px 0 #808080,
-      3px 3px 10px rgba(0, 0, 0, 0.4);
   }
 }
