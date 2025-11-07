@@ -1,0 +1,18 @@
+<div class="spline-wrapper" #wrapper>
+  @if (isLoading()) {
+    <div class="loading-overlay">
+      <div class="text-center">
+        <div class="spinner"></div>
+        <p class="text-muted-foreground mt-4">Caricamento...</p>
+      </div>
+    </div>
+  }
+  
+  <canvas 
+    #splineCanvas
+    class="spline-canvas"
+    [style.opacity]="isLoading() ? '0' : '1'"
+    [style.visibility]="isLoading() ? 'hidden' : 'visible'"
+    [style.pointer-events]="isLoading() ? 'none' : 'auto'">
+  </canvas>
+</div>

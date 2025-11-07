@@ -4,7 +4,7 @@ import { toSignal, takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { ActivatedRoute } from '@angular/router';
 import { map, catchError, of } from 'rxjs';
 import { ResumeSection } from '../../components/resume-section/resume-section';
-import { Skills } from '../../components/skills/skills';
+import { SkillsSectionComponent } from '../../components/skills/skills';
 import { CvService } from '../../services/cv.service';
 import { TenantService } from '../../services/tenant.service';
 import { CvFileService } from '../../services/cv-file.service';
@@ -27,7 +27,7 @@ export interface NotificationItem {
   selector: 'app-curriculum',
   imports: [
     ResumeSection,
-    Skills,
+    SkillsSectionComponent,
     Notification
   ],
   templateUrl: './curriculum.html',

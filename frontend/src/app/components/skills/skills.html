@@ -1,15 +1,37 @@
-<section class="skills" aria-labelledby="skills-title">
-  <header class="skills__header">
-    <h3 id="skills-title" class="skills__title">Competenze</h3>
-  </header>
+<section id="skills" class="relative py-20 px-4 md:px-8">
+  <div class="container mx-auto">
+    <!-- Titolo -->
+    <div class="text-center mb-12">
+      <h2 class="text-4xl md:text-6xl font-bold mb-4">
+        Le Mie <span class="text-primary">Competenze</span>
+      </h2>
+      <p class="text-muted-foreground text-lg max-w-2xl mx-auto">
+        Tecnologie e strumenti con cui lavoro quotidianamente
+      </p>
+    </div>
 
-  <div class="icons-grid">
-    @for (s of skills(); track s.name) {
-      <figure class="skill" [title]="s.name" [attr.aria-label]="s.name">
-        <div class="skill__avatar">
-          <img [src]="s.icon" [alt]="s.name" loading="lazy" referrerpolicy="no-referrer" />
+    <!-- Tastiera 3D Spline Interattiva con Testo a Fianco -->
+    <div class="spline-container">
+      
+      <!-- Testo 3D a sinistra della tastiera (stile React) -->
+      @if (hasHoveredSkill()) {
+        <div class="skill-text-3d">
+          <h3 class="skill-text-3d-title">{{ skillLabel() }}</h3>
+          <p class="skill-text-3d-desc">{{ skillDescription() }}</p>
         </div>
-      </figure>
-    }
+      }
+      
+      <!-- Scena Spline -->
+      <app-spline-react-like 
+        [scene]="splineSceneUrl"
+        (onLoad)="onSplineLoad($event)" />
+    </div>
+
+    <!-- Info tastiera 3D -->
+    <div class="text-center">
+      <p class="text-sm text-muted-foreground">
+        💡 Passa il mouse sui tasti per vedere le info delle skills!
+      </p>
+    </div>
   </div>
 </section>
