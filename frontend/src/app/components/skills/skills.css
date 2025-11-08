@@ -14,6 +14,9 @@
   /* Margin e padding generosi per effetto floating */
   margin: 6rem 0;
   padding: 4rem 2rem;
+  /* Zoom ridotto per la tastiera */
+  transform: scale(0.85);
+  transform-origin: center center;
 }
 
 /* Il testo 3D è gestito da Three.js con lazy loading */

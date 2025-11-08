@@ -286,7 +286,7 @@ export class ThreeText3DComponent implements AfterViewInit, OnChanges, OnDestroy
     }
 
     this.titleMesh = new THREE.Mesh(titleGeometry, titleMaterial);
-    this.titleMesh.position.set(-100, 280, 0);
+    this.titleMesh.position.set(-50, 280, 0);  // Spostato più a destra: -100 → -50
     this.titleMesh.rotation.set(-0.3, 0.0, 0.35);
     this.scene.add(this.titleMesh);
 
@@ -338,7 +338,7 @@ export class ThreeText3DComponent implements AfterViewInit, OnChanges, OnDestroy
         const descMesh = new THREE.Mesh(descGeometry, descMaterial.clone());
         
         const lineHeight = 25;
-        descMesh.position.set(-100, 230 - (index * lineHeight), 5 + (index * 2));
+        descMesh.position.set(-50, 210 - (index * lineHeight), 5 + (index * 2));  // Y ridotto: 230 → 180 (più vicino alla tastiera)
         descMesh.rotation.set(-0.3, 0.0, 0.35);
         
         this.scene.add(descMesh);
