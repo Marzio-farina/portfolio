@@ -34,7 +34,7 @@ export class AvatarEditor {
   // Dimensiona il contenitore host per vincolare l'editor
   @HostBinding('style.display') get hostDisplay(): string {
     // In aside il display inline-block spinge a destra: usa block
-    return this.context() === 'aside' ? '' : 'inline-block';
+    return this.context() === 'aside' ? 'block' : 'inline-block';
   }
   @HostBinding('style.width') get hostW(): string {
     const w = this.width();
@@ -49,6 +49,13 @@ export class AvatarEditor {
     if (typeof h === 'number') return `${h}px`;
     // fallback a size
     return `${this.size()}px`;
+  }
+  @HostBinding('style.overflow') get hostOverflow(): string {
+    // Previene l'espansione del contenitore quando viene caricata un'immagine
+    return this.context() === 'aside' ? 'visible' : 'visible';
+  }
+  @HostBinding('style.position') get hostPosition(): string {
+    return 'relative';
   }
 
   // Emesso quando l'utente seleziona un nuovo avatar (file, url o icona)

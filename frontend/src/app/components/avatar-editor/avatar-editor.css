@@ -3,11 +3,23 @@
   display: flex;
   align-items: center;
   position: relative;
+  width: 100%;
+  height: 100%;
 }
 /* Mantiene la larghezza quando le frecce sono nascoste */
 .avatar-nav-spacer { width: 32px; height: 32px; display: inline-block; flex-shrink: 0; }
 
-.avatar-preview-wrap { position: relative; width: 100%; height: 100%; display: inline-block; min-width: 80px; min-height: 80px; }
+.avatar-preview-wrap { 
+  position: relative; 
+  flex: 1 1 auto; 
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 80px; 
+  min-height: 80px;
+  max-width: 100%;
+  max-height: 100%;
+}
 .avatar-preview {
   position: relative;
   width: 100%;
@@ -124,6 +136,36 @@
 }
 .avatar-nav-btn:disabled { opacity: 0.3; cursor: not-allowed; transform: none; }
 .avatar-nav-btn svg { width: 16px; height: 16px; }
+
+/* Stili specifici per il contesto 'aside' */
+:host-context(.avatar-wrap) .avatar-container,
+:host(.aside-context) .avatar-container {
+  max-width: 100%;
+  max-height: 100%;
+}
+
+:host-context(.avatar-wrap) .avatar-preview-wrap,
+:host(.aside-context) .avatar-preview-wrap {
+  width: 100%;
+  height: 100%;
+  max-width: 100%;
+  max-height: 100%;
+}
+
+:host-context(.avatar-wrap) .avatar-preview,
+:host(.aside-context) .avatar-preview {
+  width: 100%;
+  height: 100%;
+  max-width: 100%;
+  max-height: 100%;
+}
+
+/* Nel contesto aside, nascondi gli spacer per permettere all'avatar di occupare tutto lo spazio */
+:host-context(.avatar-wrap) .avatar-nav-spacer {
+  width: 0;
+  height: 0;
+  display: none;
+}
 
 @media (max-width: 579px) {
   .avatar-preview-wrap { width: 70px; height: 70px; }
