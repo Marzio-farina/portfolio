@@ -11,14 +11,7 @@ import { EditModeService } from '../../services/edit-mode.service';
 import { TenantRouterService } from '../../services/tenant-router.service';
 import { Notification, NotificationType } from '../../components/notification/notification';
 import { ProjectDetailModalService } from '../../services/project-detail-modal.service';
-
-export interface NotificationItem {
-  id: string;
-  message: string;
-  type: NotificationType;
-  timestamp: number;
-  fieldId: string;
-}
+import { NotificationService } from '../../services/notification.service';
 
 @Component({
   selector: 'app-progetti',
@@ -27,6 +20,7 @@ export interface NotificationItem {
     Filter,
     Notification
   ],
+  providers: [NotificationService],
   templateUrl: './progetti.html',
   styleUrl: './progetti.css'
 })
@@ -39,6 +33,7 @@ export class Progetti implements OnDestroy {
   private edit = inject(EditModeService);
   private tenantRouter = inject(TenantRouterService);
   private projectDetailModal = inject(ProjectDetailModalService);
+  protected notificationService = inject(NotificationService);
 
   title = toSignal(this.route.data.pipe(map(d => d['title'] as string)), { initialValue: '' });
 
@@ -75,10 +70,6 @@ export class Progetti implements OnDestroy {
   loading = signal(true);
   errorMsg = signal<string | null>(null);
 
-  // Gestione notifiche
-  notifications = signal<NotificationItem[]>([]);
-  showMultipleNotifications = false;
-
   // lista filtrata in base alla categoria scelta
   filtered = computed<Progetto[]>(() => {
     const cat = this.selectedCategory();
@@ -105,15 +96,7 @@ export class Progetti implements OnDestroy {
     const queryParams = this.route.snapshot.queryParams;
     if (queryParams['created'] === 'true') {
       // Mostra notifica di successo
-      const successNotification: NotificationItem = {
-        id: `success-${Date.now()}`,
-        message: 'Progetto creato con successo!',
-        type: 'success',
-        timestamp: Date.now(),
-        fieldId: 'success'
-      };
-      this.notifications.set([successNotification]);
-      this.showMultipleNotifications = true;
+      this.notificationService.addSuccess('Progetto creato con successo!');
       
       // Rimuovi il parametro dalla URL dopo averlo letto
       this.router.navigate([], {
@@ -255,7 +238,7 @@ export class Progetti implements OnDestroy {
     this.projects.set(this.projects().filter(p => p.id !== id));
     
     // Aggiungi notifica di successo
-    this.addNotification('success', 'Progetto rimosso con successo.', `progetto-deleted-${id}`);
+    this.notificationService.add('success', 'Progetto rimosso con successo.', `progetto-deleted-${id}`);
     
     // NON ricaricare i progetti per permettere eliminazioni multiple
     // Il ricaricamento avverrà automaticamente quando l'utente ricarica la pagina
@@ -284,7 +267,7 @@ export class Progetti implements OnDestroy {
     }
     
     // Aggiungi notifica di errore
-    this.addNotification('error', errorMessage, `progetto-delete-error-${event.id}`);
+    this.notificationService.add('error', errorMessage, `progetto-delete-error-${event.id}`);
   }
 
   goToAddProgetto(): void {
@@ -315,7 +298,7 @@ export class Progetti implements OnDestroy {
       this.projects.set(updatedList);
       
       // Mostra notifica di successo per cambio categoria
-      this.addNotification('success', `Progetto spostato in categoria "${updatedProject.category}".`, `project-category-changed-${Date.now()}`);
+      this.notificationService.add('success', `Progetto spostato in categoria "${updatedProject.category}".`, `project-category-changed-${Date.now()}`);
       
       // Ricarica le categorie per aggiornare la lista dei filtri
       this.loadCategories();
@@ -326,7 +309,7 @@ export class Progetti implements OnDestroy {
       this.projects.set(updatedList);
       
       // Mostra notifica di ripristino
-      this.addNotification('success', 'Progetto ripristinato con successo.', `project-restored-${Date.now()}`);
+      this.notificationService.add('success', 'Progetto ripristinato con successo.', `project-restored-${Date.now()}`);
     }
     
     // Se il filtro corrente non è "Tutti" e non è la nuova categoria,
@@ -353,7 +336,7 @@ export class Progetti implements OnDestroy {
     
     // Verifica se la categoria esiste già (controlla in tutte le categorie)
     if (this.allCategories().includes(trimmedTitle)) {
-      this.addNotification('warning', `La categoria "${trimmedTitle}" esiste già.`, `category-exists-${Date.now()}`);
+      this.notificationService.add('warning', `La categoria "${trimmedTitle}" esiste già.`, `category-exists-${Date.now()}`);
       return;
     }
     
@@ -378,7 +361,7 @@ export class Progetti implements OnDestroy {
         this.pendingCategories.set(finalPending);
         
         // Mostra notifica di successo
-        this.addNotification('success', `Categoria "${trimmedTitle}" creata con successo.`, `category-created-${Date.now()}`);
+        this.notificationService.add('success', `Categoria "${trimmedTitle}" creata con successo.`, `category-created-${Date.now()}`);
         
         // Ricarica le categorie dal backend per sincronizzare
         this.loadCategories();
@@ -396,7 +379,7 @@ export class Progetti implements OnDestroy {
         finalPending.delete(trimmedTitle);
         this.pendingCategories.set(finalPending);
         
-        this.addNotification('error', `Errore nella creazione della categoria: ${errorMessage}`, `category-create-error-${Date.now()}`);
+        this.notificationService.add('error', `Errore nella creazione della categoria: ${errorMessage}`, `category-create-error-${Date.now()}`);
       }
     });
   }
@@ -409,7 +392,7 @@ export class Progetti implements OnDestroy {
     const projectsWithCategory = this.projects().filter(p => p.category === categoryTitle).length;
     
     if (projectsWithCategory > 0) {
-      this.addNotification(
+      this.notificationService.add(
         'warning', 
         `Impossibile eliminare la categoria "${categoryTitle}". Ci sono ${projectsWithCategory} progetti associati. Riassegna prima i progetti ad un'altra categoria.`, 
         `category-has-projects-${Date.now()}`
@@ -441,7 +424,7 @@ export class Progetti implements OnDestroy {
           this.selectedCategory.set('Tutti');
         }
         
-        this.addNotification('success', `Categoria "${categoryTitle}" eliminata con successo.`, `category-deleted-${Date.now()}`);
+        this.notificationService.add('success', `Categoria "${categoryTitle}" eliminata con successo.`, `category-deleted-${Date.now()}`);
         
         // Ricarica le categorie dal backend per sincronizzare
         this.loadCategories();
@@ -456,40 +439,13 @@ export class Progetti implements OnDestroy {
         finalPending.delete(categoryTitle);
         this.pendingCategories.set(finalPending);
         
-        this.addNotification('error', errorMessage, `category-delete-error-${Date.now()}`);
+        this.notificationService.add('error', errorMessage, `category-delete-error-${Date.now()}`);
       }
     });
   }
 
   // Metodo per ottenere la notifica più grave per l'icona nell'angolo
-  getMostSevereNotification(): NotificationItem | null {
-    const currentNotifications = this.notifications();
-    if (!currentNotifications.length) return null;
-    const order: NotificationType[] = ['error', 'warning', 'info', 'success'];
-    return [...currentNotifications].sort((a, b) => order.indexOf(a.type) - order.indexOf(b.type))[0];
-  }
-
-  /**
-   * Aggiunge una notifica alla lista
-   */
-  private addNotification(type: NotificationType, message: string, fieldId: string): void {
-    const currentNotifications = this.notifications();
-    const now = Date.now();
-    
-    const newNotification: NotificationItem = {
-      id: `${fieldId}-${now}-${Math.random().toString(36).substr(2, 9)}`,
-      message: message,
-      type: type,
-      timestamp: now,
-      fieldId: fieldId
-    };
-    
-    const hasTimestamp = /-\d+$/.test(fieldId);
-    const filteredNotifications = hasTimestamp
-      ? currentNotifications
-      : currentNotifications.filter(n => n.fieldId !== fieldId);
-    
-    this.notifications.set([...filteredNotifications, newNotification]);
-    this.showMultipleNotifications = true;
+  getMostSevereNotification() {
+    return this.notificationService.getMostSevere();
   }
 }

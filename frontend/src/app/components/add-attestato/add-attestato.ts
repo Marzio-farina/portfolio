@@ -7,11 +7,13 @@ import { AttestatiService } from '../../services/attestati.service';
 import { Notification, NotificationType } from '../notification/notification';
 import { environment } from '../../../environments/environment';
 import { PosterUploaderComponent, PosterData } from '../poster-uploader/poster-uploader.component';
+import { NotificationService } from '../../services/notification.service';
 
 @Component({
   selector: 'app-add-attestato',
   standalone: true,
   imports: [ReactiveFormsModule, Notification, PosterUploaderComponent],
+  providers: [NotificationService],
   templateUrl: './add-attestato.html',
   styleUrls: ['./add-attestato.css']
 })
@@ -21,13 +23,12 @@ export class AddAttestato {
   private router = inject(Router);
   private tenantRouter = inject(TenantRouterService);
   private tenant = inject(TenantService);
+  protected notificationService = inject(NotificationService);
 
   addAttestatoForm: FormGroup;
   uploading = signal(false);
   selectedPosterFile = signal<File | null>(null);
   errorMsg = signal<string | null>(null);
-
-  notifications = signal<{ id: string; message: string; type: NotificationType; timestamp: number; fieldId: string; }[]>([]);
   // yyyy-mm-dd formattato in locale (no timezone shift)
   readonly todayStr = (() => {
     const d = new Date();
@@ -135,12 +136,12 @@ export class AddAttestato {
     this.selectedPosterFile.set(data.file);
     this.addAttestatoForm.patchValue({ poster_file: data.file });
     this.addAttestatoForm.get('poster_file')?.updateValueAndValidity();
-    this.removeNotification('attestato.poster_file');
+    this.notificationService.remove('attestato.poster_file');
   }
 
   onSubmit(): void {
     if (this.uploading()) return;
-    this.notifications.set([]);
+    this.notificationService.clear();
     this.errorMsg.set(null);
 
     if (this.addAttestatoForm.invalid) {
@@ -172,7 +173,7 @@ export class AddAttestato {
     this.attestatiService.create$(formData).subscribe({
       next: () => {
         this.uploading.set(false);
-        this.notifications.set([]);
+        this.notificationService.clear();
         // Naviga alla pagina corretta: con userSlug se presente, altrimenti /attestati
         const userSlug = this.tenant.userSlug();
         if (userSlug) {
@@ -204,11 +205,11 @@ export class AddAttestato {
             const list = Array.isArray(messages) ? messages : [messages];
             list.forEach(msg => {
               const fid = `attestato.${field}`;
-              this.addNotification(fid, `${field}: ${msg}`, 'error');
+              this.notificationService.add('error', `${field}: ${msg}`, fid);
             });
           });
         } else {
-          this.notifications.update(list => [...list, { id: `global-${Date.now()}`, message, type: 'error', timestamp: Date.now(), fieldId: 'global' }]);
+          this.notificationService.add('error', message, 'global');
         }
       }
     });
@@ -216,7 +217,7 @@ export class AddAttestato {
 
   onCancel(): void {
     if (!this.uploading()) {
-      this.notifications.set([]);
+      this.notificationService.clear();
       // Naviga alla pagina corretta: con userSlug se presente, altrimenti /attestati
       const userSlug = this.tenant.userSlug();
       if (userSlug) {
@@ -233,9 +234,9 @@ export class AddAttestato {
     ctrl.markAsTouched();
     if (ctrl.invalid) {
       const { message, type } = this.fieldErrorMessage(fieldKey);
-      this.addNotification(fieldKey, message, type);
+      this.notificationService.add(type, message, fieldKey);
     } else {
-      this.removeNotification(fieldKey);
+      this.notificationService.remove(fieldKey);
     }
   }
 
@@ -291,49 +292,34 @@ export class AddAttestato {
     return { message: 'Compila correttamente il campo.', type: 'error' };
   }
 
-  private addNotification(fieldId: string, message: string, type: NotificationType): void {
-    const now = Date.now();
-    this.notifications.update(list => {
-      const filtered = list.filter(n => n.fieldId !== fieldId);
-      return [...filtered, { id: `${fieldId}-${now}`, message, type, timestamp: now, fieldId }];
-    });
-  }
-
-  private removeNotification(fieldId: string): void {
-    this.notifications.update(list => list.filter(n => n.fieldId !== fieldId));
-  }
-
   private showValidationErrors(): void {
     if (this.addAttestatoForm.get('title')?.invalid) {
       const c = this.addAttestatoForm.get('title');
-      if (c?.errors?.['required']) this.addNotification('attestato.title', 'Il titolo è obbligatorio.', 'error');
-      else if (c?.errors?.['maxlength']) this.addNotification('attestato.title', 'Il titolo deve essere lungo massimo 150 caratteri.', 'error');
+      if (c?.errors?.['required']) this.notificationService.add('error', 'Il titolo è obbligatorio.', 'attestato.title');
+      else if (c?.errors?.['maxlength']) this.notificationService.add('error', 'Il titolo deve essere lungo massimo 150 caratteri.', 'attestato.title');
     }
     if (this.addAttestatoForm.get('poster_file')?.invalid) {
-      if (this.addAttestatoForm.get('poster_file')?.errors?.['required']) this.addNotification('attestato.poster_file', "L'immagine dell'attestato è obbligatoria.", 'error');
+      if (this.addAttestatoForm.get('poster_file')?.errors?.['required']) this.notificationService.add('error', "L'immagine dell'attestato è obbligatoria.", 'attestato.poster_file');
     }
     const desc = this.addAttestatoForm.get('description');
-    if (desc?.invalid && desc.errors?.['maxlength']) this.addNotification('attestato.description', 'La descrizione deve essere lunga massimo 1000 caratteri.', 'warning');
+    if (desc?.invalid && desc.errors?.['maxlength']) this.notificationService.add('warning', 'La descrizione deve essere lunga massimo 1000 caratteri.', 'attestato.description');
     const issuer = this.addAttestatoForm.get('issuer');
-    if (issuer?.invalid && issuer.errors?.['maxlength']) this.addNotification('attestato.issuer', "L'ente rilasciante deve essere lungo massimo 150 caratteri.", 'warning');
+    if (issuer?.invalid && issuer.errors?.['maxlength']) this.notificationService.add('warning', "L'ente rilasciante deve essere lungo massimo 150 caratteri.", 'attestato.issuer');
     const issuedAt = this.addAttestatoForm.get('issued_at');
-    if (issuedAt?.invalid && issuedAt.errors?.['futureDate']) this.addNotification('attestato.issued_at', 'La data di rilascio non può essere nel futuro.', 'error');
+    if (issuedAt?.invalid && issuedAt.errors?.['futureDate']) this.notificationService.add('error', 'La data di rilascio non può essere nel futuro.', 'attestato.issued_at');
     const credId = this.addAttestatoForm.get('credential_id');
-    if (credId?.invalid && credId.errors?.['maxlength']) this.addNotification('attestato.credential_id', "L'ID credenziale deve essere lungo massimo 100 caratteri.", 'warning');
+    if (credId?.invalid && credId.errors?.['maxlength']) this.notificationService.add('warning', "L'ID credenziale deve essere lungo massimo 100 caratteri.", 'attestato.credential_id');
     const credUrl = this.addAttestatoForm.get('credential_url');
     if (credUrl?.invalid) {
-      if (credUrl.errors?.['pattern']) this.addNotification('attestato.credential_url', 'Inserisci un URL valido (es. https://...).', 'error');
-      else if (credUrl.errors?.['maxlength']) this.addNotification('attestato.credential_url', "L'URL deve essere lungo massimo 255 caratteri.", 'warning');
+      if (credUrl.errors?.['pattern']) this.notificationService.add('error', 'Inserisci un URL valido (es. https://...).', 'attestato.credential_url');
+      else if (credUrl.errors?.['maxlength']) this.notificationService.add('warning', "L'URL deve essere lungo massimo 255 caratteri.", 'attestato.credential_url');
     }
     const expiresAt = this.addAttestatoForm.get('expires_at');
-    if (expiresAt?.invalid && expiresAt.errors?.['beforeIssued']) this.addNotification('attestato.expires_at', 'La data di scadenza non può essere precedente.', 'error');
+    if (expiresAt?.invalid && expiresAt.errors?.['beforeIssued']) this.notificationService.add('error', 'La data di scadenza non può essere precedente.', 'attestato.expires_at');
   }
 
   getMostSevereNotification() {
-    const list = this.notifications();
-    if (!list.length) return null;
-    const order: NotificationType[] = ['error', 'warning', 'info', 'success'];
-    return [...list].sort((a, b) => order.indexOf(a.type) - order.indexOf(b.type))[0];
+    return this.notificationService.getMostSevere();
   }
 }
 

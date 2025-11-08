@@ -18,6 +18,7 @@ import { DeletionOverlay } from '../shared/deletion-overlay/deletion-overlay';
 import { Notification, NotificationItem, NotificationType } from '../notification/notification';
 import { delay } from 'rxjs/operators';
 import { Subscription } from 'rxjs';
+import { NotificationService } from '../../services/notification.service';
 
 import { Progetto } from '../../core/models/project';
 
@@ -37,7 +38,7 @@ interface HiddenTechnology extends Partial<Technology>, Partial<OptimisticTechno
 @Component({
   selector: 'app-progetti-card',
   imports: [MatSelectModule, MatFormFieldModule, NgOptimizedImage, AdminDeleteButton, DeletionOverlay, Notification],
-  providers: [DeletionConfirmationService],
+  providers: [DeletionConfirmationService, NotificationService],
   templateUrl: './progetti-card.html',
   styleUrl: './progetti-card.css'
 })
@@ -55,6 +56,7 @@ export class ProgettiCard {
   private readonly tenant = inject(TenantService);
   private readonly destroyRef = inject(DestroyRef);
   private readonly optimisticTechService = inject(OptimisticTechnologyService);
+  protected notificationService = inject(NotificationService);
   
   isAuthenticated = computed(() => this.auth.isAuthenticated());
   isEditing = computed(() => this.editModeService.isEditing());
@@ -77,10 +79,6 @@ export class ProgettiCard {
   
   // Flag per prevenire loop infinito
   private isUpdatingCategory = false;
-  
-  // Notifiche per feedback utente
-  notifications = signal<NotificationItem[]>([]);
-  showMultipleNotifications = true;
   
   // Tecnologie combinate (reali + ottimistiche dal service globale)
   allTechnologies = computed<(Technology | OptimisticTechnology)[]>(() => {
@@ -1132,50 +1130,21 @@ export class ProgettiCard {
    * Aggiunge una notifica di successo
    */
   private showSuccessNotification(message: string): void {
-    const notification: NotificationItem = {
-      id: `success-${Date.now()}-${Math.random()}`,
-      message,
-      type: 'success',
-      timestamp: Date.now(),
-      fieldId: 'technology-add'
-    };
-    
-    this.notifications.update(notifs => [...notifs, notification]);
+    this.notificationService.add('success', message, 'technology-add');
   }
   
   /**
    * Aggiunge una notifica di errore
    */
   private showErrorNotification(message: string): void {
-    const notification: NotificationItem = {
-      id: `error-${Date.now()}-${Math.random()}`,
-      message,
-      type: 'error',
-      timestamp: Date.now(),
-      fieldId: 'technology-add'
-    };
-    
-    this.notifications.update(notifs => [...notifs, notification]);
+    this.notificationService.add('error', message, 'technology-add');
   }
   
   /**
    * Ottiene la notifica più grave
    */
-  getMostSevereNotification(): NotificationItem | null {
-    const currentNotifications = this.notifications();
-    if (currentNotifications.length === 0) return null;
-    
-    const severityOrder: Record<NotificationType, number> = {
-      error: 4,
-      warning: 3,
-      success: 2,
-      info: 1
-    };
-    
-    return currentNotifications.reduce((mostSevere, current) => {
-      if (!mostSevere) return current;
-      return severityOrder[current.type] > severityOrder[mostSevere.type] ? current : mostSevere;
-    }, currentNotifications[0]);
+  getMostSevereNotification() {
+    return this.notificationService.getMostSevere();
   }
   
   onTechInput(event: Event): void {

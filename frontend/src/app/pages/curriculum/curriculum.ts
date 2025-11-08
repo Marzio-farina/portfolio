@@ -12,16 +12,9 @@ import { Notification, NotificationType } from '../../components/notification/no
 import { AuthService } from '../../services/auth.service';
 import { CvUploadModalService } from '../../services/cv-upload-modal.service';
 import { CvPreviewModalService } from '../../services/cv-preview-modal.service';
+import { NotificationService } from '../../services/notification.service';
 
 type TimelineItem = { title: string; years: string; description: string };
-
-export interface NotificationItem {
-  id: string;
-  message: string;
-  type: NotificationType;
-  timestamp: number;
-  fieldId: string;
-}
 
 @Component({
   selector: 'app-curriculum',
@@ -30,6 +23,7 @@ export interface NotificationItem {
     SkillsSectionComponent,
     Notification
   ],
+  providers: [NotificationService],
   templateUrl: './curriculum.html',
   styleUrl: './curriculum.css'
 })
@@ -43,6 +37,7 @@ export class Curriculum {
   private cvPreviewModal = inject(CvPreviewModalService);
   private sanitizer = inject(DomSanitizer);
   private destroyRef = inject(DestroyRef);
+  protected notificationService = inject(NotificationService);
 
   title = toSignal(this.route.data.pipe(map(d => d['title'] as string)), { initialValue: '' });
 
@@ -57,12 +52,6 @@ export class Curriculum {
     const url = this.pdfUrl();
     return url ? this.sanitizer.bypassSecurityTrustResourceUrl(url) : null;
   });
-  
-  // Gestione notifiche multiple
-  notifications = signal<NotificationItem[]>([]);
-  showMultipleNotifications = signal(false);
-  private readonly successAutoDismissDelay = 4000;
-  private successRemovalTimers = new Map<string, number>();
 
   constructor() {
     const uid = this.tenant.userId();
@@ -74,7 +63,7 @@ export class Curriculum {
       },
       error: (err: any) => {
         const message = this.getErrorMessage(err) || 'Impossibile caricare il curriculum.';
-        this.addNotification('error', message, 'cv-load');
+        this.notificationService.add('error', message, 'cv-load');
         this.loading.set(false);
       }
     });
@@ -99,7 +88,6 @@ export class Curriculum {
       });
     });
 
-    this.destroyRef.onDestroy(() => this.clearAllSuccessRemovalTimers());
   }
 
   /**
@@ -116,16 +104,16 @@ export class Curriculum {
       next: (response) => {
         if (response.success && response.cv?.download_url) {
           this.cvFile.downloadFile(response.cv.download_url);
-          this.addNotification('success', 'Download del CV avviato.', 'cv-download');
+          this.notificationService.add('success', 'Download del CV avviato.', 'cv-download');
         } else {
           const message = response.message || 'Nessun CV disponibile per il download.';
-          this.addNotification('error', message, 'cv-download');
+          this.notificationService.add('error', message, 'cv-download');
         }
         this.downloading.set(false);
       },
       error: (err: any) => {
         const message = this.getErrorMessage(err) || 'Errore durante il download del CV.';
-        this.addNotification('error', message, 'cv-download');
+        this.notificationService.add('error', message, 'cv-download');
         this.downloading.set(false);
       }
     });
@@ -143,12 +131,12 @@ export class Curriculum {
           this.cvPreviewModal.open(url);
         } else {
           const message = response.message || 'Nessun CV disponibile.';
-          this.addNotification('error', message, 'cv-open');
+          this.notificationService.add('error', message, 'cv-open');
         }
       },
       error: (err: any) => {
         const message = this.getErrorMessage(err) || 'Errore durante l\'apertura del CV.';
-        this.addNotification('error', message, 'cv-open');
+        this.notificationService.add('error', message, 'cv-open');
       }
     });
   }
@@ -186,22 +174,22 @@ export class Curriculum {
             // Fallback: copia URL negli appunti
             try {
               await navigator.clipboard.writeText(url);
-              this.addNotification('success', 'Link del CV copiato negli appunti!', 'cv-share');
+              this.notificationService.add('success', 'Link del CV copiato negli appunti!', 'cv-share');
             } catch (err) {
-              this.addNotification('error', 'Impossibile copiare il link.', 'cv-share');
+              this.notificationService.add('error', 'Impossibile copiare il link.', 'cv-share');
             }
           } else {
             const message = response.message || 'Nessun CV disponibile.';
-            this.addNotification('error', message, 'cv-share');
+            this.notificationService.add('error', message, 'cv-share');
           }
         },
         error: (err: any) => {
           const message = this.getErrorMessage(err) || 'Errore durante la condivisione del CV.';
-          this.addNotification('error', message, 'cv-share');
+          this.notificationService.add('error', message, 'cv-share');
         }
       });
     } catch (err) {
-      this.addNotification('error', 'Funzionalità di condivisione non disponibile.', 'cv-share');
+      this.notificationService.add('error', 'Funzionalità di condivisione non disponibile.', 'cv-share');
     }
   }
 
@@ -241,7 +229,7 @@ export class Curriculum {
         } else {
           // CV non esiste, apri la modal di upload
           // Mostra una notifica informativa
-          this.addNotification('info', 'Nessun CV trovato. Carica il tuo curriculum.', 'cv-not-found');
+          this.notificationService.add('info', 'Nessun CV trovato. Carica il tuo curriculum.', 'cv-not-found');
           // Apri la modal usando il servizio
           this.cvUploadModal.open();
         }
@@ -252,13 +240,13 @@ export class Curriculum {
         const status = err?.originalError?.status ?? err?.status ?? err?.statusCode;
         if (status === 404) {
           // CV non trovato - mostra notifica informativa e apri modal
-          this.addNotification('info', 'Nessun CV trovato. Carica il tuo curriculum.', 'cv-not-found');
+          this.notificationService.add('info', 'Nessun CV trovato. Carica il tuo curriculum.', 'cv-not-found');
           // Apri la modal usando il servizio
           this.cvUploadModal.open();
         } else {
           this.cvMenuOpen.set(!this.cvMenuOpen());
           const message = this.getErrorMessage(err) || 'Errore durante il caricamento del CV.';
-          this.addNotification('error', message, 'cv-check');
+          this.notificationService.add('error', message, 'cv-check');
         }
       }
     });
@@ -269,53 +257,16 @@ export class Curriculum {
    * Questo metodo viene chiamato dall'event emitter del componente modal
    */
   onCvUploaded(): void {
-    this.addNotification('success', 'CV caricato con successo!', 'cv-upload');
+    this.notificationService.add('success', 'CV caricato con successo!', 'cv-upload');
     // Chiudi il menu se era aperto
     this.cvMenuOpen.set(false);
   }
 
   /**
-   * Aggiunge una notifica alla lista
-   */
-  private addNotification(type: NotificationType, message: string, fieldId: string): void {
-    const currentNotifications = this.notifications();
-    const now = Date.now();
-
-    const newNotification: NotificationItem = {
-      id: `${fieldId}-${now}`,
-      message: message,
-      type: type,
-      timestamp: now,
-      fieldId: fieldId
-    };
-    
-    const filteredNotifications = currentNotifications.filter(n => n.fieldId !== fieldId);
-    
-    this.notifications.set([...filteredNotifications, newNotification]);
-    this.showMultipleNotifications.set(true);
-    if (type === 'success') {
-      this.scheduleSuccessRemoval(fieldId);
-    } else {
-      this.clearSuccessRemovalTimer(fieldId);
-    }
-  }
-
-  /**
    * Ottiene la notifica più grave per l'icona nell'angolo
    */
-  getMostSevereNotification(): NotificationItem | null {
-    const currentNotifications = this.notifications();
-    if (currentNotifications.length === 0) return null;
-    
-    // Scala di gravità: Error > Warning > Info > Success
-    const severityOrder = { 'error': 0, 'warning': 1, 'info': 2, 'success': 3 };
-    
-    return currentNotifications.reduce((mostSevere, current) => {
-      if (severityOrder[current.type] < severityOrder[mostSevere.type]) {
-        return current;
-      }
-      return mostSevere;
-    });
+  getMostSevereNotification() {
+    return this.notificationService.getMostSevere();
   }
 
   /**
@@ -343,34 +294,5 @@ export class Curriculum {
     }
     // Nessun messaggio disponibile
     return null;
-  }
-
-  private scheduleSuccessRemoval(fieldId: string, delay = this.successAutoDismissDelay): void {
-    const existingTimer = this.successRemovalTimers.get(fieldId);
-    if (existingTimer) {
-      clearTimeout(existingTimer);
-    }
-
-    const timer = window.setTimeout(() => {
-      const updated = this.notifications().filter(n => !(n.fieldId === fieldId && n.type === 'success'));
-      this.notifications.set(updated);
-      this.showMultipleNotifications.set(updated.length > 0);
-      this.successRemovalTimers.delete(fieldId);
-    }, delay);
-
-    this.successRemovalTimers.set(fieldId, timer);
-  }
-
-  private clearSuccessRemovalTimer(fieldId: string): void {
-    const timer = this.successRemovalTimers.get(fieldId);
-    if (timer) {
-      clearTimeout(timer);
-      this.successRemovalTimers.delete(fieldId);
-    }
-  }
-
-  private clearAllSuccessRemovalTimers(): void {
-    this.successRemovalTimers.forEach(timer => clearTimeout(timer));
-    this.successRemovalTimers.clear();
   }
 }

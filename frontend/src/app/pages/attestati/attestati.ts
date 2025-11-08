@@ -13,18 +13,12 @@ import { AuthService } from '../../services/auth.service';
 import { EditModeService } from '../../services/edit-mode.service';
 import { TenantService } from '../../services/tenant.service';
 import { AttestatoDetailModalService } from '../../services/attestato-detail-modal.service';
-
-export interface NotificationItem {
-  id: string;
-  message: string;
-  type: NotificationType;
-  timestamp: number;
-  fieldId: string;
-}
+import { NotificationService } from '../../services/notification.service';
 
 @Component({
   selector: 'app-attestati',
   imports: [AttestatiCard, Notification],
+  providers: [NotificationService],
   templateUrl: './attestati.html',
   styleUrls: ['./attestati.css'],
 })
@@ -39,6 +33,7 @@ export class Attestati {
   private attestatoDetailModal = inject(AttestatoDetailModalService);
   private cdr = inject(ChangeDetectorRef);
   private destroyRef = inject(DestroyRef);
+  protected notificationService = inject(NotificationService);
 
   title = toSignal(this.route.data.pipe(map(d => d['title'] as string)), { initialValue: '' });
 
@@ -52,12 +47,6 @@ export class Attestati {
   private hasLoadedOnce = false;
   loading   = signal(true);
   errorMsg  = signal<string | null>(null);
-
-  // Gestione notifiche multiple
-  notifications = signal<NotificationItem[]>([]);
-  showMultipleNotifications = signal(false);
-  private readonly successAutoDismissDelay = 4000;
-  private successRemovalTimers = new Map<string, number>();
 
   // Stato autenticazione - mostra il button solo se loggato
   isAuthenticated = computed(() => this.auth.isAuthenticated());
@@ -191,7 +180,6 @@ export class Attestati {
   ngOnDestroy(): void {
     // Non resettiamo hasLoadedOnce qui perché vogliamo che il reload avvenga
     // anche se il componente viene riutilizzato da Angular
-    this.clearAllSuccessRemovalTimers();
   }
 
   private loadAttestati(forceRefresh = false): void {
@@ -208,7 +196,7 @@ export class Attestati {
       error: (err: any) => { 
         const message = this.getErrorMessage(err) || 'Impossibile caricare gli attestati.';
         this.errorMsg.set(message);
-        this.addNotification('error', message, 'attestati-load');
+        this.notificationService.add('error', message, 'attestati-load');
         this.loading.set(false); 
       }
     });
@@ -227,14 +215,14 @@ export class Attestati {
 
   onCardDeleted(id: number): void {
     this.attestati.set(this.attestati().filter(x => x.id !== id));
-    this.addNotification('success', 'Attestato rimosso.', `attestato-deleted-${id}`);
+    this.notificationService.add('success', 'Attestato rimosso.', `attestato-deleted-${id}`);
     // Forza una nuova fetch senza cache
     this.loadAttestati(true);
   }
 
   onCardDeleteError(event: { id: number; error: any }): void {
     console.error('Errore eliminazione attestato:', event.error);
-    this.addNotification('error', 'Errore durante l\'eliminazione dell\'attestato.', `attestato-delete-error-${event.id}`);
+    this.notificationService.add('error', 'Errore durante l\'eliminazione dell\'attestato.', `attestato-delete-error-${event.id}`);
   }
 
   onAttestatoChanged(attestato: Attestato): void {
@@ -249,50 +237,10 @@ export class Attestati {
 
 
   /**
-   * Aggiunge una notifica alla lista
-   */
-  private addNotification(type: NotificationType, message: string, fieldId: string): void {
-    const currentNotifications = this.notifications();
-    const now = Date.now();
-    
-    const newNotification: NotificationItem = {
-      id: `${fieldId}-${now}-${Math.random().toString(36).substr(2, 9)}`,
-      message: message,
-      type: type,
-      timestamp: now,
-      fieldId: fieldId
-    };
-    
-    const hasTimestamp = /-\d+$/.test(fieldId);
-    const filteredNotifications = hasTimestamp
-      ? currentNotifications
-      : currentNotifications.filter(n => n.fieldId !== fieldId);
-    
-    this.notifications.set([...filteredNotifications, newNotification]);
-    this.showMultipleNotifications.set(true);
-    if (type === 'success') {
-      this.scheduleSuccessRemoval(fieldId);
-    } else {
-      this.clearSuccessRemovalTimer(fieldId);
-    }
-  }
-
-  /**
    * Ottiene la notifica più grave per l'icona nell'angolo
    */
-  getMostSevereNotification(): NotificationItem | null {
-    const currentNotifications = this.notifications();
-    if (currentNotifications.length === 0) return null;
-    
-    // Scala di gravità: Error > Warning > Info > Success
-    const severityOrder = { 'error': 0, 'warning': 1, 'info': 2, 'success': 3 };
-    
-    return currentNotifications.reduce((mostSevere, current) => {
-      if (severityOrder[current.type] < severityOrder[mostSevere.type]) {
-        return current;
-      }
-      return mostSevere;
-    });
+  getMostSevereNotification() {
+    return this.notificationService.getMostSevere();
   }
 
   /**
@@ -320,34 +268,5 @@ export class Attestati {
     }
     // Nessun messaggio disponibile
     return null;
-  }
-
-  private scheduleSuccessRemoval(fieldId: string, delay = this.successAutoDismissDelay): void {
-    const existingTimer = this.successRemovalTimers.get(fieldId);
-    if (existingTimer) {
-      clearTimeout(existingTimer);
-    }
-
-    const timer = window.setTimeout(() => {
-      const updated = this.notifications().filter(n => !(n.fieldId === fieldId && n.type === 'success'));
-      this.notifications.set(updated);
-      this.showMultipleNotifications.set(updated.length > 0);
-      this.successRemovalTimers.delete(fieldId);
-    }, delay);
-
-    this.successRemovalTimers.set(fieldId, timer);
-  }
-
-  private clearSuccessRemovalTimer(fieldId: string): void {
-    const timer = this.successRemovalTimers.get(fieldId);
-    if (timer) {
-      clearTimeout(timer);
-      this.successRemovalTimers.delete(fieldId);
-    }
-  }
-
-  private clearAllSuccessRemovalTimers(): void {
-    this.successRemovalTimers.forEach(timer => clearTimeout(timer));
-    this.successRemovalTimers.clear();
   }
 }

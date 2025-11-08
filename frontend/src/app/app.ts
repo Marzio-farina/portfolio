@@ -22,6 +22,7 @@ import { Notification, NotificationItem, NotificationType } from './components/n
 import { CvPreviewModalService } from './services/cv-preview-modal.service';
 import { CvPreviewModal } from './components/cv-preview-modal/cv-preview-modal';
 import { filter, map } from 'rxjs/operators';
+import { NotificationService } from './services/notification.service';
 
 /**
  * Main Application Component
@@ -32,6 +33,7 @@ import { filter, map } from 'rxjs/operators';
 @Component({
   selector: 'app-root',
   imports: [Aside, AsideSecondary, Navbar, Dashboard, Auth, ParticlesBgComponent, CvUploadModal, AttestatoDetailModal, ProjectDetailModal, CvPreviewModal, Notification],
+  providers: [NotificationService],
   templateUrl: './app.html',
   styleUrl: './app.css'
 })
@@ -57,6 +59,7 @@ export class App {
   private readonly attestatoDetailModal = inject(AttestatoDetailModalService);
   private readonly projectDetailModal = inject(ProjectDetailModalService);
   private readonly cvPreviewModal = inject(CvPreviewModalService);
+  protected notificationService = inject(NotificationService);
 
   @ViewChild(Auth) authComponent?: Auth;
 
@@ -79,10 +82,6 @@ export class App {
 
   // Modal CV Preview (gestita dal servizio)
   isCvPreviewModalOpen = this.cvPreviewModal.isOpen;
-
-  // Notifiche globali (per logout automatico)
-  notifications = signal<NotificationItem[]>([]);
-  showMultipleNotifications = signal(false);
 
   // ========================================================================
   // Constructor
@@ -197,54 +196,17 @@ export class App {
    */
   private handleIdleTimeout(): void {
     // Aggiungi notifica di logout per inattività
-    this.addNotification('Sei stato disconnesso per inattività.', 'warning');
+    this.notificationService.add('warning', 'Sei stato disconnesso per inattività.', 'idle-timeout');
     
     this.auth.logout();
     this.isLoginOpen.set(true);
   }
 
   /**
-   * Aggiunge una notifica globale
-   */
-  private addNotification(message: string, type: NotificationType): void {
-    const notification: NotificationItem = {
-      id: `global-${Date.now()}`,
-      message,
-      type,
-      timestamp: Date.now(),
-      fieldId: 'global'
-    };
-    
-    this.notifications.update(list => [...list, notification]);
-    this.showMultipleNotifications.set(true);
-
-    // Rimuovi automaticamente la notifica dopo 5 secondi
-    setTimeout(() => {
-      this.removeNotification(notification.id);
-    }, 5000);
-  }
-
-  /**
-   * Rimuove una notifica per ID
-   */
-  private removeNotification(id: string): void {
-    this.notifications.update(list => {
-      const filtered = list.filter(n => n.id !== id);
-      if (filtered.length === 0) {
-        this.showMultipleNotifications.set(false);
-      }
-      return filtered;
-    });
-  }
-
-  /**
    * Ottiene la notifica più grave (per il componente Notification)
    */
-  getMostSevereNotification(): NotificationItem | null {
-    const list = this.notifications();
-    if (!list.length) return null;
-    const order: NotificationType[] = ['error', 'warning', 'info', 'success'];
-    return [...list].sort((a, b) => order.indexOf(a.type) - order.indexOf(b.type))[0];
+  getMostSevereNotification() {
+    return this.notificationService.getMostSevere();
   }
 
   // Apertura/chiusura popup login

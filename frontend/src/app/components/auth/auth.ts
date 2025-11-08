@@ -4,6 +4,7 @@ import { AuthService, LoginDto, RegisterDto } from '../../services/auth.service'
 import { Notification as NotificationCmp, NotificationType } from '../notification/notification';
 import { finalize } from 'rxjs';
 import { Notification } from '../notification/notification';
+import { NotificationService } from '../../services/notification.service';
 
 /**
  * Standalone Auth component: Accedi / Registrati
@@ -34,12 +35,14 @@ function strongPassword() {
 @Component({
   selector: 'app-auth',
   imports: [ReactiveFormsModule, NotificationCmp],
+  providers: [NotificationService],
   templateUrl: './auth.html',
   styleUrl: './auth.css'
 })
 export class Auth {
   private fb = inject(FormBuilder);
   private auth = inject(AuthService);
+  protected notificationService = inject(NotificationService);
 
   // UI state
   mode = signal<'login' | 'register' | 'recover' | 'reset-password'>('login');
@@ -49,8 +52,6 @@ export class Auth {
   showLoginPass = signal(false);
   showRegPass = signal(false);
   showResetPass = signal(false);
-  // Notifiche multiple (stile add-testimonial)
-  notifications = signal<{ id: string; message: string; type: NotificationType; timestamp: number; fieldId: string; }[]>([]);
   tooltipVisible = signal<string | null>(null);
   
   // Forms
@@ -97,7 +98,7 @@ export class Auth {
   // Actions
   submitLogin() {
     this.error.set(null); this.success.set(null);
-    this.notifications.set([]); // Reset notifiche
+    this.notificationService.clear();
     if (this.loginForm.invalid) { this.loginForm.markAllAsTouched(); this.showValidationErrors('login'); return; }
     this.loading.set(true);
 
@@ -107,13 +108,13 @@ export class Auth {
     ).subscribe({
       next: (res) => {
         this.success.set(`Accesso effettuato come ${res.user?.email || 'utente'}`);
-        this.notifications.set([]); // Pulisci notifiche al successo
+        this.notificationService.clear();
       },
       error: (err) => {
         const message = this.humanizeError(err);
         this.error.set(message);
         // Aggiungi notifica per mostrare l'errore
-        this.addNotification('login.credentials', 'Email o password errati', 'error');
+        this.notificationService.add('error', 'Email o password errati', 'login.credentials');
       },
     });
   }
@@ -135,7 +136,7 @@ export class Auth {
         this.registerForm.reset({ name: '', email: '', password: '', confirm: '', terms: false });
         this.registerForm.markAsPristine();
         this.registerForm.markAsUntouched();
-        this.notifications.set([]);
+        this.notificationService.clear();
         this.tooltipVisible.set(null);
         this.showRegPass.set(false);
         // L'utente è già autenticato (token impostato da AuthService.register)
@@ -144,7 +145,7 @@ export class Auth {
       error: (err) => {
         const message = this.humanizeError(err);
         this.error.set(message);
-        this.notifications.update(list => [...list, { id: `global-${Date.now()}`, message, type: 'error', timestamp: Date.now(), fieldId: 'global' }]);
+        this.notificationService.add('error', message, 'global');
       },
     });
   }
@@ -182,12 +183,12 @@ export class Auth {
       next: () => {
         this.success.set('Ti abbiamo inviato le istruzioni per il reset. Controlla la tua email.');
         this.recoverForm.reset();
-        this.notifications.set([]);
+        this.notificationService.clear();
       },
       error: (err) => {
         const message = this.humanizeError(err);
         this.error.set(message);
-        this.notifications.update(list => [...list, { id: `global-${Date.now()}`, message, type: 'error', timestamp: Date.now(), fieldId: 'global' }]);
+        this.notificationService.add('error', message, 'global');
       },
     });
   }
@@ -209,7 +210,7 @@ export class Auth {
       next: () => {
         this.success.set('Password reimpostata con successo! Puoi ora accedere con la nuova password.');
         this.resetPasswordForm.reset();
-        this.notifications.set([]);
+        this.notificationService.clear();
         // Passa al login dopo 2 secondi
         setTimeout(() => {
           this.mode.set('login');
@@ -220,7 +221,7 @@ export class Auth {
       error: (err) => {
         const message = this.humanizeError(err);
         this.error.set(message);
-        this.notifications.update(list => [...list, { id: `global-${Date.now()}`, message, type: 'error', timestamp: Date.now(), fieldId: 'global' }]);
+        this.notificationService.add('error', message, 'global');
       },
     });
   }
@@ -256,9 +257,9 @@ export class Auth {
     ctrl.markAsTouched();
     if (ctrl.invalid) {
       const { message, type } = this.fieldErrorMessage(fieldKey);
-      this.addNotification(fieldKey, message, type);
+      this.notificationService.add(type, message, fieldKey);
     } else {
-      this.removeNotification(fieldKey);
+      this.notificationService.remove(fieldKey);
     }
   }
 
@@ -312,41 +313,26 @@ export class Auth {
   showTooltip(key: string) { this.tooltipVisible.set(key); }
   hideTooltip(key: string) { if (this.tooltipVisible() === key) this.tooltipVisible.set(null); }
 
-  private addNotification(fieldId: string, message: string, type: NotificationType) {
-    const now = Date.now();
-    this.notifications.update(list => {
-      const filtered = list.filter(n => n.fieldId !== fieldId);
-      return [...filtered, { id: `${fieldId}-${now}`, message, type, timestamp: now, fieldId }];
-    });
-  }
-
-  private removeNotification(fieldId: string) {
-    this.notifications.update(list => list.filter(n => n.fieldId !== fieldId));
-  }
-
   private showValidationErrors(scope: 'login' | 'register' | 'recover' | 'reset-password') {
     if (scope === 'login') {
-      if (this.loginForm.get('email')?.invalid) this.addNotification('login.email', "L'email è obbligatoria o non valida.", 'error');
-      if (this.loginForm.get('password')?.invalid) this.addNotification('login.password', 'La password è obbligatoria.', 'error');
+      if (this.loginForm.get('email')?.invalid) this.notificationService.add('error', "L'email è obbligatoria o non valida.", 'login.email');
+      if (this.loginForm.get('password')?.invalid) this.notificationService.add('error', 'La password è obbligatoria.', 'login.password');
     } else if (scope === 'register') {
-      if (this.registerForm.get('name')?.invalid) this.addNotification('register.name', 'Il nome è obbligatorio (min 2 caratteri).', 'warning');
-      if (this.registerForm.get('email')?.invalid) this.addNotification('register.email', "L'email è obbligatoria o non valida.", 'error');
-      if (this.registerForm.get('password')?.errors?.['weakPassword'] || this.registerForm.get('password')?.errors?.['required']) this.addNotification('register.password', 'Password debole: 8+ caratteri con maiuscole, minuscole e numeri.', 'warning');
-      if (this.registerForm.errors?.['fieldMismatch']) this.addNotification('register.confirm', 'Le password non coincidono.', 'error');
-      if (this.registerForm.get('terms')?.invalid) this.addNotification('register.terms', 'Devi accettare i termini.', 'error');
+      if (this.registerForm.get('name')?.invalid) this.notificationService.add('warning', 'Il nome è obbligatorio (min 2 caratteri).', 'register.name');
+      if (this.registerForm.get('email')?.invalid) this.notificationService.add('error', "L'email è obbligatoria o non valida.", 'register.email');
+      if (this.registerForm.get('password')?.errors?.['weakPassword'] || this.registerForm.get('password')?.errors?.['required']) this.notificationService.add('warning', 'Password debole: 8+ caratteri con maiuscole, minuscole e numeri.', 'register.password');
+      if (this.registerForm.errors?.['fieldMismatch']) this.notificationService.add('error', 'Le password non coincidono.', 'register.confirm');
+      if (this.registerForm.get('terms')?.invalid) this.notificationService.add('error', 'Devi accettare i termini.', 'register.terms');
     } else if (scope === 'recover') {
-      if (this.recoverForm.get('email')?.invalid) this.addNotification('recover.email', "L'email è obbligatoria o non valida.", 'error');
+      if (this.recoverForm.get('email')?.invalid) this.notificationService.add('error', "L'email è obbligatoria o non valida.", 'recover.email');
     } else if (scope === 'reset-password') {
-      if (this.resetPasswordForm.get('email')?.invalid) this.addNotification('reset-password.email', "L'email è obbligatoria o non valida.", 'error');
-      if (this.resetPasswordForm.get('password')?.errors?.['weakPassword'] || this.resetPasswordForm.get('password')?.errors?.['required']) this.addNotification('reset-password.password', 'Password debole: 8+ caratteri con maiuscole, minuscole e numeri.', 'warning');
-      if (this.resetPasswordForm.errors?.['fieldMismatch']) this.addNotification('reset-password.confirm', 'Le password non coincidono.', 'error');
+      if (this.resetPasswordForm.get('email')?.invalid) this.notificationService.add('error', "L'email è obbligatoria o non valida.", 'reset-password.email');
+      if (this.resetPasswordForm.get('password')?.errors?.['weakPassword'] || this.resetPasswordForm.get('password')?.errors?.['required']) this.notificationService.add('warning', 'Password debole: 8+ caratteri con maiuscole, minuscole e numeri.', 'reset-password.password');
+      if (this.resetPasswordForm.errors?.['fieldMismatch']) this.notificationService.add('error', 'Le password non coincidono.', 'reset-password.confirm');
     }
   }
 
   getMostSevereNotification() {
-    const list = this.notifications();
-    if (!list.length) return null;
-    const order: NotificationType[] = ['error', 'warning', 'info', 'success'];
-    return [...list].sort((a, b) => order.indexOf(a.type) - order.indexOf(b.type))[0];
+    return this.notificationService.getMostSevere();
   }
 }

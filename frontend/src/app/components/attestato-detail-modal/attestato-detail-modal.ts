@@ -7,11 +7,13 @@ import { EditModeService } from '../../services/edit-mode.service';
 import { AuthService } from '../../services/auth.service';
 import { AttestatiService } from '../../services/attestati.service';
 import { Notification, NotificationType } from '../notification/notification';
+import { NotificationService } from '../../services/notification.service';
 
 @Component({
   selector: 'app-attestato-detail-modal',
   standalone: true,
   imports: [NgOptimizedImage, ReactiveFormsModule, Notification],
+  providers: [NotificationService],
   templateUrl: './attestato-detail-modal.html',
   styleUrls: ['./attestato-detail-modal.css', './attestato-detail-modal.responsive.css']
 })
@@ -21,6 +23,7 @@ export class AttestatoDetailModal {
   private authService = inject(AuthService);
   private attestatiService = inject(AttestatiService);
   private fb = inject(FormBuilder);
+  protected notificationService = inject(NotificationService);
 
   // Riceve l'attestato dal servizio tramite computed
   attestato = input.required<Attestato>();
@@ -47,7 +50,6 @@ export class AttestatoDetailModal {
   isAuthenticated = computed(() => this.authService.isAuthenticated());
   canEdit = computed(() => this.isAuthenticated() && this.isEditing());
   saving = signal(false);
-  notifications = signal<{ id: string; message: string; type: NotificationType; timestamp: number; fieldId: string; }[]>([]);
   
   // Data per formattazione date
   readonly todayStr = (() => {
@@ -191,7 +193,7 @@ export class AttestatoDetailModal {
     if (this.saving() || this.editForm.invalid) return;
 
     this.saving.set(true);
-    this.notifications.set([]);
+    this.notificationService.clear();
 
     const formValue = this.editForm.getRawValue();
     const updateData: any = {};
@@ -219,7 +221,7 @@ export class AttestatoDetailModal {
     this.attestatiService.update$(this.attestato().id, updateData).subscribe({
       next: (updatedAttestato) => {
         this.saving.set(false);
-        this.addNotification('success', 'Attestato aggiornato con successo!');
+        this.notificationService.addSuccess('Attestato aggiornato con successo!');
         
         // IMPORTANTE: Aggiorna prima selectedAttestato per aggiornare il dialog
         // POI marca come modificato per aggiornare la lista (questo evita conflitti)
@@ -232,7 +234,7 @@ export class AttestatoDetailModal {
       error: (err) => {
         this.saving.set(false);
         const message = err?.error?.message || err?.error?.errors?.message?.[0] || 'Errore durante il salvataggio';
-        this.addNotification('error', message);
+        this.notificationService.add('error', message, 'attestato-update-error');
       }
     });
   }
@@ -251,30 +253,11 @@ export class AttestatoDetailModal {
       credential_url: att.badgeUrl || '',
       description: ''
     }, { emitEvent: false });
-    this.notifications.set([]);
-  }
-
-  /**
-   * Gestisce le notifiche
-   */
-  private addNotification(type: NotificationType, message: string): void {
-    this.notifications.update(list => [
-      ...list.filter(n => n.fieldId !== 'global'),
-      {
-        id: `global-${Date.now()}`,
-        message,
-        type,
-        timestamp: Date.now(),
-        fieldId: 'global'
-      }
-    ]);
+    this.notificationService.clear();
   }
 
   getMostSevereNotification() {
-    const list = this.notifications();
-    if (!list.length) return null;
-    const order: NotificationType[] = ['error', 'warning', 'info', 'success'];
-    return [...list].sort((a, b) => order.indexOf(a.type) - order.indexOf(b.type))[0];
+    return this.notificationService.getMostSevere();
   }
 }
 

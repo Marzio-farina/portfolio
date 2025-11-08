@@ -1,7 +1,7 @@
 <!-- Sistema di notifiche per feedback tecnologie -->
 <app-notification 
-  [notifications]="notifications()"
-  [showMultiple]="showMultipleNotifications"
+  [notifications]="notificationService.notifications()"
+  [showMultiple]="notificationService.showMultiple()"
   [mostSevereNotification]="getMostSevereNotification()">
 </app-notification>
 

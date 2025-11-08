@@ -13,11 +13,13 @@ import { environment } from '../../../environments/environment';
 import { Progetto } from '../../core/models/project';
 import { Category } from '../../core/models/category.model';
 import { PosterUploaderComponent, PosterData } from '../poster-uploader/poster-uploader.component';
+import { NotificationService } from '../../services/notification.service';
 
 @Component({
   selector: 'app-add-project',
   standalone: true,
   imports: [ReactiveFormsModule, Notification, PosterUploaderComponent],
+  providers: [NotificationService],
   templateUrl: './add-project.html',
   styleUrls: ['./add-project.css', './add-project.responsive.css']
 })
@@ -30,6 +32,7 @@ export class AddProject implements OnInit {
   private tenantRouter = inject(TenantRouterService);
   private tenant = inject(TenantService);
   private http = inject(HttpClient);
+  protected notificationService = inject(NotificationService);
 
   @ViewChild('videoInput') videoInputRef?: ElementRef<HTMLInputElement>;
 
@@ -52,8 +55,6 @@ export class AddProject implements OnInit {
   
   // Categoria preselezionata da applicare dopo il caricamento
   private preselectedCategoryName: string | null = null;
-
-  notifications = signal<{ id: string; message: string; type: NotificationType; timestamp: number; fieldId: string; }[]>([]);
 
   constructor() {
     this.addProjectForm = this.fb.group({
@@ -215,7 +216,7 @@ export class AddProject implements OnInit {
         // Per altri errori, mostriamo un warning
         if (err?.status && err.status !== 404) {
           const errorMsg = typeof err?.message === 'string' ? err.message : 'Impossibile caricare le categorie dal server. Usando categorie di default.';
-          this.addNotification('categories-load-warning', errorMsg, 'warning');
+          this.notificationService.add('warning', errorMsg, 'categories-load-warning');
         }
       }
     });
@@ -232,7 +233,7 @@ export class AddProject implements OnInit {
     this.selectedPosterFile.set(data.file);
     this.addProjectForm.patchValue({ poster_file: data.file });
     this.addProjectForm.get('poster_file')?.updateValueAndValidity();
-    this.removeNotification('project.poster_file');
+    this.notificationService.remove('project.poster_file');
     // existingPosterUrl viene gestito direttamente dal componente poster-uploader
   }
 
@@ -252,7 +253,7 @@ export class AddProject implements OnInit {
       this.addProjectForm.patchValue({ video_file: null });
       this.addProjectForm.get('video_file')?.updateValueAndValidity();
       if (this.videoInputRef?.nativeElement) this.videoInputRef.nativeElement.value = '';
-      this.addNotification('project.video_file', errorMessage, 'error');
+      this.notificationService.add('error', errorMessage, 'project.video_file');
       return;
     }
 
@@ -264,14 +265,14 @@ export class AddProject implements OnInit {
       this.addProjectForm.patchValue({ video_file: null });
       this.addProjectForm.get('video_file')?.updateValueAndValidity();
       if (this.videoInputRef?.nativeElement) this.videoInputRef.nativeElement.value = '';
-      this.addNotification('project.video_file', errorMessage, 'error');
+      this.notificationService.add('error', errorMessage, 'project.video_file');
       return;
     }
 
     this.selectedVideoFile.set(file);
     this.addProjectForm.patchValue({ video_file: file });
     this.addProjectForm.get('video_file')?.updateValueAndValidity();
-    this.removeNotification('project.video_file');
+    this.notificationService.remove('project.video_file');
     this.errorMsg.set(null);
     
     // Crea preview URL per il video
@@ -315,7 +316,7 @@ export class AddProject implements OnInit {
     const videoCtrl = this.addProjectForm.get('video_file');
     videoCtrl?.updateValueAndValidity();
     if (this.videoInputRef?.nativeElement) this.videoInputRef.nativeElement.value = '';
-    this.removeNotification('project.video_file');
+    this.notificationService.remove('project.video_file');
   }
   
   // Ottieni URL da mostrare (esistente o null - il componente poster-uploader gestisce la preview)
@@ -339,7 +340,7 @@ export class AddProject implements OnInit {
     if (this.uploading()) {
       return;
     }
-    this.notifications.set([]);
+    this.notificationService.clear();
     this.errorMsg.set(null);
 
     if (this.addProjectForm.invalid) {
@@ -376,7 +377,7 @@ export class AddProject implements OnInit {
     this.projectService.create$(formData).subscribe({
       next: (response) => {
         this.uploading.set(false);
-        this.notifications.set([]);
+        this.notificationService.clear();
         this.tenantRouter.navigate(['progetti'], { queryParams: { created: 'true', refresh: '1', t: Date.now() } });
       },
       error: (err: any) => {
@@ -415,7 +416,7 @@ export class AddProject implements OnInit {
         }
 
         // Mostra notifica di errore principale
-        this.addNotification('project-create-error', message, 'error');
+        this.notificationService.add('error', message, 'project-create-error');
 
         // Aggiungi notifiche specifiche per ogni campo con errore di validazione
         if (payload?.errors) {
@@ -423,7 +424,7 @@ export class AddProject implements OnInit {
             const list = Array.isArray(messages) ? messages : [messages];
             list.forEach(msg => {
               const fid = `project.${field}`;
-              this.addNotification(fid, `${field}: ${msg}`, 'error');
+              this.notificationService.add('error', `${field}: ${msg}`, fid);
             });
           });
         }
@@ -433,7 +434,7 @@ export class AddProject implements OnInit {
 
   onCancel(): void {
     if (!this.uploading()) {
-      this.notifications.set([]);
+      this.notificationService.clear();
       this.tenantRouter.navigate(['progetti']);
     }
   }
@@ -444,9 +445,9 @@ export class AddProject implements OnInit {
     ctrl.markAsTouched();
     if (ctrl.invalid) {
       const { message, type } = this.fieldErrorMessage(fieldKey);
-      this.addNotification(fieldKey, message, type);
+      this.notificationService.add(type, message, fieldKey);
     } else {
-      this.removeNotification(fieldKey);
+      this.notificationService.remove(fieldKey);
     }
   }
 
@@ -482,39 +483,24 @@ export class AddProject implements OnInit {
     return { message: 'Compila correttamente il campo.', type: 'error' };
   }
 
-  private addNotification(fieldId: string, message: string, type: NotificationType): void {
-    const now = Date.now();
-    this.notifications.update(list => {
-      const filtered = list.filter(n => n.fieldId !== fieldId);
-      return [...filtered, { id: `${fieldId}-${now}`, message, type, timestamp: now, fieldId }];
-    });
-  }
-
-  private removeNotification(fieldId: string): void {
-    this.notifications.update(list => list.filter(n => n.fieldId !== fieldId));
-  }
-
   private showValidationErrors(): void {
     if (this.addProjectForm.get('title')?.invalid) {
       const c = this.addProjectForm.get('title');
-      if (c?.errors?.['required']) this.addNotification('project.title', 'Il titolo è obbligatorio.', 'error');
-      else if (c?.errors?.['maxlength']) this.addNotification('project.title', 'Il titolo deve essere lungo massimo 50 caratteri.', 'error');
+      if (c?.errors?.['required']) this.notificationService.add('error', 'Il titolo è obbligatorio.', 'project.title');
+      else if (c?.errors?.['maxlength']) this.notificationService.add('error', 'Il titolo deve essere lungo massimo 50 caratteri.', 'project.title');
     }
     if (this.addProjectForm.get('category_id')?.invalid) {
-      if (this.addProjectForm.get('category_id')?.errors?.['required']) this.addNotification('project.category_id', 'La categoria è obbligatoria.', 'error');
+      if (this.addProjectForm.get('category_id')?.errors?.['required']) this.notificationService.add('error', 'La categoria è obbligatoria.', 'project.category_id');
     }
     if (this.addProjectForm.get('poster_file')?.invalid) {
-      if (this.addProjectForm.get('poster_file')?.errors?.['required']) this.addNotification('project.poster_file', "L'immagine del poster è obbligatoria.", 'error');
+      if (this.addProjectForm.get('poster_file')?.errors?.['required']) this.notificationService.add('error', "L'immagine del poster è obbligatoria.", 'project.poster_file');
     }
     const desc = this.addProjectForm.get('description');
-    if (desc?.invalid && desc.errors?.['maxlength']) this.addNotification('project.description', 'La descrizione deve essere lunga massimo 1000 caratteri.', 'warning');
+    if (desc?.invalid && desc.errors?.['maxlength']) this.notificationService.add('warning', 'La descrizione deve essere lunga massimo 1000 caratteri.', 'project.description');
   }
 
   getMostSevereNotification() {
-    const list = this.notifications();
-    if (!list.length) return null;
-    const order: NotificationType[] = ['error', 'warning', 'info', 'success'];
-    return [...list].sort((a, b) => order.indexOf(a.type) - order.indexOf(b.type))[0];
+    return this.notificationService.getMostSevere();
   }
 }
 

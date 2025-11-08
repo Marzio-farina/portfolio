@@ -21,11 +21,13 @@ import { CategoryFieldComponent, Category } from '../category-field/category-fie
 import { TechnologiesSelectorComponent, Technology as TechType } from '../technologies-selector/technologies-selector.component';
 import { DescriptionFieldComponent } from '../description-field/description-field.component';
 import { TextFormattingToolbarComponent, TextStyle } from '../text-formatting-toolbar/text-formatting-toolbar.component';
+import { NotificationService } from '../../services/notification.service';
 
 @Component({
   selector: 'app-project-detail-modal',
   standalone: true,
   imports: [ReactiveFormsModule, Notification, DeviceSelectorComponent, PosterUploaderComponent, VideoUploaderComponent, CustomTextElementComponent, CustomImageElementComponent, CategoryFieldComponent, TechnologiesSelectorComponent, DescriptionFieldComponent, TextFormattingToolbarComponent],
+  providers: [NotificationService],
   templateUrl: './project-detail-modal.html',
   styleUrls: [
     './project-detail-modal-base.css',
@@ -44,6 +46,7 @@ export class ProjectDetailModal implements OnDestroy {
   private fb = inject(FormBuilder);
   private http = inject(HttpClient);
   canvasService = inject(CanvasService);
+  protected notificationService = inject(NotificationService);
 
   // Accesso a tutti i componenti custom-text per leggere il contenuto
   @ViewChildren(CustomTextElementComponent) customTextElements!: QueryList<CustomTextElementComponent>;
@@ -69,7 +72,6 @@ export class ProjectDetailModal implements OnDestroy {
   isAuthenticated = computed(() => this.authService.isAuthenticated());
   canEdit = computed(() => this.isAuthenticated() && this.isEditing());
   saving = signal(false);
-  notifications = signal<{ id: string; message: string; type: NotificationType; timestamp: number; fieldId: string; }[]>([]);
   
   // Categorie per il select
   categories = signal<Category[]>([]);
@@ -392,7 +394,7 @@ export class ProjectDetailModal implements OnDestroy {
     this.canvasService.saveCanvasLayoutImmediate(this.project().id);
 
     this.saving.set(true);
-    this.notifications.set([]);
+    this.notificationService.clear();
 
     const formValue = this.editForm.getRawValue();
     const updateData: any = {};
@@ -458,7 +460,7 @@ export class ProjectDetailModal implements OnDestroy {
       this.projectService.updateWithFiles$(this.project().id, formData).subscribe({
         next: (updatedProject: Progetto) => {
           this.saving.set(false);
-          this.addNotification('success', 'Progetto aggiornato con successo!');
+          this.notificationService.addSuccess('Progetto aggiornato con successo!');
           
           // Pulisci i file selezionati
           this.selectedPosterFile.set(null);
@@ -474,7 +476,7 @@ export class ProjectDetailModal implements OnDestroy {
         error: (err: any) => {
           this.saving.set(false);
           const message = err?.error?.message || err?.error?.errors?.message?.[0] || 'Errore durante il salvataggio';
-          this.addNotification('error', message);
+          this.notificationService.add('error', message, 'project-update-error');
         }
       });
       return;
@@ -484,7 +486,7 @@ export class ProjectDetailModal implements OnDestroy {
     this.projectService.update$(this.project().id, updateData).subscribe({
       next: (updatedProject) => {
         this.saving.set(false);
-        this.addNotification('success', 'Progetto aggiornato con successo!');
+        this.notificationService.addSuccess('Progetto aggiornato con successo!');
         
         // Rimuovi l'ID per forzare il ricaricamento del layout
         this.loadedProjectIds.delete(updatedProject.id);
@@ -499,7 +501,7 @@ export class ProjectDetailModal implements OnDestroy {
       error: (err) => {
         this.saving.set(false);
         const message = err?.error?.message || err?.error?.errors?.message?.[0] || 'Errore durante il salvataggio';
-        this.addNotification('error', message);
+        this.notificationService.add('error', message, 'project-update-error');
       }
     });
   }
@@ -519,7 +521,7 @@ export class ProjectDetailModal implements OnDestroy {
     // Ripristina i valori originali
     const proj = this.project();
     this.updateFormValues(proj);
-    this.notifications.set([]);
+    this.notificationService.clear();
     
     // Ripristina anche i file selezionati
     this.selectedPosterFile.set(null);
@@ -529,27 +531,8 @@ export class ProjectDetailModal implements OnDestroy {
   
   // ================== Gestione upload file (delegata ai componenti) ==================
 
-  /**
-   * Gestisce le notifiche
-   */
-  private addNotification(type: NotificationType, message: string): void {
-    this.notifications.update(list => [
-      ...list.filter(n => n.fieldId !== 'global'),
-      {
-        id: `global-${Date.now()}`,
-        message,
-        type,
-        timestamp: Date.now(),
-        fieldId: 'global'
-      }
-    ]);
-  }
-
   getMostSevereNotification() {
-    const list = this.notifications();
-    if (!list.length) return null;
-    const order: NotificationType[] = ['error', 'warning', 'info', 'success'];
-    return [...list].sort((a, b) => order.indexOf(a.type) - order.indexOf(b.type))[0];
+    return this.notificationService.getMostSevere();
   }
 
   // ================== Metodi per Gestione Dispositivi ==================
@@ -768,7 +751,7 @@ export class ProjectDetailModal implements OnDestroy {
       
       if (hasUnsavedChanges) {
         // Mostra notifica persistente che avvisa di salvare
-        this.addNotification('warning', 'Attenzione: hai modifiche non salvate. Clicca "Salva" per salvarle definitivamente.');
+        this.notificationService.add('warning', 'Attenzione: hai modifiche non salvate. Clicca "Salva" per salvarle definitivamente.', 'unsaved-changes');
       }
     }
     

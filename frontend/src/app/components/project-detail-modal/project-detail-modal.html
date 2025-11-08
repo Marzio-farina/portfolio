@@ -1,6 +1,6 @@
 <app-notification
-  [notifications]="notifications()"
-  [showMultiple]="true"
+  [notifications]="notificationService.notifications()"
+  [showMultiple]="notificationService.showMultiple()"
   [mostSevereNotification]="getMostSevereNotification()">
 </app-notification>
 

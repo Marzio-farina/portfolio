@@ -1,4 +1,4 @@
-import { Component, inject, signal, output, ViewChild, ElementRef, HostListener, ChangeDetectionStrategy, OnDestroy } from '@angular/core';
+import { Component, inject, signal, output, ViewChild, ElementRef, HostListener, ChangeDetectionStrategy } from '@angular/core';
 import { FormBuilder, FormGroup, ReactiveFormsModule, Validators } from '@angular/forms';
 import { Router } from '@angular/router';
 import { TestimonialService } from '../../services/testimonial.service';
@@ -8,18 +8,12 @@ import { AvatarData } from '../avatar/avatar';
 import { Notification, NotificationType } from '../../components/notification/notification';
 import { AvatarEditor, AvatarSelection } from '../avatar-editor/avatar-editor';
 import { NgClass } from '@angular/common';
-
-export interface NotificationItem {
-  id: string;
-  message: string;
-  type: NotificationType;
-  timestamp: number;
-  fieldId: string;
-}
+import { NotificationService } from '../../services/notification.service';
 
 @Component({
   selector: 'app-add-testimonial',
   imports: [ReactiveFormsModule, Notification, NgClass, AvatarEditor],
+  providers: [NotificationService],
   templateUrl: './add-testimonial.html',
   styleUrls: [
     './add-testimonial.css',
@@ -31,12 +25,13 @@ export interface NotificationItem {
   ],
   changeDetection: ChangeDetectionStrategy.OnPush
 })
-export class AddTestimonial implements OnDestroy {
+export class AddTestimonial {
   private fb = inject(FormBuilder);
   private router = inject(Router);
   private testimonialApi = inject(TestimonialService);
   private defaultAvatarService = inject(DefaultAvatarService);
   private tenant = inject(TenantService);
+  protected notificationService = inject(NotificationService);
 
   @ViewChild('avatarFileInput') avatarFileInputRef?: ElementRef<HTMLInputElement>;
 
@@ -48,12 +43,6 @@ export class AddTestimonial implements OnDestroy {
   // Gestione hover rating
   hoverRating = signal<number>(0);
   tooltipVisible: string | null = null;
-
-  // Gestione notifiche multiple
-  notifications = signal<NotificationItem[]>([]);
-  showMultipleNotifications = false;
-  private readonly successAutoDismissDelay = 4000;
-  private successRemovalTimers = new Map<string, number>();
 
   // Gestione campi aggiuntivi (per mobile/tablet)
   showAdditionalFields = signal(false);
@@ -306,7 +295,6 @@ export class AddTestimonial implements OnDestroy {
 
   submit() {
     this.error.set(undefined);
-    this.onErrorChange(undefined);
     
     if (this.form.invalid) {
       this.form.markAllAsTouched();
@@ -329,7 +317,7 @@ export class AddTestimonial implements OnDestroy {
         this.sending.set(false);
         
         // Emetti notifica di successo
-        this.onSuccessChange('Recensione inviata con successo!');
+        this.notificationService.addSuccess('Recensione inviata con successo!');
         
         // Naviga alla pagina corretta: con userSlug se presente, altrimenti /about
         const userSlug = this.tenant.userSlug();
@@ -340,12 +328,7 @@ export class AddTestimonial implements OnDestroy {
         console.error('[add-testimonial] error', err);
         const errorMessage = err?.error?.message ?? 'Invio non riuscito. Riprova.';
         this.error.set(errorMessage);
-        this.onErrorChange({
-          message: errorMessage,
-          type: 'error',
-          fieldId: 'submit',
-          action: 'add'
-        });
+        this.notificationService.add('error', errorMessage, 'submit');
         this.sending.set(false);
       }
     });
@@ -356,30 +339,15 @@ export class AddTestimonial implements OnDestroy {
     
     if (this.form.get('author_name')?.invalid) {
       errors.push('Inserisci un nome valido (min 2 caratteri)');
-      this.onErrorChange({
-        message: 'Inserisci un nome valido (min 2 caratteri)',
-        type: 'warning',
-        fieldId: 'author_name',
-        action: 'add'
-      });
+      this.notificationService.add('warning', 'Inserisci un nome valido (min 2 caratteri)', 'author_name');
     }
     if (this.form.get('text')?.invalid) {
       errors.push('Il commento deve contenere almeno 10 caratteri');
-      this.onErrorChange({
-        message: 'Il commento deve contenere almeno 10 caratteri',
-        type: 'info',
-        fieldId: 'text',
-        action: 'add'
-      });
+      this.notificationService.add('info', 'Il commento deve contenere almeno 10 caratteri', 'text');
     }
     if (this.form.get('rating')?.invalid) {
       errors.push('Seleziona una valutazione valida');
-      this.onErrorChange({
-        message: 'Seleziona una valutazione valida',
-        type: 'warning',
-        fieldId: 'rating',
-        action: 'add'
-      });
+      this.notificationService.add('warning', 'Seleziona una valutazione valida', 'rating');
     }
     
     this.error.set(errors.join(', '));
@@ -391,25 +359,15 @@ export class AddTestimonial implements OnDestroy {
       this.showFieldError(fieldName);
     } else if (field && field.valid) {
       // Se il campo è valido, rimuovi la sua notifica
-      this.removeFieldNotification(fieldName);
+      this.notificationService.remove(fieldName);
       this.checkForOtherErrors();
     }
-  }
-
-  removeFieldNotification(fieldName: string) {
-    this.onErrorChange({
-      message: '',
-      type: 'success',
-      fieldId: fieldName,
-      action: 'remove'
-    });
   }
 
   checkForOtherErrors() {
     // Se tutti i campi sono validi, rimuovi l'errore
     if (this.form.valid) {
       this.error.set(undefined);
-      this.onErrorChange(undefined);
     }
   }
 
@@ -433,12 +391,7 @@ export class AddTestimonial implements OnDestroy {
 
     if (errorMessage) {
       this.error.set(errorMessage);
-      this.onErrorChange({
-        message: errorMessage,
-        type: errorType,
-        fieldId: fieldName,
-        action: 'add'
-      });
+      this.notificationService.add(errorType, errorMessage, fieldName);
     }
   }
 
@@ -544,113 +497,8 @@ export class AddTestimonial implements OnDestroy {
     return field ? field.visible : false;
   }
 
-  // Gestione notifiche
-  private onErrorChange(errorData: {message: string, type: NotificationType, fieldId: string, action: 'add' | 'remove'} | undefined) {
-    if (!errorData) {
-      return;
-    }
-
-    if (errorData.action === 'add') {
-      const currentNotifications = this.notifications();
-      const now = Date.now();
-
-      const refreshedNotification: NotificationItem = {
-        id: `${errorData.fieldId}-${now}`,
-        message: errorData.message,
-        type: errorData.type,
-        timestamp: now,
-        fieldId: errorData.fieldId
-      };
-
-      const filteredNotifications = currentNotifications.filter(n => n.fieldId !== errorData.fieldId);
-
-      this.notifications.set([...filteredNotifications, refreshedNotification]);
-      this.showMultipleNotifications = true;
-      if (errorData.type === 'success') {
-        this.scheduleSuccessRemoval(errorData.fieldId);
-      } else {
-        this.clearSuccessRemovalTimer(errorData.fieldId);
-      }
-      return;
-    }
-
-    if (errorData.action === 'remove') {
-      const currentNotifications = this.notifications();
-      const filteredNotifications = currentNotifications.filter(n => n.fieldId !== errorData.fieldId);
-      this.notifications.set(filteredNotifications);
-      this.clearSuccessRemovalTimer(errorData.fieldId);
-    }
-  }
-
-  private onSuccessChange(success: string | undefined) {
-    if (success) {
-      const currentNotifications = this.notifications();
-      
-      // Controlla se esiste già una notifica di successo con lo stesso messaggio
-      const duplicateSuccess = currentNotifications.some(n => n.message === success && n.type === 'success');
-      
-      if (!duplicateSuccess) {
-        // Crea una notifica di successo solo se non esiste già una con lo stesso messaggio
-        const successNotification: NotificationItem = {
-          id: `success-${Date.now()}`,
-          message: success,
-          type: 'success',
-          timestamp: Date.now(),
-          fieldId: 'success'
-        };
-        
-        // Aggiungi alla lista delle notifiche
-        this.notifications.set([...currentNotifications, successNotification]);
-        this.showMultipleNotifications = true;
-        this.scheduleSuccessRemoval(successNotification.fieldId);
-      }
-    }
-  }
-
   // Metodo per ottenere la notifica più grave per l'icona nell'angolo
-  getMostSevereNotification(): NotificationItem | null {
-    const currentNotifications = this.notifications();
-    if (currentNotifications.length === 0) return null;
-    
-    // Ordina per gravità: error > warning > info > success
-    const severity: NotificationType[] = ['error', 'warning', 'info', 'success'];
-    const sorted = currentNotifications.sort((a, b) => {
-      return severity.indexOf(a.type) - severity.indexOf(b.type);
-    });
-    
-    return sorted[0];
-  }
-
-  ngOnDestroy(): void {
-    this.clearAllSuccessRemovalTimers();
-  }
-
-  private scheduleSuccessRemoval(fieldId: string, delay = this.successAutoDismissDelay): void {
-    const existingTimer = this.successRemovalTimers.get(fieldId);
-    if (existingTimer) {
-      clearTimeout(existingTimer);
-    }
-
-    const timer = window.setTimeout(() => {
-      const updated = this.notifications().filter(n => !(n.fieldId === fieldId && n.type === 'success'));
-      this.notifications.set(updated);
-      this.showMultipleNotifications = updated.length > 0;
-      this.successRemovalTimers.delete(fieldId);
-    }, delay);
-
-    this.successRemovalTimers.set(fieldId, timer);
-  }
-
-  private clearSuccessRemovalTimer(fieldId: string): void {
-    const timer = this.successRemovalTimers.get(fieldId);
-    if (timer) {
-      clearTimeout(timer);
-      this.successRemovalTimers.delete(fieldId);
-    }
-  }
-
-  private clearAllSuccessRemovalTimers(): void {
-    this.successRemovalTimers.forEach(timer => clearTimeout(timer));
-    this.successRemovalTimers.clear();
+  getMostSevereNotification() {
+    return this.notificationService.getMostSevere();
   }
 }
