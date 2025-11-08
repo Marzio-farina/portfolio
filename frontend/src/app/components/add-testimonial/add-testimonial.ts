@@ -1,4 +1,4 @@
-import { Component, inject, signal, output, ViewChild, ElementRef, HostListener, ChangeDetectionStrategy } from '@angular/core';
+import { Component, inject, signal, output, ViewChild, ElementRef, HostListener, ChangeDetectionStrategy, OnDestroy } from '@angular/core';
 import { FormBuilder, FormGroup, ReactiveFormsModule, Validators } from '@angular/forms';
 import { Router } from '@angular/router';
 import { TestimonialService } from '../../services/testimonial.service';
@@ -31,7 +31,7 @@ export interface NotificationItem {
   ],
   changeDetection: ChangeDetectionStrategy.OnPush
 })
-export class AddTestimonial {
+export class AddTestimonial implements OnDestroy {
   private fb = inject(FormBuilder);
   private router = inject(Router);
   private testimonialApi = inject(TestimonialService);
@@ -52,6 +52,8 @@ export class AddTestimonial {
   // Gestione notifiche multiple
   notifications = signal<NotificationItem[]>([]);
   showMultipleNotifications = false;
+  private readonly successAutoDismissDelay = 4000;
+  private successRemovalTimers = new Map<string, number>();
 
   // Gestione campi aggiuntivi (per mobile/tablet)
   showAdditionalFields = signal(false);
@@ -564,6 +566,11 @@ export class AddTestimonial {
 
       this.notifications.set([...filteredNotifications, refreshedNotification]);
       this.showMultipleNotifications = true;
+      if (errorData.type === 'success') {
+        this.scheduleSuccessRemoval(errorData.fieldId);
+      } else {
+        this.clearSuccessRemovalTimer(errorData.fieldId);
+      }
       return;
     }
 
@@ -571,6 +578,7 @@ export class AddTestimonial {
       const currentNotifications = this.notifications();
       const filteredNotifications = currentNotifications.filter(n => n.fieldId !== errorData.fieldId);
       this.notifications.set(filteredNotifications);
+      this.clearSuccessRemovalTimer(errorData.fieldId);
     }
   }
 
@@ -594,6 +602,7 @@ export class AddTestimonial {
         // Aggiungi alla lista delle notifiche
         this.notifications.set([...currentNotifications, successNotification]);
         this.showMultipleNotifications = true;
+        this.scheduleSuccessRemoval(successNotification.fieldId);
       }
     }
   }
@@ -610,5 +619,38 @@ export class AddTestimonial {
     });
     
     return sorted[0];
+  }
+
+  ngOnDestroy(): void {
+    this.clearAllSuccessRemovalTimers();
+  }
+
+  private scheduleSuccessRemoval(fieldId: string, delay = this.successAutoDismissDelay): void {
+    const existingTimer = this.successRemovalTimers.get(fieldId);
+    if (existingTimer) {
+      clearTimeout(existingTimer);
+    }
+
+    const timer = window.setTimeout(() => {
+      const updated = this.notifications().filter(n => !(n.fieldId === fieldId && n.type === 'success'));
+      this.notifications.set(updated);
+      this.showMultipleNotifications = updated.length > 0;
+      this.successRemovalTimers.delete(fieldId);
+    }, delay);
+
+    this.successRemovalTimers.set(fieldId, timer);
+  }
+
+  private clearSuccessRemovalTimer(fieldId: string): void {
+    const timer = this.successRemovalTimers.get(fieldId);
+    if (timer) {
+      clearTimeout(timer);
+      this.successRemovalTimers.delete(fieldId);
+    }
+  }
+
+  private clearAllSuccessRemovalTimers(): void {
+    this.successRemovalTimers.forEach(timer => clearTimeout(timer));
+    this.successRemovalTimers.clear();
   }
 }

@@ -1,4 +1,4 @@
-import { ComponentFixture, TestBed, fakeAsync, tick } from '@angular/core/testing';
+import { ComponentFixture, TestBed, fakeAsync, tick, flushMicrotasks } from '@angular/core/testing';
 import { Notification, NotificationType, NotificationItem } from './notification';
 import { ComponentRef } from '@angular/core';
 
@@ -90,6 +90,17 @@ describe('Notification', () => {
       fixture.detectChanges();
 
       expect(component.collapseDelay()).toBe(3000);
+    });
+
+    it('successDismissDelay dovrebbe essere 4000ms di default', () => {
+      expect(component.successDismissDelay()).toBe(4000);
+    });
+
+    it('dovrebbe accettare successDismissDelay personalizzato', () => {
+      componentRef.setInput('successDismissDelay', 2500);
+      fixture.detectChanges();
+
+      expect(component.successDismissDelay()).toBe(2500);
     });
   });
 

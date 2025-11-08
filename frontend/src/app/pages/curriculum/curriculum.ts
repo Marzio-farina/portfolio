@@ -61,6 +61,8 @@ export class Curriculum {
   // Gestione notifiche multiple
   notifications = signal<NotificationItem[]>([]);
   showMultipleNotifications = signal(false);
+  private readonly successAutoDismissDelay = 4000;
+  private successRemovalTimers = new Map<string, number>();
 
   constructor() {
     const uid = this.tenant.userId();
@@ -96,6 +98,8 @@ export class Curriculum {
         });
       });
     });
+
+    this.destroyRef.onDestroy(() => this.clearAllSuccessRemovalTimers());
   }
 
   /**
@@ -289,6 +293,11 @@ export class Curriculum {
     
     this.notifications.set([...filteredNotifications, newNotification]);
     this.showMultipleNotifications.set(true);
+    if (type === 'success') {
+      this.scheduleSuccessRemoval(fieldId);
+    } else {
+      this.clearSuccessRemovalTimer(fieldId);
+    }
   }
 
   /**
@@ -334,5 +343,34 @@ export class Curriculum {
     }
     // Nessun messaggio disponibile
     return null;
+  }
+
+  private scheduleSuccessRemoval(fieldId: string, delay = this.successAutoDismissDelay): void {
+    const existingTimer = this.successRemovalTimers.get(fieldId);
+    if (existingTimer) {
+      clearTimeout(existingTimer);
+    }
+
+    const timer = window.setTimeout(() => {
+      const updated = this.notifications().filter(n => !(n.fieldId === fieldId && n.type === 'success'));
+      this.notifications.set(updated);
+      this.showMultipleNotifications.set(updated.length > 0);
+      this.successRemovalTimers.delete(fieldId);
+    }, delay);
+
+    this.successRemovalTimers.set(fieldId, timer);
+  }
+
+  private clearSuccessRemovalTimer(fieldId: string): void {
+    const timer = this.successRemovalTimers.get(fieldId);
+    if (timer) {
+      clearTimeout(timer);
+      this.successRemovalTimers.delete(fieldId);
+    }
+  }
+
+  private clearAllSuccessRemovalTimers(): void {
+    this.successRemovalTimers.forEach(timer => clearTimeout(timer));
+    this.successRemovalTimers.clear();
   }
 }

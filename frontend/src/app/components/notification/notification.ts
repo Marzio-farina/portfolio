@@ -25,6 +25,7 @@ export class Notification implements OnDestroy, AfterViewInit {
   show = input<boolean>(false);
   autoCollapse = input<boolean>(true);
   collapseDelay = input<number>(1500); // 1.5 secondi
+  successDismissDelay = input<number>(4000); // 4 secondi per notifiche di successo
   
   // Inputs per notifiche multiple
   notifications = input<NotificationItem[]>([]);
@@ -41,6 +42,8 @@ export class Notification implements OnDestroy, AfterViewInit {
   visibleNotifications = signal<NotificationItem[]>([]);
   collapsedNotifications = signal<NotificationItem[]>([]);
   private notificationTimers = new Map<string, number>();
+  private successDismissTimers = new Map<string, number>();
+  private successHiddenIds = new Set<string>();
   private hoverTimer?: number;
   isHoveringIcon = signal(false);
   
@@ -92,6 +95,7 @@ export class Notification implements OnDestroy, AfterViewInit {
   ngOnDestroy() {
     this.clearCollapseTimer();
     this.clearHoverTimer();
+    this.clearAllSuccessAutoDismiss();
     if (this.animationFrame) {
       cancelAnimationFrame(this.animationFrame);
     }
@@ -385,7 +389,13 @@ export class Notification implements OnDestroy, AfterViewInit {
 
   // Metodi per gestire le notifiche multiple
   private handleMultipleNotifications() {
-    const currentNotifications = this.notifications();
+    const rawNotifications = this.notifications();
+    const currentNotifications = rawNotifications.filter(notification => {
+      if (notification.type !== 'success') {
+        return true;
+      }
+      return !this.successHiddenIds.has(notification.id);
+    });
     const previousVisible = this.visibleNotifications();
     const previousCollapsed = this.collapsedNotifications();
 
@@ -418,27 +428,36 @@ export class Notification implements OnDestroy, AfterViewInit {
 
         if (hasChanged(wasVisible, notification)) {
           this.startNotificationTimer(notification.id);
+          this.scheduleSuccessAutoDismiss(notification);
         }
       } else if (wasCollapsed) {
         if (hasChanged(wasCollapsed, notification)) {
           nextVisible.push(notification);
           this.startNotificationTimer(notification.id);
+          this.scheduleSuccessAutoDismiss(notification);
         } else {
           nextCollapsed.push(notification);
         }
       } else {
         nextVisible.push(notification);
         this.startNotificationTimer(notification.id);
+        this.scheduleSuccessAutoDismiss(notification);
       }
     });
 
     this.visibleNotifications.set(nextVisible);
     this.collapsedNotifications.set(nextCollapsed);
 
-    const currentIds = new Set(currentNotifications.map(notification => notification.id));
+    const currentIds = new Set(rawNotifications.map(notification => notification.id));
     Array.from(this.notificationTimers.keys()).forEach(notificationId => {
       if (!currentIds.has(notificationId)) {
         this.clearNotificationTimer(notificationId);
+      }
+    });
+
+    this.successHiddenIds.forEach(notificationId => {
+      if (!currentIds.has(notificationId)) {
+        this.clearSuccessAutoDismiss(notificationId);
       }
     });
   }
@@ -537,7 +556,8 @@ export class Notification implements OnDestroy, AfterViewInit {
     this.startHoverTimer();
   }
 
-  removeNotification(notificationId: string) {
+  removeNotification(notificationId: string, options: { preserveSuccessHidden?: boolean } = {}) {
+    const { preserveSuccessHidden = false } = options;
     // Rimuovi dalle notifiche visibili
     const visible = this.visibleNotifications();
     this.visibleNotifications.set(visible.filter(n => n.id !== notificationId));
@@ -548,6 +568,11 @@ export class Notification implements OnDestroy, AfterViewInit {
     
     // Cancella il timer
     this.clearNotificationTimer(notificationId);
+    if (preserveSuccessHidden) {
+      this.clearSuccessAutoDismiss(notificationId, true);
+    } else {
+      this.clearSuccessAutoDismiss(notificationId);
+    }
   }
 
   getMostSevereCollapsedType(): NotificationType {
@@ -590,6 +615,40 @@ export class Notification implements OnDestroy, AfterViewInit {
         this.startNotificationTimer(notification.id);
       }
     });
+  }
+
+  private scheduleSuccessAutoDismiss(notification: NotificationItem) {
+    if (notification.type !== 'success') {
+      return;
+    }
+
+    this.clearSuccessAutoDismiss(notification.id);
+
+    const timer = window.setTimeout(() => {
+      this.successHiddenIds.add(notification.id);
+      this.removeNotification(notification.id, { preserveSuccessHidden: true });
+      this.clearSuccessAutoDismiss(notification.id, true);
+    }, this.successDismissDelay());
+
+    this.successDismissTimers.set(notification.id, timer);
+  }
+
+  private clearSuccessAutoDismiss(notificationId: string, keepHidden: boolean = false) {
+    const timer = this.successDismissTimers.get(notificationId);
+    if (timer) {
+      clearTimeout(timer);
+      this.successDismissTimers.delete(notificationId);
+    }
+
+    if (!keepHidden) {
+      this.successHiddenIds.delete(notificationId);
+    }
+  }
+
+  private clearAllSuccessAutoDismiss() {
+    this.successDismissTimers.forEach(timer => clearTimeout(timer));
+    this.successDismissTimers.clear();
+    this.successHiddenIds.clear();
   }
 
 }

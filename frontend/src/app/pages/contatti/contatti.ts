@@ -1,4 +1,4 @@
-import { Component, inject, signal } from '@angular/core';
+import { Component, inject, signal, OnDestroy } from '@angular/core';
 import { toSignal } from '@angular/core/rxjs-interop';
 import { ActivatedRoute } from '@angular/router';
 import { map } from 'rxjs';
@@ -24,13 +24,15 @@ export interface NotificationItem {
   templateUrl: './contatti.html',
   styleUrl: './contatti.css'
 })
-export class Contatti {
+export class Contatti implements OnDestroy {
   private route = inject(ActivatedRoute);
   title = toSignal(this.route.data.pipe(map(d => d['title'] as string)), { initialValue: '' });
   
   // Gestione notifiche multiple
   notifications = signal<NotificationItem[]>([]);
   showMultipleNotifications = false;
+  private readonly successAutoDismissDelay = 4000;
+  private successRemovalTimers = new Map<string, number>();
 
   onErrorChange(errorData: {message: string, type: NotificationType, fieldId: string, action: 'add' | 'remove'} | undefined) {
     if (!errorData) {
@@ -53,6 +55,11 @@ export class Contatti {
 
       this.notifications.set([...filteredNotifications, refreshedNotification]);
       this.showMultipleNotifications = true;
+      if (errorData.type === 'success') {
+        this.scheduleSuccessRemoval(errorData.fieldId);
+      } else {
+        this.clearSuccessRemovalTimer(errorData.fieldId);
+      }
       return;
     }
 
@@ -60,6 +67,7 @@ export class Contatti {
       const currentNotifications = this.notifications();
       const filteredNotifications = currentNotifications.filter(n => n.fieldId !== errorData.fieldId);
       this.notifications.set(filteredNotifications);
+      this.clearSuccessRemovalTimer(errorData.fieldId);
     }
   }
 
@@ -83,7 +91,7 @@ export class Contatti {
         // Aggiungi alla lista delle notifiche
         this.notifications.set([...currentNotifications, successNotification]);
         this.showMultipleNotifications = true;
-        
+        this.scheduleSuccessRemoval(successNotification.fieldId);
       }
     }
   }
@@ -102,5 +110,38 @@ export class Contatti {
       }
       return mostSevere;
     });
+  }
+
+  ngOnDestroy(): void {
+    this.clearAllSuccessRemovalTimers();
+  }
+
+  private scheduleSuccessRemoval(fieldId: string, delay = this.successAutoDismissDelay): void {
+    const existingTimer = this.successRemovalTimers.get(fieldId);
+    if (existingTimer) {
+      clearTimeout(existingTimer);
+    }
+
+    const timer = window.setTimeout(() => {
+      const updated = this.notifications().filter(n => !(n.fieldId === fieldId && n.type === 'success'));
+      this.notifications.set(updated);
+      this.showMultipleNotifications = updated.length > 0;
+      this.successRemovalTimers.delete(fieldId);
+    }, delay);
+
+    this.successRemovalTimers.set(fieldId, timer);
+  }
+
+  private clearSuccessRemovalTimer(fieldId: string): void {
+    const timer = this.successRemovalTimers.get(fieldId);
+    if (timer) {
+      clearTimeout(timer);
+      this.successRemovalTimers.delete(fieldId);
+    }
+  }
+
+  private clearAllSuccessRemovalTimers(): void {
+    this.successRemovalTimers.forEach(timer => clearTimeout(timer));
+    this.successRemovalTimers.clear();
   }
 }
