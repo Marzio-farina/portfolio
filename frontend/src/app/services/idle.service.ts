@@ -13,8 +13,8 @@ export class IdleService {
   onWarning$ = this.warning$.asObservable(); // Observable per il countdown
   onReset$ = this.reset$.asObservable(); // Observable per reset attività
 
-  // tempo max inattività (65 secondi per testing, normalmente 15 minuti)
-  private idleMs = 65 * 1000;
+  // tempo max inattività (10 minuti)
+  private idleMs = 10 * 60 * 1000;
   private warningMs = 60 * 1000; // Mostra warning 60 secondi prima
 
   private countdownInterval?: any;
