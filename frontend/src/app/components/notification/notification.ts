@@ -1,4 +1,4 @@
-import { Component, input, output, signal, effect, OnDestroy, ElementRef, ViewChild, AfterViewInit } from '@angular/core';
+import { Component, input, output, signal, effect, OnDestroy, ElementRef, ViewChild, AfterViewInit, ChangeDetectionStrategy, untracked } from '@angular/core';
 import { CommonModule } from '@angular/common';
 
 export type NotificationType = 'success' | 'error' | 'warning' | 'info';
@@ -15,7 +15,8 @@ export interface NotificationItem {
   selector: 'app-notification',
   imports: [CommonModule],
   templateUrl: './notification.html',
-  styleUrls: ['./notification-base.css', './notification-multiple.css']
+  styleUrls: ['./notification-base.css', './notification-multiple.css'],
+  changeDetection: ChangeDetectionStrategy.OnPush // ⚡ Performance boost
 })
 export class Notification implements OnDestroy, AfterViewInit {
   // Inputs per notifiche singole (compatibilità)
@@ -65,15 +66,17 @@ export class Notification implements OnDestroy, AfterViewInit {
       }
     });
 
-    // Effect per gestire le notifiche multiple
+    // Effect per gestire le notifiche multiple - ottimizzato
     effect(() => {
       if (this.showMultiple()) {
         const currentNotifications = this.notifications();
         if (currentNotifications.length > 0) {
-          // Usa setTimeout per evitare loop infiniti
-          setTimeout(() => {
-            this.handleMultipleNotifications();
-          }, 0);
+          // Usa queueMicrotask invece di setTimeout(0) per migliore performance
+          untracked(() => {
+            queueMicrotask(() => {
+              this.handleMultipleNotifications();
+            });
+          });
         }
       }
     });
@@ -473,7 +476,7 @@ export class Notification implements OnDestroy, AfterViewInit {
     }
   }
 
-  private collapseNotification(notificationId: string) {
+  private collapseNotification(notificationId: string): void {
     // Non collassare se stiamo facendo hover sull'icona
     if (this.isHoveringIcon()) {
       return;
