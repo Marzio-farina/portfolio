@@ -71,19 +71,26 @@ export class ThreeText3DComponent implements AfterViewInit, OnChanges, OnDestroy
   // Nessun constructor necessario - usiamo ngOnChanges
 
   async ngAfterViewInit() {
-    // Aspetta che il DOM sia completamente renderizzato
-    await new Promise(resolve => setTimeout(resolve, 100));
-    
     // Carica Three.js in modo lazy
     await this.loadThreeJS();
     
-    if (this.THREE) {
-      // Aspetta che il canvas abbia dimensioni valide
-      await this.waitForValidDimensions();
-      await this.initThree();
+    if (!this.THREE) return;
+    
+    // 1. Mostra il canvas PRIMA di inizializzare WebGL
+    this.isLoading.set(false);
+    
+    // 2. Aspetta che Angular renderizzi il canvas nel DOM
+    await new Promise(resolve => requestAnimationFrame(() => resolve(undefined)));
+    
+    // 3. Aspetta che il canvas abbia dimensioni valide (max 5 secondi)
+    await this.waitForValidDimensions();
+    
+    // 4. Inizializza Three.js solo se canvas ha dimensioni valide
+    const initialized = await this.initThree();
+    
+    if (initialized) {
       this.animate();
       this.setupResize();
-      this.isLoading.set(false);
     }
   }
 
@@ -139,15 +146,16 @@ export class ThreeText3DComponent implements AfterViewInit, OnChanges, OnDestroy
     }
   }
 
-  private async initThree() {
-    if (!this.THREE || !this.canvasRef) return;
+  private async initThree(): Promise<boolean> {
+    if (!this.THREE || !this.canvasRef) return false;
     
     const canvas = this.canvasRef.nativeElement;
     const rect = canvas.getBoundingClientRect();
     
-    // VERIFICA dimensioni valide prima di inizializzare WebGL
+    // DOPPIA VERIFICA dimensioni valide prima di inizializzare WebGL
     if (rect.width <= 0 || rect.height <= 0) {
-      return;
+      console.warn('⚠️ Three.js: Canvas has zero dimensions, initialization aborted');
+      return false;
     }
 
     const THREE = this.THREE;
@@ -202,6 +210,8 @@ export class ThreeText3DComponent implements AfterViewInit, OnChanges, OnDestroy
     this.scene.add(fillLight);
 
     await this.loadFont();
+    
+    return true; // Inizializzazione completata con successo
   }
 
   private async loadFont() {
