@@ -28,11 +28,21 @@ export class JobOfferStatsComponent {
     emailSent: 0
   });
 
+  // Indica se siamo in modalità edit (mostra card "Aggiungi")
+  editMode = input<boolean>(false);
+
   // Emette il tipo di card cliccata
   cardClick = output<JobOfferCardType>();
+  
+  // Emette quando viene cliccata la card "Aggiungi"
+  addClick = output<void>();
 
   onCardClick(type: JobOfferCardType): void {
     this.cardClick.emit(type);
+  }
+
+  onAddClick(): void {
+    this.addClick.emit();
   }
 }
 

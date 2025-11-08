@@ -14,7 +14,9 @@
   <div class="job-offers-stats-section">
     <app-job-offer-stats 
       [stats]="statsData()"
-      (cardClick)="onCardClick($event)">
+      [editMode]="editMode()"
+      (cardClick)="onCardClick($event)"
+      (addClick)="onAddClick()">
     </app-job-offer-stats>
   </div>
 </div>

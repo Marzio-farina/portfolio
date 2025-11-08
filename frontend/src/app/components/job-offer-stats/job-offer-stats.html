@@ -1,4 +1,17 @@
 <div class="stats-grid">
+  <!-- Card Aggiungi (solo in modalità edit) -->
+  @if (editMode()) {
+    <div class="stat-card stat-card--add" (click)="onAddClick()" role="button" tabindex="0">
+      <div class="add-card-circle" aria-hidden="true">
+        <svg class="add-card-plus" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round">
+          <line x1="12" y1="5" x2="12" y2="19"></line>
+          <line x1="5" y1="12" x2="19" y2="12"></line>
+        </svg>
+      </div>
+      <div class="add-card-hint">Aggiungi card</div>
+    </div>
+  }
+
   <!-- Totale Candidature -->
   <div class="stat-card" (click)="onCardClick('total')" role="button" tabindex="0">
     <div class="stat-card__icon stat-card__icon--total">

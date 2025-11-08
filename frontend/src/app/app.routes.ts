@@ -7,6 +7,7 @@ import { Progetti } from './pages/progetti/progetti';
 import { Attestati } from './pages/attestati/attestati';
 import { JobOffers } from './pages/job-offers/job-offers';
 import { JobOffersStatsView } from './pages/job-offers/views/job-offers-stats-view/job-offers-stats-view';
+import { AddJobOffer } from './pages/job-offers/views/add-job-offer/add-job-offer';
 import { AddTestimonial } from './components/add-testimonial/add-testimonial';
 import { AddAttestato } from './components/add-attestato/add-attestato';
 import { AddProject } from './components/add-project/add-project';
@@ -25,6 +26,7 @@ export const routes: Routes = [
   { path: 'progetti/nuovo', component: AddProject, canActivate: [authGuard], resolve: { clearTenant: clearTenantResolver }, data: { title: 'Nuovo Progetto' } },
   { path: 'contatti',  component: Contatti,  resolve: { clearTenant: clearTenantResolver }, data: { title: 'Contatti' } },
   { path: 'job-offers', component: JobOffers, canActivate: [authGuard], resolve: { clearTenant: clearTenantResolver }, data: { title: 'Offerte Lavorative' } },
+  { path: 'job-offers/new', component: AddJobOffer, canActivate: [authGuard], resolve: { clearTenant: clearTenantResolver }, data: { title: 'Aggiungi Candidatura' } },
   { path: 'job-offers/total', component: JobOffersStatsView, canActivate: [authGuard], resolve: { clearTenant: clearTenantResolver }, data: { title: 'Tutte le Candidature' } },
   { path: 'job-offers/pending', component: JobOffersStatsView, canActivate: [authGuard], resolve: { clearTenant: clearTenantResolver }, data: { title: 'Candidature in Attesa' } },
   { path: 'job-offers/interview', component: JobOffersStatsView, canActivate: [authGuard], resolve: { clearTenant: clearTenantResolver }, data: { title: 'Colloqui' } },
@@ -41,6 +43,7 @@ export const routes: Routes = [
   { path: ':userSlug/progetti/nuovo', component: AddProject, canActivate: [authGuard], resolve: { tenant: tenantResolver }, data: { title: 'Nuovo Progetto' } },
   { path: ':userSlug/contatti',  component: Contatti,  resolve: { tenant: tenantResolver }, data: { title: 'Contatti' } },
   { path: ':userSlug/job-offers', component: JobOffers, canActivate: [authGuard], resolve: { tenant: tenantResolver }, data: { title: 'Offerte Lavorative' } },
+  { path: ':userSlug/job-offers/new', component: AddJobOffer, canActivate: [authGuard], resolve: { tenant: tenantResolver }, data: { title: 'Aggiungi Candidatura' } },
   { path: ':userSlug/job-offers/total', component: JobOffersStatsView, canActivate: [authGuard], resolve: { tenant: tenantResolver }, data: { title: 'Tutte le Candidature' } },
   { path: ':userSlug/job-offers/pending', component: JobOffersStatsView, canActivate: [authGuard], resolve: { tenant: tenantResolver }, data: { title: 'Candidature in Attesa' } },
   { path: ':userSlug/job-offers/interview', component: JobOffersStatsView, canActivate: [authGuard], resolve: { tenant: tenantResolver }, data: { title: 'Colloqui' } },
