@@ -1,3 +1,54 @@
+/* Container principale con icona e contenuto */
+.tli {
+  position: relative;
+  display: flex;
+  align-items: flex-start;
+  gap: 1rem;
+}
+
+/* Icona toggle sulla linea - solo freccia senza contorno */
+.tli__toggle {
+  position: absolute;
+  left: -52px; /* Sulla linea timeline */
+  top: 32px; /* Sotto il cerchietto */
+  width: 20px;
+  height: 20px;
+  background: transparent; /* Nessun background */
+  border: none; /* Nessun bordo */
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all var(--transition-1);
+  z-index: 5;
+  padding: 0;
+}
+
+.tli__toggle:hover {
+  transform: scale(1.2); /* Solo scale al hover */
+}
+
+.tli__toggle:hover .tli__toggle-icon {
+  color: var(--accent-hover); /* Cambio colore freccia al hover */
+}
+
+.tli__toggle-icon {
+  width: 20px;
+  height: 20px;
+  color: var(--accent-primary); /* Colore giallo per la freccia */
+  transition: all var(--transition-1);
+  stroke-width: 3; /* Freccia più spessa per visibilità */
+}
+
+.tli__toggle.expanded .tli__toggle-icon {
+  transform: rotate(90deg); /* Ruota quando espanso */
+}
+
+/* Contenuto timeline item */
+.tli__content {
+  flex: 1;
+}
+
 .tli__title {
     margin: 0 0 4px;
     font-weight: 700;
@@ -21,7 +72,7 @@
 
 .tli__desc  {
     color: var(--text-secondary);
-    margin: 0;
+    margin: 12px 0 0 0;
     line-height: 1.6;
     white-space: pre-line;
     transition: color var(--transition-1);
@@ -35,11 +86,22 @@
     word-break: break-word !important; /* Spezza le parole se necessario */
     -webkit-hyphens: none !important; /* Disabilita trattini su WebKit */
     -moz-hyphens: none !important; /* Disabilita trattini su Firefox */
+    /* Animazione entrata */
+    animation: slideDown 0.3s ease-out;
 }
 
-/* Cursore lampeggiante per effetto typewriter */
-.tli__title::after,
-.tli__years::after,
+@keyframes slideDown {
+  from {
+    opacity: 0;
+    transform: translateY(-10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+/* Cursore lampeggiante per effetto typewriter (solo descrizione) */
 .tli__desc::after {
   content: '|';
   color: var(--accent-primary);
@@ -51,8 +113,6 @@
 }
 
 /* Nascondi cursore quando non si sta scrivendo */
-.tli__title:not(.typing)::after,
-.tli__years:not(.typing)::after,
 .tli__desc:not(.typing)::after {
   display: none;
 }

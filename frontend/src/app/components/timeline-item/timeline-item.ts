@@ -17,52 +17,51 @@ export class TimelineItem implements OnInit, OnDestroy {
   displayedDescription = signal('');
   isTyping = signal(false);
   
+  // Expand/Collapse state
+  isExpanded = signal(false);
+  
   // Processed description with clickable links
   processedDescription = computed(() => this.processLinks(this.displayedDescription()));
   
   private typewriterInterval?: number;
 
   ngOnInit(): void {
-    this.startTypewriterEffect();
+    // Mostra solo titolo e anni inizialmente
+    this.displayedTitle.set(this.title());
+    this.displayedYears.set(this.years());
+  }
+
+  toggleDescription(): void {
+    this.isExpanded.set(!this.isExpanded());
+    
+    if (this.isExpanded()) {
+      // Espandi: mostra descrizione con typewriter
+      this.startDescriptionTypewriter();
+    } else {
+      // Collassa: nascondi immediatamente
+      this.stopTypewriterEffect();
+      this.displayedDescription.set('');
+    }
   }
 
   ngOnDestroy(): void {
     this.stopTypewriterEffect();
   }
 
-  private startTypewriterEffect(): void {
-    const titleText = this.title();
-    const yearsText = this.years();
+  private startDescriptionTypewriter(): void {
     const descriptionText = this.description();
     
-    if (!titleText && !yearsText && !descriptionText) return;
+    if (!descriptionText) return;
     
     this.isTyping.set(true);
-    this.displayedTitle.set('');
-    this.displayedYears.set('');
     this.displayedDescription.set('');
     
     let currentIndex = 0;
-    const allText = `${titleText} ${yearsText} ${descriptionText}`;
     const typingSpeed = 8; // Velocità 8ms tra ogni carattere
     
     this.typewriterInterval = window.setInterval(() => {
-      if (currentIndex < allText.length) {
-        // Calcola quale campo aggiornare basandosi sulla posizione
-        const titleLength = titleText.length;
-        const yearsLength = yearsText.length;
-        
-        if (currentIndex < titleLength) {
-          this.displayedTitle.set(titleText.substring(0, currentIndex + 1));
-        } else if (currentIndex < titleLength + yearsLength) {
-          this.displayedTitle.set(titleText);
-          this.displayedYears.set(yearsText.substring(0, currentIndex - titleLength + 1));
-        } else {
-          this.displayedTitle.set(titleText);
-          this.displayedYears.set(yearsText);
-          this.displayedDescription.set(descriptionText.substring(0, currentIndex - titleLength - yearsLength + 1));
-        }
-        
+      if (currentIndex < descriptionText.length) {
+        this.displayedDescription.set(descriptionText.substring(0, currentIndex + 1));
         currentIndex++;
       } else {
         this.isTyping.set(false);

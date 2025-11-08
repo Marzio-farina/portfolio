@@ -1,5 +1,24 @@
 <article class="tli">
-  <h4 class="tli__title" [class.typing]="isTyping()">{{ displayedTitle() }}</h4>
-  <div class="tli__years" [class.typing]="isTyping()">{{ displayedYears() }}</div>
-  <p class="tli__desc" [class.typing]="isTyping()" [innerHTML]="processedDescription()"></p>
+  <!-- Icona toggle sulla linea sinistra -->
+  <button 
+    class="tli__toggle" 
+    [class.expanded]="isExpanded()"
+    (click)="toggleDescription()"
+    type="button"
+    [attr.aria-label]="isExpanded() ? 'Nascondi descrizione' : 'Mostra descrizione'"
+    [attr.aria-expanded]="isExpanded()">
+    <svg class="tli__toggle-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round">
+      <polyline points="9 18 15 12 9 6"></polyline>
+    </svg>
+  </button>
+  
+  <div class="tli__content">
+    <h4 class="tli__title">{{ displayedTitle() }}</h4>
+    <div class="tli__years">{{ displayedYears() }}</div>
+    
+    <!-- Descrizione mostrata solo se espansa -->
+    @if (isExpanded()) {
+      <p class="tli__desc" [class.typing]="isTyping()" [innerHTML]="processedDescription()"></p>
+    }
+  </div>
 </article>
