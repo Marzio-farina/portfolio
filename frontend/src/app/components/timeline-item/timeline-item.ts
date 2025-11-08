@@ -1,10 +1,11 @@
-import { Component, input, signal, computed, OnDestroy, OnInit } from '@angular/core';
+import { Component, input, signal, computed, OnDestroy, OnInit, ChangeDetectionStrategy, untracked } from '@angular/core';
 
 @Component({
   selector: 'app-timeline-item',
   imports: [],
   templateUrl: './timeline-item.html',
-  styleUrl: './timeline-item.css'
+  styleUrl: './timeline-item.css',
+  changeDetection: ChangeDetectionStrategy.OnPush // ⚡ Performance boost
 }) 
 export class TimelineItem implements OnInit, OnDestroy {
   title = input.required<string>();
@@ -21,15 +22,43 @@ export class TimelineItem implements OnInit, OnDestroy {
   isExpanded = signal(false);
   hasBeenHovered = signal(false); // Track se è stato già mostrato
   
-  // Processed description with clickable links
-  processedDescription = computed(() => this.processLinks(this.displayedDescription()));
+  // Pre-processa la descrizione una sola volta (non ad ogni carattere)
+  private fullProcessedDescription = signal('');
+  processedDescription = computed(() => {
+    // Mostra solo la porzione digitata della descrizione già processata
+    const typed = this.displayedDescription();
+    const full = this.fullProcessedDescription();
+    if (!typed || !full) return '';
+    
+    // Trova l'ultimo tag chiuso valido per evitare HTML rotto
+    const typedLength = typed.length;
+    let safeHtml = full.substring(0, typedLength);
+    
+    // Se siamo a metà di un tag, taglia al tag precedente
+    const lastOpenTag = safeHtml.lastIndexOf('<');
+    const lastCloseTag = safeHtml.lastIndexOf('>');
+    if (lastOpenTag > lastCloseTag) {
+      safeHtml = safeHtml.substring(0, lastOpenTag);
+    }
+    
+    return safeHtml;
+  });
   
   private typewriterInterval?: number;
+  private animationFrameId?: number;
 
   ngOnInit(): void {
     // Mostra solo titolo e anni inizialmente
     this.displayedTitle.set(this.title());
     this.displayedYears.set(this.years());
+    
+    // Pre-processa la descrizione completa una sola volta
+    untracked(() => {
+      const desc = this.description();
+      if (desc) {
+        this.fullProcessedDescription.set(this.processLinks(desc));
+      }
+    });
   }
 
   onMouseEnter(): void {
@@ -70,23 +99,46 @@ export class TimelineItem implements OnInit, OnDestroy {
     this.displayedDescription.set('');
     
     let currentIndex = 0;
-    const typingSpeed = 8; // Velocità 8ms tra ogni carattere
+    const charsPerFrame = 3; // ⚡ Digita 3 caratteri per frame invece di 1
+    let lastTimestamp = 0;
+    const minFrameTime = 16; // ~60fps
     
-    this.typewriterInterval = window.setInterval(() => {
+    const animate = (timestamp: number) => {
+      // Throttle a ~60fps per performance
+      if (timestamp - lastTimestamp < minFrameTime) {
+        this.animationFrameId = requestAnimationFrame(animate);
+        return;
+      }
+      lastTimestamp = timestamp;
+      
       if (currentIndex < descriptionText.length) {
-        this.displayedDescription.set(descriptionText.substring(0, currentIndex + 1));
-        currentIndex++;
+        // Aggiorna 3 caratteri alla volta per meno change detection cycles
+        const nextIndex = Math.min(currentIndex + charsPerFrame, descriptionText.length);
+        
+        // Usa untracked per evitare change detection inutile durante l'animazione
+        untracked(() => {
+          this.displayedDescription.set(descriptionText.substring(0, nextIndex));
+        });
+        
+        currentIndex = nextIndex;
+        this.animationFrameId = requestAnimationFrame(animate);
       } else {
         this.isTyping.set(false);
         this.stopTypewriterEffect();
       }
-    }, typingSpeed);
+    };
+    
+    this.animationFrameId = requestAnimationFrame(animate);
   }
 
   private stopTypewriterEffect(): void {
     if (this.typewriterInterval) {
       clearInterval(this.typewriterInterval);
       this.typewriterInterval = undefined;
+    }
+    if (this.animationFrameId) {
+      cancelAnimationFrame(this.animationFrameId);
+      this.animationFrameId = undefined;
     }
     this.isTyping.set(false);
   }

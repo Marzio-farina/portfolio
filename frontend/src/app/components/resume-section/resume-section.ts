@@ -1,4 +1,4 @@
-import { Component, input, signal } from '@angular/core';
+import { Component, input, signal, ChangeDetectionStrategy } from '@angular/core';
 import { TimelineItem } from '../timeline-item/timeline-item';
 
 type Item = { title: string; years: string; description: string };
@@ -9,7 +9,8 @@ type Item = { title: string; years: string; description: string };
     TimelineItem
   ],
   templateUrl: './resume-section.html',
-  styleUrl: './resume-section.css'
+  styleUrl: './resume-section.css',
+  changeDetection: ChangeDetectionStrategy.OnPush // ⚡ Performance boost
 })
 export class ResumeSection {
   id = input.required<string>();
