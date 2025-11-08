@@ -1,0 +1,173 @@
+{
+  "timestamp": "2025-11-08T10:36:59.944Z",
+  "stats": {
+    "processed": 23,
+    "errors": 30,
+    "originalSize": 7152253,
+    "compressedSize": 2345624,
+    "savings": "67.2"
+  },
+  "files": [
+    {
+      "original": "logo-1-color.png",
+      "compressed": "logo-1-color.webp",
+      "originalSize": "5.35 KB",
+      "compressedSize": "7.12 KB",
+      "savings": "-33.0%"
+    },
+    {
+      "original": "logo-2-color.png",
+      "compressed": "logo-2-color.webp",
+      "originalSize": "3.86 KB",
+      "compressedSize": "5.95 KB",
+      "savings": "-54.1%"
+    },
+    {
+      "original": "logo-3-color.png",
+      "compressed": "logo-3-color.webp",
+      "originalSize": "3.31 KB",
+      "compressedSize": "4.62 KB",
+      "savings": "-39.4%"
+    },
+    {
+      "original": "logo-4-color.png",
+      "compressed": "logo-4-color.webp",
+      "originalSize": "3.06 KB",
+      "compressedSize": "4.72 KB",
+      "savings": "-54.2%"
+    },
+    {
+      "original": "logo-5-color.png",
+      "compressed": "logo-5-color.webp",
+      "originalSize": "3.82 KB",
+      "compressedSize": "5.51 KB",
+      "savings": "-44.1%"
+    },
+    {
+      "original": "logo-6-color.png",
+      "compressed": "logo-6-color.webp",
+      "originalSize": "2.83 KB",
+      "compressedSize": "3.79 KB",
+      "savings": "-34.2%"
+    },
+    {
+      "original": "logo.png",
+      "compressed": "logo.webp",
+      "originalSize": "300.92 KB",
+      "compressedSize": "25.63 KB",
+      "savings": "91.5%"
+    },
+    {
+      "original": "my-avatar-2.png",
+      "compressed": "my-avatar-2.webp",
+      "originalSize": "1.59 MB",
+      "compressedSize": "108.52 KB",
+      "savings": "93.3%"
+    },
+    {
+      "original": "my-avatar.png",
+      "compressed": "my-avatar.webp",
+      "originalSize": "8.81 KB",
+      "compressedSize": "4.06 KB",
+      "savings": "53.9%"
+    },
+    {
+      "original": "project-2.png",
+      "compressed": "project-2.webp",
+      "originalSize": "36.66 KB",
+      "compressedSize": "16.34 KB",
+      "savings": "55.4%"
+    },
+    {
+      "original": "project-4.png",
+      "compressed": "project-4.webp",
+      "originalSize": "78.44 KB",
+      "compressedSize": "36.81 KB",
+      "savings": "53.1%"
+    },
+    {
+      "original": "project-5.png",
+      "compressed": "project-5.webp",
+      "originalSize": "25.26 KB",
+      "compressedSize": "14.51 KB",
+      "savings": "42.5%"
+    },
+    {
+      "original": "project-6.png",
+      "compressed": "project-6.webp",
+      "originalSize": "80.49 KB",
+      "compressedSize": "28.70 KB",
+      "savings": "64.3%"
+    },
+    {
+      "original": "project-7.png",
+      "compressed": "project-7.webp",
+      "originalSize": "51.77 KB",
+      "compressedSize": "27.93 KB",
+      "savings": "46.0%"
+    },
+    {
+      "original": "project-9.png",
+      "compressed": "project-9.webp",
+      "originalSize": "55.92 KB",
+      "compressedSize": "15.80 KB",
+      "savings": "71.7%"
+    },
+    {
+      "original": "2222-1761840934.jpg",
+      "compressed": "2222-1761840934.webp",
+      "originalSize": "668.58 KB",
+      "compressedSize": "281.52 KB",
+      "savings": "57.9%"
+    },
+    {
+      "original": "erwer-1761904121.jpg",
+      "compressed": "erwer-1761904121.webp",
+      "originalSize": "668.58 KB",
+      "compressedSize": "281.52 KB",
+      "savings": "57.9%"
+    },
+    {
+      "original": "ssadsada-1761823838.jpg",
+      "compressed": "ssadsada-1761823838.webp",
+      "originalSize": "668.58 KB",
+      "compressedSize": "281.52 KB",
+      "savings": "57.9%"
+    },
+    {
+      "original": "ssadsada-1761823842.jpg",
+      "compressed": "ssadsada-1761823842.webp",
+      "originalSize": "668.58 KB",
+      "compressedSize": "281.52 KB",
+      "savings": "57.9%"
+    },
+    {
+      "original": "ssadsada-1761824013.jpg",
+      "compressed": "ssadsada-1761824013.webp",
+      "originalSize": "668.58 KB",
+      "compressedSize": "281.52 KB",
+      "savings": "57.9%"
+    },
+    {
+      "original": "test-1761841312.jpg",
+      "compressed": "test-1761841312.webp",
+      "originalSize": "668.58 KB",
+      "compressedSize": "281.52 KB",
+      "savings": "57.9%"
+    },
+    {
+      "original": "test-1761907858.jpg",
+      "compressed": "test-1761907858.webp",
+      "originalSize": "668.58 KB",
+      "compressedSize": "281.52 KB",
+      "savings": "57.9%"
+    },
+    {
+      "original": "avatar_e3a46c24-99e4-4395-8969-ed870ca773d7.jpg",
+      "compressed": "avatar_e3a46c24-99e4-4395-8969-ed870ca773d7.webp",
+      "originalSize": "13.82 KB",
+      "compressedSize": "10.01 KB",
+      "savings": "27.6%"
+    }
+  ]
+}
