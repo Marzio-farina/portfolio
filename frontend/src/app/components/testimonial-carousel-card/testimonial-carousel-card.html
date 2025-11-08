@@ -1,8 +1,8 @@
 <!-- Header con pulsante aggiungi testimonial -->
 <div class="testimonials-header">
     <h3 class="sub_article-title">Testimonianze</h3>
-    <button class="add-testimonial-btn" (click)="openAddTestimonial()">
-        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round">
+    <button class="add-testimonial-btn" (click)="openAddTestimonial()" aria-label="Aggiungi testimonianza" title="Aggiungi testimonianza">
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
             <line x1="12" y1="5" x2="12" y2="19"></line>
             <line x1="5" y1="12" x2="19" y2="12"></line>
         </svg>
@@ -66,12 +66,12 @@
                     <h4>{{ truncateAuthor(testimonial.author) }}</h4>
                     @if (testimonial.rating) {
                       <div class="rating-container">
-                        <div class="rating rating-sm" [attr.aria-label]="'Valutazione ' + testimonial.rating + ' su 5'">
-                          <input type="radio" class="mask mask-star-2 bg-amber-400" [name]="'rating-' + testimonial.id" [checked]="testimonial.rating === 1" disabled />
-                          <input type="radio" class="mask mask-star-2 bg-amber-400" [name]="'rating-' + testimonial.id" [checked]="testimonial.rating === 2" disabled />
-                          <input type="radio" class="mask mask-star-2 bg-amber-400" [name]="'rating-' + testimonial.id" [checked]="testimonial.rating === 3" disabled />
-                          <input type="radio" class="mask mask-star-2 bg-amber-400" [name]="'rating-' + testimonial.id" [checked]="testimonial.rating === 4" disabled />
-                          <input type="radio" class="mask mask-star-2 bg-amber-400" [name]="'rating-' + testimonial.id" [checked]="testimonial.rating === 5" disabled />
+                        <div class="rating rating-sm" role="img" [attr.aria-label]="'Valutazione ' + testimonial.rating + ' su 5 stelle'">
+                          <input type="radio" class="mask mask-star-2 bg-amber-400" [name]="'rating-' + testimonial.id" [checked]="testimonial.rating === 1" disabled aria-label="1 stella" />
+                          <input type="radio" class="mask mask-star-2 bg-amber-400" [name]="'rating-' + testimonial.id" [checked]="testimonial.rating === 2" disabled aria-label="2 stelle" />
+                          <input type="radio" class="mask mask-star-2 bg-amber-400" [name]="'rating-' + testimonial.id" [checked]="testimonial.rating === 3" disabled aria-label="3 stelle" />
+                          <input type="radio" class="mask mask-star-2 bg-amber-400" [name]="'rating-' + testimonial.id" [checked]="testimonial.rating === 4" disabled aria-label="4 stelle" />
+                          <input type="radio" class="mask mask-star-2 bg-amber-400" [name]="'rating-' + testimonial.id" [checked]="testimonial.rating === 5" disabled aria-label="5 stelle" />
                         </div>
                       </div>
                     }
@@ -146,12 +146,12 @@
 
         @if (selectedTestimonial() && selectedTestimonial()!.rating) {
           <div class="testimonial-dialog-rating">
-            <div class="rating rating-sm" [attr.aria-label]="'Valutazione ' + selectedTestimonial()!.rating + ' su 5'">
-              <input type="radio" class="mask mask-star-2 bg-amber-400" [name]="'rating-dialog-' + selectedTestimonial()!.id" [checked]="selectedTestimonial()!.rating === 1" disabled />
-              <input type="radio" class="mask mask-star-2 bg-amber-400" [name]="'rating-dialog-' + selectedTestimonial()!.id" [checked]="selectedTestimonial()!.rating === 2" disabled />
-              <input type="radio" class="mask mask-star-2 bg-amber-400" [name]="'rating-dialog-' + selectedTestimonial()!.id" [checked]="selectedTestimonial()!.rating === 3" disabled />
-              <input type="radio" class="mask mask-star-2 bg-amber-400" [name]="'rating-dialog-' + selectedTestimonial()!.id" [checked]="selectedTestimonial()!.rating === 4" disabled />
-              <input type="radio" class="mask mask-star-2 bg-amber-400" [name]="'rating-dialog-' + selectedTestimonial()!.id" [checked]="selectedTestimonial()!.rating === 5" disabled />
+            <div class="rating rating-sm" role="img" [attr.aria-label]="'Valutazione ' + selectedTestimonial()!.rating + ' su 5 stelle'">
+              <input type="radio" class="mask mask-star-2 bg-amber-400" [name]="'rating-dialog-' + selectedTestimonial()!.id" [checked]="selectedTestimonial()!.rating === 1" disabled aria-label="1 stella" />
+              <input type="radio" class="mask mask-star-2 bg-amber-400" [name]="'rating-dialog-' + selectedTestimonial()!.id" [checked]="selectedTestimonial()!.rating === 2" disabled aria-label="2 stelle" />
+              <input type="radio" class="mask mask-star-2 bg-amber-400" [name]="'rating-dialog-' + selectedTestimonial()!.id" [checked]="selectedTestimonial()!.rating === 3" disabled aria-label="3 stelle" />
+              <input type="radio" class="mask mask-star-2 bg-amber-400" [name]="'rating-dialog-' + selectedTestimonial()!.id" [checked]="selectedTestimonial()!.rating === 4" disabled aria-label="4 stelle" />
+              <input type="radio" class="mask mask-star-2 bg-amber-400" [name]="'rating-dialog-' + selectedTestimonial()!.id" [checked]="selectedTestimonial()!.rating === 5" disabled aria-label="5 stelle" />
             </div>
           </div>
         }
