@@ -43,6 +43,7 @@
             [alt]="progetto().title || 'Project image'"
             fill
             priority
+            fetchpriority="high"
             sizes="(max-width: 640px) 100vw, (max-width: 1024px) 50vw, 33vw">
         } @else {
           <img 
@@ -50,6 +51,7 @@
             [ngSrc]="progetto().poster" 
             [alt]="progetto().title || 'Project image'"
             fill
+            loading="lazy"
             sizes="(max-width: 640px) 100vw, (max-width: 1024px) 50vw, 33vw">
         }
       }
