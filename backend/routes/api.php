@@ -141,7 +141,7 @@ Route::middleware(['api', "throttle:{$throttleLimit}", 'db.connection'])
         // Rotta slug-based "pulita" (preferita): /{slug}/public-profile
         // Esclude route riservate e pagine pubbliche del frontend
         Route::get('{slug}/public-profile', [UserPublicController::class, 'showBySlug'])
-            ->where('slug', '^(?!api$|users$|testimonials$|projects$|cv$|what-i-do$|attestati$|avatars$|contact$|login$|register$|github$|github-repositories$|nuova-recensione$|about$|curriculum$|progetti$|contatti$)[A-Za-z0-9-]+$');
+            ->where('slug', '^(?!api$|users$|testimonials$|projects$|cv$|what-i-do$|attestati$|avatars$|contact$|login$|register$|github$|github-repositories$|nuova-recensione$|about$|curriculum$|progetti$|contatti$|job-offers$)[A-Za-z0-9-]+$');
 
         // CV Files - download pubblico (utente identificato opzionalmente)
         // Spostato fuori da gruppi con http.cache/throttle
