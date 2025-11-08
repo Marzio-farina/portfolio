@@ -77,9 +77,17 @@ export class Aside {
     this.loading.set(true);
     this.errorMsg.set(null);
     this.inFlight = true;
+    console.log('🔄 Ricaricamento profilo dal server...');
     this.sub = this.getProfile$().subscribe({
-      next: (res) => { this.profile.set(res); this.loading.set(false); this.inFlight = false; },
+      next: (res) => { 
+        console.log('📥 Profilo ricevuto dal server:', res);
+        console.log('🖼️ Avatar URL dal server:', res?.avatar_url);
+        this.profile.set(res); 
+        this.loading.set(false); 
+        this.inFlight = false; 
+      },
       error: (err) => {
+        console.error('❌ Errore caricamento profilo:', err);
         if (err?.status === 0 || err?.name === 'CanceledError') { this.loading.set(false); this.inFlight = false; return; }
         this.errorMsg.set(err?.message ?? 'Errore di rete'); this.loading.set(false); this.inFlight = false;
       }
@@ -259,6 +267,14 @@ export class Aside {
   onAvatarEditorChange(sel: AvatarSelection) {
     // Non fare chiamate API ad ogni click: memorizza e salva solo all'uscita da Modifica
     this.pendingAvatarSel.set(sel);
+    
+    // Aggiorna immediatamente il profilo locale per visualizzazione istantanea
+    const currentProfile = this.profile();
+    if (currentProfile && sel.url) {
+      // Aggiorna l'avatar locale per feedback visivo immediato
+      this.profile.set({ ...currentProfile, avatar_url: sel.url });
+    }
+    
     this.scheduleAutoSave();
   }
 
@@ -279,34 +295,81 @@ export class Aside {
     const body: any = {};
     if (typeof iconId !== 'undefined') body.icon_id = iconId;
     if (typeof url !== 'undefined') body.avatar_url = url;
-    this.http.put(apiUrl('profile'), body, { headers })
-      .subscribe(() => {
-        // ricarica i dati dell'aside
-        this.reload();
+    
+    console.log('💾 Salvataggio avatar sul server:', body);
+    
+    this.http.put<any>(apiUrl('profile'), body, { headers })
+      .subscribe({
+        next: (response) => {
+          console.log('✅ Avatar salvato con successo sul server:', response);
+          if (response.debug) {
+            console.log('🐛 Debug info dal server:', response.debug);
+            console.log('   - user_icon_id:', response.debug.user_icon_id);
+            console.log('   - icon_img:', response.debug.icon_img);
+            console.log('   - profile_avatar_url:', response.debug.profile_avatar_url);
+          }
+          // Non fare reload: il profilo è già stato aggiornato ottimisticamente
+          // Il reload sovrascrive l'aggiornamento locale e causa il ritorno all'avatar vecchio
+          // L'aggiornamento locale rimane sincronizzato e verrà confermato al prossimo reload naturale
+        },
+        error: (error) => {
+          console.error('❌ Errore salvataggio avatar:', error);
+          // In caso di errore, ricarica per sincronizzare con il server
+          this.reload();
+        }
       });
   }
 
   private saveAvatarSelection(sel: AvatarSelection) {
+    console.log('🔄 saveAvatarSelection chiamato con:', sel);
+    
     // Priorità: file caricato -> upload, poi salva URL; altrimenti salva URL/Icona default
     if (sel.file) {
+      console.log('📤 Upload file avatar in corso...');
       const form = new FormData();
       form.append('avatar', sel.file);
       // this.http.post<{icon:{id:number,img:string,alt:string}}>(apiUrl('avatars/upload'), form).subscribe({
       this.http.post<{icon:{id:number,img:string,alt:string}}>(apiUrl('avatars/upload'), form)
-        .subscribe((res) => {
-          const id = res?.icon?.id;
-          if (typeof id === 'number') this.updateProfileAvatar(null, id);
+        .subscribe({
+          next: (res) => {
+            console.log('📥 Risposta upload avatar:', res);
+            const id = res?.icon?.id;
+            const iconUrl = res?.icon?.img;
+            if (typeof id === 'number') {
+              console.log(`✅ File caricato con successo. Icon ID: ${id}, URL: ${iconUrl}`);
+              // Aggiorna immediatamente il profilo locale con l'URL dell'icona caricata
+              const currentProfile = this.profile();
+              if (currentProfile && iconUrl) {
+                this.profile.set({ ...currentProfile, avatar_url: this.normalizeAvatarUrl(iconUrl) });
+              }
+              this.updateProfileAvatar(null, id);
+            } else {
+              console.error('❌ Icon ID non valido nella risposta:', res);
+            }
+          },
+          error: (error) => {
+            console.error('❌ Errore upload avatar:', error);
+          }
         });
       return;
     }
     // Icona di default selezionata: salva icon_id e pulisci avatar_url
     if (typeof sel.iconId === 'number') {
+      console.log(`🎨 Icona di default selezionata. Icon ID: ${sel.iconId}, URL: ${sel.url}`);
+      // Aggiorna immediatamente il profilo locale con l'URL dell'icona selezionata
+      if (sel.url) {
+        const currentProfile = this.profile();
+        if (currentProfile) {
+          this.profile.set({ ...currentProfile, avatar_url: this.normalizeAvatarUrl(sel.url) });
+        }
+      }
       this.updateProfileAvatar(null, sel.iconId);
       return;
     }
     // Fallback URL
     const url = sel.url ?? null;
     if (url) {
+      console.log(`🔗 Salvataggio URL avatar: ${url}`);
       this.updateProfileAvatar(url, null);
     }
   }

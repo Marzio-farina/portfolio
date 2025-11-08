@@ -26,11 +26,11 @@ class UserPublicController extends Controller
         $cacheKey = 'public_profile_v1'; // bump la versione se cambi struttura payload
         try {
             $data = Cache::remember($cacheKey, now()->addSeconds(60), function () use ($request) {
-                // Individua l’utente pubblico da ENV o fallback all’email che stavi usando
+                // Individua l'utente pubblico da ENV o fallback all'email che stavi usando
                 $publicEmail  = env('PUBLIC_USER_EMAIL', 'marziofarina@icloud.com');
                 $publicUserId = (int) env('PUBLIC_USER_ID', 0);
 
-                $query = User::query()->select(['id','name','surname','email','date_of_birth']);
+                $query = User::query()->select(['id','name','surname','email','date_of_birth','icon_id']);
 
                 if ($publicUserId > 0) {
                     $query->where('id', $publicUserId);
@@ -41,7 +41,7 @@ class UserPublicController extends Controller
                 // Eager load minimali e ordinati
                 $user = $query
                 ->with([
-                           'profile:id,user_id,title,headline,bio,phone,location,location_url,avatar_url',
+                    'profile:id,user_id,title,headline,bio,phone,location,location_url,avatar_url',
                     'icon:id,img,alt',
                     'socialAccounts' => fn($q) => $q
                         ->select(['id','user_id','provider','handle','url'])
@@ -52,6 +52,15 @@ class UserPublicController extends Controller
                 if (!$user) {
                     return null;
                 }
+
+                Log::info('👤 Utente caricato da DB per profilo pubblico', [
+                    'user_id' => $user->id,
+                    'icon_id' => $user->icon_id,
+                    'icon_loaded' => $user->relationLoaded('icon'),
+                    'icon_exists' => $user->icon !== null,
+                    'icon_img' => $user->icon?->img ?? 'null',
+                    'profile_avatar_url' => $user->profile?->avatar_url ?? 'null'
+                ]);
 
                 return (new UserPublicResource($user))->toArray($request);
             });
