@@ -15,6 +15,7 @@ use App\Http\Controllers\Api\CvController;
 use App\Http\Controllers\Api\CvFileController;
 use App\Http\Controllers\Api\GitHubProxyController;
 use App\Http\Controllers\Api\GitHubRepositoryController;
+use App\Http\Controllers\Api\JobOfferCardController;
 use App\Http\Controllers\Api\ProjectController;
 use App\Http\Controllers\Api\SocialAccountController;
 use App\Http\Controllers\Api\TechnologyController;
@@ -222,6 +223,14 @@ Route::middleware(['api', "throttle:{$throttleLimit}", 'db.connection'])
             // Technologies - creazione e modifica richiedono autenticazione
             Route::post('technologies', [TechnologyController::class, 'store']);
             Route::put('technologies/{id}', [TechnologyController::class, 'update']);
+
+            // Job Offer Cards - configurazione visibilità card per utente
+            Route::get('job-offer-cards', [JobOfferCardController::class, 'index']); // Ottieni card utente con visibilità
+            Route::get('job-offer-cards/{id}', [JobOfferCardController::class, 'show']); // Card singola
+            Route::put('job-offer-cards/{id}', [JobOfferCardController::class, 'update']); // Aggiorna visibilità
+            Route::patch('job-offer-cards/{id}/toggle', [JobOfferCardController::class, 'toggleVisibility']); // Toggle visibilità
+            // Route::post('job-offer-cards', [JobOfferCardController::class, 'store']); // Crea card master (solo admin)
+            // Route::delete('job-offer-cards/{id}', [JobOfferCardController::class, 'destroy']); // Elimina card master (solo admin)
         });
 
         // ====================================================================

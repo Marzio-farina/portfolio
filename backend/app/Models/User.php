@@ -153,4 +153,17 @@ class User extends Authenticatable
 
         return $query->update(['user_id' => $this->id]);
     }
+
+    /**
+     * Get the user's job offer cards configuration (Many-to-Many)
+     * Un utente può configurare la visibilità di molte card
+     *
+     * @return \Illuminate\Database\Eloquent\Relations\BelongsToMany
+     */
+    public function jobOfferCards()
+    {
+        return $this->belongsToMany(JobOfferCard::class, 'user_job_offer_card')
+            ->withPivot('visible')
+            ->withTimestamps();
+    }
 }

@@ -7,6 +7,8 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\RateLimiter;
 use Illuminate\Support\Facades\URL;
 use Illuminate\Support\ServiceProvider;
+use App\Models\User;
+use App\Observers\UserObserver;
 
 class AppServiceProvider extends ServiceProvider
 {
@@ -23,6 +25,9 @@ class AppServiceProvider extends ServiceProvider
      */
     public function boot(): void
     {
+        // Registra Observer per assegnare automaticamente card ai nuovi utenti
+        User::observe(UserObserver::class);
+
         // Rate limiting per API generiche
         RateLimiter::for('api', function (Request $request) {
             return Limit::perMinute(60)
