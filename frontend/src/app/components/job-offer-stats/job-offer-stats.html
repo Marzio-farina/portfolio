@@ -1,7 +1,15 @@
 <div class="stats-grid">
-  <!-- Loading state -->
+  <!-- Loading state - Skeleton cards -->
   @if (loading()) {
-    <div class="loading-state">Caricamento card...</div>
+    @for (i of [0,1,2,3,4,5]; track i) {
+      <div class="stat-card skeleton-card">
+        <div class="skeleton stat-card__icon-skel"></div>
+        <div class="stat-card__content-skel">
+          <div class="skeleton h-4 w-32"></div>
+          <div class="skeleton h-6 w-8"></div>
+        </div>
+      </div>
+    }
   }
 
   <!-- Card Aggiungi (solo in modalità edit) -->

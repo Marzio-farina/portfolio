@@ -5,13 +5,29 @@
   margin-bottom: 2rem;
 }
 
-/* Loading state */
-.loading-state {
-  grid-column: 1 / -1;
-  text-align: center;
-  padding: 3rem 2rem;
-  color: var(--text-secondary);
-  font-size: 1rem;
+/* Loading state - Skeleton cards */
+.skeleton-card {
+  pointer-events: none !important;
+  cursor: default !important;
+}
+
+.skeleton-card:hover {
+  transform: none !important;
+  box-shadow: var(--shadow-1) !important;
+  border-color: transparent !important;
+}
+
+.stat-card__icon-skel {
+  width: 56px;
+  height: 56px;
+  border-radius: 12px;
+  flex-shrink: 0;
+}
+
+.stat-card__content-skel {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
 }
 
 /* Card Aggiungi (in modalità edit) - adattata per stat-card */
