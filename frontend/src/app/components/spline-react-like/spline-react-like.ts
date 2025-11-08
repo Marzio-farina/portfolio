@@ -10,7 +10,9 @@ import {
   EventEmitter
 } from '@angular/core';
 import { CommonModule } from '@angular/common';
-import { Application } from '@splinetool/runtime';
+
+// Spline runtime caricato dinamicamente (lazy loading)
+type Application = any; // Sarà caricato dinamicamente
 
 /**
  * Componente Spline che mima il comportamento di @splinetool/react-spline
@@ -139,6 +141,9 @@ export class SplineReactLikeComponent implements AfterViewInit, OnDestroy {
       throw new Error(`Canvas invalido: ${canvas.width}x${canvas.height}`);
     }
 
+    // Lazy load di Spline runtime - non incluso nel bundle initial!
+    const { Application } = await import('@splinetool/runtime');
+    
     this.app = new Application(canvas);
     await this.app.load(this.scene);
     

@@ -1,5 +1,7 @@
 import { Injectable } from '@angular/core';
-import { Application } from '@splinetool/runtime';
+
+// Spline Application caricato dinamicamente
+type Application = any;
 
 /**
  * Configurazione per modificare un tasto della tastiera Spline

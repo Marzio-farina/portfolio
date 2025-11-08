@@ -10,7 +10,9 @@ import {
 import { CommonModule } from '@angular/common';
 import { SplineReactLikeComponent } from '../spline-react-like/spline-react-like';
 import { ThreeText3DComponent } from '../three-text-3d/three-text-3d.component';
-import { Application } from '@splinetool/runtime';
+
+// Spline Application caricato dinamicamente tramite SplineReactLikeComponent
+type Application = any;
 import { SplineKeyboardService } from '../../services/spline-keyboard.service';
 import { 
   SkillData,

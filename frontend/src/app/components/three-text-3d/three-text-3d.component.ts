@@ -8,9 +8,11 @@ import {
   effect,
   signal
 } from '@angular/core';
-import * as THREE from 'three';
-import { FontLoader } from 'three/examples/jsm/loaders/FontLoader.js';
-import { TextGeometry } from 'three/examples/jsm/geometries/TextGeometry.js';
+
+// Three.js caricato dinamicamente (lazy loading)
+type THREE = typeof import('three');
+type FontLoader = typeof import('three/examples/jsm/loaders/FontLoader.js').FontLoader;
+type TextGeometry = typeof import('three/examples/jsm/geometries/TextGeometry.js').TextGeometry;
 
 @Component({
   selector: 'app-three-text-3d',
@@ -36,20 +38,22 @@ export class ThreeText3DComponent implements AfterViewInit, OnDestroy {
   readonly description = input<string>('');
   readonly visible = input<boolean>(false);
 
-  // Three.js objects
-  private scene!: THREE.Scene;
-  private camera!: THREE.OrthographicCamera; // Ortografica per vista isometrica
-  private renderer!: THREE.WebGLRenderer;
-  private titleMesh: THREE.Mesh | null = null;
-  private descriptionMeshes: THREE.Mesh[] = []; // Array per multi-line
+  // Three.js objects (caricati dinamicamente)
+  private THREE: THREE | null = null;
+  private scene: any = null;
+  private camera: any = null;
+  private renderer: any = null;
+  private titleMesh: any = null;
+  private descriptionMeshes: any[] = []; // Array per multi-line
   private font: any = null;
   private animationFrameId: number = 0;
   
   // Configurazione testo
   private readonly MAX_DESC_CHARS_PER_LINE = 45; // Caratteri massimi per riga
 
-  // Signal per tracking resize
+  // Signal per tracking resize e loading
   private resizeObserver: ResizeObserver | null = null;
+  private readonly isLoading = signal<boolean>(true);
 
   constructor() {
     // Effect per aggiornare il testo quando cambiano gli input
@@ -65,9 +69,21 @@ export class ThreeText3DComponent implements AfterViewInit, OnDestroy {
   }
 
   async ngAfterViewInit() {
+    // Carica Three.js in modo lazy
+    await this.loadThreeJS();
     await this.initThree();
     this.animate();
     this.setupResize();
+    this.isLoading.set(false);
+  }
+
+  private async loadThreeJS() {
+    try {
+      // Lazy load di Three.js - non incluso nel bundle initial!
+      this.THREE = await import('three');
+    } catch (error) {
+      console.error('Errore caricamento Three.js:', error);
+    }
   }
 
   ngOnDestroy() {
@@ -75,7 +91,10 @@ export class ThreeText3DComponent implements AfterViewInit, OnDestroy {
   }
 
   private async initThree() {
+    if (!this.THREE) return;
+    
     const canvas = this.canvasRef.nativeElement;
+    const THREE = this.THREE;
 
     // Scene
     this.scene = new THREE.Scene();
@@ -131,22 +150,14 @@ export class ThreeText3DComponent implements AfterViewInit, OnDestroy {
   }
 
   private async loadFont() {
+    if (!this.THREE) return;
+
+    // Lazy load di FontLoader
+    const { FontLoader } = await import('three/examples/jsm/loaders/FontLoader.js');
     const loader = new FontLoader();
 
     return new Promise<void>((resolve) => {
-      // Font JSON inline - Helvetiker Bold
-      const fontData = {
-        "glyphs": {
-          "A": {"ha": 722, "x_min": 15, "x_max": 707, "o": "m 361 0 l 361 140 l 15 140 l 15 0 l 361 0 m 188 709 l 361 201 l 534 709 l 707 709 l 447 0 l 275 0 l 15 709 l 188 709 m 304 419 l 419 419 l 361 587 l 304 419 z"},
-          // Qui dovrei mettere tutti i caratteri... ma è troppo lungo
-        },
-        "familyName": "Helvetiker",
-        "resolution": 1000,
-        "boundingBox": {"yMax": 783, "yMin": -217, "xMin": -111, "xMax": 1359},
-        "underlineThickness": 50
-      };
-
-      // Uso font da three.js CDN (più semplice)
+      // Usa font da three.js CDN
       loader.load(
         'https://threejs.org/examples/fonts/helvetiker_bold.typeface.json',
         (font) => {
@@ -156,32 +167,37 @@ export class ThreeText3DComponent implements AfterViewInit, OnDestroy {
         undefined,
         (error) => {
           console.error('Errore caricamento font:', error);
-          // Fallback - usa font semplice
           resolve();
         }
       );
     });
   }
 
-  private updateText(title: string, description: string, visible: boolean) {
+  private async updateText(title: string, description: string, visible: boolean) {
+    if (!this.THREE || !this.scene) return;
+
     // Rimuovi mesh esistenti
     if (this.titleMesh) {
       this.scene.remove(this.titleMesh);
       this.titleMesh.geometry.dispose();
-      (this.titleMesh.material as THREE.Material).dispose();
+      this.titleMesh.material.dispose();
     }
     
     // Rimuovi tutte le righe della descrizione
     this.descriptionMeshes.forEach(mesh => {
       this.scene.remove(mesh);
       mesh.geometry.dispose();
-      (mesh.material as THREE.Material).dispose();
+      mesh.material.dispose();
     });
     this.descriptionMeshes = [];
 
     if (!visible || !title || !this.font) {
       return;
     }
+
+    // Lazy load di TextGeometry
+    const { TextGeometry } = await import('three/examples/jsm/geometries/TextGeometry.js');
+    const THREE = this.THREE;
 
     // Crea titolo 3D con estrusione NETTA come la lettera R
     const titleGeometry = new TextGeometry(title, {
@@ -399,13 +415,13 @@ export class ThreeText3DComponent implements AfterViewInit, OnDestroy {
 
     if (this.titleMesh) {
       this.titleMesh.geometry.dispose();
-      (this.titleMesh.material as THREE.Material).dispose();
+      this.titleMesh.material.dispose();
     }
     
     // Cleanup di tutte le righe della descrizione
     this.descriptionMeshes.forEach(mesh => {
       mesh.geometry.dispose();
-      (mesh.material as THREE.Material).dispose();
+      mesh.material.dispose();
     });
 
     if (this.renderer) {
