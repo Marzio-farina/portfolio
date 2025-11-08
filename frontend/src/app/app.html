@@ -5,23 +5,23 @@
 </app-notification>
 
 <app-particles-bg></app-particles-bg>
-<main class="layout bg-primary">
+<div class="layout bg-primary">
 
   <!-- Contenitore per aside principale e secondario -->
   <div class="layout__aside-wrapper">
     <!-- ASIDE -->
-    <aside class="layout__aside surface bg-card border-primary">
+    <aside class="layout__aside surface bg-card border-primary" aria-label="Informazioni personali">
       <app-aside></app-aside>
     </aside>
 
     <!-- ASIDE SECONDARIO (visibile solo >= 1250px) -->
-    <div class="layout__aside-secondary">
+    <aside class="layout__aside-secondary" aria-label="Collegamenti social">
       <app-aside-secondary></app-aside-secondary>
-    </div>
+    </aside>
   </div>
 
-  <!-- CONTENUTO -->
-  <section class="dashboard">
+  <!-- CONTENUTO PRINCIPALE -->
+  <main class="dashboard" role="main">
     <div class="dashboard__card">
       <!-- Login button (in alto a destra), stile simile al toggle tema dell'aside -->
       <button
@@ -31,14 +31,14 @@
         [attr.aria-label]="isAuthed() ? 'Logout' : 'Accedi'">
         <span class="dashboard__login-label">{{ isAuthed() ? 'Logout' : 'Accedi' }}</span>
       </button>
-      <div class="dashboard__nav">
+      <nav class="dashboard__nav" aria-label="Navigazione principale">
         <app-navbar class="floating-nav floating-nav--inline"></app-navbar>
-      </div>
+      </nav>
 
       <app-dashboard class="dashboard__content"></app-dashboard>
     </div>
-  </section>
-</main>
+  </main>
+</div>
 
 @if (isLoginOpen()) {
   <div class="mf-modal-backdrop"></div>
