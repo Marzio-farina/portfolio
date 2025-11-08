@@ -176,4 +176,59 @@
   color: var(--bg-card);
 }
 
+/* Stili specifici per il pulsante Offerte Lavorative */
+.contacts__list--single {
+  grid-template-columns: auto; /* Sempre una colonna */
+}
+
+.contact--job-offers {
+  cursor: pointer;
+  padding: 8px 0;
+  transition: all var(--transition-1);
+  border-radius: 8px;
+}
+
+.contact--job-offers:hover {
+  background: rgba(var(--accent-primary-rgb, 255, 138, 0), 0.05);
+  padding-left: 8px;
+}
+
+.contact--job-offers .contact__icon {
+  /* Stesso stile delle altre icone: senza background */
+  background: var(--bg-card);
+  color: var(--accent-primary);
+  border-color: var(--accent-primary);
+}
+
+.contact--job-offers:hover .contact__icon {
+  /* All'hover: background arancione come le altre */
+  background: var(--accent-primary);
+  color: var(--bg-card);
+  transform: scale(1.15);
+  box-shadow: 0 4px 12px rgba(var(--accent-primary-rgb, 255, 138, 0), 0.3);
+}
+
+/* Tema light: all'hover inverte i colori */
+[data-theme="light"] .contact--job-offers:hover .contact__icon,
+:not([data-theme]) .contact--job-offers:hover .contact__icon {
+  background: var(--accent-primary);
+  color: var(--bg-card);
+  border-color: var(--accent-primary);
+}
+
+.contact--job-offers .contact__label {
+  color: var(--accent-primary);
+  font-weight: 600;
+  font-size: 0.75rem;
+}
+
+.contact--job-offers .contact__text {
+  color: var(--text-secondary);
+  font-size: 0.8rem;
+}
+
+.contact--job-offers:hover .contact__text {
+  color: var(--accent-primary);
+}
+
 

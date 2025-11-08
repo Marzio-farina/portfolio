@@ -244,6 +244,11 @@ export class Aside {
     this.router.navigate(['/contatti']);
   }
 
+  // Naviga alla pagina Gestione Offerte Lavorative (solo per utenti autenticati)
+  goToJobOffers() {
+    this.router.navigate(['/job-offers']);
+  }
+
   // Click su icona matita avatar
   onEditAvatar() {
     // Qui potrai aprire una modale di upload avatar

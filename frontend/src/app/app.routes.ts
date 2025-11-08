@@ -5,6 +5,7 @@ import { Contatti } from './pages/contatti/contatti';
 import { Curriculum } from './pages/curriculum/curriculum';
 import { Progetti } from './pages/progetti/progetti';
 import { Attestati } from './pages/attestati/attestati';
+import { JobOffers } from './pages/job-offers/job-offers';
 import { AddTestimonial } from './components/add-testimonial/add-testimonial';
 import { AddAttestato } from './components/add-attestato/add-attestato';
 import { AddProject } from './components/add-project/add-project';
@@ -22,6 +23,7 @@ export const routes: Routes = [
   { path: 'attestati/nuovo', component: AddAttestato, canActivate: [authGuard], resolve: { clearTenant: clearTenantResolver }, data: { title: 'Nuovo Attestato' } },
   { path: 'progetti/nuovo', component: AddProject, canActivate: [authGuard], resolve: { clearTenant: clearTenantResolver }, data: { title: 'Nuovo Progetto' } },
   { path: 'contatti',  component: Contatti,  resolve: { clearTenant: clearTenantResolver }, data: { title: 'Contatti' } },
+  { path: 'job-offers', component: JobOffers, canActivate: [authGuard], resolve: { clearTenant: clearTenantResolver }, data: { title: 'Offerte Lavorative' } },
   // Rotte con prefisso slug utente
   { path: ':userSlug/about',     component: About,     resolve: { tenant: tenantResolver }, data: { title: 'Chi sono' } },
   { path: ':userSlug/nuova-recensione', component: AddTestimonial, resolve: { tenant: tenantResolver }, data: { title: 'Nuova Recensione' } },
@@ -31,5 +33,6 @@ export const routes: Routes = [
   { path: ':userSlug/attestati/nuovo', component: AddAttestato, canActivate: [authGuard], resolve: { tenant: tenantResolver }, data: { title: 'Nuovo Attestato' } },
   { path: ':userSlug/progetti/nuovo', component: AddProject, canActivate: [authGuard], resolve: { tenant: tenantResolver }, data: { title: 'Nuovo Progetto' } },
   { path: ':userSlug/contatti',  component: Contatti,  resolve: { tenant: tenantResolver }, data: { title: 'Contatti' } },
+  { path: ':userSlug/job-offers', component: JobOffers, canActivate: [authGuard], resolve: { tenant: tenantResolver }, data: { title: 'Offerte Lavorative' } },
   { path: '**', redirectTo: 'about' },
 ];

@@ -194,6 +194,26 @@
 
         <div class="contacts__divider" role="separator" aria-hidden="true"></div>
 
+      <!-- GESTIONE OFFERTE LAVORATIVE (solo per utenti autenticati) -->
+        @if (isAuthed()) {
+          <ul class="contacts__list contacts__list--single">
+            <li class="contact contact--job-offers" role="button" tabindex="0" (click)="goToJobOffers()">
+              <div class="contact__icon">
+                <svg class="icon-20 mute" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true">
+                  <rect x="2" y="7" width="20" height="14" rx="2" ry="2"/>
+                  <path d="M16 21V5a2 2 0 0 0-2-2h-4a2 2 0 0 0-2 2v16"/>
+                </svg>
+              </div>
+              <div class="contact__body">
+                <p class="contact__label">Offerte Lavorative</p>
+                <span class="contact__text">Gestisci candidature</span>
+              </div>
+            </li>
+          </ul>
+
+          <div class="contacts__divider" role="separator" aria-hidden="true"></div>
+        }
+
       <!-- SOCIAL DINAMICI -->
         <ul class="socials">
           @for (s of socials(); track s.provider) {
