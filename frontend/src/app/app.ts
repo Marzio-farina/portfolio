@@ -227,7 +227,7 @@ export class App {
     this.notificationService.remove('idle-warning');
     
     // Aggiungi notifica di logout per inattività
-    this.notificationService.add('warning', 'Sei stato disconnesso per inattività.', 'idle-timeout');
+    this.notificationService.add('success', 'Sei stato disconnesso per inattività.', 'idle-timeout');
     
     this.auth.logout();
     this.isLoginOpen.set(true);
