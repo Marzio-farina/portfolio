@@ -4,6 +4,12 @@
   display: flex;
   align-items: flex-start;
   gap: 1rem;
+  transition: opacity var(--transition-1);
+}
+
+/* Effetto highlight all'hover - nessun movimento */
+.tli:hover {
+  opacity: 1;
 }
 
 /* Icona toggle sulla linea - solo freccia senza contorno */
@@ -50,14 +56,24 @@
   flex: 1;
 }
 
+/* Wrapper per titolo e date - flex column per layout verticale */
+.tli__header {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start; /* Allinea a sinistra */
+  gap: 4px; /* Spazio tra titolo e date */
+}
+
 .tli__title {
-    margin: 0 0 4px;
+    margin: 0;
     font-weight: 700;
     color: var(--text-primary);
     transition: color var(--transition-1);
     position: relative;
     min-height: 1.2em; /* Riserva spazio minimo per prevenire layout shift */
     overflow: hidden; /* Previene overflow durante typewriter */
+    display: inline-block; /* Larghezza basata sul contenuto */
+    max-width: 100%; /* Non supera il contenitore */
 }
 
 .tli__years {
@@ -69,6 +85,7 @@
     min-height: 1.2em; /* Riserva spazio minimo per prevenire layout shift */
     overflow: hidden; /* Previene overflow durante typewriter */
     padding-left: 8px; /* Spazio aggiuntivo a sinistra */
+    display: inline-block; /* Larghezza basata sul contenuto */
 }
 
 .tli__desc  {

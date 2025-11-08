@@ -19,6 +19,7 @@ export class TimelineItem implements OnInit, OnDestroy {
   
   // Expand/Collapse state
   isExpanded = signal(false);
+  hasBeenHovered = signal(false); // Track se è stato già mostrato
   
   // Processed description with clickable links
   processedDescription = computed(() => this.processLinks(this.displayedDescription()));
@@ -31,16 +32,28 @@ export class TimelineItem implements OnInit, OnDestroy {
     this.displayedYears.set(this.years());
   }
 
+  onMouseEnter(): void {
+    // All'hover su elementi specifici, mostra la descrizione se non già mostrata
+    if (!this.hasBeenHovered()) {
+      this.isExpanded.set(true);
+      this.hasBeenHovered.set(true);
+      this.startDescriptionTypewriter();
+    }
+  }
+
   toggleDescription(): void {
+    // Toggle manuale con il button (opzionale, se vuoi mantenerlo)
     this.isExpanded.set(!this.isExpanded());
     
     if (this.isExpanded()) {
       // Espandi: mostra descrizione con typewriter
+      this.hasBeenHovered.set(true);
       this.startDescriptionTypewriter();
     } else {
       // Collassa: nascondi immediatamente
       this.stopTypewriterEffect();
       this.displayedDescription.set('');
+      this.hasBeenHovered.set(false);
     }
   }
 
