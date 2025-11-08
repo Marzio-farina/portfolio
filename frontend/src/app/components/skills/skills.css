@@ -1,7 +1,8 @@
-/* Container Spline senza bordi e trasparente */
+/* Container Spline - full width senza scale */
 .spline-container {
   position: relative;
-  width: 100%;
+  width: 100% !important;
+  max-width: 100% !important;
   /* Altezza aumentata per dare più spazio alla tastiera 3D */
   height: 800px;
   min-height: 800px;
@@ -11,12 +12,6 @@
   background: transparent;
   /* Permetti overflow visivo */
   overflow: visible;
-  /* Margin e padding generosi per effetto floating */
-  margin: 6rem 0;
-  padding: 4rem 2rem;
-  /* Zoom ridotto per la tastiera */
-  transform: scale(0.85);
-  transform-origin: center center;
 }
 
 /* Il testo 3D è gestito da Three.js con lazy loading */
@@ -26,8 +21,6 @@
   .spline-container {
     height: 700px;
     min-height: 700px;
-    margin: 4rem 0;
-    padding: 2rem 1rem;
   }
 }
 
@@ -35,8 +28,6 @@
   .spline-container {
     height: 600px;
     min-height: 600px;
-    margin: 3rem 0;
-    padding: 2rem 1rem;
   }
 }
 
