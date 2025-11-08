@@ -4,8 +4,10 @@ namespace App\Http\Controllers\Api;
 
 use App\Http\Controllers\Controller;
 use App\Models\JobOfferCard;
+use App\Models\User;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\DB;
 
 class JobOfferCardController extends Controller
 {
@@ -14,6 +16,7 @@ class JobOfferCardController extends Controller
      */
     public function index()
     {
+        /** @var User $user */
         $user = Auth::user();
         
         // Ottieni le card con il pivot visible
@@ -64,6 +67,7 @@ class JobOfferCardController extends Controller
      */
     public function show(string $id)
     {
+        /** @var User $user */
         $user = Auth::user();
         $card = $user->jobOfferCards()->findOrFail($id);
 
@@ -81,15 +85,18 @@ class JobOfferCardController extends Controller
      */
     public function update(Request $request, string $id)
     {
+        /** @var User $user */
         $user = Auth::user();
         
         $validated = $request->validate([
             'visible' => 'required|boolean',
         ]);
 
-        // Aggiorna solo il pivot visible per questo utente
+        // Aggiorna solo il pivot visible per questo utente (con cast PostgreSQL)
+        $visibleValue = $validated['visible'] ? DB::raw('true') : DB::raw('false');
+        
         $user->jobOfferCards()->updateExistingPivot($id, [
-            'visible' => $validated['visible']
+            'visible' => $visibleValue
         ]);
 
         // Ritorna la card aggiornata
@@ -121,13 +128,15 @@ class JobOfferCardController extends Controller
      */
     public function toggleVisibility(string $id)
     {
+        /** @var User $user */
         $user = Auth::user();
         $card = $user->jobOfferCards()->findOrFail($id);
         
         $newVisibility = !$card->pivot->visible;
+        $visibleValue = $newVisibility ? DB::raw('true') : DB::raw('false');
         
         $user->jobOfferCards()->updateExistingPivot($id, [
-            'visible' => $newVisibility
+            'visible' => $visibleValue
         ]);
 
         return response()->json([
