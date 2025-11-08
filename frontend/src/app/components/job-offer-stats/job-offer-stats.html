@@ -28,6 +28,16 @@
           <p class="stat-card__label">{{ card.title }}</p>
           <p class="stat-card__value">{{ getStatValue(card.type) }}</p>
         </div>
+        
+        <!-- X per rimuovere card (solo in edit mode) -->
+        @if (editMode()) {
+          <button type="button" class="card-remove" (click)="$event.stopPropagation(); hideCard(card.id)" 
+                  [attr.aria-label]="'Nascondi ' + card.title">
+            <svg viewBox="0 0 24 24" aria-hidden="true">
+              <path d="M18 6L6 18M6 6l12 12"/>
+            </svg>
+          </button>
+        }
       </div>
     }
   }

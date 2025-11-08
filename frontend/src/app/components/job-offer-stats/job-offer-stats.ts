@@ -77,6 +77,20 @@ export class JobOfferStatsComponent implements OnInit {
     this.addClick.emit();
   }
 
+  // Nascondi una card (imposta visible=false)
+  hideCard(cardId: number): void {
+    this.cardService.updateVisibility(cardId, false).subscribe({
+      next: () => {
+        // Rimuovi la card dalla lista locale
+        const updatedCards = this.cards().filter(c => c.id !== cardId);
+        this.cards.set(updatedCards);
+      },
+      error: (err) => {
+        console.error('Errore nascondimento card:', err);
+      }
+    });
+  }
+
   // Sanitizza l'SVG per il rendering sicuro
   sanitizeSvg(svg: string): SafeHtml {
     return this.sanitizer.bypassSecurityTrustHtml(svg);

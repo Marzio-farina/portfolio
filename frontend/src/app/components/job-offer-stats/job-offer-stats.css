@@ -103,6 +103,7 @@
   border: 2px solid transparent;
   cursor: pointer;
   user-select: none;
+  position: relative; /* Per posizionare la X */
 }
 
 .stat-card:hover {
@@ -113,6 +114,42 @@
 
 .stat-card:active {
   transform: translateY(-2px);
+}
+
+/* Pulsante X rossa per rimuovere card (stile avatar-editor) */
+.card-remove {
+  position: absolute;
+  top: -6px;
+  right: -6px;
+  width: 26px;
+  height: 26px;
+  background: var(--bg-card);
+  border: 2px solid hsl(0, 91%, 71%);
+  border-radius: 50%;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: hsl(0, 91%, 71%);
+  z-index: 10;
+  transition: transform var(--transition-1), border-color var(--transition-1), color var(--transition-1);
+}
+
+.card-remove:hover {
+  transform: scale(1.15);
+  border-width: 3px;
+}
+
+.card-remove svg {
+  width: 18px;
+  height: 18px;
+  stroke: currentColor;
+  fill: none;
+  stroke-width: 2.5;
+}
+
+.card-remove:hover svg {
+  stroke-width: 3;
 }
 
 .stat-card__icon {
