@@ -252,25 +252,25 @@ app-skills {
   display: block;
   /* Previeni layout shift durante caricamento dati */
   contain: layout;
-  /* Altezza minima per stabilità layout */
-  min-height: 400px;
+  /* Altezza minima aumentata per ridurre CLS */
+  min-height: 600px;  /* ⬅️ Aumentato da 400px a 600px */
 }
 
 /* Skills ha bisogno di più spazio per la tastiera 3D */
 app-skills {
-  min-height: 800px;
+  min-height: 1000px;  /* ⬅️ Aumentato da 800px a 1000px */
 }
 
 /* Skills responsive: più spazio per tastiera verticale su mobile */
 @media (max-width: 767px) {
   app-skills {
-    min-height: 1200px;
+    min-height: 1600px;  /* ⬅️ Aumentato da 1200px a 1600px */
   }
 }
 
 @media (max-width: 479px) {
   app-skills {
-    min-height: 1400px;
+    min-height: 1800px;  /* ⬅️ Aumentato da 1400px a 1800px */
   }
 }
 
