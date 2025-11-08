@@ -1,7 +1,5 @@
 .section {
   margin: 28px 0 40px;
-  /* Altezza minima per prevenire layout shift durante caricamento */
-  min-height: 400px;
   /* Isolamento layout per stabilità */
   contain: layout;
 }
@@ -55,21 +53,7 @@
 }
 
 .section__title {
-  background: none;
-  border: 0;
-  padding: 8px;
-  cursor: pointer;
-  font-size: 1.2rem;
-  color: var(--text-secondary);
-  transition: all var(--transition-1);
-  display: flex;
-  align-items: center;
-  justify-content: center;
-}
-
-.section__title:hover {
-  color: var(--accent-primary);
-  transform: scale(1.1);
+  display: none;
 }
 
 .section__panel {

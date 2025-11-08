@@ -252,8 +252,6 @@ app-skills {
   display: block;
   /* Previeni layout shift durante caricamento dati */
   contain: layout;
-  /* Altezza minima aumentata per ridurre CLS */
-  min-height: 600px;  /* ⬅️ Aumentato da 400px a 600px */
 }
 
 /* Skills ha bisogno di più spazio per la tastiera 3D */
