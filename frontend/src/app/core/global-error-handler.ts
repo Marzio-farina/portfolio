@@ -73,6 +73,27 @@ export class GlobalErrorHandler implements ErrorHandler {
       return true;
     }
     
+    // Warning troppi contesti WebGL (normale con hot-reload in dev)
+    if (errorMessage.includes('Too many active WebGL contexts') ||
+        errorMessage.includes('Oldest context will be lost') ||
+        errorMessage.includes('Context Lost')) {
+      return true;
+    }
+    
+    // Errori WebGL inizializzazione (dimensioni zero temporanee - risolti automaticamente)
+    if (errorMessage.includes('GL_INVALID_VALUE') || 
+        errorMessage.includes('GL_INVALID_FRAMEBUFFER_OPERATION') ||
+        errorMessage.includes('Framebuffer is incomplete') ||
+        errorMessage.includes('Attachment has zero size') ||
+        errorMessage.includes('Texture dimensions must all be greater than zero') ||
+        errorMessage.includes('glTexStorage2D') ||
+        errorMessage.includes('glClear') ||
+        errorMessage.includes('glClearBufferfv') ||
+        errorMessage.includes('glDrawElements') ||
+        errorMessage.includes('glDrawArrays')) {
+      return true;
+    }
+    
     return false;
   }
   

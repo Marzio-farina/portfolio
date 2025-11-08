@@ -1,6 +1,10 @@
 import { bootstrapApplication } from '@angular/platform-browser';
 import { appConfig } from './app/app.config';
 import { App } from './app/app';
+import { suppressWebGLErrors } from './app/utils/suppress-webgl-errors';
+
+// Sopprimi errori WebGL innocui (inizializzazione temporanea)
+suppressWebGLErrors();
 
 // Disabilita i log di Angular e content script in development
 if (typeof window !== 'undefined') {

@@ -177,8 +177,11 @@ export class SplineReactLikeComponent implements AfterViewInit, OnDestroy {
     width = Math.max(width, 1);
     height = Math.max(height, 1);
     
+    // Dimensioni canvas
     canvas.width = width;
     canvas.height = height;
+    canvas.style.width = '100%';
+    canvas.style.height = '100%';
     
     this.app!.setSize(width, height);
   }

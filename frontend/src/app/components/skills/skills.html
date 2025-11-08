@@ -2,23 +2,26 @@
 <div id="skills" class="w-full">
   
   <!-- Tastiera 3D Spline Interattiva - Full Width -->
-  <div class="spline-container w-full">
+  <div class="spline-container w-full" #skillsContainer>
     
-    <!-- Titolo overlay semi-trasparente sopra la tastiera -->
-    <div class="skills-overlay-title">
-      <h2 class="skills-overlay-title__text">
-        SKILLS
-      </h2>
-      <p class="skills-overlay-subtitle">
-        (passa il mouse sui tasti)
-      </p>
-    </div>
+    <!-- Titolo overlay semi-trasparente sopra la tastiera - nascosto quando skill attiva -->
+    @if (!hasHoveredSkill()) {
+      <div class="skills-overlay-title">
+        <h2 class="skills-overlay-title__text">
+          SKILLS
+        </h2>
+        <p class="skills-overlay-subtitle">
+          (passa il mouse sui tasti o premi il tasto dalla tua tastiera)
+        </p>
+      </div>
+    }
     
-    <!-- Testo 3D con Three.js (lazy loaded) -->
+    <!-- Testo 3D con Three.js (lazy loaded) - responsive -->
     <app-three-text-3d
       [title]="skillLabel()"
       [description]="skillDescription()"
-      [visible]="hasHoveredSkill()" />
+      [visible]="hasHoveredSkill()"
+      [isMobile]="isMobile()" />
     
     <!-- Scena Spline -->
     <app-spline-react-like 

@@ -1,5 +1,9 @@
 .section {
   margin: 28px 0 40px;
+  /* Altezza minima per prevenire layout shift durante caricamento */
+  min-height: 400px;
+  /* Isolamento layout per stabilità */
+  contain: layout;
 }
 
 .section__header {
@@ -70,6 +74,8 @@
   padding: 20px 0 0 14px;
   min-width: 0;
   flex-direction: column;
+  /* Altezza minima per prevenire layout shift durante caricamento */
+  min-height: 320px;
 }
 
 /* override mirato della regola @layer utilities (.timeline > li) */
@@ -93,6 +99,8 @@
   margin: 0 0 22px;
   padding-left: 40px;
   min-width: 0;
+  /* Altezza minima per ogni item - previene collasso */
+  min-height: 80px;
 }
 
 .timeline__item::before {

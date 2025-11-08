@@ -12,38 +12,122 @@
   background: transparent;
   /* Permetti overflow visivo */
   overflow: visible;
+  /* Previeni layout shift */
+  contain: layout;
 }
 
 /* Titolo overlay semi-trasparente sopra la tastiera */
 .skills-overlay-title {
   position: absolute;
   top: 8%;
-  left: 15%;
-  z-index: 50;
+  left: 5%;
+  z-index: 5;
   text-align: left;
   pointer-events: none;
+  /* Animazione fade out quando scompare */
+  animation: fadeIn 0.4s ease-out;
+}
+
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(-10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
 }
 
 .skills-overlay-title__text {
-  font-size: clamp(4rem, 12vw, 10rem);
+  font-size: clamp(1rem, 3vw, 2.5rem)!important; /* Raddoppiato: 4→8, 12→24, 10→20 */
   font-weight: 900;
   text-transform: uppercase;
   letter-spacing: 0.1em;
-  color: rgba(200, 200, 200, 0.6); /* Grigio semi-trasparente */
+  color: var(--accent-primary); /* Colore tema (giallo/arancio) */
+  opacity: 0.7; /* Semi-trasparente */
   text-shadow: 
-    0 2px 8px rgba(0, 0, 0, 0.3),
-    0 0 20px rgba(255, 255, 255, 0.1);
+    0 4px 16px rgba(0, 0, 0, 0.3),
+    0 0 40px var(--accent-primary);
   margin: 0;
   line-height: 1;
   font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', sans-serif;
+  transition: color var(--transition-1), opacity var(--transition-1);
 }
 
 .skills-overlay-subtitle {
   font-size: clamp(0.9rem, 2vw, 1.3rem);
-  color: rgba(100, 180, 255, 0.7); /* Azzurro semi-trasparente */
+  color: var(--text-secondary); /* Colore testo secondario tema */
+  opacity: 0.8; /* Leggermente trasparente */
   margin-top: 0.5rem;
   font-style: italic;
-  text-shadow: 0 1px 4px rgba(0, 0, 0, 0.3);
+  text-shadow: 0 1px 4px rgba(0, 0, 0, 0.2);
+  transition: color var(--transition-1), opacity var(--transition-1);
+}
+
+/* ============================================
+   RESPONSIVE - Adattamenti Mobile/Tablet
+   ============================================ */
+
+/* Mobile (<768px): overlay più piccolo e centrato, tastiera verticale */
+@media (max-width: 767px) {
+  .skills-overlay-title {
+    top: 3%;
+    left: 50%;
+    transform: translateX(-50%);
+    text-align: center;
+  }
+  
+  .skills-overlay-title__text {
+    font-size: clamp(2rem, 10vw, 4rem) !important;
+  }
+  
+  .skills-overlay-subtitle {
+    font-size: clamp(0.7rem, 3vw, 1rem);
+    /* Nascondi su mobile molto piccolo per risparmiare spazio */
+    display: none;
+  }
+  
+  .spline-container {
+    /* MOLTO alto per tastiera verticale completa */
+    height: 1200px;
+    min-height: 1200px;
+    /* Permetti scroll se necessario */
+    overflow-y: auto;
+  }
+}
+
+/* Mobile piccolo (<480px): ancora più ottimizzato */
+@media (max-width: 479px) {
+  .spline-container {
+    height: 1400px;
+    min-height: 1400px;
+  }
+  
+  .skills-overlay-title__text {
+    font-size: clamp(1.5rem, 8vw, 3rem) !important;
+  }
+}
+
+/* Tablet (768px-1023px): dimensioni intermedie */
+@media (min-width: 768px) and (max-width: 1023px) {
+  .skills-overlay-title {
+    top: 6%;
+    left: 8%;
+  }
+  
+  .skills-overlay-title__text {
+    font-size: clamp(1.5rem, 6vw, 3rem) !important;
+  }
+  
+  .skills-overlay-subtitle {
+    font-size: clamp(0.8rem, 2.5vw, 1.1rem);
+  }
+  
+  .spline-container {
+    height: 700px;
+    min-height: 700px;
+  }
 }
 
 /* Il testo 3D è gestito da Three.js con lazy loading */

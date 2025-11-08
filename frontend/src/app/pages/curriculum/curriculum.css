@@ -250,12 +250,38 @@ app-skills {
   max-width: 100%;
   box-sizing: border-box;
   display: block;
+  /* Previeni layout shift durante caricamento dati */
+  contain: layout;
+  /* Altezza minima per stabilità layout */
+  min-height: 400px;
+}
+
+/* Skills ha bisogno di più spazio per la tastiera 3D */
+app-skills {
+  min-height: 800px;
+}
+
+/* Skills responsive: più spazio per tastiera verticale su mobile */
+@media (max-width: 767px) {
+  app-skills {
+    min-height: 1200px;
+  }
+}
+
+@media (max-width: 479px) {
+  app-skills {
+    min-height: 1400px;
+  }
 }
 
 /* ===== Skeleton CV (loading) ===== */
 .resume-skeleton {
   padding-left: clamp(0.25rem, 4vw, 2rem);
   padding-right: clamp(0.25rem, 4vw, 2rem);
+  /* Altezza minima per prevenire layout shift quando arrivano i dati */
+  min-height: 400px;
+  /* Previeni collasso contenitore */
+  contain: layout;
 }
 .resume-skeleton .section-header {
   display: flex;
@@ -291,6 +317,8 @@ app-skills {
   display: block;
   break-inside: avoid;
   width: 100%;
+  /* Altezza fissa per ogni item skeleton */
+  min-height: 80px;
 }
 .resume-skeleton .item .dot {
   position: absolute;
@@ -301,4 +329,11 @@ app-skills {
   border-radius: 999px;
   background: var(--accent-primary);
 }
-.resume-skeleton .item .content > .skeleton { margin-bottom: 6px; }
+.resume-skeleton .item .content {
+  /* Previeni collasso contenuto */
+  min-height: 60px;
+}
+
+.resume-skeleton .item .content > .skeleton { 
+  margin-bottom: 6px; 
+}

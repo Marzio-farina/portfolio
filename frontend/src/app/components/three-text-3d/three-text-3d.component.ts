@@ -17,7 +17,10 @@ type THREE = typeof import('three');
   selector: 'app-three-text-3d',
   standalone: true,
   template: `
-    <canvas #canvas class="three-canvas" [style.opacity]="visible() ? '1' : '0'"></canvas>
+    <canvas 
+      #canvas 
+      class="three-canvas" 
+      [style.opacity]="visible() ? '1' : '0'"></canvas>
   `,
   styles: [`
     .three-canvas {
@@ -26,8 +29,8 @@ type THREE = typeof import('three');
       left: 0;
       width: 100%;
       height: 100%;
-      pointer-events: none;
-      z-index: 100;
+      pointer-events: none !important;
+      z-index: 10;
       transition: opacity 0.3s;
     }
   `]
@@ -39,6 +42,7 @@ export class ThreeText3DComponent implements AfterViewInit, OnChanges, OnDestroy
   readonly title = input<string>('');
   readonly description = input<string>('');
   readonly visible = input<boolean>(false);
+  readonly isMobile = input<boolean>(false);  // Responsive mobile
 
   // Three.js objects (caricati dinamicamente)
   private THREE: THREE | null = null;
@@ -84,7 +88,8 @@ export class ThreeText3DComponent implements AfterViewInit, OnChanges, OnDestroy
 
   ngOnChanges(changes: SimpleChanges): void {
     // Aggiorna il testo quando cambiano gli input
-    if ((changes['title'] || changes['description'] || changes['visible']) && 
+    if ((changes['title'] || changes['description'] || changes['visible'] || 
+         changes['isMobile']) && 
         this.font && this.scene && this.THREE) {
       
       const titleText = this.title();
@@ -96,9 +101,16 @@ export class ThreeText3DComponent implements AfterViewInit, OnChanges, OnDestroy
         // Gestione errori silenziosa
       });
     }
+    
+    // Aggiorna camera quando cambia il responsive mode
+    if (changes['isMobile'] && this.camera) {
+      this.updateCameraForResponsive();
+    }
   }
 
   private async waitForValidDimensions(): Promise<void> {
+    if (!this.canvasRef) return;
+    
     const canvas = this.canvasRef.nativeElement;
     const maxAttempts = 50;
     let attempts = 0;
@@ -127,7 +139,7 @@ export class ThreeText3DComponent implements AfterViewInit, OnChanges, OnDestroy
   }
 
   private async initThree() {
-    if (!this.THREE) return;
+    if (!this.THREE || !this.canvasRef) return;
     
     const canvas = this.canvasRef.nativeElement;
     const rect = canvas.getBoundingClientRect();
@@ -143,9 +155,9 @@ export class ThreeText3DComponent implements AfterViewInit, OnChanges, OnDestroy
     this.scene = new THREE.Scene();
     this.scene.background = null;
 
-    // Camera ortografica per vista isometrica
+    // Camera ortografica per vista isometrica - responsive
     const aspect = rect.width / rect.height;
-    const frustumSize = 600;
+    const frustumSize = this.getFrustumSize();
     this.camera = new THREE.OrthographicCamera(
       -frustumSize * aspect / 2,
       frustumSize * aspect / 2,
@@ -155,8 +167,13 @@ export class ThreeText3DComponent implements AfterViewInit, OnChanges, OnDestroy
       2000
     );
     
-    this.camera.position.set(0, 150, 500);
-    this.camera.lookAt(0, 150, 0);
+    // Posizione camera responsive
+    const cameraPos = this.getCameraPosition();
+    this.camera.position.set(cameraPos.x, cameraPos.y, cameraPos.z);
+    
+    // LookAt responsive
+    const lookAtY = this.isMobile() ? 300 : 150;
+    this.camera.lookAt(0, lookAtY, 0);
 
     // Renderer - usa dimensioni del bounding box
     this.renderer = new THREE.WebGLRenderer({
@@ -298,8 +315,15 @@ export class ThreeText3DComponent implements AfterViewInit, OnChanges, OnDestroy
     }
 
     this.titleMesh = new THREE.Mesh(titleGeometry, titleMaterial);
-    this.titleMesh.position.set(-50, 350, 0);  // Spostato più in alto: 280 → 320
-    this.titleMesh.rotation.set(-0.3, 0.0, 0.44);  // Inclinazione maggiore: 0.35 → 0.44 (~25°)
+    
+    // Posizioni e rotazioni responsive
+    const textPos = this.getTextPosition('title');
+    const textRot = this.getTextRotation();
+    const textScale = this.getTextScale();
+    
+    this.titleMesh.position.set(textPos.x, textPos.y, textPos.z);
+    this.titleMesh.rotation.set(textRot.x, textRot.y, textRot.z);
+    this.titleMesh.scale.set(textScale, textScale, textScale);
     this.scene.add(this.titleMesh);
 
     // Crea descrizione con word-wrap
@@ -349,9 +373,14 @@ export class ThreeText3DComponent implements AfterViewInit, OnChanges, OnDestroy
 
         const descMesh = new THREE.Mesh(descGeometry, descMaterial.clone());
         
-        const lineHeight = 25;
-        descMesh.position.set(-50, 280 - (index * lineHeight), 5 + (index * 2));  // Spostato più in alto: 210 → 250
-        descMesh.rotation.set(-0.3, 0.0, 0.44);  // Inclinazione maggiore: 0.35 → 0.44 (~25°)
+        // Posizioni e rotazioni responsive per descrizione
+        const descPos = this.getTextPosition('description', index);
+        const descRot = this.getTextRotation();
+        const descScale = this.getTextScale();
+        
+        descMesh.position.set(descPos.x, descPos.y, descPos.z);
+        descMesh.rotation.set(descRot.x, descRot.y, descRot.z);
+        descMesh.scale.set(descScale, descScale, descScale);
         
         this.scene.add(descMesh);
         this.descriptionMeshes.push(descMesh);
@@ -455,7 +484,7 @@ export class ThreeText3DComponent implements AfterViewInit, OnChanges, OnDestroy
     const height = canvas.clientHeight;
 
     const aspect = width / height;
-    const frustumSize = 600;
+    const frustumSize = this.getFrustumSize();
     this.camera.left = -frustumSize * aspect / 2;
     this.camera.right = frustumSize * aspect / 2;
     this.camera.top = frustumSize / 2;
@@ -464,6 +493,83 @@ export class ThreeText3DComponent implements AfterViewInit, OnChanges, OnDestroy
     
     this.renderer.setSize(width, height);
   }
+
+  // ============================================
+  // RESPONSIVE HELPERS
+  // ============================================
+
+  private getFrustumSize(): number {
+    if (this.isMobile()) return 700;      // Mobile: frustum grande per tastiera verticale
+    // Tutti gli altri dispositivi: standard
+    return 600;
+  }
+
+  private getCameraPosition(): { x: number; y: number; z: number } {
+    if (this.isMobile()) {
+      return { x: 0, y: 300, z: 800 };     // Mobile: molto lontana e alta per vedere tutto
+    }
+    // Tutti gli altri dispositivi: standard
+    return { x: 0, y: 150, z: 500 };
+  }
+
+  private getTextPosition(type: 'title' | 'description', lineIndex: number = 0): { x: number; y: number; z: number } {
+    if (type === 'title') {
+      if (this.isMobile()) {
+        // Mobile: molto in alto sopra la tastiera verticale, centrato
+        return { x: -50, y: 550, z: 0 };
+      }
+      // Desktop: più vicino alla tastiera (350→270)
+      return { x: -50, y: 270, z: 0 };
+    } else {
+      // Description
+      const lineHeight = 25;
+      
+      if (this.isMobile()) {
+        // Mobile: sotto il titolo, stessa X del titolo
+        const baseY = 480;
+        return { x: -50, y: baseY - (lineIndex * lineHeight), z: 5 + (lineIndex * 2) };
+      }
+      // Desktop: più vicino alla tastiera (280→200)
+      const baseY = 200;
+      return { x: -50, y: baseY - (lineIndex * lineHeight), z: 5 + (lineIndex * 2) };
+    }
+  }
+
+  private getTextRotation(): { x: number; y: number; z: number } {
+    // Rotazione standard per tutti i dispositivi
+    return { x: -0.3, y: 0.0, z: 0.40 };
+  }
+
+  private getTextScale(): number {
+    if (this.isMobile()) return 0.8;      // Mobile: ridotto
+    // Tutti gli altri dispositivi: standard
+    return 1.0;
+  }
+
+  private updateCameraForResponsive(): void {
+    if (!this.camera || !this.canvasRef) return;
+    
+    const canvas = this.canvasRef.nativeElement;
+    const aspect = canvas.clientWidth / canvas.clientHeight;
+    const frustumSize = this.getFrustumSize();
+    
+    this.camera.left = -frustumSize * aspect / 2;
+    this.camera.right = frustumSize * aspect / 2;
+    this.camera.top = frustumSize / 2;
+    this.camera.bottom = -frustumSize / 2;
+    
+    const cameraPos = this.getCameraPosition();
+    this.camera.position.set(cameraPos.x, cameraPos.y, cameraPos.z);
+    
+    // LookAt responsive: su mobile inquadra più in alto
+    const lookAtY = this.isMobile() ? 300 : 150;
+    this.camera.lookAt(0, lookAtY, 0);
+    this.camera.updateProjectionMatrix();
+  }
+
+  // ============================================
+  // CLEANUP
+  // ============================================
 
   private cleanup() {
     if (this.animationFrameId) {

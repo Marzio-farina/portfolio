@@ -5,7 +5,10 @@ import {
   inject, 
   computed,
   effect,
-  ChangeDetectionStrategy
+  ChangeDetectionStrategy,
+  OnDestroy,
+  AfterViewInit,
+  ElementRef
 } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { SplineReactLikeComponent } from '../spline-react-like/spline-react-like';
@@ -37,8 +40,9 @@ const SKILLS_DATA = createSkillsDataMap(SKILL_DEFINITIONS);
   styleUrl: './skills.css',
   changeDetection: ChangeDetectionStrategy.OnPush
 })
-export class SkillsSectionComponent {
+export class SkillsSectionComponent implements OnDestroy, AfterViewInit {
   @ViewChild(SplineReactLikeComponent) splineComponent?: SplineReactLikeComponent;
+  @ViewChild('skillsContainer') containerRef?: ElementRef<HTMLDivElement>;
   
   // Services
   private readonly keyboardService = inject(SplineKeyboardService);
@@ -58,15 +62,19 @@ export class SkillsSectionComponent {
   private hoverThrottleTimeout: any = null;
   private lastHoveredKey: string | null = null;
   
+  // Responsive - traccia larghezza container per adattamenti
+  readonly viewportWidth = signal<number>(typeof window !== 'undefined' ? window.innerWidth : 1920);
+  private resizeObserver: ResizeObserver | null = null;
   
   // Computed (Angular 20 - auto-caching, no re-renders inutili)
   readonly hasHoveredSkill = computed(() => this.hoveredSkill() !== null);
   readonly skillLabel = computed(() => this.hoveredSkill()?.label ?? '');
   readonly skillDescription = computed(() => this.hoveredSkill()?.shortDescription ?? '');
+  readonly isMobile = computed(() => this.viewportWidth() < 768); // Breakpoint mobile unico
   
   // Configurazione
   readonly splineSceneUrl = '/assets/skills-keyboard.splinecode';
-  private readonly KEYBOARD_SCALE = 0.4; // Scala aumentata per picking migliore
+  private readonly KEYBOARD_SCALE = 0.3; // Scala ridotta per desktop (30%)
   private readonly RETRY_DELAYS = [500, 1000, 2000];
   
   constructor() {
@@ -75,11 +83,31 @@ export class SkillsSectionComponent {
       const skill = this.hoveredSkill();
       // Il testo viene aggiornato automaticamente tramite i computed signals
     });
+    
+    // Effect per applicare responsive alla tastiera quando cambia viewport
+    effect(() => {
+      const mobile = this.isMobile();
+      const app = this.splineApp();
+      
+      if (app) {
+        this.applyResponsiveTransform(app, mobile);
+      }
+    });
+  }
+
+  ngAfterViewInit(): void {
+    this.setupResizeObserver();
+  }
+
+  ngOnDestroy(): void {
+    this.cleanup();
   }
 
   async onSplineLoad(app: Application): Promise<void> {
     this.splineApp.set(app);
     await this.initializeKeyboard();
+    // Applica trasformazione responsive iniziale
+    this.applyResponsiveTransform(app, this.isMobile());
   }
 
   // ============================================
@@ -362,5 +390,79 @@ export class SkillsSectionComponent {
     };
 
     requestAnimationFrame(animate);
+  }
+
+  // ============================================
+  // RESPONSIVE - Adattamento viewport
+  // ============================================
+
+  private setupResizeObserver(): void {
+    if (typeof window === 'undefined') return;
+    
+    // Traccia resize del container per responsive
+    this.resizeObserver = new ResizeObserver((entries) => {
+      for (const entry of entries) {
+        const width = entry.contentRect.width;
+        this.viewportWidth.set(width);
+      }
+    });
+    
+    // Osserva il container skills
+    if (this.containerRef) {
+      this.resizeObserver.observe(this.containerRef.nativeElement);
+    }
+    
+    // Fallback: traccia resize della window
+    const handleResize = () => {
+      this.viewportWidth.set(window.innerWidth);
+    };
+    window.addEventListener('resize', handleResize);
+    
+    // Inizializza con la larghezza attuale
+    this.viewportWidth.set(window.innerWidth);
+  }
+
+  private applyResponsiveTransform(app: Application, isMobile: boolean): void {
+    if (!app) return;
+    
+    // Trova il gruppo principale della tastiera
+    const keyboard = app.findObjectByName('Keyboard') || app.findObjectByName('keyboard');
+    
+    if (!keyboard) {
+      // Fallback: ruota tutti gli oggetti chiave
+      return;
+    }
+    
+    if (isMobile) {
+      // MOBILE: Ruota tastiera di 90° sul piano Z per orientamento verticale
+      // La tastiera rimane vista dall'alto, ma ruotata per schermi stretti
+      keyboard.rotation.x = 0;      // Nessuna inclinazione - vista dall'alto
+      keyboard.rotation.y = 0;      // Nessuna rotazione Y
+      keyboard.rotation.z = Math.PI / 2;  // 90° - verticale invece che orizzontale
+      keyboard.scale.set(0.35, 0.35, 0.35); // Ridotta per stare nello schermo
+      keyboard.position.x = 0;      // Centrata orizzontalmente
+      keyboard.position.y = -100;   // Spostata giù per lasciare spazio al testo sopra
+      keyboard.position.z = 0;
+    } else {
+      // DESKTOP: Vista dall'alto orizzontale, spostata a sinistra
+      keyboard.rotation.x = 0;
+      keyboard.rotation.y = 0;
+      keyboard.rotation.z = 0;      // Orizzontale
+      keyboard.scale.set(this.KEYBOARD_SCALE, this.KEYBOARD_SCALE, this.KEYBOARD_SCALE);
+      keyboard.position.x = -100;   // Spostata a sinistra
+      keyboard.position.y = 0;
+      keyboard.position.z = 0;
+    }
+  }
+
+  private cleanup(): void {
+    if (this.resizeObserver) {
+      this.resizeObserver.disconnect();
+      this.resizeObserver = null;
+    }
+    
+    if (this.hoverThrottleTimeout) {
+      clearTimeout(this.hoverThrottleTimeout);
+    }
   }
 }
