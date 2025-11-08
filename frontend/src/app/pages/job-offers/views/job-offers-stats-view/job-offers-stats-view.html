@@ -1,0 +1,16 @@
+<section class="job-offer-detail">
+  <div class="header">
+    <button class="back-btn" type="button" (click)="goBack()" aria-label="Torna alle statistiche">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+        <path d="M19 12H5M12 19l-7-7 7-7"/>
+      </svg>
+    </button>
+    <h2 class="title">{{ title() }}</h2>
+  </div>
+
+  <div class="placeholder-detail">
+    <p class="placeholder-detail-text">Vista dettaglio per: <strong>{{ viewType() }}</strong></p>
+    <p class="placeholder-detail-info">Qui verrà mostrata la tabella con le candidature filtrate per questa categoria.</p>
+  </div>
+</section>
+

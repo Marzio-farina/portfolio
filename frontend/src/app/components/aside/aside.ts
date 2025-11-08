@@ -211,7 +211,11 @@ export class Aside {
       const path = window.location.pathname || '';
       const segs = path.split('/').filter(Boolean);
       const firstSeg = segs[0] || '';
-      const reserved = new Set(['about','curriculum','progetti','attestati','contatti','job-offers','nuova-recensione']);
+      // Route riservate dell'applicazione (non sono slug utente)
+      const reserved = new Set([
+        'about','curriculum','progetti','attestati','contatti',
+        'job-offers','nuova-recensione'
+      ]);
       if (firstSeg && !reserved.has(firstSeg)) {
         return this.svc.getBySlug(firstSeg).pipe(
           catchError(() => this.svc.get$())

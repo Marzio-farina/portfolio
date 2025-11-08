@@ -1,18 +1,35 @@
-import { Component, inject } from '@angular/core';
+import { Component, inject, signal } from '@angular/core';
 import { toSignal } from '@angular/core/rxjs-interop';
-import { ActivatedRoute } from '@angular/router';
+import { ActivatedRoute, Router } from '@angular/router';
 import { map } from 'rxjs';
+import { JobOfferStatsComponent, JobOfferStats } from '../../components/job-offer-stats/job-offer-stats';
 
 @Component({
   selector: 'app-job-offers',
   standalone: true,
-  imports: [],
+  imports: [JobOfferStatsComponent],
   templateUrl: './job-offers.html',
   styleUrl: './job-offers.css'
 })
 export class JobOffers {
   private route = inject(ActivatedRoute);
+  private router = inject(Router);
   
   title = toSignal(this.route.data.pipe(map(d => d['title'] as string)), { initialValue: '' });
+  
+  // Dati statistiche (placeholder per ora, saranno caricati dal backend)
+  statsData = signal<JobOfferStats>({
+    total: 0,
+    pending: 0,
+    interview: 0,
+    accepted: 0,
+    archived: 0,
+    emailSent: 0
+  });
+
+  // Naviga alla vista dettaglio della categoria selezionata
+  onCardClick(cardType: string): void {
+    this.router.navigate(['/job-offers', cardType]);
+  }
 }
 

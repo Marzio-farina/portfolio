@@ -10,23 +10,12 @@
     <p class="job-offers-subtitle">Gestisci le tue candidature e opportunità professionali</p>
   </div>
 
-  <div class="job-offers-content">
-    <div class="placeholder">
-      <svg class="placeholder-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-        <rect x="2" y="7" width="20" height="14" rx="2" ry="2"/>
-        <path d="M16 21V5a2 2 0 0 0-2-2h-4a2 2 0 0 0-2 2v16"/>
-      </svg>
-      <h2>Funzionalità in Sviluppo</h2>
-      <p>La gestione delle offerte lavorative sarà disponibile a breve.</p>
-      <p class="placeholder-features">Qui potrai:</p>
-      <ul class="placeholder-list">
-        <li>📋 Visualizzare tutte le candidature inviate</li>
-        <li>➕ Aggiungere nuove opportunità lavorative</li>
-        <li>✏️ Modificare lo stato delle candidature</li>
-        <li>🗑️ Eliminare candidature obsolete</li>
-        <li>📊 Monitorare statistiche e progressi</li>
-      </ul>
-    </div>
+  <!-- Card Statistiche -->
+  <div class="job-offers-stats-section">
+    <app-job-offer-stats 
+      [stats]="statsData()"
+      (cardClick)="onCardClick($event)">
+    </app-job-offer-stats>
   </div>
 </div>
 
