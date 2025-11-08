@@ -8,6 +8,7 @@ import { Router } from '@angular/router';
 import { apiUrl } from '../core/api/api-url';
 import { TenantService } from './tenant.service';
 import { TenantRouterService } from './tenant-router.service';
+import { EditModeService } from './edit-mode.service';
 import { LoggerService } from '../core/logger.service';
 
 // ========================================================================
@@ -59,6 +60,7 @@ export class AuthService {
   private readonly http = inject(HttpClient);
   private readonly tenant = inject(TenantService);
   private readonly tenantRouter = inject(TenantRouterService);
+  private readonly editMode = inject(EditModeService);
   private readonly router = inject(Router);
   private readonly logger = inject(LoggerService);
 
@@ -286,7 +288,7 @@ export class AuthService {
   /**
    * Logout current user
    * Clears token and refreshes profile to public state
-   * Redirects to /about if on protected route with notification
+   * Disables edit mode and redirects to /about if on protected route with notification
    */
   logout(): void {
     // Prova a revocare il token lato server (fire-and-forget)
@@ -298,6 +300,11 @@ export class AuthService {
         });
       }
     } catch {}
+
+    // Disattiva la modalità edit se attiva
+    if (this.editMode.isEditing()) {
+      this.editMode.disable();
+    }
 
     // Controlla se l'utente è su una rotta protetta (che richiede auth)
     const currentUrl = this.router.url;
