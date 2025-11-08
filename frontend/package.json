@@ -8,6 +8,7 @@
     "watch": "ng build --watch --configuration development",
     "test": "ng test",
     "compress-assets": "node scripts/compress-assets.js",
+    "compress-videos": "node scripts/compress-videos.js",
     "download-fonts": "node scripts/download-threejs-fonts.js",
     "optimize-fonts": "node scripts/optimize-fonts.js",
     "optimize-all": "npm run download-fonts && npm run compress-assets && npm run optimize-fonts"
