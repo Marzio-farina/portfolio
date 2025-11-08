@@ -148,18 +148,23 @@
   }
 }
 
-/* ========== (>=768px) ========== */
-@media (min-width: 768px) {
+/* ========== TABLET/MEDIUM (750px - 1249px): 2 colonne ========== */
+@media (min-width: 750px) and (max-width: 1249px) {
   .contacts__list {
-    grid-template-columns: auto auto;
-    padding-left: 1rem; /* Spazio normale per desktop */
+    grid-template-columns: repeat(2, 1fr);
+    column-gap: var(--space-4);
+    row-gap: var(--space-3);
+    padding-left: 1rem;
   }
 }
 
-/* ========== DESKTOP (>=1250px) ========== */
+/* ========== DESKTOP (>=1250px): torna a singola colonna ========== */
 @media (min-width: 1250px) {
   .profile__header { flex-direction: column; }
-  .contacts__list { grid-template-columns: auto; }
+  .contacts__list { 
+    grid-template-columns: auto;
+    padding-left: 1rem;
+  }
 }
 
 
