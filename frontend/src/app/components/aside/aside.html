@@ -69,7 +69,7 @@
 
     <!-- Toggle Tema -->
     <button
-      (click)="toggleTheme()"
+      (click)="toggleTheme($event)"
       class="btn btn-sm profile__toggle profile__theme-toggle"
       [title]="theme.isDark() ? 'Switch to Light Mode' : 'Switch to Dark Mode'"
       aria-label="Toggle theme">
@@ -87,7 +87,7 @@
 
     @if (showButton()) {
       <button
-        (click)="toggleContacts()"
+        (click)="toggleContacts($event)"
         class="btn btn-sm profile__toggle profile__toggle--contacts"
         [class.is-open]="showContacts()"
         [attr.aria-expanded]="showContacts()"

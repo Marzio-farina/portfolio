@@ -223,8 +223,12 @@ export class Aside {
     return this.svc.get$();
   }
 
-  toggleContacts() {
+  toggleContacts(event?: Event) {
     if (this.viewMode() !== 'large') this.expanded.update(v => !v);
+    // Rimuovi il focus dal pulsante dopo il click
+    if (event?.target instanceof HTMLElement) {
+      (event.target as HTMLElement).blur();
+    }
   }
 
   // Naviga alla pagina Contatti nella section
@@ -345,8 +349,12 @@ export class Aside {
   }
 
   // === TEMA ===
-  toggleTheme() {
+  toggleTheme(event?: Event) {
     this.theme.toggleTheme();
+    // Rimuovi il focus dal pulsante dopo il click
+    if (event?.target instanceof HTMLElement) {
+      (event.target as HTMLElement).blur();
+    }
   }
 
   getThemeIcon() {
