@@ -1,6 +1,11 @@
 <div class="stats-grid">
+  <!-- Loading state -->
+  @if (loading()) {
+    <div class="loading-state">Caricamento card...</div>
+  }
+
   <!-- Card Aggiungi (solo in modalità edit) -->
-  @if (editMode()) {
+  @if (editMode() && !loading()) {
     <div class="stat-card stat-card--add" (click)="onAddClick()" role="button" tabindex="0">
       <div class="add-card-circle" aria-hidden="true">
         <svg class="add-card-plus" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round">
@@ -12,91 +17,18 @@
     </div>
   }
 
-  <!-- Totale Candidature -->
-  <div class="stat-card" (click)="onCardClick('total')" role="button" tabindex="0">
-    <div class="stat-card__icon stat-card__icon--total">
-      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-        <rect x="2" y="7" width="20" height="14" rx="2" ry="2"/>
-        <path d="M16 21V5a2 2 0 0 0-2-2h-4a2 2 0 0 0-2 2v16"/>
-      </svg>
-    </div>
-    <div class="stat-card__content">
-      <p class="stat-card__label">Totale Candidature</p>
-      <p class="stat-card__value">{{ stats().total }}</p>
-    </div>
-  </div>
-
-  <!-- In Attesa -->
-  <div class="stat-card" (click)="onCardClick('pending')" role="button" tabindex="0">
-    <div class="stat-card__icon stat-card__icon--pending">
-      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-        <circle cx="12" cy="12" r="10"/>
-        <path d="M12 6v6l4 2"/>
-      </svg>
-    </div>
-    <div class="stat-card__content">
-      <p class="stat-card__label">In Attesa</p>
-      <p class="stat-card__value">{{ stats().pending }}</p>
-    </div>
-  </div>
-
-  <!-- Colloqui -->
-  <div class="stat-card" (click)="onCardClick('interview')" role="button" tabindex="0">
-    <div class="stat-card__icon stat-card__icon--interview">
-      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-        <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/>
-        <circle cx="9" cy="7" r="4"/>
-        <path d="M23 21v-2a4 4 0 0 0-3-3.87"/>
-        <path d="M16 3.13a4 4 0 0 1 0 7.75"/>
-      </svg>
-    </div>
-    <div class="stat-card__content">
-      <p class="stat-card__label">Colloqui</p>
-      <p class="stat-card__value">{{ stats().interview }}</p>
-    </div>
-  </div>
-
-  <!-- Accettate -->
-  <div class="stat-card" (click)="onCardClick('accepted')" role="button" tabindex="0">
-    <div class="stat-card__icon stat-card__icon--accepted">
-      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-        <path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/>
-        <path d="M22 4L12 14.01l-3-3"/>
-      </svg>
-    </div>
-    <div class="stat-card__content">
-      <p class="stat-card__label">Accettate</p>
-      <p class="stat-card__value">{{ stats().accepted }}</p>
-    </div>
-  </div>
-
-  <!-- Archiviate -->
-  <div class="stat-card" (click)="onCardClick('archived')" role="button" tabindex="0">
-    <div class="stat-card__icon stat-card__icon--archived">
-      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-        <path d="M21 8v13H3V8"/>
-        <path d="M1 3h22v5H1z"/>
-        <path d="M10 12h4"/>
-      </svg>
-    </div>
-    <div class="stat-card__content">
-      <p class="stat-card__label">Archiviate</p>
-      <p class="stat-card__value">{{ stats().archived }}</p>
-    </div>
-  </div>
-
-  <!-- Email Inviate -->
-  <div class="stat-card" (click)="onCardClick('email')" role="button" tabindex="0">
-    <div class="stat-card__icon stat-card__icon--email">
-      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-        <rect x="3" y="5" width="18" height="14" rx="2"/>
-        <path d="M3 7l9 6 9-6"/>
-      </svg>
-    </div>
-    <div class="stat-card__content">
-      <p class="stat-card__label">Email Inviate</p>
-      <p class="stat-card__value">{{ stats().emailSent }}</p>
-    </div>
-  </div>
+  <!-- Card dinamiche dal database -->
+  @if (!loading()) {
+    @for (card of cards(); track card.id) {
+      <div class="stat-card" (click)="onCardClick($any(card.type))" role="button" tabindex="0">
+        <div class="stat-card__icon" [ngClass]="getCardClass(card.type)">
+          <div [innerHTML]="sanitizeSvg(card.icon_svg)"></div>
+        </div>
+        <div class="stat-card__content">
+          <p class="stat-card__label">{{ card.title }}</p>
+          <p class="stat-card__value">{{ getStatValue(card.type) }}</p>
+        </div>
+      </div>
+    }
+  }
 </div>
-
