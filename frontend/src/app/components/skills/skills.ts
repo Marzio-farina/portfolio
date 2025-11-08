@@ -52,6 +52,7 @@ export class SkillsSectionComponent implements OnDestroy, AfterViewInit {
   readonly hoveredSkill = signal<SkillData | null>(null);
   private readonly pressedKey = signal<string | null>(null);
   private readonly warnedKeys = signal<Set<string>>(new Set());
+  readonly hoveredKeyPosition = signal<{x: number, y: number, z: number} | null>(null);
   
   // Tracking posizioni originali dei tasti per animazione corretta
   private readonly originalKeyPositions = new Map<string, number>();
@@ -257,7 +258,7 @@ export class SkillsSectionComponent implements OnDestroy, AfterViewInit {
     }
 
     this.hoverThrottleTimeout = setTimeout(() => {
-      this.updateHoveredSkill(skill);
+      this.updateHoveredSkill(skill, targetName);
       this.lastHoveredKey = targetName;
     }, 50); // Delay minimo per fluidità
   }
@@ -274,7 +275,7 @@ export class SkillsSectionComponent implements OnDestroy, AfterViewInit {
       
       this.pressedKeys.add(keyName);
       this.pressedKey.set(keyName);
-      this.updateHoveredSkill(skill);
+      this.updateHoveredSkill(skill, keyName);
       this.animateKeyPress(keyName, true);
     }
   }
@@ -311,15 +312,48 @@ export class SkillsSectionComponent implements OnDestroy, AfterViewInit {
     return event.target?.name ? SKILLS_DATA[event.target.name] : null;
   }
 
-  private updateHoveredSkill(skill: SkillData): void {
+  private updateHoveredSkill(skill: SkillData, keyName: string): void {
     if (this.hoveredSkill()?.label !== skill.label) {
       this.hoveredSkill.set(skill);
+    }
+    
+    // Traccia posizione del tasto per mobile - recupera l'oggetto dalla scena
+    const app = this.splineApp();
+    if (!app) return;
+    
+    // Trova l'oggetto per nome nella scena Spline
+    const keyObject = app.findObjectByName(keyName);
+    
+    if (keyObject && keyObject.position) {
+      // Le coordinate Spline devono essere convertite considerando:
+      // - La tastiera è ruotata di 90° su Z per mobile
+      // - La tastiera è spostata in y: 20, z: -120
+      const splinePos = {
+        x: keyObject.position.x,
+        y: keyObject.position.y,
+        z: keyObject.position.z
+      };
+      
+      const isMobileView = this.isMobile();
+      console.log(`🔑 ${keyName}: spline=${JSON.stringify(splinePos)}, isMobile=${isMobileView}`);
+      
+      // Converti in coordinate Three.js per mobile (tastiera ruotata 90°)
+      // Dopo rotazione Z di 90°: x→y, y→-x
+      const convertedPos = isMobileView ? {
+        x: -splinePos.y,     // Dopo rotazione Z: y diventa -x (RIGA: -100 a 100)
+        y: splinePos.x + 20,  // Dopo rotazione Z: x diventa y, + offset (COLONNA: -600 a 950)
+        z: splinePos.z - 120  // Applica offset z tastiera
+      } : splinePos;
+      
+      console.log(`   Converted: x=${convertedPos.x.toFixed(1)}, y=${convertedPos.y.toFixed(1)}, z=${convertedPos.z.toFixed(1)}`);
+      this.hoveredKeyPosition.set(convertedPos);
     }
   }
 
   private clearHoveredSkill(): void {
     if (this.hoveredSkill()) {
       this.hoveredSkill.set(null);
+      this.hoveredKeyPosition.set(null);
     }
   }
 
@@ -434,15 +468,14 @@ export class SkillsSectionComponent implements OnDestroy, AfterViewInit {
     }
     
     if (isMobile) {
-      // MOBILE: Ruota tastiera di 90° sul piano Z per orientamento verticale
-      // La tastiera rimane vista dall'alto, ma ruotata per schermi stretti
-      keyboard.rotation.x = 0;      // Nessuna inclinazione - vista dall'alto
-      keyboard.rotation.y = 0;      // Nessuna rotazione Y
+      // MOBILE: Tastiera verticale + inclinata per vedere meglio i tasti
+      keyboard.rotation.x = 0;      // Vista dall'alto
+      keyboard.rotation.y = 0.3;    // Leggera rotazione per vedere i tasti
       keyboard.rotation.z = Math.PI / 2;  // 90° - verticale invece che orizzontale
       keyboard.scale.set(0.35, 0.35, 0.35); // Ridotta per stare nello schermo
       keyboard.position.x = 0;      // Centrata orizzontalmente
-      keyboard.position.y = -100;   // Spostata giù per lasciare spazio al testo sopra
-      keyboard.position.z = 0;
+      keyboard.position.y = 20;    // ⬅️ Spostata più in alto (era -100)
+      keyboard.position.z = -120;
     } else {
       // DESKTOP: Vista dall'alto orizzontale, spostata a sinistra
       keyboard.rotation.x = 0;

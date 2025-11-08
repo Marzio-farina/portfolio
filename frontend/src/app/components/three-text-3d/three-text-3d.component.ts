@@ -43,6 +43,7 @@ export class ThreeText3DComponent implements AfterViewInit, OnChanges, OnDestroy
   readonly description = input<string>('');
   readonly visible = input<boolean>(false);
   readonly isMobile = input<boolean>(false);  // Responsive mobile
+  readonly keyPosition = input<{x: number, y: number, z: number} | null>(null); // Posizione tasto per mobile
 
   // Three.js objects (caricati dinamicamente)
   private THREE: THREE | null = null;
@@ -89,7 +90,7 @@ export class ThreeText3DComponent implements AfterViewInit, OnChanges, OnDestroy
   ngOnChanges(changes: SimpleChanges): void {
     // Aggiorna il testo quando cambiano gli input
     if ((changes['title'] || changes['description'] || changes['visible'] || 
-         changes['isMobile']) && 
+         changes['isMobile'] || changes['keyPosition']) && 
         this.font && this.scene && this.THREE) {
       
       const titleText = this.title();
@@ -513,25 +514,61 @@ export class ThreeText3DComponent implements AfterViewInit, OnChanges, OnDestroy
   }
 
   private getTextPosition(type: 'title' | 'description', lineIndex: number = 0): { x: number; y: number; z: number } {
-    if (type === 'title') {
-      if (this.isMobile()) {
-        // Mobile: molto in alto sopra la tastiera verticale, centrato
-        return { x: -50, y: 550, z: 0 };
+    if (this.isMobile()) {
+      const keyPos = this.keyPosition();
+      if (!keyPos) {
+        // Fallback per mobile se keyPos è null
+        if (type === 'title') return { x: -50, y: 350, z: -150 };
+        return { x: -50, y: 300 - (lineIndex * 25), z: -145 + (lineIndex * 2) };
       }
-      // Desktop: più vicino alla tastiera (350→270)
-      return { x: -50, y: 270, z: 0 };
-    } else {
-      // Description
-      const lineHeight = 25;
+
+      // Dopo rotazione tastiera 90° per mobile:
+      // - keyPos.x varia da ~-100 (colonne sinistra) a ~100 (colonne destra) 
+      // - keyPos.y varia da ~-600 (prime righe, TS/JS) a ~950 (ultime righe)
       
-      if (this.isMobile()) {
-        // Mobile: sotto il titolo, stessa X del titolo
-        const baseY = 480;
+      // Calcola posizione X dinamica basata sulla colonna del tasto (keyPos.y)
+      // Mappa il range -600 a 950 in un range visibile -150 a +150
+      const minY = -600;
+      const maxY = 950;
+      const rangeY = maxY - minY; // 1550
+      const normalizedY = (keyPos.y - minY) / rangeY; // 0 (prime righe) a 1 (ultime righe)
+      const dynamicX = normalizedY * 300 - 150; // Range da -150 a +150
+
+      // Calcola posizione Y dinamica basata sulla riga del tasto (keyPos.x)
+      // Usa valore assoluto per gestire sia colonne sx (-100) che dx (+100)
+      const normalizedX = Math.abs(keyPos.x); // 0-100
+      const dynamicYBase = 280 + (normalizedX * 1.8); // 280-460, range visibile
+
+      // Posizione Z, leggermente davanti al tasto
+      const dynamicZ = keyPos.z - 30;
+
+      console.log(`📱 keyPos=(${keyPos.x.toFixed(0)}, ${keyPos.y.toFixed(0)}) → text=(${dynamicX.toFixed(0)}, ${dynamicYBase.toFixed(0)})`);
+
+      if (type === 'title') {
+        return {
+          x: dynamicX,
+          y: dynamicYBase,
+          z: dynamicZ
+        };
+      } else {
+        // Descrizione sotto il titolo
+        const lineHeight = 25;
+        const descY = dynamicYBase - 60 - (lineIndex * lineHeight);
+        return {
+          x: dynamicX,
+          y: descY,
+          z: dynamicZ + 5 + (lineIndex * 2)
+        };
+      }
+    } else {
+      // Desktop
+      if (type === 'title') {
+        return { x: -50, y: 270, z: 0 };
+      } else {
+        const baseY = 200;
+        const lineHeight = 25;
         return { x: -50, y: baseY - (lineIndex * lineHeight), z: 5 + (lineIndex * 2) };
       }
-      // Desktop: più vicino alla tastiera (280→200)
-      const baseY = 200;
-      return { x: -50, y: baseY - (lineIndex * lineHeight), z: 5 + (lineIndex * 2) };
     }
   }
 
