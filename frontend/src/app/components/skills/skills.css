@@ -17,11 +17,10 @@
 /* Titolo overlay semi-trasparente sopra la tastiera */
 .skills-overlay-title {
   position: absolute;
-  top: 15%;
-  left: 50%;
-  transform: translateX(-50%);
+  top: 8%;
+  left: 15%;
   z-index: 50;
-  text-align: center;
+  text-align: left;
   pointer-events: none;
 }
 
