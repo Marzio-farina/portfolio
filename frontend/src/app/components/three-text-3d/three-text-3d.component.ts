@@ -193,16 +193,28 @@ export class ThreeText3DComponent implements AfterViewInit, OnChanges, OnDestroy
     const loader = new FontLoader();
 
     return new Promise<void>((resolve) => {
+      // Prova prima droid sans (supporta caratteri accentati)
       loader.load(
-        'https://threejs.org/examples/fonts/helvetiker_bold.typeface.json',
+        'https://threejs.org/examples/fonts/droid/droid_sans_bold.typeface.json',
         (font: any) => {
           this.font = font;
           resolve();
         },
         undefined,
         (error: any) => {
-          // Errore silenzioso - fallback graceful
-          resolve();
+          // Fallback a gentilis se droid non disponibile
+          loader.load(
+            'https://threejs.org/examples/fonts/gentilis_bold.typeface.json',
+            (font: any) => {
+              this.font = font;
+              resolve();
+            },
+            undefined,
+            () => {
+              // Errore silenzioso - fallback graceful
+              resolve();
+            }
+          );
         }
       );
     });
