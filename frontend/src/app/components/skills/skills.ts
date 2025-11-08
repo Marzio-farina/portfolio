@@ -335,7 +335,6 @@ export class SkillsSectionComponent implements OnDestroy, AfterViewInit {
       };
       
       const isMobileView = this.isMobile();
-      console.log(`🔑 ${keyName}: spline=${JSON.stringify(splinePos)}, isMobile=${isMobileView}`);
       
       // Converti in coordinate Three.js per mobile (tastiera ruotata 90°)
       // Dopo rotazione Z di 90°: x→y, y→-x
@@ -345,7 +344,6 @@ export class SkillsSectionComponent implements OnDestroy, AfterViewInit {
         z: splinePos.z - 120  // Applica offset z tastiera
       } : splinePos;
       
-      console.log(`   Converted: x=${convertedPos.x.toFixed(1)}, y=${convertedPos.y.toFixed(1)}, z=${convertedPos.z.toFixed(1)}`);
       this.hoveredKeyPosition.set(convertedPos);
     }
   }

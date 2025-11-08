@@ -542,8 +542,6 @@ export class ThreeText3DComponent implements AfterViewInit, OnChanges, OnDestroy
       // Posizione Z, leggermente davanti al tasto
       const dynamicZ = keyPos.z - 30;
 
-      console.log(`📱 keyPos=(${keyPos.x.toFixed(0)}, ${keyPos.y.toFixed(0)}) → text=(${dynamicX.toFixed(0)}, ${dynamicYBase.toFixed(0)})`);
-
       if (type === 'title') {
         return {
           x: dynamicX,
