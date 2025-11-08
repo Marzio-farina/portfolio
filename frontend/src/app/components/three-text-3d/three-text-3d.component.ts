@@ -66,8 +66,6 @@ export class ThreeText3DComponent implements AfterViewInit, OnDestroy {
       const descText = this.description();
       const isVisible = this.visible();
 
-      console.log('🔄 Effect triggered:', { titleText, descText, isVisible, hasFont: !!this.font, hasScene: !!this.scene });
-
       if (this.font && this.scene && this.THREE) {
         this.updateText(titleText, descText, isVisible);
       }
@@ -104,8 +102,6 @@ export class ThreeText3DComponent implements AfterViewInit, OnDestroy {
       await new Promise(resolve => setTimeout(resolve, 100));
       attempts++;
     }
-
-    console.warn('Canvas Three.js non ha raggiunto dimensioni valide');
   }
 
   ngOnDestroy() {
@@ -117,7 +113,7 @@ export class ThreeText3DComponent implements AfterViewInit, OnDestroy {
       // Lazy load di Three.js - separato da Spline
       this.THREE = await import('three');
     } catch (error) {
-      console.error('Errore caricamento Three.js:', error);
+      // Errore silenzioso - fallback graceful
     }
   }
 
@@ -129,7 +125,6 @@ export class ThreeText3DComponent implements AfterViewInit, OnDestroy {
     
     // VERIFICA dimensioni valide prima di inizializzare WebGL
     if (rect.width <= 0 || rect.height <= 0) {
-      console.error('Canvas Three.js ha dimensioni zero:', rect.width, rect.height);
       return;
     }
 
@@ -197,7 +192,7 @@ export class ThreeText3DComponent implements AfterViewInit, OnDestroy {
         },
         undefined,
         (error: any) => {
-          console.error('Errore caricamento font:', error);
+          // Errore silenzioso - fallback graceful
           resolve();
         }
       );
@@ -233,7 +228,6 @@ export class ThreeText3DComponent implements AfterViewInit, OnDestroy {
     
     // Verifica se questa è ancora la richiesta più recente
     if (updateId !== this.currentUpdateId) {
-      console.log('❌ Richiesta cancellata (superata da una più recente):', title);
       return; // Cancella operazione se è arrivata una richiesta più recente
     }
 
@@ -268,7 +262,6 @@ export class ThreeText3DComponent implements AfterViewInit, OnDestroy {
 
     // Verifica di nuovo se questa è ancora la richiesta valida
     if (updateId !== this.currentUpdateId) {
-      console.log('❌ Richiesta cancellata prima di creare mesh:', title);
       titleGeometry.dispose();
       titleMaterial.dispose();
       return;
@@ -278,8 +271,6 @@ export class ThreeText3DComponent implements AfterViewInit, OnDestroy {
     this.titleMesh.position.set(-100, 280, 0);
     this.titleMesh.rotation.set(-0.3, 0.0, 0.35);
     this.scene.add(this.titleMesh);
-    
-    console.log('✅ Titolo creato:', title);
 
     // Crea descrizione con word-wrap
     if (description) {
@@ -298,7 +289,6 @@ export class ThreeText3DComponent implements AfterViewInit, OnDestroy {
       lines.forEach((line, index) => {
         // Verifica se ancora valida prima di ogni riga
         if (updateId !== this.currentUpdateId) {
-          console.log('❌ Richiesta cancellata durante creazione descrizione');
           return;
         }
 
@@ -326,8 +316,6 @@ export class ThreeText3DComponent implements AfterViewInit, OnDestroy {
         this.scene.add(descMesh);
         this.descriptionMeshes.push(descMesh);
       });
-      
-      console.log('✅ Descrizione creata:', description.substring(0, 30) + '...');
     }
 
     this.animateTextEntrance();

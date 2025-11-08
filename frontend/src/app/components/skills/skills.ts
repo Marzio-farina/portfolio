@@ -49,6 +49,11 @@ export class SkillsSectionComponent {
   private readonly pressedKey = signal<string | null>(null);
   private readonly warnedKeys = signal<Set<string>>(new Set());
   
+  // Tracking posizioni originali dei tasti per animazione corretta
+  private readonly originalKeyPositions = new Map<string, number>();
+  // Set dei tasti attualmente premuti
+  private readonly pressedKeys = new Set<string>();
+  
   
   // Computed (Angular 20 - auto-caching, no re-renders inutili)
   readonly hasHoveredSkill = computed(() => this.hoveredSkill() !== null);
@@ -176,8 +181,8 @@ export class SkillsSectionComponent {
       this.handleKeyDown(event);
     });
 
-    app.addEventListener('keyUp' as any, () => {
-      this.handleKeyUp();
+    app.addEventListener('keyUp' as any, (event: any) => {
+      this.handleKeyUp(event); // Passa l'evento per sapere quale tasto rilasciare
     });
   }
 
@@ -212,20 +217,38 @@ export class SkillsSectionComponent {
 
   private handleKeyDown(event: any): void {
     const skill = this.getSkillFromEvent(event);
-    if (skill) {
-      this.pressedKey.set(event.target.name);
+    const keyName = event.target?.name;
+    
+    if (skill && keyName) {
+      // Previeni pressione ripetuta se già premuto
+      if (this.pressedKeys.has(keyName)) {
+        return;
+      }
+      
+      this.pressedKeys.add(keyName);
+      this.pressedKey.set(keyName);
       this.updateHoveredSkill(skill);
-      this.animateKeyPress(event.target.name, true);
+      this.animateKeyPress(keyName, true);
     }
   }
 
-  private handleKeyUp(): void {
-    const keyName = this.pressedKey();
-    if (keyName) {
+  private handleKeyUp(event: any): void {
+    const keyName = event.target?.name;
+    
+    if (keyName && this.pressedKeys.has(keyName)) {
+      this.pressedKeys.delete(keyName);
       this.animateKeyPress(keyName, false);
-      this.pressedKey.set(null);
+      
+      // Resetta pressedKey solo se era questo tasto
+      if (this.pressedKey() === keyName) {
+        this.pressedKey.set(null);
+      }
     }
-    this.clearHoveredSkill();
+    
+    // Pulisci hoveredSkill solo se non ci sono più tasti premuti
+    if (this.pressedKeys.size === 0) {
+      this.clearHoveredSkill();
+    }
   }
 
   private handleClick(event: any): void {
@@ -287,8 +310,15 @@ export class SkillsSectionComponent {
     const keyObject = app.findObjectByName(keyName);
     if (!keyObject) return;
 
-    // Anima il tasto verso il basso quando premuto
-    const targetY = pressed ? keyObject.position.y - 10 : keyObject.position.y + 10;
+    // Salva posizione originale se non già salvata
+    if (!this.originalKeyPositions.has(keyName)) {
+      this.originalKeyPositions.set(keyName, keyObject.position.y);
+    }
+
+    const originalY = this.originalKeyPositions.get(keyName)!;
+    
+    // Usa SEMPRE la posizione originale come riferimento
+    const targetY = pressed ? originalY - 10 : originalY;
     
     // Animazione smooth con interpolazione
     this.animatePosition(keyObject, targetY, 150);
