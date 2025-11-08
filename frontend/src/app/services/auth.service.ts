@@ -3,9 +3,11 @@ import { HttpClient, HttpErrorResponse } from '@angular/common/http';
 import { Observable, ReplaySubject } from 'rxjs';
 import { shareReplay, switchMap, catchError } from 'rxjs/operators';
 import { of } from 'rxjs';
+import { Router } from '@angular/router';
 
 import { apiUrl } from '../core/api/api-url';
 import { TenantService } from './tenant.service';
+import { TenantRouterService } from './tenant-router.service';
 import { LoggerService } from '../core/logger.service';
 
 // ========================================================================
@@ -56,6 +58,8 @@ export class AuthService {
 
   private readonly http = inject(HttpClient);
   private readonly tenant = inject(TenantService);
+  private readonly tenantRouter = inject(TenantRouterService);
+  private readonly router = inject(Router);
   private readonly logger = inject(LoggerService);
 
   // ========================================================================
@@ -282,6 +286,7 @@ export class AuthService {
   /**
    * Logout current user
    * Clears token and refreshes profile to public state
+   * Redirects to /about if on protected route with notification
    */
   logout(): void {
     // Prova a revocare il token lato server (fire-and-forget)
@@ -294,10 +299,32 @@ export class AuthService {
       }
     } catch {}
 
+    // Controlla se l'utente è su una rotta protetta (che richiede auth)
+    const currentUrl = this.router.url;
+    const protectedRoutes = [
+      '/job-offers',
+      '/attestati/nuovo',
+      '/progetti/nuovo'
+    ];
+    
+    const isOnProtectedRoute = protectedRoutes.some(route => currentUrl.includes(route));
+
     // Pulisci comunque lo stato locale
     this.setToken(null);
     this.authenticatedUserId.set(null);
     this.refreshMe();
+
+    // Se era su una rotta protetta, reindirizza a /about con notifica
+    if (isOnProtectedRoute) {
+      this.tenantRouter.navigate(['about'], {
+        state: {
+          toast: {
+            message: 'Sessione terminata. Accedi nuovamente per continuare.',
+            type: 'info'
+          }
+        }
+      });
+    }
   }
 
   // ========================================================================
