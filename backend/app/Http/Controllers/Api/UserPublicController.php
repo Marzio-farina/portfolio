@@ -53,15 +53,6 @@ class UserPublicController extends Controller
                     return null;
                 }
 
-                Log::info('👤 Utente caricato da DB per profilo pubblico', [
-                    'user_id' => $user->id,
-                    'icon_id' => $user->icon_id,
-                    'icon_loaded' => $user->relationLoaded('icon'),
-                    'icon_exists' => $user->icon !== null,
-                    'icon_img' => $user->icon?->img ?? 'null',
-                    'profile_avatar_url' => $user->profile?->avatar_url ?? 'null'
-                ]);
-
                 return (new UserPublicResource($user))->toArray($request);
             });
             if ($data === null) {

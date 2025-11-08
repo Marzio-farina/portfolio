@@ -289,15 +289,10 @@ class AuthController extends Controller
         }
 
         if (array_key_exists('icon_id', $data)) {
-            $iconId = $data['icon_id'];
-            Log::info('🔄 Aggiornamento icon_id utente', ['user_id' => $user->id, 'icon_id' => $iconId]);
-            
-            $user->icon_id = $iconId;
+            $user->icon_id = $data['icon_id'];
             $user->save();
             
-            Log::info('✅ Icon_id salvato', ['user_id' => $user->id, 'saved_icon_id' => $user->icon_id]);
-            
-            if (!empty($iconId)) {
+            if (!empty($data['icon_id'])) {
                 // Se selezioni un'icona, rimuovi l'avatar_url custom
                 $profile->avatar_url = null;
             }
@@ -311,27 +306,10 @@ class AuthController extends Controller
         // Invalida le chiavi cache usate dal profilo pubblico
         Cache::forget('public_profile_v1');
         Cache::forget('public_profile_user_' . $user->id . '_v1');
-        
-        Log::info('🗑️ Cache invalidata per profilo pubblico', ['user_id' => $user->id]);
-
-        // Ricarica l'utente con le relazioni per conferma
-        $user->load(['icon', 'profile']);
-        
-        Log::info('📊 Dati utente aggiornati', [
-            'user_id' => $user->id,
-            'icon_id' => $user->icon_id,
-            'icon_img' => $user->icon?->img ?? 'null',
-            'profile_avatar_url' => $profile->avatar_url
-        ]);
 
         return response()->json([
             'message' => 'Profile updated',
-            'profile' => $profile,
-            'debug' => [
-                'user_icon_id' => $user->icon_id,
-                'icon_img' => $user->icon?->img ?? null,
-                'profile_avatar_url' => $profile->avatar_url
-            ]
+            'profile' => $profile
         ], 200, [], JSON_UNESCAPED_UNICODE);
     }
 

@@ -89,7 +89,6 @@ export class App {
 
   constructor() {
     this.initializeTheme();
-    this.initializeIdleTimeout();
     this.setupAuthenticationEffect();
     this.setupIdleTimeoutHandler();
     this.checkPasswordResetParams();
@@ -148,15 +147,6 @@ export class App {
     // Non forziamo più il tema qui, lasciamo che il servizio decida
   }
 
-  /**
-   * Initialize idle timeout configuration
-   * Sets the idle timeout to 15 seconds (15,000 ms) for testing
-   * TODO: Cambiare a 15 minuti (15 * 60 * 1000) in produzione
-   */
-  private initializeIdleTimeout(): void {
-    // Imposta il timeout di inattività a 30 minuti
-    this.idle.configure(30 * 60 * 1000);
-  }
 
   /**
    * Setup authentication effect to manage idle monitoring
@@ -183,11 +173,49 @@ export class App {
    * Handles automatic logout when user becomes idle
    */
   private setupIdleTimeoutHandler(): void {
+    // Listener per il timeout finale
     this.idle.onTimeout$
       .pipe(takeUntilDestroyed(this.destroyRef))
       .subscribe(() => {
         this.handleIdleTimeout();
       });
+
+    // Listener per il countdown warning (60 secondi prima)
+    this.idle.onWarning$
+      .pipe(takeUntilDestroyed(this.destroyRef))
+      .subscribe((secondsLeft) => {
+        this.handleIdleWarning(secondsLeft);
+      });
+
+    // Listener per il reset (utente torna attivo durante il countdown)
+    this.idle.onReset$
+      .pipe(takeUntilDestroyed(this.destroyRef))
+      .subscribe(() => {
+        this.handleIdleReset();
+      });
+  }
+
+  /**
+   * Handle idle warning countdown
+   * Shows notification with seconds remaining
+   */
+  private handleIdleWarning(secondsLeft: number): void {
+    const message = `Logout tra ${secondsLeft} secondi per inattività.`;
+    
+    // Rimuovi la notifica precedente se esiste
+    this.notificationService.remove('idle-warning');
+    
+    // Aggiungi nuova notifica con countdown aggiornato
+    this.notificationService.add('warning', message, 'idle-warning');
+  }
+
+  /**
+   * Handle idle reset
+   * Removes warning notification when user becomes active again
+   */
+  private handleIdleReset(): void {
+    // Rimuovi la notifica di warning quando l'utente torna attivo
+    this.notificationService.remove('idle-warning');
   }
 
   /**
@@ -195,6 +223,9 @@ export class App {
    * Logs out user and redirects to auth page
    */
   private handleIdleTimeout(): void {
+    // Rimuovi la notifica di warning
+    this.notificationService.remove('idle-warning');
+    
     // Aggiungi notifica di logout per inattività
     this.notificationService.add('warning', 'Sei stato disconnesso per inattività.', 'idle-timeout');
     
