@@ -9,15 +9,15 @@ import {
   signal
 } from '@angular/core';
 
-// Three.js caricato dinamicamente (lazy loading)
+// Three.js caricato dinamicamente per evitare conflitti con Spline
 type THREE = typeof import('three');
-type FontLoader = typeof import('three/examples/jsm/loaders/FontLoader.js').FontLoader;
-type TextGeometry = typeof import('three/examples/jsm/geometries/TextGeometry.js').TextGeometry;
 
 @Component({
   selector: 'app-three-text-3d',
   standalone: true,
-  template: `<canvas #canvas class="three-canvas"></canvas>`,
+  template: `
+    <canvas #canvas class="three-canvas" [style.opacity]="visible() ? '1' : '0'"></canvas>
+  `,
   styles: [`
     .three-canvas {
       position: absolute;
@@ -27,6 +27,7 @@ type TextGeometry = typeof import('three/examples/jsm/geometries/TextGeometry.js
       height: 100%;
       pointer-events: none;
       z-index: 100;
+      transition: opacity 0.3s;
     }
   `]
 })
@@ -44,16 +45,19 @@ export class ThreeText3DComponent implements AfterViewInit, OnDestroy {
   private camera: any = null;
   private renderer: any = null;
   private titleMesh: any = null;
-  private descriptionMeshes: any[] = []; // Array per multi-line
+  private descriptionMeshes: any[] = [];
   private font: any = null;
   private animationFrameId: number = 0;
   
-  // Configurazione testo
-  private readonly MAX_DESC_CHARS_PER_LINE = 45; // Caratteri massimi per riga
-
-  // Signal per tracking resize e loading
+  // Configurazione
+  private readonly MAX_DESC_CHARS_PER_LINE = 45;
   private resizeObserver: ResizeObserver | null = null;
-  private readonly isLoading = signal<boolean>(true);
+  
+  // Signal per gestire il loading
+  protected readonly isLoading = signal(true);
+  
+  // Tracking per cancellare operazioni async in corso
+  private currentUpdateId = 0;
 
   constructor() {
     // Effect per aggiornare il testo quando cambiano gli input
@@ -62,110 +66,137 @@ export class ThreeText3DComponent implements AfterViewInit, OnDestroy {
       const descText = this.description();
       const isVisible = this.visible();
 
-      if (this.font && this.scene) {
+      console.log('🔄 Effect triggered:', { titleText, descText, isVisible, hasFont: !!this.font, hasScene: !!this.scene });
+
+      if (this.font && this.scene && this.THREE) {
         this.updateText(titleText, descText, isVisible);
       }
     });
   }
 
   async ngAfterViewInit() {
+    // Aspetta che il DOM sia completamente renderizzato
+    await new Promise(resolve => setTimeout(resolve, 100));
+    
     // Carica Three.js in modo lazy
     await this.loadThreeJS();
-    await this.initThree();
-    this.animate();
-    this.setupResize();
-    this.isLoading.set(false);
+    
+    if (this.THREE) {
+      // Aspetta che il canvas abbia dimensioni valide
+      await this.waitForValidDimensions();
+      await this.initThree();
+      this.animate();
+      this.setupResize();
+      this.isLoading.set(false);
+    }
   }
 
-  private async loadThreeJS() {
-    try {
-      // Lazy load di Three.js - non incluso nel bundle initial!
-      this.THREE = await import('three');
-    } catch (error) {
-      console.error('Errore caricamento Three.js:', error);
+  private async waitForValidDimensions(): Promise<void> {
+    const canvas = this.canvasRef.nativeElement;
+    const maxAttempts = 50;
+    let attempts = 0;
+
+    while (attempts < maxAttempts) {
+      const rect = canvas.getBoundingClientRect();
+      if (rect.width > 0 && rect.height > 0) {
+        return; // Dimensioni valide trovate
+      }
+      await new Promise(resolve => setTimeout(resolve, 100));
+      attempts++;
     }
+
+    console.warn('Canvas Three.js non ha raggiunto dimensioni valide');
   }
 
   ngOnDestroy() {
     this.cleanup();
   }
 
+  private async loadThreeJS() {
+    try {
+      // Lazy load di Three.js - separato da Spline
+      this.THREE = await import('three');
+    } catch (error) {
+      console.error('Errore caricamento Three.js:', error);
+    }
+  }
+
   private async initThree() {
     if (!this.THREE) return;
     
     const canvas = this.canvasRef.nativeElement;
+    const rect = canvas.getBoundingClientRect();
+    
+    // VERIFICA dimensioni valide prima di inizializzare WebGL
+    if (rect.width <= 0 || rect.height <= 0) {
+      console.error('Canvas Three.js ha dimensioni zero:', rect.width, rect.height);
+      return;
+    }
+
     const THREE = this.THREE;
 
     // Scene
     this.scene = new THREE.Scene();
-    this.scene.background = null; // Trasparente
+    this.scene.background = null;
 
-    // Camera ORTOGRAFICA per vista isometrica pura (no prospettiva)
-    // Questo fa sì che l'estrusione di tutte le lettere vada nella stessa direzione
-    const aspect = canvas.clientWidth / canvas.clientHeight;
+    // Camera ortografica per vista isometrica
+    const aspect = rect.width / rect.height;
     const frustumSize = 600;
     this.camera = new THREE.OrthographicCamera(
-      -frustumSize * aspect / 2,  // left
-      frustumSize * aspect / 2,   // right
-      frustumSize / 2,            // top
-      -frustumSize / 2,           // bottom
-      1,                          // near
-      2000                        // far
+      -frustumSize * aspect / 2,
+      frustumSize * aspect / 2,
+      frustumSize / 2,
+      -frustumSize / 2,
+      1,
+      2000
     );
     
-    // Posiziona camera frontale - vista parallela
     this.camera.position.set(0, 150, 500);
     this.camera.lookAt(0, 150, 0);
 
-    // Renderer
+    // Renderer - usa dimensioni del bounding box
     this.renderer = new THREE.WebGLRenderer({
       canvas,
       alpha: true,
       antialias: true
     });
-    this.renderer.setSize(canvas.clientWidth, canvas.clientHeight);
+    this.renderer.setSize(rect.width, rect.height);
     this.renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
 
-    // Luci ottimizzate per estrusione UNIFORME (come "distribuito")
+    // Luci
     const ambientLight = new THREE.AmbientLight(0xffffff, 0.6);
     this.scene.add(ambientLight);
 
-    // Luce principale frontale - illumina la faccia frontale delle lettere
     const frontLight = new THREE.DirectionalLight(0xffffff, 1.0);
     frontLight.position.set(0, 100, 500);
     this.scene.add(frontLight);
 
-    // Luce dal basso a sinistra - illumina l'estrusione in modo uniforme
     const extrusionLight = new THREE.DirectionalLight(0xaaaaaa, 0.9);
-    extrusionLight.position.set(-200, -150, -300); // Posizione chiave per estrusione uniforme
+    extrusionLight.position.set(-200, -150, -300);
     this.scene.add(extrusionLight);
 
-    // Luce di riempimento dall'alto per ammorbidire le ombre
     const fillLight = new THREE.DirectionalLight(0xffffff, 0.3);
     fillLight.position.set(0, 300, 200);
     this.scene.add(fillLight);
 
-    // Carica font
     await this.loadFont();
   }
 
   private async loadFont() {
     if (!this.THREE) return;
 
-    // Lazy load di FontLoader
     const { FontLoader } = await import('three/examples/jsm/loaders/FontLoader.js');
     const loader = new FontLoader();
 
     return new Promise<void>((resolve) => {
-      // Usa font da three.js CDN
       loader.load(
         'https://threejs.org/examples/fonts/helvetiker_bold.typeface.json',
-        (font) => {
+        (font: any) => {
           this.font = font;
           resolve();
         },
         undefined,
-        (error) => {
+        (error: any) => {
           console.error('Errore caricamento font:', error);
           resolve();
         }
@@ -176,14 +207,17 @@ export class ThreeText3DComponent implements AfterViewInit, OnDestroy {
   private async updateText(title: string, description: string, visible: boolean) {
     if (!this.THREE || !this.scene) return;
 
-    // Rimuovi mesh esistenti
+    // Incrementa ID per tracciare questa richiesta
+    const updateId = ++this.currentUpdateId;
+
+    // Rimuovi mesh esistenti IMMEDIATAMENTE
     if (this.titleMesh) {
       this.scene.remove(this.titleMesh);
       this.titleMesh.geometry.dispose();
       this.titleMesh.material.dispose();
+      this.titleMesh = null;
     }
     
-    // Rimuovi tutte le righe della descrizione
     this.descriptionMeshes.forEach(mesh => {
       this.scene.remove(mesh);
       mesh.geometry.dispose();
@@ -195,109 +229,107 @@ export class ThreeText3DComponent implements AfterViewInit, OnDestroy {
       return;
     }
 
-    // Lazy load di TextGeometry
     const { TextGeometry } = await import('three/examples/jsm/geometries/TextGeometry.js');
+    
+    // Verifica se questa è ancora la richiesta più recente
+    if (updateId !== this.currentUpdateId) {
+      console.log('❌ Richiesta cancellata (superata da una più recente):', title);
+      return; // Cancella operazione se è arrivata una richiesta più recente
+    }
+
     const THREE = this.THREE;
 
-    // Crea titolo 3D con estrusione NETTA come la lettera R
+    // Crea titolo 3D
     const titleGeometry = new TextGeometry(title, {
       font: this.font,
       size: 60,
-      depth: 40,            // Estrusione molto profonda
-      curveSegments: 24,    // MOLTI curve segments per bordi netti
+      depth: 40,
+      curveSegments: 24,
       bevelEnabled: true,
-      bevelThickness: 0.5,  // Bevel MINIMO per bordi definiti
-      bevelSize: 0.3,       // Bevel MINIMO
+      bevelThickness: 0.5,
+      bevelSize: 0.3,
       bevelOffset: 0,
-      bevelSegments: 2      // Pochi segmenti per bordi netti
+      bevelSegments: 2
     });
 
-    // Normalizza le normali per rendering uniforme
     titleGeometry.computeVertexNormals();
     titleGeometry.computeBoundingBox();
-    const titleWidth = titleGeometry.boundingBox!.max.x - titleGeometry.boundingBox!.min.x;
-    
-    // CENTER geometry per evitare problemi di facce invertite
     titleGeometry.center();
 
-    // Materiale ottimizzato per estrusione NETTA come la R
     const titleMaterial = new THREE.MeshStandardMaterial({
-      color: 0xf2f2f2,      // Grigio chiaro
-      metalness: 0.0,       // Zero metallico per colori puri
-      roughness: 0.7,       // Alto per contrasto netto
+      color: 0xf2f2f2,
+      metalness: 0.0,
+      roughness: 0.7,
       emissive: 0x000000,
       emissiveIntensity: 0,
-      flatShading: false,   // Smooth ma con ombre definite
-      side: THREE.FrontSide // Solo faccia frontale per estrusione corretta
+      flatShading: false,
+      side: THREE.FrontSide
     });
 
-    this.titleMesh = new THREE.Mesh(titleGeometry, titleMaterial);
-    
-    // Posizione più ALTA per evitare sovrapposizioni con la tastiera
-    this.titleMesh.position.set(-100, 280, 0);
-    
-    // Rotazione seguendo la linea rossa diagonale ascendente
-    // Linea: da basso-sinistra a alto-destra (circa 20-30 gradi)
-    this.titleMesh.rotation.set(
-      -0.3,   // rotateX negativo - estrusione visibile in basso
-      0.0,    // rotateY - frontale
-      0.35    // rotateZ positivo - diagonale ascendente (20°)
-    );
-    
-    this.scene.add(this.titleMesh);
+    // Verifica di nuovo se questa è ancora la richiesta valida
+    if (updateId !== this.currentUpdateId) {
+      console.log('❌ Richiesta cancellata prima di creare mesh:', title);
+      titleGeometry.dispose();
+      titleMaterial.dispose();
+      return;
+    }
 
-    // Crea descrizione 3D con word-wrap
+    this.titleMesh = new THREE.Mesh(titleGeometry, titleMaterial);
+    this.titleMesh.position.set(-100, 280, 0);
+    this.titleMesh.rotation.set(-0.3, 0.0, 0.35);
+    this.scene.add(this.titleMesh);
+    
+    console.log('✅ Titolo creato:', title);
+
+    // Crea descrizione con word-wrap
     if (description) {
-      // Dividi il testo in righe se troppo lungo
       const lines = this.wrapText(description, this.MAX_DESC_CHARS_PER_LINE);
       
       const descMaterial = new THREE.MeshStandardMaterial({
-        color: 0xdcdcdc,      // Grigio leggermente più scuro
-        metalness: 0.0,       // Come il titolo
-        roughness: 0.7,       // Come il titolo
+        color: 0xdcdcdc,
+        metalness: 0.0,
+        roughness: 0.7,
         emissive: 0x000000,
         emissiveIntensity: 0,
         flatShading: false,
-        side: THREE.FrontSide // Solo faccia frontale
+        side: THREE.FrontSide
       });
 
-      // Crea una mesh per ogni riga
       lines.forEach((line, index) => {
+        // Verifica se ancora valida prima di ogni riga
+        if (updateId !== this.currentUpdateId) {
+          console.log('❌ Richiesta cancellata durante creazione descrizione');
+          return;
+        }
+
         const descGeometry = new TextGeometry(line, {
           font: this.font,
           size: 16,
-          depth: 15,            // Estrusione proporzionata e profonda
-          curveSegments: 24,    // MOLTI curve segments
+          depth: 15,
+          curveSegments: 24,
           bevelEnabled: true,
-          bevelThickness: 0.3,  // Bevel MINIMO
-          bevelSize: 0.2,       // Bevel MINIMO
+          bevelThickness: 0.3,
+          bevelSize: 0.2,
           bevelOffset: 0,
-          bevelSegments: 2      // Pochi segmenti per bordi netti
+          bevelSegments: 2
         });
 
-        // Normalizza le normali per rendering uniforme
         descGeometry.computeVertexNormals();
-        descGeometry.center(); // CENTER per evitare problemi
+        descGeometry.center();
 
         const descMesh = new THREE.Mesh(descGeometry, descMaterial.clone());
         
-        // Posizione più ALTA per evitare sovrapposizioni con la tastiera
-        const lineHeight = 25; // Spaziatura tra righe
+        const lineHeight = 25;
         descMesh.position.set(-100, 230 - (index * lineHeight), 5 + (index * 2));
-        
-        // Rotazione come il titolo
-        descMesh.rotation.set(
-          -0.3,   // rotateX negativo
-          0.0,    // rotateY - frontale
-          0.35    // rotateZ - diagonale
-        );
+        descMesh.rotation.set(-0.3, 0.0, 0.35);
         
         this.scene.add(descMesh);
         this.descriptionMeshes.push(descMesh);
       });
+      
+      console.log('✅ Descrizione creata:', description.substring(0, 30) + '...');
     }
 
-    // Animazione entrata
     this.animateTextEntrance();
   }
 
@@ -337,7 +369,7 @@ export class ThreeText3DComponent implements AfterViewInit, OnDestroy {
     const animate = () => {
       const elapsed = Date.now() - startTime;
       const progress = Math.min(elapsed / duration, 1);
-      const eased = 1 - Math.pow(1 - progress, 3); // ease-out cubic
+      const eased = 1 - Math.pow(1 - progress, 3);
 
       const scale = startScale + (endScale - startScale) * eased;
 
@@ -345,7 +377,6 @@ export class ThreeText3DComponent implements AfterViewInit, OnDestroy {
         this.titleMesh.scale.set(scale, scale, scale);
       }
       
-      // Anima tutte le righe della descrizione
       this.descriptionMeshes.forEach(mesh => {
         mesh.scale.set(scale, scale, scale);
       });
@@ -361,26 +392,26 @@ export class ThreeText3DComponent implements AfterViewInit, OnDestroy {
   private animate = () => {
     this.animationFrameId = requestAnimationFrame(this.animate);
 
-    // Leggera oscillazione per effetto dinamico (minima, solo su X)
+    if (!this.renderer || !this.scene || !this.camera) return;
+
     const time = Date.now() * 0.0003;
     
     if (this.titleMesh) {
-      // Oscillazione molto leggera su X per effetto "breathing"
-      // Mantieni rotateZ fisso per la diagonale
       this.titleMesh.rotation.x = -0.3 + Math.sin(time) * 0.008;
-      this.titleMesh.rotation.z = 0.35; // Diagonale fissa
+      this.titleMesh.rotation.z = 0.35;
     }
     
-    // Oscillazione per tutte le righe della descrizione
     this.descriptionMeshes.forEach((mesh, index) => {
       mesh.rotation.x = -0.3 + Math.sin(time + 0.5 + index * 0.1) * 0.006;
-      mesh.rotation.z = 0.35; // Diagonale fissa
+      mesh.rotation.z = 0.35;
     });
 
     this.renderer.render(this.scene, this.camera);
   };
 
   private setupResize() {
+    if (!this.canvasRef) return;
+    
     this.resizeObserver = new ResizeObserver(() => {
       this.onResize();
     });
@@ -388,11 +419,12 @@ export class ThreeText3DComponent implements AfterViewInit, OnDestroy {
   }
 
   private onResize() {
+    if (!this.canvasRef || !this.camera || !this.renderer) return;
+    
     const canvas = this.canvasRef.nativeElement;
     const width = canvas.clientWidth;
     const height = canvas.clientHeight;
 
-    // Update ortografica camera
     const aspect = width / height;
     const frustumSize = 600;
     this.camera.left = -frustumSize * aspect / 2;
@@ -418,7 +450,6 @@ export class ThreeText3DComponent implements AfterViewInit, OnDestroy {
       this.titleMesh.material.dispose();
     }
     
-    // Cleanup di tutte le righe della descrizione
     this.descriptionMeshes.forEach(mesh => {
       mesh.geometry.dispose();
       mesh.material.dispose();

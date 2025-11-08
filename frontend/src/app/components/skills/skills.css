@@ -16,7 +16,7 @@
   padding: 4rem 2rem;
 }
 
-/* Il testo 3D è ora gestito da Three.js con geometrie reali estruse */
+/* Il testo 3D è gestito da Three.js con lazy loading */
 
 /* Responsive: su schermi piccoli, riduce dimensioni container */
 @media (max-width: 1024px) {
