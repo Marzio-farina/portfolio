@@ -54,6 +54,10 @@ export class SkillsSectionComponent {
   // Set dei tasti attualmente premuti
   private readonly pressedKeys = new Set<string>();
   
+  // Throttling per hover più fluido
+  private hoverThrottleTimeout: any = null;
+  private lastHoveredKey: string | null = null;
+  
   
   // Computed (Angular 20 - auto-caching, no re-renders inutili)
   readonly hasHoveredSkill = computed(() => this.hoveredSkill() !== null);
@@ -199,8 +203,14 @@ export class SkillsSectionComponent {
   private handleHoverEvent(event: any): void {
     const targetName = event.target?.name;
     
+    // Throttling - evita aggiornamenti troppo frequenti
+    if (targetName === this.lastHoveredKey) {
+      return; // Stesso tasto - skip
+    }
+    
     if (!targetName || IGNORE_OBJECTS.includes(targetName)) {
       this.clearHoveredSkill();
+      this.lastHoveredKey = null;
       return;
     }
 
@@ -209,10 +219,19 @@ export class SkillsSectionComponent {
     if (!skill) {
       this.warnUnmappedSkill(targetName);
       this.clearHoveredSkill();
+      this.lastHoveredKey = null;
       return;
     }
 
-    this.updateHoveredSkill(skill);
+    // Throttle update - max 1 ogni 100ms per fluidità
+    if (this.hoverThrottleTimeout) {
+      clearTimeout(this.hoverThrottleTimeout);
+    }
+
+    this.hoverThrottleTimeout = setTimeout(() => {
+      this.updateHoveredSkill(skill);
+      this.lastHoveredKey = targetName;
+    }, 50); // Delay minimo per fluidità
   }
 
   private handleKeyDown(event: any): void {

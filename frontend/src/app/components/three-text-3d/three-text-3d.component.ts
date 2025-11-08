@@ -58,6 +58,9 @@ export class ThreeText3DComponent implements AfterViewInit, OnDestroy {
   
   // Tracking per cancellare operazioni async in corso
   private currentUpdateId = 0;
+  
+  // Cache delle geometrie create per riutilizzo
+  private geometryCache = new Map<string, any>();
 
   constructor() {
     // Effect per aggiornare il testo quando cambiano gli input
@@ -67,7 +70,11 @@ export class ThreeText3DComponent implements AfterViewInit, OnDestroy {
       const isVisible = this.visible();
 
       if (this.font && this.scene && this.THREE) {
-        this.updateText(titleText, descText, isVisible);
+        // Evita chiamate async dirette nell'effect (causa errori Angular)
+        // Usa setTimeout per eseguire async fuori dal ciclo di change detection
+        setTimeout(() => {
+          this.updateText(titleText, descText, isVisible);
+        }, 0);
       }
     });
   }
@@ -233,22 +240,31 @@ export class ThreeText3DComponent implements AfterViewInit, OnDestroy {
 
     const THREE = this.THREE;
 
-    // Crea titolo 3D
-    const titleGeometry = new TextGeometry(title, {
-      font: this.font,
-      size: 60,
-      depth: 40,
-      curveSegments: 24,
-      bevelEnabled: true,
-      bevelThickness: 0.5,
-      bevelSize: 0.3,
-      bevelOffset: 0,
-      bevelSegments: 2
-    });
+    // Crea o riusa titolo 3D dalla cache
+    const titleCacheKey = `title_${title}`;
+    let titleGeometry = this.geometryCache.get(titleCacheKey);
+    
+    if (!titleGeometry) {
+      // Geometria ottimizzata - meno segmenti per performance
+      titleGeometry = new TextGeometry(title, {
+        font: this.font,
+        size: 60,
+        depth: 40,
+        curveSegments: 12,    // Ridotto da 24 per performance
+        bevelEnabled: true,
+        bevelThickness: 0.5,
+        bevelSize: 0.3,
+        bevelOffset: 0,
+        bevelSegments: 2
+      });
 
-    titleGeometry.computeVertexNormals();
-    titleGeometry.computeBoundingBox();
-    titleGeometry.center();
+      titleGeometry.computeVertexNormals();
+      titleGeometry.computeBoundingBox();
+      titleGeometry.center();
+      
+      // Salva in cache per riutilizzo
+      this.geometryCache.set(titleCacheKey, titleGeometry);
+    }
 
     const titleMaterial = new THREE.MeshStandardMaterial({
       color: 0xf2f2f2,
@@ -292,20 +308,30 @@ export class ThreeText3DComponent implements AfterViewInit, OnDestroy {
           return;
         }
 
-        const descGeometry = new TextGeometry(line, {
-          font: this.font,
-          size: 16,
-          depth: 15,
-          curveSegments: 24,
-          bevelEnabled: true,
-          bevelThickness: 0.3,
-          bevelSize: 0.2,
-          bevelOffset: 0,
-          bevelSegments: 2
-        });
+        // Usa cache per descrizioni
+        const descCacheKey = `desc_${line}`;
+        let descGeometry = this.geometryCache.get(descCacheKey);
+        
+        if (!descGeometry) {
+          // Geometria ottimizzata - meno segmenti
+          descGeometry = new TextGeometry(line, {
+            font: this.font,
+            size: 16,
+            depth: 15,
+            curveSegments: 12,    // Ridotto da 24
+            bevelEnabled: true,
+            bevelThickness: 0.3,
+            bevelSize: 0.2,
+            bevelOffset: 0,
+            bevelSegments: 2
+          });
 
-        descGeometry.computeVertexNormals();
-        descGeometry.center();
+          descGeometry.computeVertexNormals();
+          descGeometry.center();
+          
+          // Salva in cache
+          this.geometryCache.set(descCacheKey, descGeometry);
+        }
 
         const descMesh = new THREE.Mesh(descGeometry, descMaterial.clone());
         
@@ -382,15 +408,16 @@ export class ThreeText3DComponent implements AfterViewInit, OnDestroy {
 
     if (!this.renderer || !this.scene || !this.camera) return;
 
-    const time = Date.now() * 0.0003;
+    // Animazione più leggera - oscillazione ridotta
+    const time = Date.now() * 0.0002;
     
     if (this.titleMesh) {
-      this.titleMesh.rotation.x = -0.3 + Math.sin(time) * 0.008;
+      this.titleMesh.rotation.x = -0.3 + Math.sin(time) * 0.005;
       this.titleMesh.rotation.z = 0.35;
     }
     
     this.descriptionMeshes.forEach((mesh, index) => {
-      mesh.rotation.x = -0.3 + Math.sin(time + 0.5 + index * 0.1) * 0.006;
+      mesh.rotation.x = -0.3 + Math.sin(time + 0.5 + index * 0.1) * 0.003;
       mesh.rotation.z = 0.35;
     });
 
@@ -433,15 +460,20 @@ export class ThreeText3DComponent implements AfterViewInit, OnDestroy {
       this.resizeObserver.disconnect();
     }
 
+    // NON dispose delle geometrie in cache - saranno riutilizzate
     if (this.titleMesh) {
-      this.titleMesh.geometry.dispose();
       this.titleMesh.material.dispose();
     }
     
     this.descriptionMeshes.forEach(mesh => {
-      mesh.geometry.dispose();
       mesh.material.dispose();
     });
+
+    // Dispose cache geometrie solo alla distruzione finale
+    this.geometryCache.forEach(geometry => {
+      geometry.dispose();
+    });
+    this.geometryCache.clear();
 
     if (this.renderer) {
       this.renderer.dispose();
