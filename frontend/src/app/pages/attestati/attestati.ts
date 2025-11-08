@@ -250,35 +250,23 @@ export class Attestati {
    */
   private addNotification(type: NotificationType, message: string, fieldId: string): void {
     const currentNotifications = this.notifications();
+    const now = Date.now();
     
-    // Controlla se esiste già una notifica con lo stesso messaggio e tipo (per evitare duplicati identici)
-    const duplicate = currentNotifications.some(n => 
-      n.message === message && 
-      n.type === type && 
-      // Per i fieldId con timestamp, confronta solo il prefisso
-      (n.fieldId === fieldId || (fieldId.includes('-') && n.fieldId.startsWith(fieldId.split('-').slice(0, -1).join('-'))))
-    );
+    const newNotification: NotificationItem = {
+      id: `${fieldId}-${now}-${Math.random().toString(36).substr(2, 9)}`,
+      message: message,
+      type: type,
+      timestamp: now,
+      fieldId: fieldId
+    };
     
-    if (!duplicate) {
-      const newNotification: NotificationItem = {
-        id: `${fieldId}-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`,
-        message: message,
-        type: type,
-        timestamp: Date.now(),
-        fieldId: fieldId
-      };
-      
-      // Per fieldId fissi (come 'attestato-create'), rimuovi le notifiche precedenti con lo stesso fieldId
-      // Per fieldId con timestamp, mantieni tutte le notifiche
-      const hasTimestamp = /-\d+$/.test(fieldId);
-      const filteredNotifications = hasTimestamp
-        ? currentNotifications // Mantieni tutte le notifiche se il fieldId ha un timestamp
-        : currentNotifications.filter(n => n.fieldId !== fieldId); // Rimuovi quelle con lo stesso fieldId se è fisso
-      
-      // Aggiungi la nuova notifica
-      this.notifications.set([...filteredNotifications, newNotification]);
-      this.showMultipleNotifications.set(true);
-    }
+    const hasTimestamp = /-\d+$/.test(fieldId);
+    const filteredNotifications = hasTimestamp
+      ? currentNotifications
+      : currentNotifications.filter(n => n.fieldId !== fieldId);
+    
+    this.notifications.set([...filteredNotifications, newNotification]);
+    this.showMultipleNotifications.set(true);
   }
 
   /**

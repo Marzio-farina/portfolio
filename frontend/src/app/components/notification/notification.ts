@@ -386,35 +386,61 @@ export class Notification implements OnDestroy, AfterViewInit {
   // Metodi per gestire le notifiche multiple
   private handleMultipleNotifications() {
     const currentNotifications = this.notifications();
-    const visible = this.visibleNotifications();
-    const collapsed = this.collapsedNotifications();
-    
-    // Trova tutte le notifiche che arrivano ma non sono ancora state processate
-    const unprocessedNotifications = currentNotifications.filter(
-      notification => !visible.some(v => v.id === notification.id) && 
-                    !collapsed.some(c => c.id === notification.id) &&
-                    !visible.some(v => v.message === notification.message) &&
-                    !collapsed.some(c => c.message === notification.message)
+    const previousVisible = this.visibleNotifications();
+    const previousCollapsed = this.collapsedNotifications();
+
+    const visibleMap = new Map<string, NotificationItem>(
+      previousVisible.map(notification => [notification.id, notification] as [string, NotificationItem])
     );
-    
-    // Solo se ci sono nuove notifiche, aggiungile a quelle visibili
-    if (unprocessedNotifications.length > 0) {
-      this.visibleNotifications.set([...visible, ...unprocessedNotifications]);
-      
-      // Avvia timer SOLO per le nuove notifiche
-      unprocessedNotifications.forEach(notification => {
+    const collapsedMap = new Map<string, NotificationItem>(
+      previousCollapsed.map(notification => [notification.id, notification] as [string, NotificationItem])
+    );
+
+    const nextVisible: NotificationItem[] = [];
+    const nextCollapsed: NotificationItem[] = [];
+
+    const hasChanged = (before: NotificationItem | undefined, after: NotificationItem): boolean => {
+      if (!before) {
+        return true;
+      }
+
+      return before.timestamp !== after.timestamp ||
+        before.message !== after.message ||
+        before.type !== after.type;
+    };
+
+    currentNotifications.forEach(notification => {
+      const wasVisible = visibleMap.get(notification.id);
+      const wasCollapsed = collapsedMap.get(notification.id);
+
+      if (wasVisible) {
+        nextVisible.push(notification);
+
+        if (hasChanged(wasVisible, notification)) {
+          this.startNotificationTimer(notification.id);
+        }
+      } else if (wasCollapsed) {
+        if (hasChanged(wasCollapsed, notification)) {
+          nextVisible.push(notification);
+          this.startNotificationTimer(notification.id);
+        } else {
+          nextCollapsed.push(notification);
+        }
+      } else {
+        nextVisible.push(notification);
         this.startNotificationTimer(notification.id);
-      });
-    }
-    
-    // Rimuovi notifiche che non sono più nell'array principale
-    const toRemove = visible.filter(v => !currentNotifications.some(n => n.id === v.id));
-    if (toRemove.length > 0) {
-      this.visibleNotifications.set(visible.filter(v => currentNotifications.some(n => n.id === v.id)));
-      
-      // Rimuovi anche dalle collassate
-      this.collapsedNotifications.set(collapsed.filter(c => currentNotifications.some(n => n.id === c.id)));
-    }
+      }
+    });
+
+    this.visibleNotifications.set(nextVisible);
+    this.collapsedNotifications.set(nextCollapsed);
+
+    const currentIds = new Set(currentNotifications.map(notification => notification.id));
+    Array.from(this.notificationTimers.keys()).forEach(notificationId => {
+      if (!currentIds.has(notificationId)) {
+        this.clearNotificationTimer(notificationId);
+      }
+    });
   }
 
   private startNotificationTimer(notificationId: string) {

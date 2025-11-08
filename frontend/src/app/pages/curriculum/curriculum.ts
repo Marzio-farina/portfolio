@@ -275,26 +275,20 @@ export class Curriculum {
    */
   private addNotification(type: NotificationType, message: string, fieldId: string): void {
     const currentNotifications = this.notifications();
+    const now = Date.now();
+
+    const newNotification: NotificationItem = {
+      id: `${fieldId}-${now}`,
+      message: message,
+      type: type,
+      timestamp: now,
+      fieldId: fieldId
+    };
     
-    // Controlla se esiste già una notifica con lo stesso messaggio e fieldId
-    const duplicate = currentNotifications.some(n => n.message === message && n.fieldId === fieldId);
+    const filteredNotifications = currentNotifications.filter(n => n.fieldId !== fieldId);
     
-    if (!duplicate) {
-      const newNotification: NotificationItem = {
-        id: `${fieldId}-${Date.now()}`,
-        message: message,
-        type: type,
-        timestamp: Date.now(),
-        fieldId: fieldId
-      };
-      
-      // Rimuovi eventuali notifiche precedenti per lo stesso campo
-      const filteredNotifications = currentNotifications.filter(n => n.fieldId !== fieldId);
-      
-      // Aggiungi la nuova notifica
-      this.notifications.set([...filteredNotifications, newNotification]);
-      this.showMultipleNotifications.set(true);
-    }
+    this.notifications.set([...filteredNotifications, newNotification]);
+    this.showMultipleNotifications.set(true);
   }
 
   /**

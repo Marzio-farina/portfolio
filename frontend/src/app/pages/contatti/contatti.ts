@@ -33,38 +33,33 @@ export class Contatti {
   showMultipleNotifications = false;
 
   onErrorChange(errorData: {message: string, type: NotificationType, fieldId: string, action: 'add' | 'remove'} | undefined) {
-    if (errorData) {
-      if (errorData.action === 'add') {
-        const currentNotifications = this.notifications();
-        
-        // Controlla se esiste già una notifica con lo stesso messaggio
-        const duplicateMessage = currentNotifications.some(n => n.message === errorData.message);
-        
-        if (!duplicateMessage) {
-          // Aggiungi nuova notifica solo se non esiste già una con lo stesso messaggio
-          const newNotification: NotificationItem = {
-            id: `${errorData.fieldId}-${Date.now()}`,
-            message: errorData.message,
-            type: errorData.type,
-            timestamp: Date.now(),
-            fieldId: errorData.fieldId
-          };
-          
-          // Rimuovi eventuali notifiche precedenti per lo stesso campo
-          const filteredNotifications = currentNotifications.filter(n => n.fieldId !== errorData.fieldId);
-          
-          // Aggiungi la nuova notifica
-          this.notifications.set([...filteredNotifications, newNotification]);
-          this.showMultipleNotifications = true;
-          
-        }
-      } else if (errorData.action === 'remove') {
-        // Rimuovi notifica per campo specifico
-        const currentNotifications = this.notifications();
-        const filteredNotifications = currentNotifications.filter(n => n.fieldId !== errorData.fieldId);
-        this.notifications.set(filteredNotifications);
-        
-      }
+    if (!errorData) {
+      return;
+    }
+
+    if (errorData.action === 'add') {
+      const currentNotifications = this.notifications();
+      const now = Date.now();
+
+      const refreshedNotification: NotificationItem = {
+        id: `${errorData.fieldId}-${now}`,
+        message: errorData.message,
+        type: errorData.type,
+        timestamp: now,
+        fieldId: errorData.fieldId
+      };
+
+      const filteredNotifications = currentNotifications.filter(n => n.fieldId !== errorData.fieldId);
+
+      this.notifications.set([...filteredNotifications, refreshedNotification]);
+      this.showMultipleNotifications = true;
+      return;
+    }
+
+    if (errorData.action === 'remove') {
+      const currentNotifications = this.notifications();
+      const filteredNotifications = currentNotifications.filter(n => n.fieldId !== errorData.fieldId);
+      this.notifications.set(filteredNotifications);
     }
   }
 
