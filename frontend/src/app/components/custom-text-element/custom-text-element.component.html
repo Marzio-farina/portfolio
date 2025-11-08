@@ -17,7 +17,7 @@
       [attr.data-placeholder]="'Scrivi qui...'"></div>
   } @else {
     <!-- Display (modalità view) -->
-    <div class="custom-text-display" [innerHTML]="content()"></div>
+    <div class="custom-text-display" [innerHTML]="safeContent()"></div>
   }
 </div>
 

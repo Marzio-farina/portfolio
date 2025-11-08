@@ -1,5 +1,6 @@
-import { Component, input, output, ElementRef, ViewChild, effect, signal, AfterViewInit, AfterViewChecked } from '@angular/core';
+import { Component, input, output, ElementRef, ViewChild, effect, signal, AfterViewInit, AfterViewChecked, computed } from '@angular/core';
 import { CommonModule } from '@angular/common';
+import { DomSanitizer, SafeHtml } from '@angular/platform-browser';
 import { TextStyle } from '../text-formatting-toolbar/text-formatting-toolbar.component';
 
 @Component({
@@ -42,7 +43,14 @@ export class CustomTextElementComponent implements AfterViewInit, AfterViewCheck
   // Flag per tracciare se l'utente ha modifiche non salvate
   private userHasUnsavedChanges = false;
   
-  constructor() {
+  // Computed per il contenuto sanitizzato e sicuro da visualizzare
+  safeContent = computed<SafeHtml>(() => {
+    const htmlContent = this.content();
+    const sanitized = this.sanitizeHtml(htmlContent);
+    return this.sanitizer.bypassSecurityTrustHtml(sanitized);
+  });
+  
+  constructor(private sanitizer: DomSanitizer) {
     // Effect principale: sincronizza il DOM con content() dall'input
     effect(() => {
       const newContent = this.content();
