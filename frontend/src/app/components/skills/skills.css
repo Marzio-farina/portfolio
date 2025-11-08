@@ -14,6 +14,39 @@
   overflow: visible;
 }
 
+/* Titolo overlay semi-trasparente sopra la tastiera */
+.skills-overlay-title {
+  position: absolute;
+  top: 15%;
+  left: 50%;
+  transform: translateX(-50%);
+  z-index: 50;
+  text-align: center;
+  pointer-events: none;
+}
+
+.skills-overlay-title__text {
+  font-size: clamp(4rem, 12vw, 10rem);
+  font-weight: 900;
+  text-transform: uppercase;
+  letter-spacing: 0.1em;
+  color: rgba(200, 200, 200, 0.6); /* Grigio semi-trasparente */
+  text-shadow: 
+    0 2px 8px rgba(0, 0, 0, 0.3),
+    0 0 20px rgba(255, 255, 255, 0.1);
+  margin: 0;
+  line-height: 1;
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', sans-serif;
+}
+
+.skills-overlay-subtitle {
+  font-size: clamp(0.9rem, 2vw, 1.3rem);
+  color: rgba(100, 180, 255, 0.7); /* Azzurro semi-trasparente */
+  margin-top: 0.5rem;
+  font-style: italic;
+  text-shadow: 0 1px 4px rgba(0, 0, 0, 0.3);
+}
+
 /* Il testo 3D è gestito da Three.js con lazy loading */
 
 /* Responsive: su schermi piccoli, riduce dimensioni container */

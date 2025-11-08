@@ -1,17 +1,18 @@
 <!-- Sezione Skills - struttura ottimizzata -->
 <div id="skills" class="w-full">
-  <!-- Titolo centrato -->
-  <div class="text-center mb-12">
-    <h2 class="text-4xl md:text-6xl font-bold mb-4">
-      Le Mie <span class="text-primary">Competenze</span>
-    </h2>
-    <p class="text-muted-foreground text-lg max-w-2xl mx-auto">
-      Tecnologie e strumenti con cui lavoro quotidianamente
-    </p>
-  </div>
-
+  
   <!-- Tastiera 3D Spline Interattiva - Full Width -->
   <div class="spline-container w-full">
+    
+    <!-- Titolo overlay semi-trasparente sopra la tastiera -->
+    <div class="skills-overlay-title">
+      <h2 class="skills-overlay-title__text">
+        SKILLS
+      </h2>
+      <p class="skills-overlay-subtitle">
+        (passa il mouse sui tasti)
+      </p>
+    </div>
     
     <!-- Testo 3D con Three.js (lazy loaded) -->
     <app-three-text-3d
@@ -24,11 +25,5 @@
       [scene]="splineSceneUrl"
       (onLoad)="onSplineLoad($event)" />
   </div>
-
-  <!-- Info tastiera 3D -->
-  <div class="text-center mt-8">
-    <p class="text-sm text-muted-foreground">
-      💡 Passa il mouse sui tasti per vedere le info delle skills!
-    </p>
-  </div>
+  
 </div>

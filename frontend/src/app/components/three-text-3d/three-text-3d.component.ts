@@ -298,8 +298,8 @@ export class ThreeText3DComponent implements AfterViewInit, OnChanges, OnDestroy
     }
 
     this.titleMesh = new THREE.Mesh(titleGeometry, titleMaterial);
-    this.titleMesh.position.set(-50, 280, 0);  // Spostato più a destra: -100 → -50
-    this.titleMesh.rotation.set(-0.3, 0.0, 0.35);
+    this.titleMesh.position.set(-50, 350, 0);  // Spostato più in alto: 280 → 320
+    this.titleMesh.rotation.set(-0.3, 0.0, 0.44);  // Inclinazione maggiore: 0.35 → 0.44 (~25°)
     this.scene.add(this.titleMesh);
 
     // Crea descrizione con word-wrap
@@ -350,8 +350,8 @@ export class ThreeText3DComponent implements AfterViewInit, OnChanges, OnDestroy
         const descMesh = new THREE.Mesh(descGeometry, descMaterial.clone());
         
         const lineHeight = 25;
-        descMesh.position.set(-50, 210 - (index * lineHeight), 5 + (index * 2));  // Y ridotto: 230 → 180 (più vicino alla tastiera)
-        descMesh.rotation.set(-0.3, 0.0, 0.35);
+        descMesh.position.set(-50, 280 - (index * lineHeight), 5 + (index * 2));  // Spostato più in alto: 210 → 250
+        descMesh.rotation.set(-0.3, 0.0, 0.44);  // Inclinazione maggiore: 0.35 → 0.44 (~25°)
         
         this.scene.add(descMesh);
         this.descriptionMeshes.push(descMesh);
@@ -427,12 +427,12 @@ export class ThreeText3DComponent implements AfterViewInit, OnChanges, OnDestroy
     
     if (this.titleMesh) {
       this.titleMesh.rotation.x = -0.3 + Math.sin(time) * 0.005;
-      this.titleMesh.rotation.z = 0.35;
+      this.titleMesh.rotation.z = 0.40;  // Mantiene inclinazione corretta
     }
     
     this.descriptionMeshes.forEach((mesh, index) => {
       mesh.rotation.x = -0.3 + Math.sin(time + 0.5 + index * 0.1) * 0.003;
-      mesh.rotation.z = 0.35;
+      mesh.rotation.z = 0.40;  // Mantiene inclinazione corretta
     });
 
     this.renderer.render(this.scene, this.camera);
