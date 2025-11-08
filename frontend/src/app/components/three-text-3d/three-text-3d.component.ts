@@ -4,8 +4,9 @@ import {
   ViewChild,
   AfterViewInit,
   OnDestroy,
+  OnChanges,
+  SimpleChanges,
   input,
-  effect,
   signal
 } from '@angular/core';
 
@@ -31,7 +32,7 @@ type THREE = typeof import('three');
     }
   `]
 })
-export class ThreeText3DComponent implements AfterViewInit, OnDestroy {
+export class ThreeText3DComponent implements AfterViewInit, OnChanges, OnDestroy {
   @ViewChild('canvas', { static: true }) canvasRef!: ElementRef<HTMLCanvasElement>;
 
   // Inputs da parent
@@ -62,22 +63,7 @@ export class ThreeText3DComponent implements AfterViewInit, OnDestroy {
   // Cache delle geometrie create per riutilizzo
   private geometryCache = new Map<string, any>();
 
-  constructor() {
-    // Effect per aggiornare il testo quando cambiano gli input
-    effect(() => {
-      const titleText = this.title();
-      const descText = this.description();
-      const isVisible = this.visible();
-
-      if (this.font && this.scene && this.THREE) {
-        // Evita chiamate async dirette nell'effect (causa errori Angular)
-        // Usa setTimeout per eseguire async fuori dal ciclo di change detection
-        setTimeout(() => {
-          this.updateText(titleText, descText, isVisible);
-        }, 0);
-      }
-    });
-  }
+  // Nessun constructor necessario - usiamo ngOnChanges
 
   async ngAfterViewInit() {
     // Aspetta che il DOM sia completamente renderizzato
@@ -93,6 +79,22 @@ export class ThreeText3DComponent implements AfterViewInit, OnDestroy {
       this.animate();
       this.setupResize();
       this.isLoading.set(false);
+    }
+  }
+
+  ngOnChanges(changes: SimpleChanges): void {
+    // Aggiorna il testo quando cambiano gli input
+    if ((changes['title'] || changes['description'] || changes['visible']) && 
+        this.font && this.scene && this.THREE) {
+      
+      const titleText = this.title();
+      const descText = this.description();
+      const isVisible = this.visible();
+      
+      // Esegui update async senza bloccare Angular
+      this.updateText(titleText, descText, isVisible).catch(() => {
+        // Gestione errori silenziosa
+      });
     }
   }
 

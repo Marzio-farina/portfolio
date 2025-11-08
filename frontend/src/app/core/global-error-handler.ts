@@ -13,6 +13,11 @@ export class GlobalErrorHandler implements ErrorHandler {
   private router = inject(Router);
   
   handleError(error: Error | HttpErrorResponse | any): void {
+    // Filtra errori innocui causati da Angular change detection
+    if (this.shouldIgnoreError(error)) {
+      return; // Ignora silenziosamente
+    }
+    
     // Determina il tipo di errore
     const isHttpError = error instanceof HttpErrorResponse;
     const isChunkLoadError = error?.name === 'ChunkLoadError';
@@ -45,6 +50,30 @@ export class GlobalErrorHandler implements ErrorHandler {
     
     // Gestione errori JavaScript
     this.handleJavaScriptError(error);
+  }
+  
+  /**
+   * Filtra errori innocui che non devono essere loggati
+   */
+  private shouldIgnoreError(error: any): boolean {
+    const errorMessage = error?.message || '';
+    
+    // Errori Angular change detection innocui
+    if (errorMessage.includes('An ErrorEvent with no error occurred')) {
+      return true;
+    }
+    
+    // Errori notificazioni non consegnate (innocui)
+    if (errorMessage.includes('undelivered notifications')) {
+      return true;
+    }
+    
+    // Errori Three.js multiple instances (warning innocuo)
+    if (errorMessage.includes('Multiple instances of Three.js')) {
+      return true;
+    }
+    
+    return false;
   }
   
   /**
