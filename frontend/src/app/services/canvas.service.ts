@@ -583,13 +583,6 @@ export class CanvasService {
     
     const newIsDeviceSpecific = !existingItem.isDeviceSpecific;
     
-    console.log('🔄 Toggle device-specific per', itemId, ':', {
-      from: existingItem.isDeviceSpecific || false,
-      to: newIsDeviceSpecific,
-      currentDevice: deviceId,
-      action: newIsDeviceSpecific ? 'RIMUOVI da altri dispositivi' : 'AGGIUNGI a tutti i dispositivi'
-    });
-    
     if (newIsDeviceSpecific) {
       // Attiva device-specific: RIMUOVI l'elemento da tutti i dispositivi TRANNE quello corrente
       for (const device of this.devicePresets) {
@@ -612,8 +605,6 @@ export class CanvasService {
           layouts.set(device.id, layout);
         }
       }
-      
-      console.log('✅ Elemento visibile SOLO su', deviceId);
     } else {
       // Disattiva device-specific: RIAGGIUNGE l'elemento a tutti i dispositivi
       for (const device of this.devicePresets) {
@@ -648,8 +639,6 @@ export class CanvasService {
           }
         }
       }
-      
-      console.log('✅ Elemento visibile su TUTTI i dispositivi');
     }
     
     this.deviceLayouts.set(layouts);

@@ -991,8 +991,6 @@ export class ProjectDetailModal implements OnDestroy {
     
     if (!item) {
       console.warn(`⚠️ getItemStyle(${itemId}): elemento NON trovato in canvasItems, uso fallback {0,0}`);
-      console.log('  canvasItems keys:', Array.from(this.canvasService.canvasItems().keys()));
-      console.log('  selectedDevice:', this.canvasService.selectedDevice().id);
     }
     
     return result;

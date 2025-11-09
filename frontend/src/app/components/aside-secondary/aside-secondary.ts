@@ -169,7 +169,6 @@ export class AsideSecondary {
 
     this.githubRepo.delete$(id).subscribe({
       next: () => {
-        console.log('[AsideSecondary] ✅ Repository eliminata');
         // Ricarica tutte le repository
         this.loadRepositories();
         
@@ -238,7 +237,7 @@ export class AsideSecondary {
 
     this.githubRepo.updateOrder$(orderData).subscribe({
       next: () => {
-        console.log('[AsideSecondary] ✅ Ordine aggiornato');
+        // Ordine aggiornato
       },
       error: (err) => {
         console.error('[AsideSecondary] ❌ Errore aggiornamento ordine:', err);
@@ -267,8 +266,6 @@ export class AsideSecondary {
   onSave(): void {
     const url = this.githubUrl().trim();
     
-    console.log('[AsideSecondary] Tentativo di salvataggio URL:', url);
-    
     if (!url) {
       this.errorMessage.set('Inserisci un URL valido');
       return;
@@ -294,26 +291,19 @@ export class AsideSecondary {
     const owner = match[1];
     const repo = match[2].replace(/\.git$/, ''); // Rimuovi .git se presente
 
-    console.log('[AsideSecondary] Owner:', owner, 'Repo:', repo);
-    console.log('[AsideSecondary] Invio richiesta al backend...');
-
     const payload = {
       owner: owner,
       repo: repo,
       url: url
     };
 
-    console.log('[AsideSecondary] Payload:', payload);
-
     this.githubRepo.create$(payload).subscribe({
       next: (response) => {
-        console.log('[AsideSecondary] ✅ Risposta backend:', response);
         this.saving.set(false);
         this.showForm.set(false);
         this.githubUrl.set('');
         
         // Ricarica tutte le repository
-        console.log('[AsideSecondary] Ricaricamento repositories...');
         this.loadRepositories();
       },
       error: (err) => {

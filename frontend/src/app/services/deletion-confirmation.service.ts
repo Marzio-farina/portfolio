@@ -95,7 +95,6 @@ export class DeletionConfirmationService {
   ): void {
     // CASO 1: DELETE ancora in corso → Annulla la chiamata
     if (this.deleteSubscription && !this.deleteCompleted) {
-      console.log(`[DeletionService] Annullamento DELETE in corso per ID ${id}`);
       this.deleteSubscription.unsubscribe();
       this.deleteSubscription = null;
       this.deleting.set(false);
@@ -105,8 +104,6 @@ export class DeletionConfirmationService {
 
     // CASO 2: DELETE già completata → Chiama RESTORE
     if (this.deleteCompleted && restoreApi$ && this.destroyRef) {
-      console.log(`[DeletionService] DELETE completata, chiamo RESTORE per ID ${id}`);
-      
       // Reset stato UI immediatamente per UX reattiva
       this.deleting.set(false);
       this.deleteCompleted = false;
@@ -116,7 +113,6 @@ export class DeletionConfirmationService {
         .pipe(takeUntilDestroyed(this.destroyRef))
         .subscribe({
           next: (restored) => {
-            console.log(`[DeletionService] RESTORE completato per ID ${id}`);
             onRestored?.(restored);
           },
           error: (err) => {
