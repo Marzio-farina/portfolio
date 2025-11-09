@@ -117,6 +117,9 @@ export class JobOffersScraperResultsView implements OnInit {
     
     this.loading.set(true);
     
+    // Nascondi i filtri dopo aver avviato la ricerca
+    this.filtersVisible.set(false);
+    
     const params = {
       keyword: keyword,
       location: this.searchLocationInput() || 'Italia',
