@@ -209,7 +209,28 @@ export class JobOffersStatsView implements OnInit {
       return this.getStatusLabel(value);
     }
     
+    // Date (application_date, announcement_date)
+    if (fieldName === 'application_date' || fieldName === 'announcement_date') {
+      return this.formatDate(value);
+    }
+    
     return String(value);
+  }
+
+  // Formatta una data in formato italiano DD/MM/YYYY
+  private formatDate(dateString: string): string {
+    if (!dateString) return '-';
+    
+    try {
+      const date = new Date(dateString);
+      const day = String(date.getDate()).padStart(2, '0');
+      const month = String(date.getMonth() + 1).padStart(2, '0');
+      const year = date.getFullYear();
+      
+      return `${day}/${month}/${year}`;
+    } catch (error) {
+      return dateString; // Fallback al valore originale se non è una data valida
+    }
   }
 
   // Verifica se una colonna richiede formattazione speciale
