@@ -303,6 +303,16 @@
   outline: none;
 }
 
+.select:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.input:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
 .filter-separator {
   height: 1px;
   background: var(--border-primary);

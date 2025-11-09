@@ -97,108 +97,109 @@
               (ngModelChange)="searchLocationInput.set($event)">
           </div>
 
-          <!-- Separator -->
-          @if (scrapedJobs().length > 0) {
-            <div class="filter-separator"></div>
 
-            <h3 class="filter-title">Filtra Risultati</h3>
+          <!-- Filtro Azienda -->
+          <div class="filter-group">
+            <label class="filter-label">Azienda</label>
+            <select 
+              class="select select-bordered w-full"
+              [(ngModel)]="selectedCompany"
+              [value]="selectedCompany()"
+              (ngModelChange)="selectedCompany.set($event)"
+              [disabled]="scrapedJobs().length === 0">
+              <option value="all">Tutte</option>
+              @for (company of uniqueCompanies(); track company) {
+                <option [value]="company">{{ company }}</option>
+              }
+            </select>
+          </div>
 
-            <!-- Filtro Azienda -->
-            <div class="filter-group">
-              <label class="filter-label">Azienda</label>
-              <select 
-                class="select select-bordered w-full"
-                [(ngModel)]="selectedCompany"
-                [value]="selectedCompany()"
-                (ngModelChange)="selectedCompany.set($event)">
-                <option value="all">Tutte</option>
-                @for (company of uniqueCompanies(); track company) {
-                  <option [value]="company">{{ company }}</option>
-                }
-              </select>
+          <!-- Filtro Località -->
+          <div class="filter-group">
+            <label class="filter-label">Località</label>
+            <select 
+              class="select select-bordered w-full"
+              [(ngModel)]="selectedLocation"
+              [value]="selectedLocation()"
+              (ngModelChange)="selectedLocation.set($event)"
+              [disabled]="scrapedJobs().length === 0">
+              <option value="all">Tutte</option>
+              @for (location of uniqueLocations(); track location) {
+                <option [value]="location">{{ location }}</option>
+              }
+            </select>
+          </div>
+
+          <!-- Filtro Tipo Contratto -->
+          <div class="filter-group">
+            <label class="filter-label">Tipo Contratto</label>
+            <select 
+              class="select select-bordered w-full"
+              [(ngModel)]="selectedEmploymentType"
+              [value]="selectedEmploymentType()"
+              (ngModelChange)="selectedEmploymentType.set($event)"
+              [disabled]="scrapedJobs().length === 0">
+              <option value="all">Tutti</option>
+              @for (type of uniqueEmploymentTypes(); track type) {
+                <option [value]="type">{{ type }}</option>
+              }
+            </select>
+          </div>
+
+          <!-- Filtro Modalità Lavoro -->
+          <div class="filter-group">
+            <label class="filter-label">Modalità Lavoro</label>
+            <select 
+              class="select select-bordered w-full"
+              [(ngModel)]="selectedRemote"
+              [value]="selectedRemote()"
+              (ngModelChange)="selectedRemote.set($event)"
+              [disabled]="scrapedJobs().length === 0">
+              <option value="all">Tutte</option>
+              @for (remote of uniqueRemoteTypes(); track remote) {
+                <option [value]="remote">{{ remote }}</option>
+              }
+            </select>
+          </div>
+
+          <!-- Filtro Stipendio -->
+          <div class="filter-group">
+            <label class="filter-label">Stipendio</label>
+            <select 
+              class="select select-bordered w-full"
+              [(ngModel)]="selectedSalaryFilter"
+              [value]="selectedSalaryFilter()"
+              (ngModelChange)="selectedSalaryFilter.set($event)"
+              [disabled]="scrapedJobs().length === 0">
+              <option value="all">Tutti</option>
+              <option value="with">Con stipendio</option>
+              <option value="without">Senza stipendio</option>
+            </select>
+          </div>
+
+          <!-- Range Stipendio -->
+          <div class="filter-group">
+            <label class="filter-label">Range Stipendio (EUR)</label>
+            <div class="salary-range-inputs">
+              <input 
+                type="number" 
+                placeholder="Min"
+                class="input input-bordered w-full input-sm"
+                [(ngModel)]="minSalary"
+                [value]="minSalary()"
+                (ngModelChange)="minSalary.set($event ? +$event : null)"
+                [disabled]="scrapedJobs().length === 0">
+              <span class="salary-separator">-</span>
+              <input 
+                type="number" 
+                placeholder="Max"
+                class="input input-bordered w-full input-sm"
+                [(ngModel)]="maxSalary"
+                [value]="maxSalary()"
+                (ngModelChange)="maxSalary.set($event ? +$event : null)"
+                [disabled]="scrapedJobs().length === 0">
             </div>
-
-            <!-- Filtro Località -->
-            <div class="filter-group">
-              <label class="filter-label">Località</label>
-              <select 
-                class="select select-bordered w-full"
-                [(ngModel)]="selectedLocation"
-                [value]="selectedLocation()"
-                (ngModelChange)="selectedLocation.set($event)">
-                <option value="all">Tutte</option>
-                @for (location of uniqueLocations(); track location) {
-                  <option [value]="location">{{ location }}</option>
-                }
-              </select>
-            </div>
-
-            <!-- Filtro Tipo Contratto -->
-            <div class="filter-group">
-              <label class="filter-label">Tipo Contratto</label>
-              <select 
-                class="select select-bordered w-full"
-                [(ngModel)]="selectedEmploymentType"
-                [value]="selectedEmploymentType()"
-                (ngModelChange)="selectedEmploymentType.set($event)">
-                <option value="all">Tutti</option>
-                @for (type of uniqueEmploymentTypes(); track type) {
-                  <option [value]="type">{{ type }}</option>
-                }
-              </select>
-            </div>
-
-            <!-- Filtro Modalità Lavoro -->
-            <div class="filter-group">
-              <label class="filter-label">Modalità Lavoro</label>
-              <select 
-                class="select select-bordered w-full"
-                [(ngModel)]="selectedRemote"
-                [value]="selectedRemote()"
-                (ngModelChange)="selectedRemote.set($event)">
-                <option value="all">Tutte</option>
-                @for (remote of uniqueRemoteTypes(); track remote) {
-                  <option [value]="remote">{{ remote }}</option>
-                }
-              </select>
-            </div>
-
-            <!-- Filtro Stipendio -->
-            <div class="filter-group">
-              <label class="filter-label">Stipendio</label>
-              <select 
-                class="select select-bordered w-full"
-                [(ngModel)]="selectedSalaryFilter"
-                [value]="selectedSalaryFilter()"
-                (ngModelChange)="selectedSalaryFilter.set($event)">
-                <option value="all">Tutti</option>
-                <option value="with">Con stipendio</option>
-                <option value="without">Senza stipendio</option>
-              </select>
-            </div>
-
-            <!-- Range Stipendio -->
-            <div class="filter-group">
-              <label class="filter-label">Range Stipendio (EUR)</label>
-              <div class="salary-range-inputs">
-                <input 
-                  type="number" 
-                  placeholder="Min"
-                  class="input input-bordered w-full input-sm"
-                  [(ngModel)]="minSalary"
-                  [value]="minSalary()"
-                  (ngModelChange)="minSalary.set($event ? +$event : null)">
-                <span class="salary-separator">-</span>
-                <input 
-                  type="number" 
-                  placeholder="Max"
-                  class="input input-bordered w-full input-sm"
-                  [(ngModel)]="maxSalary"
-                  [value]="maxSalary()"
-                  (ngModelChange)="maxSalary.set($event ? +$event : null)">
-              </div>
-            </div>
-          }
+          </div>
 
           <!-- Contatore risultati -->
           @if (scrapedJobs().length > 0) {
