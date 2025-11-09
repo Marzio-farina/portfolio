@@ -6,6 +6,7 @@ import { FormsModule } from '@angular/forms';
 import { JobOfferColumnService, JobOfferColumn } from '../../../../services/job-offer-column.service';
 import { JobScraperService, ScrapedJob } from '../../../../services/job-scraper.service';
 import { EditModeService } from '../../../../services/edit-mode.service';
+import { TenantService } from '../../../../services/tenant.service';
 
 /**
  * Componente per visualizzare i risultati dello scraping
@@ -24,6 +25,7 @@ export class JobOffersScraperResultsView implements OnInit {
   private columnService = inject(JobOfferColumnService);
   private scraperService = inject(JobScraperService);
   private editModeService = inject(EditModeService);
+  private tenantService = inject(TenantService);
   
   // Edit mode dal service globale
   editMode = this.editModeService.isEditing;
@@ -42,6 +44,10 @@ export class JobOffersScraperResultsView implements OnInit {
   selectedLocation = signal<string>('all');
   selectedEmploymentType = signal<string>('all');
   selectedRemote = signal<string>('all');
+  selectedCompany = signal<string>('all');
+  selectedSalaryFilter = signal<string>('all'); // 'all', 'with', 'without'
+  minSalary = signal<number | null>(null);
+  maxSalary = signal<number | null>(null);
   
   // Parametri ricerca Adzuna
   searchKeyword = signal<string>('');
@@ -144,15 +150,24 @@ export class JobOffersScraperResultsView implements OnInit {
     const location = this.selectedLocation();
     const employmentType = this.selectedEmploymentType();
     const remote = this.selectedRemote();
+    const company = this.selectedCompany();
+    const salaryFilter = this.selectedSalaryFilter();
+    const minSal = this.minSalary();
+    const maxSal = this.maxSalary();
     const sortCol = this.sortColumn();
     const sortDir = this.sortDirection();
 
-    // Filtra per ricerca
+    // Filtra per ricerca testuale
     if (query) {
       jobs = jobs.filter(job =>
         job.company.toLowerCase().includes(query) ||
         job.title.toLowerCase().includes(query)
       );
+    }
+
+    // Filtra per azienda
+    if (company !== 'all') {
+      jobs = jobs.filter(job => job.company === company);
     }
 
     // Filtra per location
@@ -168,6 +183,26 @@ export class JobOffersScraperResultsView implements OnInit {
     // Filtra per remote
     if (remote !== 'all') {
       jobs = jobs.filter(job => job.remote === remote);
+    }
+
+    // Filtra per stipendio (con/senza)
+    if (salaryFilter === 'with') {
+      jobs = jobs.filter(job => job.salary && job.salary !== 'Non specificato' && job.salary !== 'N/A');
+    } else if (salaryFilter === 'without') {
+      jobs = jobs.filter(job => !job.salary || job.salary === 'Non specificato' || job.salary === 'N/A');
+    }
+
+    // Filtra per range stipendio (min/max)
+    if (minSal !== null || maxSal !== null) {
+      jobs = jobs.filter(job => {
+        const salaryNum = this.extractSalaryNumber(job.salary);
+        if (salaryNum === null) return false;
+        
+        if (minSal !== null && salaryNum < minSal) return false;
+        if (maxSal !== null && salaryNum > maxSal) return false;
+        
+        return true;
+      });
     }
 
     // Ordina se una colonna è selezionata
@@ -223,9 +258,21 @@ export class JobOffersScraperResultsView implements OnInit {
     return Array.from(types).sort();
   });
 
+  // Lista aziende uniche
+  uniqueCompanies = computed(() => {
+    const companies = new Set(
+      this.scrapedJobs()
+        .map(job => job.company)
+        .filter(comp => comp !== null && comp !== undefined && comp !== 'N/A')
+    );
+    return Array.from(companies).sort();
+  });
+
   // Torna alla pagina di aggiunta
   goBack(): void {
-    this.router.navigate(['/job-offers/add']);
+    const tenantSlug = this.tenantService.userSlug();
+    const basePath = tenantSlug ? `/${tenantSlug}/job-offers/add` : '/job-offers/add';
+    this.router.navigate([basePath]);
   }
 
   // Reset filtri
@@ -234,6 +281,10 @@ export class JobOffersScraperResultsView implements OnInit {
     this.selectedLocation.set('all');
     this.selectedEmploymentType.set('all');
     this.selectedRemote.set('all');
+    this.selectedCompany.set('all');
+    this.selectedSalaryFilter.set('all');
+    this.minSalary.set(null);
+    this.maxSalary.set(null);
   }
 
   // Toggle visibilità filtri
@@ -465,6 +516,31 @@ export class JobOffersScraperResultsView implements OnInit {
     
     const visibleCount = this.allColumns().filter(col => col.visible).length;
     return visibleCount <= 1;
+  }
+
+  /**
+   * Estrae il valore numerico medio da una stringa di stipendio
+   * es. "30.000 - 50.000 EUR" → 40000
+   */
+  private extractSalaryNumber(salaryStr?: string): number | null {
+    if (!salaryStr || salaryStr === 'Non specificato' || salaryStr === 'N/A') {
+      return null;
+    }
+
+    // Cerca numeri nel formato "30.000 - 50.000" o "30000 - 50000"
+    const numbers = salaryStr.match(/\d+\.?\d*/g);
+    if (!numbers || numbers.length === 0) return null;
+
+    // Converti e rimuovi separatori
+    const cleaned = numbers.map(n => parseFloat(n.replace(/\./g, '')));
+    
+    // Se ci sono 2 numeri (min-max), fai la media
+    if (cleaned.length >= 2) {
+      return (cleaned[0] + cleaned[1]) / 2;
+    }
+    
+    // Altrimenti ritorna il singolo valore
+    return cleaned[0];
   }
 }
 

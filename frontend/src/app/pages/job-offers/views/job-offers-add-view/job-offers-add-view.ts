@@ -1,7 +1,6 @@
 import { Component, inject } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
-import { Location } from '@angular/common';
 import { Router } from '@angular/router';
 import { TenantService } from '../../../../services/tenant.service';
 
@@ -16,7 +15,6 @@ import { TenantService } from '../../../../services/tenant.service';
   styleUrl: './job-offers-add-view.css'
 })
 export class JobOffersAddView {
-  private location = inject(Location);
   private router = inject(Router);
   private tenantService = inject(TenantService);
 
@@ -36,10 +34,12 @@ export class JobOffersAddView {
 
   /**
    * Gestisce l'annullamento dell'aggiunta
-   * Torna alla pagina precedente
+   * Torna alla pagina job-offers
    */
   onCancel(): void {
-    this.location.back();
+    const tenantSlug = this.tenantService.userSlug();
+    const basePath = tenantSlug ? `/${tenantSlug}/job-offers` : '/job-offers';
+    this.router.navigate([basePath]);
   }
 
   /**
@@ -48,8 +48,10 @@ export class JobOffersAddView {
   onSave(): void {
     // TODO: implementare logica di salvataggio
     console.log('Salvataggio candidatura...');
-    // Dopo il salvataggio, torna indietro
-    this.location.back();
+    // Dopo il salvataggio, torna a job-offers
+    const tenantSlug = this.tenantService.userSlug();
+    const basePath = tenantSlug ? `/${tenantSlug}/job-offers` : '/job-offers';
+    this.router.navigate([basePath]);
   }
 }
 

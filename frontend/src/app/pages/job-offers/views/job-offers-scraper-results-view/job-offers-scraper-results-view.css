@@ -309,6 +309,19 @@
   margin: 1.5rem 0;
 }
 
+/* Range Stipendio */
+.salary-range-inputs {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.salary-separator {
+  color: var(--text-secondary);
+  font-weight: 600;
+  flex-shrink: 0;
+}
+
 .results-count {
   display: flex;
   align-items: center;

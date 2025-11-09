@@ -199,7 +199,9 @@ export class JobOffersStatsView implements OnInit {
 
   // Torna alla pagina principale delle statistiche
   goBack(): void {
-    this.router.navigate(['/job-offers']);
+    const tenantSlug = this.tenantService.userSlug();
+    const basePath = tenantSlug ? `/${tenantSlug}/job-offers` : '/job-offers';
+    this.router.navigate([basePath]);
   }
 
   // Reset filtri

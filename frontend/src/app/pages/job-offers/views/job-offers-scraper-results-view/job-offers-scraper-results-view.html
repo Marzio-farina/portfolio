@@ -103,6 +103,21 @@
 
             <h3 class="filter-title">Filtra Risultati</h3>
 
+            <!-- Filtro Azienda -->
+            <div class="filter-group">
+              <label class="filter-label">Azienda</label>
+              <select 
+                class="select select-bordered w-full"
+                [(ngModel)]="selectedCompany"
+                [value]="selectedCompany()"
+                (ngModelChange)="selectedCompany.set($event)">
+                <option value="all">Tutte</option>
+                @for (company of uniqueCompanies(); track company) {
+                  <option [value]="company">{{ company }}</option>
+                }
+              </select>
+            </div>
+
             <!-- Filtro Località -->
             <div class="filter-group">
               <label class="filter-label">Località</label>
@@ -146,6 +161,42 @@
                   <option [value]="remote">{{ remote }}</option>
                 }
               </select>
+            </div>
+
+            <!-- Filtro Stipendio -->
+            <div class="filter-group">
+              <label class="filter-label">Stipendio</label>
+              <select 
+                class="select select-bordered w-full"
+                [(ngModel)]="selectedSalaryFilter"
+                [value]="selectedSalaryFilter()"
+                (ngModelChange)="selectedSalaryFilter.set($event)">
+                <option value="all">Tutti</option>
+                <option value="with">Con stipendio</option>
+                <option value="without">Senza stipendio</option>
+              </select>
+            </div>
+
+            <!-- Range Stipendio -->
+            <div class="filter-group">
+              <label class="filter-label">Range Stipendio (EUR)</label>
+              <div class="salary-range-inputs">
+                <input 
+                  type="number" 
+                  placeholder="Min"
+                  class="input input-bordered w-full input-sm"
+                  [(ngModel)]="minSalary"
+                  [value]="minSalary()"
+                  (ngModelChange)="minSalary.set($event ? +$event : null)">
+                <span class="salary-separator">-</span>
+                <input 
+                  type="number" 
+                  placeholder="Max"
+                  class="input input-bordered w-full input-sm"
+                  [(ngModel)]="maxSalary"
+                  [value]="maxSalary()"
+                  (ngModelChange)="maxSalary.set($event ? +$event : null)">
+              </div>
             </div>
           }
 
