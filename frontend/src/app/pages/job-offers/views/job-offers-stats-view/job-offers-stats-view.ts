@@ -4,7 +4,7 @@ import { ActivatedRoute, Router } from '@angular/router';
 import { map } from 'rxjs';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
-import { JobOfferService, JobOffer } from '../../../services/job-offer.service';
+import { JobOfferService, JobOffer } from '../../../../services/job-offer.service';
 
 @Component({
   selector: 'app-job-offers-stats-view',
