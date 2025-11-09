@@ -51,6 +51,12 @@ export class JobOffersStatsView implements OnInit {
   
   // Visibilità filtri
   filtersVisible = signal<boolean>(false);
+  
+  // Array di placeholder per skeleton rows
+  skeletonRows = computed(() => {
+    const count = 8; // Numero di righe skeleton da mostrare
+    return Array.from({ length: count }, (_, i) => i);
+  });
 
   ngOnInit(): void {
     this.loadData();
