@@ -52,6 +52,7 @@ export class JobOffersScraperResultsView implements OnInit {
   // Parametri ricerca Adzuna
   searchKeyword = signal<string>('');
   searchLocationInput = signal<string>('');
+  resultsLimit = signal<number>(50);
   
   // Visibilità filtri (di default visibili)
   filtersVisible = signal<boolean>(true);
@@ -98,6 +99,7 @@ export class JobOffersScraperResultsView implements OnInit {
 
   /**
    * Esegue la ricerca tramite Adzuna (chiamato dal pulsante Cerca)
+   * Usa tutti i parametri di ricerca impostati nei filtri
    */
   performSearch(): void {
     const keyword = this.searchKeyword().trim();
@@ -107,13 +109,18 @@ export class JobOffersScraperResultsView implements OnInit {
       return;
     }
 
-    console.log('🔍 Ricerca offerte tramite Adzuna...');
+    console.log('🔍 Ricerca offerte tramite Adzuna con parametri:', {
+      keyword,
+      location: this.searchLocationInput(),
+      limit: this.resultsLimit()
+    });
+    
     this.loading.set(true);
     
     const params = {
       keyword: keyword,
       location: this.searchLocationInput() || 'Italia',
-      limit: 50
+      limit: this.resultsLimit()
     };
 
     this.scraperService.scrapeAdzuna(params).subscribe({
@@ -122,6 +129,15 @@ export class JobOffersScraperResultsView implements OnInit {
         console.log(`📊 Trovate ${response.count} offerte:`, response.jobs);
         this.scrapedJobs.set(response.jobs);
         this.loading.set(false);
+        
+        // Reset filtri raffinamento dopo nuova ricerca
+        this.selectedCompany.set('all');
+        this.selectedLocation.set('all');
+        this.selectedEmploymentType.set('all');
+        this.selectedRemote.set('all');
+        this.selectedSalaryFilter.set('all');
+        this.minSalary.set(null);
+        this.maxSalary.set(null);
       },
       error: (err) => {
         console.error('❌ Errore scraping:', err);
@@ -275,8 +291,14 @@ export class JobOffersScraperResultsView implements OnInit {
     this.router.navigate([basePath]);
   }
 
-  // Reset filtri
+  // Reset tutti i filtri (ricerca e raffinamento)
   resetFilters(): void {
+    // Reset filtri ricerca
+    this.searchKeyword.set('');
+    this.searchLocationInput.set('');
+    this.resultsLimit.set(50);
+    
+    // Reset filtri raffinamento
     this.searchQuery.set('');
     this.selectedLocation.set('all');
     this.selectedEmploymentType.set('all');
@@ -285,6 +307,9 @@ export class JobOffersScraperResultsView implements OnInit {
     this.selectedSalaryFilter.set('all');
     this.minSalary.set(null);
     this.maxSalary.set(null);
+    
+    // Pulisci risultati
+    this.scrapedJobs.set([]);
   }
 
   // Toggle visibilità filtri

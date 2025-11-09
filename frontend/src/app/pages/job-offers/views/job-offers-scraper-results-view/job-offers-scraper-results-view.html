@@ -97,6 +97,25 @@
               (ngModelChange)="searchLocationInput.set($event)">
           </div>
 
+          <!-- Numero Risultati -->
+          <div class="filter-group">
+            <label class="filter-label">Numero Risultati</label>
+            <select 
+              class="select select-bordered w-full"
+              [(ngModel)]="resultsLimit"
+              [value]="resultsLimit()"
+              (ngModelChange)="resultsLimit.set($event)">
+              <option [value]="10">10 offerte</option>
+              <option [value]="20">20 offerte</option>
+              <option [value]="30">30 offerte</option>
+              <option [value]="50">50 offerte</option>
+            </select>
+          </div>
+
+          @if (scrapedJobs().length > 0) {
+            <div class="filter-separator"></div>
+            <h3 class="filter-title">Raffina Risultati</h3>
+          }
 
           <!-- Filtro Azienda -->
           <div class="filter-group">
@@ -105,8 +124,7 @@
               class="select select-bordered w-full"
               [(ngModel)]="selectedCompany"
               [value]="selectedCompany()"
-              (ngModelChange)="selectedCompany.set($event)"
-              [disabled]="scrapedJobs().length === 0">
+              (ngModelChange)="selectedCompany.set($event)">
               <option value="all">Tutte</option>
               @for (company of uniqueCompanies(); track company) {
                 <option [value]="company">{{ company }}</option>
@@ -121,8 +139,7 @@
               class="select select-bordered w-full"
               [(ngModel)]="selectedLocation"
               [value]="selectedLocation()"
-              (ngModelChange)="selectedLocation.set($event)"
-              [disabled]="scrapedJobs().length === 0">
+              (ngModelChange)="selectedLocation.set($event)">
               <option value="all">Tutte</option>
               @for (location of uniqueLocations(); track location) {
                 <option [value]="location">{{ location }}</option>
@@ -137,8 +154,7 @@
               class="select select-bordered w-full"
               [(ngModel)]="selectedEmploymentType"
               [value]="selectedEmploymentType()"
-              (ngModelChange)="selectedEmploymentType.set($event)"
-              [disabled]="scrapedJobs().length === 0">
+              (ngModelChange)="selectedEmploymentType.set($event)">
               <option value="all">Tutti</option>
               @for (type of uniqueEmploymentTypes(); track type) {
                 <option [value]="type">{{ type }}</option>
@@ -153,8 +169,7 @@
               class="select select-bordered w-full"
               [(ngModel)]="selectedRemote"
               [value]="selectedRemote()"
-              (ngModelChange)="selectedRemote.set($event)"
-              [disabled]="scrapedJobs().length === 0">
+              (ngModelChange)="selectedRemote.set($event)">
               <option value="all">Tutte</option>
               @for (remote of uniqueRemoteTypes(); track remote) {
                 <option [value]="remote">{{ remote }}</option>
@@ -169,8 +184,7 @@
               class="select select-bordered w-full"
               [(ngModel)]="selectedSalaryFilter"
               [value]="selectedSalaryFilter()"
-              (ngModelChange)="selectedSalaryFilter.set($event)"
-              [disabled]="scrapedJobs().length === 0">
+              (ngModelChange)="selectedSalaryFilter.set($event)">
               <option value="all">Tutti</option>
               <option value="with">Con stipendio</option>
               <option value="without">Senza stipendio</option>
@@ -187,8 +201,7 @@
                 class="input input-bordered w-full input-sm"
                 [(ngModel)]="minSalary"
                 [value]="minSalary()"
-                (ngModelChange)="minSalary.set($event ? +$event : null)"
-                [disabled]="scrapedJobs().length === 0">
+                (ngModelChange)="minSalary.set($event ? +$event : null)">
               <span class="salary-separator">-</span>
               <input 
                 type="number" 
@@ -196,8 +209,7 @@
                 class="input input-bordered w-full input-sm"
                 [(ngModel)]="maxSalary"
                 [value]="maxSalary()"
-                (ngModelChange)="maxSalary.set($event ? +$event : null)"
-                [disabled]="scrapedJobs().length === 0">
+                (ngModelChange)="maxSalary.set($event ? +$event : null)">
             </div>
           </div>
 
