@@ -125,6 +125,16 @@ class User extends Authenticatable
     }
 
     /**
+     * Get the user's job offers
+     *
+     * @return \Illuminate\Database\Eloquent\Relations\HasMany
+     */
+    public function jobOffers()
+    {
+        return $this->hasMany(JobOffer::class);
+    }
+
+    /**
      * Link all testimonials from a visitor (identified by IP and/or User-Agent) to this user
      * This is called when a visitor registers after leaving testimonials
      *
