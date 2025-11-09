@@ -62,22 +62,23 @@ class JobOfferColumnController extends Controller
     /**
      * Update column visibility for authenticated user
      */
-    public function update(Request $request, int $columnId): JsonResponse
+    public function update(Request $request, string $columnId): JsonResponse
     {
         $validated = $request->validate([
             'visible' => 'required|boolean',
         ]);
 
         $userId = Auth::id();
+        $columnIdInt = (int) $columnId;
 
         $userColumn = UserJobOfferColumn::where('user_id', $userId)
-            ->where('job_offer_column_id', $columnId)
+            ->where('job_offer_column_id', $columnIdInt)
             ->firstOrFail();
 
         $userColumn->update(['visible' => $validated['visible']]);
 
         // Ritorna la colonna aggiornata
-        $column = JobOfferColumn::find($columnId);
+        $column = JobOfferColumn::find($columnIdInt);
         
         return response()->json([
             'id' => $column->id,
