@@ -7,6 +7,7 @@ import { FormsModule } from '@angular/forms';
 import { JobOfferService, JobOffer } from '../../../../services/job-offer.service';
 import { JobOfferColumnService, JobOfferColumn } from '../../../../services/job-offer-column.service';
 import { EditModeService } from '../../../../services/edit-mode.service';
+import { TenantService } from '../../../../services/tenant.service';
 
 @Component({
   selector: 'app-job-offers-stats-view',
@@ -21,6 +22,7 @@ export class JobOffersStatsView implements OnInit {
   private jobOfferService = inject(JobOfferService);
   private columnService = inject(JobOfferColumnService);
   private editModeService = inject(EditModeService);
+  private tenantService = inject(TenantService);
   
   // Legge il titolo dalla route data
   title = toSignal(this.route.data.pipe(map(d => d['title'] as string)), { initialValue: '' });
@@ -485,6 +487,15 @@ export class JobOffersStatsView implements OnInit {
   // Verifica se una colonna è target del drop
   isColumnDropTarget(columnId: number): boolean {
     return this.dragOverColumnId() === columnId && this.draggedColumnId() !== columnId;
+  }
+
+  /**
+   * Naviga alla vista di aggiunta candidatura
+   */
+  navigateToAddJobOffer(): void {
+    const tenantSlug = this.tenantService.userSlug();
+    const basePath = tenantSlug ? `/${tenantSlug}/job-offers/add` : '/job-offers/add';
+    this.router.navigate([basePath]);
   }
 }
 
