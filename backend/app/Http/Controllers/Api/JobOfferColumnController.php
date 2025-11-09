@@ -27,8 +27,8 @@ class JobOfferColumnController extends Controller
             // Prima volta: crea configurazione di default per l'utente
             $allColumns = JobOfferColumn::orderBy('default_order')->get();
             
-            // Colonne visibili di default (le prime 6)
-            $defaultVisibleColumns = ['company_name', 'position', 'location', 'application_date', 'salary_range', 'status'];
+            // Colonne visibili di default (4 colonne essenziali)
+            $defaultVisibleColumns = ['company_name', 'position', 'application_date', 'status'];
             
             foreach ($allColumns as $column) {
                 UserJobOfferColumn::create([

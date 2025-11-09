@@ -15,7 +15,7 @@ return new class extends Migration
             $table->id();
             $table->foreignId('user_id')->constrained()->onDelete('cascade');
             $table->foreignId('job_offer_column_id')->constrained('job_offer_columns')->onDelete('cascade');
-            $table->boolean('visible')->default(true);
+            $table->tinyInteger('visible')->default(1);
             $table->integer('order')->default(0); // Ordine personalizzato dall'utente
             $table->timestamps();
 
