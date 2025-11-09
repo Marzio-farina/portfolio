@@ -391,6 +391,12 @@
   background: transparent !important;
 }
 
+.skeleton-header {
+  height: 0.875rem;
+  width: 70%;
+  margin: 0.25rem 0;
+}
+
 .skeleton-text {
   height: 1rem;
   width: 80%;

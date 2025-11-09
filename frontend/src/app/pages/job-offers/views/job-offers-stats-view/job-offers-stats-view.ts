@@ -57,6 +57,12 @@ export class JobOffersStatsView implements OnInit {
     const count = 8; // Numero di righe skeleton da mostrare
     return Array.from({ length: count }, (_, i) => i);
   });
+  
+  // Colonne placeholder per skeleton iniziale (prima del caricamento)
+  skeletonColumns = computed(() => {
+    const count = 4; // Numero di colonne placeholder (default visibili)
+    return Array.from({ length: count }, (_, i) => i);
+  });
 
   ngOnInit(): void {
     this.loadData();

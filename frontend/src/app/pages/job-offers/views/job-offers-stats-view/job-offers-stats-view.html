@@ -122,60 +122,84 @@
           <p>Prova a modificare i filtri di ricerca</p>
         </div>
       } @else {
-        <!-- Tabella sempre visibile durante loading e con dati -->
         <div class="overflow-x-auto">
           <table class="table table-zebra">
-            <thead>
-              <tr>
-                @for (column of visibleColumns(); track column.id) {
-                  <th>{{ column.title }}</th>
-                }
-              </tr>
-            </thead>
-            <tbody>
-              <!-- Skeleton rows durante loading -->
-              @if (loading()) {
+            <!-- Tabella skeleton completa durante caricamento iniziale (prima che arrivino le colonne) -->
+            @if (loading() && allColumns().length === 0) {
+              <thead>
+                <tr>
+                  @for (i of skeletonColumns(); track i) {
+                    <th>
+                      <div class="skeleton skeleton-header"></div>
+                    </th>
+                  }
+                </tr>
+              </thead>
+              <tbody>
                 @for (i of skeletonRows(); track i) {
                   <tr class="skeleton-row">
-                    @for (column of visibleColumns(); track column.id) {
+                    @for (j of skeletonColumns(); track j) {
                       <td>
                         <div class="skeleton skeleton-text"></div>
                       </td>
                     }
                   </tr>
                 }
-              } @else {
-                <!-- Righe reali quando i dati sono disponibili -->
-                @for (offer of filteredJobOffers(); track offer.id) {
-                  <tr class="data-row">
-                    @for (column of visibleColumns(); track column.id) {
-                      <td>
-                        @if (column.field_name === 'company_name') {
-                          <div class="font-bold">{{ offer.company_name }}</div>
-                          @if (offer.recruiter_company) {
-                            <div class="text-sm text-secondary">via {{ offer.recruiter_company }}</div>
+              </tbody>
+            } @else {
+              <!-- Headers reali quando le colonne sono caricate -->
+              <thead>
+                <tr>
+                  @for (column of visibleColumns(); track column.id) {
+                    <th>{{ column.title }}</th>
+                  }
+                </tr>
+              </thead>
+              <tbody>
+                <!-- Skeleton rows durante loading (con colonne già caricate) -->
+                @if (loading()) {
+                  @for (i of skeletonRows(); track i) {
+                    <tr class="skeleton-row">
+                      @for (column of visibleColumns(); track column.id) {
+                        <td>
+                          <div class="skeleton skeleton-text"></div>
+                        </td>
+                      }
+                    </tr>
+                  }
+                } @else {
+                  <!-- Righe reali quando i dati sono disponibili -->
+                  @for (offer of filteredJobOffers(); track offer.id) {
+                    <tr class="data-row">
+                      @for (column of visibleColumns(); track column.id) {
+                        <td>
+                          @if (column.field_name === 'company_name') {
+                            <div class="font-bold">{{ offer.company_name }}</div>
+                            @if (offer.recruiter_company) {
+                              <div class="text-sm text-secondary">via {{ offer.recruiter_company }}</div>
+                            }
+                          } @else if (column.field_name === 'location') {
+                            <div class="flex items-center gap-2">
+                              <svg class="location-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                <path d="M20 10c0 6-8 12-8 12s-8-6-8-12a8 8 0 0 1 16 0Z"/>
+                                <circle cx="12" cy="10" r="3"/>
+                              </svg>
+                              {{ offer.location || '-' }}
+                            </div>
+                          } @else if (column.field_name === 'status') {
+                            <span class="badge" [ngClass]="getStatusClass(offer.status)">
+                              {{ getStatusLabel(offer.status) }}
+                            </span>
+                          } @else {
+                            {{ formatValue(getFieldValue(offer, column.field_name), column.field_name) }}
                           }
-                        } @else if (column.field_name === 'location') {
-                          <div class="flex items-center gap-2">
-                            <svg class="location-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                              <path d="M20 10c0 6-8 12-8 12s-8-6-8-12a8 8 0 0 1 16 0Z"/>
-                              <circle cx="12" cy="10" r="3"/>
-                            </svg>
-                            {{ offer.location || '-' }}
-                          </div>
-                        } @else if (column.field_name === 'status') {
-                          <span class="badge" [ngClass]="getStatusClass(offer.status)">
-                            {{ getStatusLabel(offer.status) }}
-                          </span>
-                        } @else {
-                          {{ formatValue(getFieldValue(offer, column.field_name), column.field_name) }}
-                        }
-                      </td>
-                    }
-                  </tr>
+                        </td>
+                      }
+                    </tr>
+                  }
                 }
-              }
-            </tbody>
+              </tbody>
+            }
           </table>
         </div>
       }
