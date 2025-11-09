@@ -141,11 +141,12 @@
               <!-- Lista colonne con checkbox -->
               <div class="columns-list">
                 @for (column of allColumns(); track column.id) {
-                  <label class="column-item">
+                  <label class="column-item" [class.column-item--disabled]="isColumnCheckboxDisabled(column.id)">
                     <input 
                       type="checkbox"
                       class="column-checkbox"
                       [checked]="column.visible"
+                      [disabled]="isColumnCheckboxDisabled(column.id)"
                       (change)="toggleColumnVisibility(column.id, !column.visible)">
                     <span class="column-name">{{ column.title }}</span>
                   </label>

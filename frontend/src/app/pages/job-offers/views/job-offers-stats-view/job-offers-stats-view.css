@@ -417,12 +417,27 @@
   background: var(--bg-secondary);
 }
 
+/* Item disabilitato (ultima colonna visibile) */
+.column-item--disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.column-item--disabled:hover {
+  background: transparent;
+}
+
 /* Checkbox */
 .column-checkbox {
   width: 18px;
   height: 18px;
   cursor: pointer;
   flex-shrink: 0;
+}
+
+.column-checkbox:disabled {
+  cursor: not-allowed;
+  opacity: 0.5;
 }
 
 /* Nome colonna */
@@ -432,6 +447,10 @@
   color: var(--text-primary);
   font-weight: 500;
   user-select: none;
+}
+
+.column-item--disabled .column-name {
+  color: var(--text-secondary);
 }
 
 .table-options-popup__close {

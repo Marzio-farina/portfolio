@@ -224,6 +224,15 @@ export class JobOffersStatsView implements OnInit {
 
   // Toggle visibilità colonna
   toggleColumnVisibility(columnId: number, visible: boolean): void {
+    // Verifica: non permettere di nascondere l'ultima colonna visibile
+    if (!visible) {
+      const visibleCount = this.allColumns().filter(col => col.visible).length;
+      if (visibleCount <= 1) {
+        // Mostra un avviso (opzionale) o semplicemente non eseguire l'azione
+        return; // Impedisci di nascondere l'ultima colonna
+      }
+    }
+
     // Update ottimistico locale
     const columns = this.allColumns().map(col => 
       col.id === columnId ? { ...col, visible } : col
@@ -241,6 +250,15 @@ export class JobOffersStatsView implements OnInit {
         this.loadData();
       }
     });
+  }
+
+  // Verifica se una checkbox colonna deve essere disabilitata (ultima visibile)
+  isColumnCheckboxDisabled(columnId: number): boolean {
+    const column = this.allColumns().find(col => col.id === columnId);
+    if (!column?.visible) return false; // Non disabilitare se già nascosta
+    
+    const visibleCount = this.allColumns().filter(col => col.visible).length;
+    return visibleCount <= 1; // Disabilita se è l'unica visibile
   }
 
   // === ESPANSIONE RIGHE ===
