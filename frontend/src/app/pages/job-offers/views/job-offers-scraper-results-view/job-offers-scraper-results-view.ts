@@ -6,7 +6,6 @@ import { FormsModule } from '@angular/forms';
 import { JobOfferColumnService, JobOfferColumn } from '../../../../services/job-offer-column.service';
 import { JobScraperService, ScrapedJob } from '../../../../services/job-scraper.service';
 import { EditModeService } from '../../../../services/edit-mode.service';
-import { AboutProfileService, PublicProfileDto } from '../../../../services/about-profile.service';
 
 /**
  * Componente per visualizzare i risultati dello scraping
@@ -25,7 +24,6 @@ export class JobOffersScraperResultsView implements OnInit {
   private columnService = inject(JobOfferColumnService);
   private scraperService = inject(JobScraperService);
   private editModeService = inject(EditModeService);
-  private aboutProfileService = inject(AboutProfileService);
   
   // Edit mode dal service globale
   editMode = this.editModeService.isEditing;
@@ -71,31 +69,15 @@ export class JobOffersScraperResultsView implements OnInit {
   skeletonColumns = computed(() => Array.from({ length: 4 }, (_, i) => i));
 
   ngOnInit(): void {
-    // Carica profilo per valori di default
-    this.aboutProfileService.get$().subscribe({
-      next: (profile: PublicProfileDto) => {
-        // Default professione dal titolo del profilo
-        if (profile.title) {
-          this.searchKeyword.set(profile.title);
-        }
-        // Default località dal profilo
-        if (profile.location) {
-          this.searchLocationInput.set(profile.location);
-        }
-      },
-      error: (err: any) => {
-        console.warn('Profilo non caricato, uso valori vuoti:', err);
-      }
-    });
-    
-    // Carica solo la configurazione colonne, non fare scraping
-    this.loadColumns();
+    // Carica solo le colonne configurate
+    this.loadInitialData();
   }
 
   /**
-   * Carica solo le colonne configurate dall'utente
+   * Carica colonne configurate dall'utente
+   * I campi di ricerca rimangono vuoti per input manuale
    */
-  private loadColumns(): void {
+  private loadInitialData(): void {
     this.columnService.getUserColumns().subscribe({
       next: (columns) => {
         this.allColumns.set(columns);
@@ -435,7 +417,7 @@ export class JobOffersScraperResultsView implements OnInit {
       },
       error: (err: any) => {
         console.error('Errore aggiornamento ordine:', err);
-        this.loadColumns();
+        this.loadInitialData();
       }
     });
   }
@@ -472,7 +454,7 @@ export class JobOffersScraperResultsView implements OnInit {
     this.columnService.updateVisibility(columnId, visible).subscribe({
       error: (err: any) => {
         console.error('Errore aggiornamento visibilità:', err);
-        this.loadColumns();
+        this.loadInitialData();
       }
     });
   }

@@ -82,8 +82,7 @@
               type="text" 
               class="input input-bordered w-full"
               placeholder="es. PHP Developer"
-              [(ngModel)]="searchKeyword"
-              [value]="searchKeyword()"
+              [ngModel]="searchKeyword()"
               (ngModelChange)="searchKeyword.set($event)">
           </div>
 
@@ -94,8 +93,7 @@
               type="text" 
               class="input input-bordered w-full"
               placeholder="es. Milano"
-              [(ngModel)]="searchLocationInput"
-              [value]="searchLocationInput()"
+              [ngModel]="searchLocationInput()"
               (ngModelChange)="searchLocationInput.set($event)">
           </div>
 
@@ -222,7 +220,7 @@
             <path d="m21 21-4.35-4.35"/>
           </svg>
           <h3>Inizia la Ricerca</h3>
-          <p>Inserisci una parola chiave e una località, poi clicca su "Cerca"</p>
+          <p>Inserisci una Professione e una località, poi clicca su "Cerca"</p>
         </div>
       } @else if (!loading() && filteredJobs().length === 0) {
         <div class="empty-state">
