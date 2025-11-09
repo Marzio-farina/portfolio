@@ -14,7 +14,7 @@
 
   <!-- Card Aggiungi (solo in modalità edit) -->
   @if (editMode() && !loading()) {
-    <div class="stat-card stat-card--add" (click)="onAddClick()" role="button" tabindex="0">
+    <div class="stat-card stat-card--add" (click)="onAddClick($event)" role="button" tabindex="0">
       <div class="add-card-circle" aria-hidden="true">
         <svg class="add-card-plus" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round">
           <line x1="12" y1="5" x2="12" y2="19"></line>
@@ -50,3 +50,41 @@
     }
   }
 </div>
+
+<!-- Modal per card nascoste -->
+@if (showModal()) {
+  <div class="modal-overlay" (click)="closeModal()">
+    <div class="modal-content" 
+         [style.top]="getModalPositionStyles()?.top" 
+         [style.left]="getModalPositionStyles()?.left"
+         (click)="$event.stopPropagation()">
+      <button type="button" class="modal-close" (click)="closeModal()" aria-label="Chiudi modal">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <path d="M18 6L6 18M6 6l12 12"/>
+        </svg>
+      </button>
+      
+      @if (hiddenCards().length === 0) {
+        <div class="modal-empty">
+          <p>Non ci sono card disponibili da aggiungere.</p>
+        </div>
+      } @else {
+        <div class="modal-cards-grid" [ngClass]="getModalGridColumns()">
+          @for (card of hiddenCards(); track card.id) {
+            <div class="modal-card" (click)="showCard(card.id)" role="button" tabindex="0">
+              <div class="modal-card__icon" [ngClass]="getCardClass(card.type)">
+                <div [innerHTML]="sanitizeSvg(card.icon_svg)"></div>
+              </div>
+              <div class="modal-card__add">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                  <line x1="12" y1="5" x2="12" y2="19"></line>
+                  <line x1="5" y1="12" x2="19" y2="12"></line>
+                </svg>
+              </div>
+            </div>
+          }
+        </div>
+      }
+    </div>
+  </div>
+}
