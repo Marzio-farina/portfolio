@@ -40,7 +40,7 @@ return new class extends Migration
             $table->string('website')->nullable();
             
             // Registrato (se si è registrati sul portale/sito)
-            $table->boolean('is_registered')->default(false);
+            $table->tinyInteger('is_registered')->default(0);
             
             // Campi aggiuntivi utili
             $table->enum('status', ['pending', 'interview', 'accepted', 'rejected', 'archived'])->default('pending');
