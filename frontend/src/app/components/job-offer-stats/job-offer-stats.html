@@ -34,7 +34,17 @@
         </div>
         <div class="stat-card__content">
           <p class="stat-card__label">{{ card.title }}</p>
-          <p class="stat-card__value">{{ getStatValue(card.type) }}</p>
+          @if (statsLoading()) {
+            <div class="stat-card__value stat-card__value--loading">
+              <svg class="clock-loader" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <circle cx="12" cy="12" r="10"/>
+                <polyline class="clock-hour" points="12 6 12 12"/>
+                <polyline class="clock-minute" points="12 12 16 14"/>
+              </svg>
+            </div>
+          } @else {
+            <p class="stat-card__value">{{ getStatValue(card.type) }}</p>
+          }
         </div>
         
         <!-- X per rimuovere card (solo in edit mode) -->

@@ -234,6 +234,7 @@ Route::middleware(['api', "throttle:{$throttleLimit}", 'db.connection'])
             // Route::delete('job-offer-cards/{id}', [JobOfferCardController::class, 'destroy']); // Elimina card master (solo admin)
 
             // Job Offers - gestione candidature lavorative
+            Route::post('job-offers/stats', [JobOfferController::class, 'getStats']); // Statistiche per card visibili
             Route::apiResource('job-offers', JobOfferController::class);
         });
 

@@ -28,6 +28,8 @@
   display: flex;
   flex-direction: column;
   gap: 0.5rem;
+  align-items: center;
+  flex: 1;
 }
 
 /* Card Aggiungi (in modalità edit) - adattata per stat-card */
@@ -248,6 +250,10 @@
 .stat-card__content {
   flex: 1;
   min-width: 0;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  text-align: center;
 }
 
 .stat-card__label {
@@ -264,6 +270,45 @@
   font-weight: 700;
   color: var(--text-primary);
   line-height: 1;
+}
+
+.stat-card__value--loading {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  height: 1rem;
+}
+
+.clock-loader {
+  width: 1rem;
+  height: 1rem;
+  color: var(--text-secondary);
+}
+
+.clock-loader circle {
+  stroke-width: 2;
+}
+
+.clock-loader .clock-hour {
+  transform-origin: 12px 12px;
+  animation: rotateHour 8s linear infinite;
+}
+
+.clock-loader .clock-minute {
+  transform-origin: 12px 12px;
+  animation: rotateMinute 2s linear infinite;
+}
+
+@keyframes rotateHour {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+@keyframes rotateMinute {
+  to {
+    transform: rotate(360deg);
+  }
 }
 
 /* Responsive */

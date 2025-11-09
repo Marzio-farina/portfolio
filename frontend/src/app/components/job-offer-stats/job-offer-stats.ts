@@ -45,6 +45,9 @@ export class JobOfferStatsComponent implements OnInit {
 
   // Loading state
   loading = signal<boolean>(true);
+  
+  // Loading state per le statistiche
+  statsLoading = input<boolean>(true);
 
   // Stato del modal
   showModal = signal<boolean>(false);
@@ -54,6 +57,9 @@ export class JobOfferStatsComponent implements OnInit {
 
   // Emette il tipo di card cliccata
   cardClick = output<JobOfferCardType>();
+  
+  // Emette quando le card visibili cambiano
+  visibleCardsChange = output<string[]>();
 
   ngOnInit(): void {
     this.loadCards();
@@ -69,6 +75,10 @@ export class JobOfferStatsComponent implements OnInit {
         this.cards.set(visibleCards);
         this.hiddenCards.set(hiddenCardsList);
         this.loading.set(false);
+        
+        // Emetti i tipi delle card visibili
+        const visibleTypes = visibleCards.map(c => c.type);
+        this.visibleCardsChange.emit(visibleTypes);
       },
       error: (err) => {
         console.error('Errore caricamento card:', err);
@@ -133,6 +143,10 @@ export class JobOfferStatsComponent implements OnInit {
     const hiddenCard = { ...cardToHide, visible: false };
     this.hiddenCards.set([...this.hiddenCards(), hiddenCard]);
     
+    // Emetti i nuovi tipi visibili
+    const visibleTypes = updatedCards.map(c => c.type);
+    this.visibleCardsChange.emit(visibleTypes);
+    
     // Chiamata API in background
     this.cardService.updateVisibility(cardId, false).subscribe({
       next: (updatedCard) => {
@@ -151,6 +165,10 @@ export class JobOfferStatsComponent implements OnInit {
         this.cards.set([...this.cards(), cardToHide]);
         const updatedHiddenCards = this.hiddenCards().filter(c => c.id !== cardId);
         this.hiddenCards.set(updatedHiddenCards);
+        
+        // Re-emetti i tipi visibili dopo il rollback
+        const visibleTypes = this.cards().map(c => c.type);
+        this.visibleCardsChange.emit(visibleTypes);
       }
     });
   }
@@ -167,7 +185,12 @@ export class JobOfferStatsComponent implements OnInit {
     
     // Crea una copia della card con visible=true
     const visibleCard = { ...cardToShow, visible: true };
-    this.cards.set([...this.cards(), visibleCard]);
+    const updatedVisibleCards = [...this.cards(), visibleCard];
+    this.cards.set(updatedVisibleCards);
+    
+    // Emetti i nuovi tipi visibili
+    const visibleTypes = updatedVisibleCards.map(c => c.type);
+    this.visibleCardsChange.emit(visibleTypes);
     
     // Chiudi il modal se non ci sono più card nascoste
     if (updatedHiddenCards.length === 0) {
@@ -192,6 +215,10 @@ export class JobOfferStatsComponent implements OnInit {
         this.hiddenCards.set([...this.hiddenCards(), cardToShow]);
         const updatedCards = this.cards().filter(c => c.id !== cardId);
         this.cards.set(updatedCards);
+        
+        // Re-emetti i tipi visibili dopo il rollback
+        const visibleTypes = updatedCards.map(c => c.type);
+        this.visibleCardsChange.emit(visibleTypes);
         
         // Riapri il modal se era stato chiuso
         if (updatedHiddenCards.length === 0) {

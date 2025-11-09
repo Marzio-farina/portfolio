@@ -25,6 +25,66 @@ class JobOfferController extends Controller
     }
 
     /**
+     * Get statistics for visible card types
+     */
+    public function getStats(Request $request): JsonResponse
+    {
+        $validated = $request->validate([
+            'visible_types' => 'required|array',
+            'visible_types.*' => 'required|string|in:total,pending,interview,accepted,archived,email'
+        ]);
+
+        $userId = Auth::id();
+        $visibleTypes = $validated['visible_types'];
+
+        // Calcola le statistiche
+        $stats = [
+            'total' => 0,
+            'pending' => 0,
+            'interview' => 0,
+            'accepted' => 0,
+            'archived' => 0,
+            'emailSent' => 0,
+        ];
+
+        // Solo se il tipo è visibile, calcola la statistica
+        if (in_array('total', $visibleTypes)) {
+            $stats['total'] = JobOffer::where('user_id', $userId)->count();
+        }
+
+        if (in_array('pending', $visibleTypes)) {
+            $stats['pending'] = JobOffer::where('user_id', $userId)
+                ->where('status', 'pending')
+                ->count();
+        }
+
+        if (in_array('interview', $visibleTypes)) {
+            $stats['interview'] = JobOffer::where('user_id', $userId)
+                ->where('status', 'interview')
+                ->count();
+        }
+
+        if (in_array('accepted', $visibleTypes)) {
+            $stats['accepted'] = JobOffer::where('user_id', $userId)
+                ->where('status', 'accepted')
+                ->count();
+        }
+
+        if (in_array('archived', $visibleTypes)) {
+            $stats['archived'] = JobOffer::where('user_id', $userId)
+                ->where('status', 'archived')
+                ->count();
+        }
+
+        if (in_array('email', $visibleTypes)) {
+            // Per ora emailSent rimane 0, potrebbe essere implementato in futuro
+            $stats['emailSent'] = 0;
+        }
+
+        return response()->json($stats);
+    }
+
+    /**
      * Store a newly created job offer.
      */
     public function store(Request $request): JsonResponse

@@ -31,6 +31,27 @@ export class JobOfferService {
   private apiUrl = environment.API_BASE_URL;
 
   /**
+   * Ottiene le statistiche per i tipi di card visibili
+   */
+  getStats(visibleTypes: string[]): Observable<{
+    total: number;
+    pending: number;
+    interview: number;
+    accepted: number;
+    archived: number;
+    emailSent: number;
+  }> {
+    return this.http.post<{
+      total: number;
+      pending: number;
+      interview: number;
+      accepted: number;
+      archived: number;
+      emailSent: number;
+    }>(`${this.apiUrl}/api/job-offers/stats`, { visible_types: visibleTypes });
+  }
+
+  /**
    * Ottiene tutte le job offers dell'utente autenticato
    */
   getJobOffers(): Observable<JobOffer[]> {
