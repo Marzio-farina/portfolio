@@ -39,8 +39,9 @@ export class NotificationService implements OnDestroy {
    * @param message Messaggio della notifica
    * @param fieldId Identificatore univoco del campo/azione
    * @param autoDismiss Se true, le notifiche di successo vengono rimosse automaticamente dopo il delay
+   * @param persistent Se true, la notifica non collassa mai in un'icona
    */
-  add(type: NotificationType, message: string, fieldId: string, autoDismiss: boolean = true): void {
+  add(type: NotificationType, message: string, fieldId: string, autoDismiss: boolean = true, persistent: boolean = false): void {
     const now = Date.now();
     
     // Genera ID univoco
@@ -54,7 +55,8 @@ export class NotificationService implements OnDestroy {
       message,
       type,
       timestamp: now,
-      fieldId
+      fieldId,
+      persistent
     };
     
     // Rimuovi notifiche precedenti con lo stesso fieldId (se non ha timestamp)
@@ -121,14 +123,14 @@ export class NotificationService implements OnDestroy {
    * Aggiunge una notifica di successo
    * Evita duplicati con lo stesso messaggio
    */
-  addSuccess(message: string, autoDismiss: boolean = true): void {
+  addSuccess(message: string, autoDismiss: boolean = true, persistent: boolean = false): void {
     const currentNotifications = this._notifications();
     
     // Controlla se esiste già una notifica di successo con lo stesso messaggio
     const duplicateSuccess = currentNotifications.some(n => n.message === message && n.type === 'success');
     
     if (!duplicateSuccess) {
-      this.add('success', message, 'success', autoDismiss);
+      this.add('success', message, 'success', autoDismiss, persistent);
     }
   }
 

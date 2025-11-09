@@ -10,6 +10,7 @@ import { Auth } from './components/auth/auth';
 import { AuthService } from './services/auth.service';
 import { IdleService } from './services/idle.service';
 import { ThemeService } from './services/theme.service';
+import { EditModeService } from './services/edit-mode.service';
 import { ParticlesBgComponent } from './components/particles-bg/particles-bg';
 import { CvUploadModalService } from './services/cv-upload-modal.service';
 import { CvUploadModal } from './components/cv-upload-modal/cv-upload-modal';
@@ -52,6 +53,7 @@ export class App {
   private readonly auth = inject(AuthService);
   private readonly idle = inject(IdleService);
   private readonly theme = inject(ThemeService);
+  private readonly editMode = inject(EditModeService);
   private readonly router = inject(Router);
   private readonly route = inject(ActivatedRoute);
   private readonly destroyRef = inject(DestroyRef);
@@ -91,6 +93,7 @@ export class App {
     this.initializeTheme();
     this.setupAuthenticationEffect();
     this.setupIdleTimeoutHandler();
+    this.setupEditModeNotification();
     this.checkPasswordResetParams();
     
     // Blocca lo scroll del body quando qualsiasi modale è aperto
@@ -193,6 +196,32 @@ export class App {
       .subscribe(() => {
         this.handleIdleReset();
       });
+  }
+
+  /**
+   * Setup Edit Mode notification
+   * Shows persistent notification when Edit Mode is active
+   */
+  private setupEditModeNotification(): void {
+    effect(() => {
+      const isEditing = this.editMode.isEditing();
+      const currentNotifications = this.notificationService.notifications();
+      const hasEditModeNotification = currentNotifications.some(n => n.fieldId === 'edit-mode');
+      
+      if (isEditing && !hasEditModeNotification) {
+        // Aggiungi notifica Edit Mode solo se non esiste già
+        this.notificationService.add(
+          'info',
+          'Modalità Edit attiva',
+          'edit-mode',
+          false, // Non auto-dismiss
+          true   // Persistent - non collassa mai
+        );
+      } else if (!isEditing && hasEditModeNotification) {
+        // Rimuovi notifica Edit Mode solo se esiste
+        this.notificationService.remove('edit-mode');
+      }
+    });
   }
 
   /**

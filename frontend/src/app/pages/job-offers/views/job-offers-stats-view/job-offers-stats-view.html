@@ -55,20 +55,6 @@
     </div>
   }
 
-  <!-- Banner informativo modalità Edit -->
-  @if (editMode()) {
-    <div class="edit-mode-banner">
-      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-        <circle cx="12" cy="12" r="10"/>
-        <path d="M12 16v-4"/>
-        <path d="M12 8h.01"/>
-      </svg>
-      <span>
-        <strong>Modalità Edit attiva:</strong> Trascina gli header delle colonne per riordinarle
-      </span>
-    </div>
-  }
-
   <!-- Layout principale: Filtri laterali + Tabella -->
   <div class="content-layout" [class.filters-hidden]="!filtersVisible()">
     <!-- Filtri laterali -->

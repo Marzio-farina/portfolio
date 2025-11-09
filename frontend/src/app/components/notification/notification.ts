@@ -9,6 +9,7 @@ export interface NotificationItem {
   type: NotificationType;
   timestamp: number;
   fieldId: string;
+  persistent?: boolean; // Se true, la notifica non collassa mai
 }
 
 @Component({
@@ -465,6 +466,13 @@ export class Notification implements OnDestroy, AfterViewInit {
   private startNotificationTimer(notificationId: string) {
     // Cancella timer esistente se presente
     this.clearNotificationTimer(notificationId);
+    
+    // Controlla se la notifica è persistente
+    const notification = this.notifications().find(n => n.id === notificationId);
+    if (notification?.persistent) {
+      // Non avviare il timer per notifiche persistenti
+      return;
+    }
     
     // Avvia nuovo timer
     const timer = window.setTimeout(() => {

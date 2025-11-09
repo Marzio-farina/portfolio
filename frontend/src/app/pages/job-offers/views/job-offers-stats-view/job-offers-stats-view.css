@@ -103,42 +103,6 @@
   transition: stroke-width var(--transition-1);
 }
 
-/* === BANNER MODALITÀ EDIT === */
-.edit-mode-banner {
-  display: flex;
-  align-items: center;
-  gap: 0.75rem;
-  background: linear-gradient(135deg, var(--accent-primary) 0%, color-mix(in oklab, var(--accent-primary) 80%, transparent 20%) 100%);
-  color: white;
-  padding: 1rem 2rem;
-  margin: 0 32px 1.5rem 32px;
-  border-radius: 12px;
-  font-size: 0.9375rem;
-  animation: slideDown 0.3s ease-out;
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
-}
-
-.edit-mode-banner svg {
-  width: 24px;
-  height: 24px;
-  flex-shrink: 0;
-}
-
-.edit-mode-banner strong {
-  font-weight: 700;
-}
-
-@keyframes slideDown {
-  from {
-    opacity: 0;
-    transform: translateY(-20px);
-  }
-  to {
-    opacity: 1;
-    transform: translateY(0);
-  }
-}
-
 /* === FILTRO SUPERIORE === */
 .top-filter {
   display: flex;
@@ -615,17 +579,6 @@
   .filter-toggle-btn svg {
     width: 24px;
     height: 24px;
-  }
-  
-  .edit-mode-banner {
-    margin: 0 16px 1rem 16px;
-    padding: 0.75rem 1rem;
-    font-size: 0.875rem;
-  }
-  
-  .edit-mode-banner svg {
-    width: 20px;
-    height: 20px;
   }
 
   .top-filter {
