@@ -340,25 +340,44 @@
                         <td [attr.colspan]="mainColumns().length + 1" class="expanded-cell">
                           <div class="expanded-content">
                             @for (column of extraColumns(); track column.id) {
-                              <div class="extra-field">
-                                <span class="extra-field__label">{{ column.title }}:</span>
-                                <span class="extra-field__value">
-                                  @if (column.field_name === 'location') {
-                                    <div class="flex items-center gap-2">
-                                      <svg class="location-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                                        <path d="M20 10c0 6-8 12-8 12s-8-6-8-12a8 8 0 0 1 16 0Z"/>
-                                        <circle cx="12" cy="10" r="3"/>
-                                      </svg>
-                                      {{ offer.location || '-' }}
-                                    </div>
-                                  } @else if (column.field_name === 'status') {
-                                    <span class="badge" [ngClass]="getStatusClass(offer.status)">
-                                      {{ getStatusLabel(offer.status) }}
-                                    </span>
-                                  } @else {
-                                    {{ formatValue(getFieldValue(offer, column.field_name), column.field_name) }}
-                                  }
-                                </span>
+                              <div 
+                                class="extra-field"
+                                [draggable]="editMode()"
+                                [class.extra-field--draggable]="editMode()"
+                                [class.extra-field--dragging]="isColumnDragging(column.id)"
+                                [class.extra-field--drop-target]="isColumnDropTarget(column.id)"
+                                (dragstart)="onDragStart($event, column.id)"
+                                (dragover)="onDragOver($event, column.id)"
+                                (dragleave)="onDragLeave($event)"
+                                (drop)="onDrop($event, column.id)"
+                                (dragend)="onDragEnd()">
+                                @if (editMode()) {
+                                  <svg class="drag-handle drag-handle--extra" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                    <line x1="3" y1="12" x2="21" y2="12"/>
+                                    <line x1="3" y1="6" x2="21" y2="6"/>
+                                    <line x1="3" y1="18" x2="21" y2="18"/>
+                                  </svg>
+                                }
+                                <div class="extra-field__content">
+                                  <span class="extra-field__label">{{ column.title }}:</span>
+                                  <span class="extra-field__value">
+                                    @if (column.field_name === 'location') {
+                                      <div class="flex items-center gap-2">
+                                        <svg class="location-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                          <path d="M20 10c0 6-8 12-8 12s-8-6-8-12a8 8 0 0 1 16 0Z"/>
+                                          <circle cx="12" cy="10" r="3"/>
+                                        </svg>
+                                        {{ offer.location || '-' }}
+                                      </div>
+                                    } @else if (column.field_name === 'status') {
+                                      <span class="badge" [ngClass]="getStatusClass(offer.status)">
+                                        {{ getStatusLabel(offer.status) }}
+                                      </span>
+                                    } @else {
+                                      {{ formatValue(getFieldValue(offer, column.field_name), column.field_name) }}
+                                    }
+                                  </span>
+                                </div>
                               </div>
                             }
                           </div>
