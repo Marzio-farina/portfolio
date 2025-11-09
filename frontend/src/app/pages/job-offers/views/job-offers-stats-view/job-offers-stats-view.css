@@ -384,3 +384,9 @@
     min-width: 800px;
   }
 }
+
+@media (max-width: 460px) {
+  .header {
+    margin-top: 20px;
+  }
+}
