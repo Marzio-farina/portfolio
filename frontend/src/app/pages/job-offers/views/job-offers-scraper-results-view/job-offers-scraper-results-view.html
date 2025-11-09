@@ -60,39 +60,86 @@
     @if (filtersVisible()) {
       <aside class="side-filters">
         <div class="filter-card">
-          <h3 class="filter-title">Filtri</h3>
+          <h3 class="filter-title">Ricerca Offerte</h3>
 
-          <!-- Filtro Location -->
+          <!-- Campo Keyword -->
+          <div class="filter-group">
+            <label class="filter-label">Parola Chiave *</label>
+            <input 
+              type="text" 
+              class="input input-bordered w-full"
+              placeholder="es. PHP Developer"
+              [(ngModel)]="searchKeyword"
+              [value]="searchKeyword()"
+              (ngModelChange)="searchKeyword.set($event)">
+          </div>
+
+          <!-- Campo Location -->
           <div class="filter-group">
             <label class="filter-label">Località</label>
-            <select 
-              class="select select-bordered w-full"
-              [(ngModel)]="selectedLocation"
-              [value]="selectedLocation()"
-              (ngModelChange)="selectedLocation.set($event)">
-              <option value="all">Tutte</option>
-              @for (location of uniqueLocations(); track location) {
-                <option [value]="location">{{ location }}</option>
-              }
-            </select>
+            <input 
+              type="text" 
+              class="input input-bordered w-full"
+              placeholder="es. Milano"
+              [(ngModel)]="searchLocationInput"
+              [value]="searchLocationInput()"
+              (ngModelChange)="searchLocationInput.set($event)">
           </div>
 
+          <!-- Separator -->
+          @if (scrapedJobs().length > 0) {
+            <div class="filter-separator"></div>
+
+            <h3 class="filter-title">Filtra Risultati</h3>
+
+            <!-- Filtro Location -->
+            <div class="filter-group">
+              <label class="filter-label">Località</label>
+              <select 
+                class="select select-bordered w-full"
+                [(ngModel)]="selectedLocation"
+                [value]="selectedLocation()"
+                (ngModelChange)="selectedLocation.set($event)">
+                <option value="all">Tutte</option>
+                @for (location of uniqueLocations(); track location) {
+                  <option [value]="location">{{ location }}</option>
+                }
+              </select>
+            </div>
+          }
+
           <!-- Contatore risultati -->
-          <div class="results-count">
-            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-              <path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/>
-              <circle cx="9" cy="7" r="4"/>
-              <path d="M22 21v-2a4 4 0 0 0-3-3.87"/>
-              <path d="M16 3.13a4 4 0 0 1 0 7.75"/>
-            </svg>
-            <span>{{ filteredJobs().length }} Risultati</span>
-          </div>
+          @if (scrapedJobs().length > 0) {
+            <div class="results-count">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/>
+                <circle cx="9" cy="7" r="4"/>
+                <path d="M22 21v-2a4 4 0 0 0-3-3.87"/>
+                <path d="M16 3.13a4 4 0 0 1 0 7.75"/>
+              </svg>
+              <span>{{ filteredJobs().length }} Risultati</span>
+            </div>
+          }
         </div>
       </aside>
     }
 
     <!-- Tabella -->
     <div class="table-container">
+      <!-- Pulsante Cerca (position absolute) -->
+      <button 
+        class="search-btn"
+        type="button"
+        title="Cerca offerte"
+        (click)="performSearch()"
+        [disabled]="loading() || !searchKeyword()">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <circle cx="11" cy="11" r="8"/>
+          <path d="m21 21-4.35-4.35"/>
+        </svg>
+        <span>Cerca</span>
+      </button>
+
       <!-- Pulsante opzioni tabella (visibile solo in Edit Mode) -->
       @if (editMode()) {
         <button 
@@ -139,7 +186,16 @@
       }
 
       <!-- Empty State -->
-      @if (!loading() && filteredJobs().length === 0) {
+      @if (!loading() && scrapedJobs().length === 0) {
+        <div class="empty-state">
+          <svg class="empty-icon empty-icon--search" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+            <circle cx="11" cy="11" r="8"/>
+            <path d="m21 21-4.35-4.35"/>
+          </svg>
+          <h3>Inizia la Ricerca</h3>
+          <p>Inserisci una parola chiave e una località, poi clicca su "Cerca"</p>
+        </div>
+      } @else if (!loading() && filteredJobs().length === 0) {
         <div class="empty-state">
           <svg class="empty-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
             <circle cx="12" cy="12" r="10"/>

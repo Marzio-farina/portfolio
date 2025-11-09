@@ -41,8 +41,12 @@ export class JobOffersScraperResultsView implements OnInit {
   searchQuery = signal<string>('');
   selectedLocation = signal<string>('all');
   
-  // Visibilità filtri
-  filtersVisible = signal<boolean>(false);
+  // Parametri ricerca Adzuna
+  searchKeyword = signal<string>('');
+  searchLocationInput = signal<string>('');
+  
+  // Visibilità filtri (di default visibili)
+  filtersVisible = signal<boolean>(true);
   
   // Righe espanse
   expandedRows = signal<Set<string>>(new Set());
@@ -63,22 +67,18 @@ export class JobOffersScraperResultsView implements OnInit {
   skeletonColumns = computed(() => Array.from({ length: 4 }, (_, i) => i));
 
   ngOnInit(): void {
-    this.loadData();
+    // Carica solo la configurazione colonne, non fare scraping
+    this.loadColumns();
   }
 
   /**
-   * Carica colonne utente e risultati scraping
+   * Carica solo le colonne configurate dall'utente
    */
-  private loadData(): void {
-    this.loading.set(true);
-    
-    // 1. Carica configurazione colonne
+  private loadColumns(): void {
     this.columnService.getUserColumns().subscribe({
       next: (columns) => {
         this.allColumns.set(columns);
-        
-        // 2. Esegui scraping
-        this.performScraping();
+        this.loading.set(false);
       },
       error: (err) => {
         console.error('Errore caricamento colonne:', err);
@@ -88,19 +88,29 @@ export class JobOffersScraperResultsView implements OnInit {
   }
 
   /**
-   * Esegue lo scraping tramite Adzuna
+   * Esegue la ricerca tramite Adzuna (chiamato dal pulsante Cerca)
    */
-  private performScraping(): void {
-    // Parametri di ricerca (TODO: da passare via route params o dialog)
+  performSearch(): void {
+    const keyword = this.searchKeyword().trim();
+    
+    if (!keyword) {
+      console.warn('⚠️ Keyword di ricerca mancante');
+      return;
+    }
+
+    console.log('🔍 Ricerca offerte tramite Adzuna...');
+    this.loading.set(true);
+    
     const params = {
-      keyword: 'Developer',
-      location: 'Italia',
+      keyword: keyword,
+      location: this.searchLocationInput() || 'Italia',
       limit: 50
     };
 
     this.scraperService.scrapeAdzuna(params).subscribe({
       next: (response) => {
         console.log('✅ Adzuna scraping completato:', response);
+        console.log(`📊 Trovate ${response.count} offerte:`, response.jobs);
         this.scrapedJobs.set(response.jobs);
         this.loading.set(false);
       },
@@ -370,7 +380,7 @@ export class JobOffersScraperResultsView implements OnInit {
       },
       error: (err: any) => {
         console.error('Errore aggiornamento ordine:', err);
-        this.loadData();
+        this.loadColumns();
       }
     });
   }
@@ -407,7 +417,7 @@ export class JobOffersScraperResultsView implements OnInit {
     this.columnService.updateVisibility(columnId, visible).subscribe({
       error: (err: any) => {
         console.error('Errore aggiornamento visibilità:', err);
-        this.loadData();
+        this.loadColumns();
       }
     });
   }

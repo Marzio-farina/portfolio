@@ -276,6 +276,22 @@
   color: var(--text-primary);
 }
 
+.input {
+  background: var(--bg-secondary);
+  border-color: var(--border-primary);
+  color: var(--text-primary);
+}
+
+.input::placeholder {
+  color: var(--text-secondary);
+  opacity: 1;
+}
+
+.input:focus {
+  border-color: var(--accent-primary);
+  outline: none;
+}
+
 .select {
   background: var(--bg-secondary);
   border-color: var(--border-primary);
@@ -285,6 +301,12 @@
 .select:focus {
   border-color: var(--accent-primary);
   outline: none;
+}
+
+.filter-separator {
+  height: 1px;
+  background: var(--border-primary);
+  margin: 1.5rem 0;
 }
 
 .results-count {
@@ -303,6 +325,41 @@
   width: 18px;
   height: 18px;
   color: var(--accent-primary);
+}
+
+/* === PULSANTE CERCA === */
+.search-btn {
+  position: absolute;
+  top: 0;
+  left: 0;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.75rem 1.5rem;
+  background: var(--accent-primary);
+  color: white;
+  border: none;
+  border-radius: 12px 0 8px 0;
+  cursor: pointer;
+  font-weight: 600;
+  font-size: 0.9375rem;
+  transition: all var(--transition-1);
+  z-index: 10;
+}
+
+.search-btn:hover:not(:disabled) {
+  background: color-mix(in oklab, var(--accent-primary) 85%, black 15%);
+  transform: scale(1.02);
+}
+
+.search-btn:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.search-btn svg {
+  width: 18px;
+  height: 18px;
 }
 
 /* === TABELLA === */
@@ -971,6 +1028,13 @@
   height: 64px;
   color: var(--text-secondary);
   margin-bottom: 1rem;
+}
+
+.empty-icon--search {
+  width: 120px;
+  height: 120px;
+  color: var(--accent-primary);
+  opacity: 0.6;
 }
 
 .empty-state h3 {
