@@ -9,31 +9,89 @@
     <h2 class="title">Aggiungi Nuova Candidatura</h2>
   </div>
 
-  <!-- Form container -->
-  <div class="form-container">
-    <div class="form-card">
-      <form>
-        <!-- TODO: Implementare i campi del form -->
-        <div class="form-group">
-          <label class="form-label">Azienda</label>
-          <input type="text" class="input input-bordered w-full" placeholder="Nome azienda">
-        </div>
+  <!-- Cards container -->
+  <div class="cards-container">
+    <!-- Card LinkedIn -->
+    <div class="choice-card linkedin-card" (click)="openLinkedInDialog()">
+      <div class="card-icon">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <path d="M16 8a6 6 0 0 1 6 6v7h-4v-7a2 2 0 0 0-2-2 2 2 0 0 0-2 2v7h-4v-7a6 6 0 0 1 6-6z"/>
+          <rect x="2" y="9" width="4" height="12"/>
+          <circle cx="4" cy="4" r="2"/>
+        </svg>
+      </div>
+      <h3 class="card-title">Cerca su LinkedIn</h3>
+      <p class="card-description">Sfoglia le offerte di lavoro disponibili su LinkedIn e aggiungi la candidatura direttamente</p>
+      <div class="card-arrow">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <path d="M5 12h14M12 5l7 7-7 7"/>
+        </svg>
+      </div>
+    </div>
 
-        <div class="form-group">
-          <label class="form-label">Posizione</label>
-          <input type="text" class="input input-bordered w-full" placeholder="Titolo posizione">
-        </div>
+    <!-- Card Manuale -->
+    <div class="choice-card manual-card">
+      <div class="card-icon">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/>
+          <path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/>
+        </svg>
+      </div>
+      <h3 class="card-title">Inserimento Manuale</h3>
+      <p class="card-description">Compila manualmente il form con i dettagli della candidatura</p>
+      
+      <!-- Form interno alla card -->
+      <div class="manual-form">
+        <form>
+          <div class="form-group">
+            <label class="form-label">Azienda</label>
+            <input type="text" class="input input-bordered w-full" placeholder="Nome azienda">
+          </div>
 
-        <div class="form-actions">
-          <button type="button" class="btn btn-outline" (click)="onCancel()">
-            Annulla
-          </button>
-          <button type="button" class="btn btn-primary" (click)="onSave()">
-            Salva Candidatura
-          </button>
-        </div>
-      </form>
+          <div class="form-group">
+            <label class="form-label">Posizione</label>
+            <input type="text" class="input input-bordered w-full" placeholder="Titolo posizione">
+          </div>
+
+          <div class="form-group">
+            <label class="form-label">Località</label>
+            <input type="text" class="input input-bordered w-full" placeholder="Città, Provincia">
+          </div>
+
+          <div class="form-actions">
+            <button type="button" class="btn btn-outline" (click)="onCancel()">
+              Annulla
+            </button>
+            <button type="button" class="btn btn-primary" (click)="onSave()">
+              Salva Candidatura
+            </button>
+          </div>
+        </form>
+      </div>
     </div>
   </div>
+
+  <!-- Dialog LinkedIn a pieno schermo -->
+  @if (linkedinDialogOpen()) {
+    <div class="linkedin-dialog">
+      <div class="dialog-header">
+        <h3 class="dialog-title">LinkedIn Jobs</h3>
+        <button class="dialog-close" type="button" (click)="closeLinkedInDialog()" aria-label="Chiudi">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M18 6L6 18M6 6l12 12"/>
+          </svg>
+        </button>
+      </div>
+      <div class="dialog-content">
+        <iframe 
+          src="https://www.linkedin.com/jobs/" 
+          class="linkedin-iframe"
+          title="LinkedIn Jobs"
+          sandbox="allow-same-origin allow-scripts allow-popups allow-forms"
+          loading="lazy">
+        </iframe>
+      </div>
+    </div>
+  }
 </section>
 
