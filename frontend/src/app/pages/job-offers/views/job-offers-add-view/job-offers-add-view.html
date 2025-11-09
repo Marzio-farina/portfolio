@@ -11,21 +11,28 @@
 
   <!-- Cards container -->
   <div class="cards-container">
-    <!-- Card LinkedIn -->
-    <div class="choice-card linkedin-card" (click)="openLinkedInDialog()">
-      <div class="card-icon">
-        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-          <path d="M16 8a6 6 0 0 1 6 6v7h-4v-7a2 2 0 0 0-2-2 2 2 0 0 0-2 2v7h-4v-7a6 6 0 0 1 6-6z"/>
-          <rect x="2" y="9" width="4" height="12"/>
-          <circle cx="4" cy="4" r="2"/>
-        </svg>
-      </div>
-      <h3 class="card-title">Cerca su LinkedIn</h3>
-      <p class="card-description">Sfoglia le offerte di lavoro disponibili su LinkedIn e aggiungi la candidatura direttamente</p>
-      <div class="card-arrow">
-        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-          <path d="M5 12h14M12 5l7 7-7 7"/>
-        </svg>
+    <!-- Card Scraper -->
+    <div class="choice-card scraper-card">
+      <h3 class="card-title">Cerca Offerte Online</h3>
+      <p class="card-description">Vedi le offerte di lavoro sui principali portali di lavoro</p>
+      
+      <!-- Adzuna Box -->
+      <div class="scraper-box adzuna-box" (click)="searchJobs()">
+        <div class="scraper-icon">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <circle cx="11" cy="11" r="8"/>
+            <path d="m21 21-4.35-4.35"/>
+          </svg>
+        </div>
+        <div class="scraper-content">
+          <h4 class="scraper-title">Vedi le offerte</h4>
+          <p class="scraper-text">Indeed, LinkedIn, Monster e altri</p>
+        </div>
+        <div class="scraper-arrow">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M5 12h14M12 5l7 7-7 7"/>
+          </svg>
+        </div>
       </div>
     </div>
 
@@ -70,28 +77,5 @@
       </div>
     </div>
   </div>
-
-  <!-- Dialog LinkedIn a pieno schermo -->
-  @if (linkedinDialogOpen()) {
-    <div class="linkedin-dialog">
-      <div class="dialog-header">
-        <h3 class="dialog-title">LinkedIn Jobs</h3>
-        <button class="dialog-close" type="button" (click)="closeLinkedInDialog()" aria-label="Chiudi">
-          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-            <path d="M18 6L6 18M6 6l12 12"/>
-          </svg>
-        </button>
-      </div>
-      <div class="dialog-content">
-        <iframe 
-          src="https://www.linkedin.com/jobs/" 
-          class="linkedin-iframe"
-          title="LinkedIn Jobs"
-          sandbox="allow-same-origin allow-scripts allow-popups allow-forms"
-          loading="lazy">
-        </iframe>
-      </div>
-    </div>
-  }
 </section>
 

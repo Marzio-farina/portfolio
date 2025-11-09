@@ -70,24 +70,8 @@
   min-height: 500px;
 }
 
-.linkedin-card {
-  cursor: pointer;
-}
-
-.linkedin-card:hover {
-  border-color: var(--accent-primary);
-  transform: translateY(-4px);
-  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.15);
-}
-
-.linkedin-card:hover .card-icon {
-  background: var(--accent-primary);
-  color: white;
-  transform: scale(1.1);
-}
-
-.linkedin-card:hover .card-arrow {
-  transform: translateX(8px);
+.scraper-card {
+  gap: 1.5rem;
 }
 
 .card-icon {
@@ -108,6 +92,106 @@
   height: 32px;
 }
 
+/* Scraper Box */
+.scraper-box {
+  background: var(--bg-secondary);
+  border-radius: 8px;
+  padding: 1.25rem;
+  border: 1px solid var(--border-primary);
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  cursor: pointer;
+  transition: all var(--transition-1);
+  position: relative;
+  overflow: hidden;
+}
+
+.scraper-box::before {
+  content: '';
+  position: absolute;
+  left: 0;
+  top: 0;
+  bottom: 0;
+  width: 4px;
+  background: var(--accent-primary);
+  transform: scaleY(0);
+  transition: transform var(--transition-1);
+}
+
+.scraper-box:hover {
+  border-color: var(--accent-primary);
+  background: color-mix(in oklab, var(--bg-secondary) 90%, var(--accent-primary) 10%);
+  transform: translateX(4px);
+}
+
+.scraper-box:hover::before {
+  transform: scaleY(1);
+}
+
+.scraper-box:hover .scraper-icon {
+  background: var(--accent-primary);
+  color: white;
+  transform: scale(1.1);
+}
+
+.scraper-box:hover .scraper-arrow {
+  transform: translateX(4px);
+}
+
+.scraper-icon {
+  width: 48px;
+  height: 48px;
+  border-radius: 8px;
+  background: var(--bg-card);
+  color: var(--accent-primary);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  transition: all var(--transition-1);
+}
+
+.scraper-icon svg {
+  width: 24px;
+  height: 24px;
+}
+
+.scraper-content {
+  flex: 1;
+}
+
+.scraper-title {
+  margin: 0 0 0.25rem 0;
+  font-size: 1rem;
+  font-weight: 700;
+  color: var(--text-primary);
+}
+
+.scraper-text {
+  margin: 0;
+  font-size: 0.8125rem;
+  color: var(--text-secondary);
+}
+
+.scraper-arrow {
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  background: var(--bg-card);
+  color: var(--accent-primary);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  transition: all var(--transition-1);
+}
+
+.scraper-arrow svg {
+  width: 16px;
+  height: 16px;
+}
+
 .card-title {
   margin: 0 0 0.75rem 0;
   font-size: 1.5rem;
@@ -120,26 +204,6 @@
   font-size: 0.9375rem;
   color: var(--text-secondary);
   line-height: 1.6;
-}
-
-.card-arrow {
-  position: absolute;
-  bottom: 2rem;
-  right: 2rem;
-  width: 40px;
-  height: 40px;
-  border-radius: 50%;
-  background: var(--bg-secondary);
-  color: var(--accent-primary);
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  transition: all var(--transition-1);
-}
-
-.card-arrow svg {
-  width: 20px;
-  height: 20px;
 }
 
 /* Manual Form */
@@ -192,82 +256,6 @@
   border-top: 1px solid var(--border-primary);
 }
 
-/* Dialog LinkedIn a pieno schermo */
-.linkedin-dialog {
-  position: fixed;
-  inset: 0;
-  background: var(--bg-primary);
-  z-index: 9999;
-  display: flex;
-  flex-direction: column;
-  animation: fadeIn 0.3s ease-out;
-}
-
-@keyframes fadeIn {
-  from {
-    opacity: 0;
-  }
-  to {
-    opacity: 1;
-  }
-}
-
-.dialog-header {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  padding: 1.5rem 2rem;
-  background: var(--bg-card);
-  border-bottom: 1px solid var(--border-primary);
-  flex-shrink: 0;
-}
-
-.dialog-title {
-  margin: 0;
-  font-size: 1.25rem;
-  font-weight: 700;
-  color: var(--text-primary);
-}
-
-.dialog-close {
-  width: 40px;
-  height: 40px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  background: transparent;
-  border: 1px solid var(--border-primary);
-  border-radius: 50%;
-  cursor: pointer;
-  transition: all var(--transition-1);
-  color: var(--text-primary);
-}
-
-.dialog-close:hover {
-  background: var(--bg-secondary);
-  border-color: var(--accent-primary);
-  color: var(--accent-primary);
-  transform: rotate(90deg);
-}
-
-.dialog-close svg {
-  width: 20px;
-  height: 20px;
-}
-
-.dialog-content {
-  flex: 1;
-  overflow: hidden;
-  position: relative;
-}
-
-.linkedin-iframe {
-  width: 100%;
-  height: 100%;
-  border: none;
-  display: block;
-}
-
 /* Responsive */
 @media (max-width: 1024px) {
   .cards-container {
@@ -279,10 +267,7 @@
     min-height: auto;
   }
 
-  .linkedin-card {
-    min-height: 200px;
-  }
-
+  .scraper-card,
   .manual-card {
     min-height: 400px;
   }
@@ -317,10 +302,6 @@
   .form-actions button {
     width: 100%;
   }
-
-  .dialog-header {
-    padding: 1rem 1.5rem;
-  }
 }
 
 @media (max-width: 460px) {
@@ -336,11 +317,6 @@
   .card-icon svg {
     width: 24px;
     height: 24px;
-  }
-
-  .card-arrow {
-    bottom: 1.5rem;
-    right: 1.5rem;
   }
 }
 

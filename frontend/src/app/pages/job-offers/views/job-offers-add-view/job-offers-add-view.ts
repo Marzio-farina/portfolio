@@ -1,7 +1,9 @@
-import { Component, inject, signal, effect, HostListener } from '@angular/core';
+import { Component, inject } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { Location } from '@angular/common';
+import { Router } from '@angular/router';
+import { TenantService } from '../../../../services/tenant.service';
 
 /**
  * Componente per aggiungere una nuova candidatura
@@ -15,43 +17,21 @@ import { Location } from '@angular/common';
 })
 export class JobOffersAddView {
   private location = inject(Location);
-
-  // Stato per il dialog LinkedIn
-  linkedinDialogOpen = signal<boolean>(false);
-
-  constructor() {
-    // Effect per gestire lo scroll del body quando il dialog è aperto
-    effect(() => {
-      if (this.linkedinDialogOpen()) {
-        document.body.style.overflow = 'hidden';
-      } else {
-        document.body.style.overflow = '';
-      }
-    });
-  }
+  private router = inject(Router);
+  private tenantService = inject(TenantService);
 
   /**
-   * Gestisce la pressione di Esc per chiudere il dialog
+   * Naviga alla vista risultati scraping
+   * TODO: mostrare dialog con form per keyword e location
    */
-  @HostListener('document:keydown.escape')
-  handleEscapeKey(): void {
-    if (this.linkedinDialogOpen()) {
-      this.closeLinkedInDialog();
-    }
-  }
-
-  /**
-   * Apre il dialog a pieno schermo con LinkedIn Jobs
-   */
-  openLinkedInDialog(): void {
-    this.linkedinDialogOpen.set(true);
-  }
-
-  /**
-   * Chiude il dialog LinkedIn
-   */
-  closeLinkedInDialog(): void {
-    this.linkedinDialogOpen.set(false);
+  searchJobs(): void {
+    console.log('🔍 Navigazione a risultati scraping...');
+    
+    const tenantSlug = this.tenantService.userSlug();
+    const basePath = tenantSlug ? `/${tenantSlug}/job-offers/search-results` : '/job-offers/search-results';
+    
+    // TODO: passare parametri di ricerca via query params o state
+    this.router.navigate([basePath]);
   }
 
   /**

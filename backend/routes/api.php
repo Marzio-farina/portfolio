@@ -18,6 +18,7 @@ use App\Http\Controllers\Api\GitHubRepositoryController;
 use App\Http\Controllers\Api\JobOfferCardController;
 use App\Http\Controllers\Api\JobOfferColumnController;
 use App\Http\Controllers\Api\JobOfferController;
+use App\Http\Controllers\Api\JobScraperController;
 use App\Http\Controllers\Api\ProjectController;
 use App\Http\Controllers\Api\SocialAccountController;
 use App\Http\Controllers\Api\TechnologyController;
@@ -242,6 +243,9 @@ Route::middleware(['api', "throttle:{$throttleLimit}", 'db.connection'])
             Route::get('job-offer-columns', [JobOfferColumnController::class, 'index']); // Ottieni colonne configurate utente
             Route::put('job-offer-columns/reorder', [JobOfferColumnController::class, 'updateOrder']); // Riordina colonne (DEVE essere prima di {columnId})
             Route::put('job-offer-columns/{columnId}', [JobOfferColumnController::class, 'update']); // Aggiorna visibilità
+
+            // Job Scraper - scraping offerte di lavoro tramite Adzuna (aggrega Indeed, LinkedIn, Monster)
+            Route::post('job-scraper/adzuna', [JobScraperController::class, 'scrapeAdzuna']);
         });
 
         // ====================================================================

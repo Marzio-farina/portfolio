@@ -1,0 +1,326 @@
+<section class="job-offer-detail">
+  <!-- Header con back button e titolo -->
+  <div class="header">
+    <button class="back-btn" type="button" (click)="goBack()" aria-label="Torna indietro">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+        <path d="M19 12H5M12 19l-7-7 7-7"/>
+      </svg>
+    </button>
+    <h2 class="title">Risultati Ricerca Offerte</h2>
+  </div>
+
+  <!-- Pulsante Toggle Filtri -->
+  <button 
+    class="filter-toggle-btn" 
+    (click)="toggleFilters()" 
+    type="button"
+    [class.active]="filtersVisible()"
+    [attr.aria-label]="filtersVisible() ? 'Nascondi filtri' : 'Mostra filtri'"
+    title="Toggle Filtri">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+      <polygon points="22 3 2 3 10 12.46 10 19 14 21 14 12.46 22 3"/>
+    </svg>
+  </button>
+
+  <!-- Filtro superiore - Search Bar -->
+  @if (filtersVisible()) {
+    <div class="top-filter">
+      <div class="filter-group-right">
+        <div class="search-wrapper">
+          <input 
+            type="text" 
+            placeholder="Cerca per azienda o posizione..." 
+            class="input input-bordered search-input"
+            [(ngModel)]="searchQuery"
+            [value]="searchQuery()"
+            (ngModelChange)="searchQuery.set($event)">
+          @if (searchQuery()) {
+            <button type="button" class="clear-search" (click)="searchQuery.set('')" aria-label="Cancella ricerca">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <path d="M18 6L6 18M6 6l12 12"/>
+              </svg>
+            </button>
+          }
+        </div>
+        
+        <button class="btn btn-outline btn-sm reset-btn" (click)="resetFilters()" type="button">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M3 12a9 9 0 1 0 9-9 9.75 9.75 0 0 0-6.74 2.74L3 8"/>
+            <path d="M3 3v5h5"/>
+          </svg>
+          Reset Filtri
+        </button>
+      </div>
+    </div>
+  }
+
+  <!-- Layout principale: Filtri laterali + Tabella -->
+  <div class="content-layout" [class.filters-hidden]="!filtersVisible()">
+    <!-- Filtri laterali -->
+    @if (filtersVisible()) {
+      <aside class="side-filters">
+        <div class="filter-card">
+          <h3 class="filter-title">Filtri</h3>
+
+          <!-- Filtro Location -->
+          <div class="filter-group">
+            <label class="filter-label">Località</label>
+            <select 
+              class="select select-bordered w-full"
+              [(ngModel)]="selectedLocation"
+              [value]="selectedLocation()"
+              (ngModelChange)="selectedLocation.set($event)">
+              <option value="all">Tutte</option>
+              @for (location of uniqueLocations(); track location) {
+                <option [value]="location">{{ location }}</option>
+              }
+            </select>
+          </div>
+
+          <!-- Contatore risultati -->
+          <div class="results-count">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+              <path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/>
+              <circle cx="9" cy="7" r="4"/>
+              <path d="M22 21v-2a4 4 0 0 0-3-3.87"/>
+              <path d="M16 3.13a4 4 0 0 1 0 7.75"/>
+            </svg>
+            <span>{{ filteredJobs().length }} Risultati</span>
+          </div>
+        </div>
+      </aside>
+    }
+
+    <!-- Tabella -->
+    <div class="table-container">
+      <!-- Pulsante opzioni tabella (visibile solo in Edit Mode) -->
+      @if (editMode()) {
+        <button 
+          class="table-options-btn"
+          type="button"
+          title="Opzioni tabella"
+          (click)="toggleTableOptions()">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M12.22 2h-.44a2 2 0 0 0-2 2v.18a2 2 0 0 1-1 1.73l-.43.25a2 2 0 0 1-2 0l-.15-.08a2 2 0 0 0-2.73.73l-.22.38a2 2 0 0 0 .73 2.73l.15.1a2 2 0 0 1 1 1.72v.51a2 2 0 0 1-1 1.74l-.15.09a2 2 0 0 0-.73 2.73l.22.38a2 2 0 0 0 2.73.73l.15-.08a2 2 0 0 1 2 0l.43.25a2 2 0 0 1 1 1.73V20a2 2 0 0 0 2 2h.44a2 2 0 0 0 2-2v-.18a2 2 0 0 1 1-1.73l.43-.25a2 2 0 0 1 2 0l.15.08a2 2 0 0 0 2.73-.73l.22-.39a2 2 0 0 0-.73-2.73l-.15-.08a2 2 0 0 1-1-1.74v-.5a2 2 0 0 1 1-1.74l.15-.09a2 2 0 0 0 .73-2.73l-.22-.38a2 2 0 0 0-2.73-.73l-.15.08a2 2 0 0 1-2 0l-.43-.25a2 2 0 0 1-1-1.73V4a2 2 0 0 0-2-2z"/>
+            <circle cx="12" cy="12" r="3"/>
+          </svg>
+        </button>
+
+        <!-- Popup opzioni tabella -->
+        @if (tableOptionsOpen()) {
+          <div class="table-options-backdrop" (click)="closeTableOptions()"></div>
+
+          <div class="table-options-popup">
+            <div class="table-options-popup__content">
+              <div class="columns-list">
+                @for (column of allColumns(); track column.id) {
+                  <label class="column-item" [class.column-item--disabled]="isColumnCheckboxDisabled(column.id)">
+                    <input 
+                      type="checkbox"
+                      class="column-checkbox"
+                      [checked]="column.visible"
+                      [disabled]="isColumnCheckboxDisabled(column.id)"
+                      (change)="toggleColumnVisibility(column.id, !column.visible)">
+                    <span class="column-name">{{ column.title }}</span>
+                  </label>
+                }
+              </div>
+
+              <button 
+                class="table-options-popup__close"
+                type="button"
+                (click)="closeTableOptions()"
+                aria-label="Chiudi">
+                ×
+              </button>
+            </div>
+          </div>
+        }
+      }
+
+      <!-- Empty State -->
+      @if (!loading() && filteredJobs().length === 0) {
+        <div class="empty-state">
+          <svg class="empty-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <circle cx="12" cy="12" r="10"/>
+            <path d="m16 16-4-4-4 4"/>
+            <path d="M12 12V8"/>
+          </svg>
+          <h3>Nessuna offerta trovata</h3>
+          <p>Prova a modificare i filtri di ricerca</p>
+        </div>
+      } @else {
+        <div class="overflow-x-auto">
+          <table class="table table-zebra">
+            <!-- Skeleton durante caricamento -->
+            @if (loading() && allColumns().length === 0) {
+              <thead>
+                <tr>
+                  @if (hasExtraColumns()) {
+                    <th class="expand-column"></th>
+                  }
+                  @for (i of skeletonColumns(); track i) {
+                    <th><div class="skeleton skeleton-header"></div></th>
+                  }
+                </tr>
+              </thead>
+              <tbody>
+                @for (i of skeletonRows(); track i) {
+                  <tr class="skeleton-row">
+                    @if (hasExtraColumns()) {
+                      <td class="expand-cell">
+                        <div class="skeleton skeleton-text" style="width: 20px; margin: auto;"></div>
+                      </td>
+                    }
+                    @for (j of skeletonColumns(); track j) {
+                      <td><div class="skeleton skeleton-text"></div></td>
+                    }
+                  </tr>
+                }
+              </tbody>
+            } @else {
+              <!-- Headers reali -->
+              <thead>
+                <tr>
+                  @if (hasExtraColumns()) {
+                    <th class="expand-column"></th>
+                  }
+                  
+                  @for (column of mainColumns(); track column.id) {
+                    <th 
+                      [class.column-status]="column.field_name === 'status'"
+                      [class.column-date]="column.field_name === 'application_date' || column.field_name === 'announcement_date'"
+                      [draggable]="editMode()"
+                      [class.draggable]="editMode()"
+                      [class.dragging]="isColumnDragging(column.id)"
+                      [class.drop-target]="isColumnDropTarget(column.id)"
+                      (dragstart)="onDragStart($event, column.id)"
+                      (dragover)="onDragOver($event, column.id)"
+                      (dragleave)="onDragLeave($event)"
+                      (drop)="onDrop($event, column.id)"
+                      (dragend)="onDragEnd()">
+                      <div class="th-content" (click)="!editMode() ? onColumnSort(column.field_name) : null">
+                        @if (editMode()) {
+                          <svg class="drag-handle" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                            <line x1="3" y1="12" x2="21" y2="12"/>
+                            <line x1="3" y1="6" x2="21" y2="6"/>
+                            <line x1="3" y1="18" x2="21" y2="18"/>
+                          </svg>
+                        }
+                        <span class="th-text">{{ column.title }}</span>
+                        @if (!editMode()) {
+                          <svg 
+                            class="sort-icon"
+                            [class.sort-icon--active]="sortColumn() === column.field_name"
+                            [class.sort-icon--asc]="sortColumn() === column.field_name && sortDirection() === 'asc'"
+                            [class.sort-icon--desc]="sortColumn() === column.field_name && sortDirection() === 'desc'"
+                            viewBox="0 0 24 24" 
+                            fill="none" 
+                            stroke="currentColor" 
+                            stroke-width="2.5" 
+                            stroke-linecap="round" 
+                            stroke-linejoin="round">
+                            <path d="M12 5v14M19 12l-7 7-7-7"/>
+                          </svg>
+                        }
+                      </div>
+                    </th>
+                  }
+                </tr>
+              </thead>
+              <tbody>
+                <!-- Skeleton rows durante loading -->
+                @if (loading()) {
+                  @for (i of skeletonRows(); track i) {
+                    <tr class="skeleton-row">
+                      @if (hasExtraColumns()) {
+                        <td class="expand-cell">
+                          <div class="skeleton skeleton-text" style="width: 20px; margin: auto;"></div>
+                        </td>
+                      }
+                      @for (column of mainColumns(); track column.id) {
+                        <td 
+                          [class.column-status]="column.field_name === 'status'"
+                          [class.column-date]="column.field_name === 'application_date' || column.field_name === 'announcement_date'">
+                          <div class="skeleton skeleton-text"></div>
+                        </td>
+                      }
+                    </tr>
+                  }
+                } @else {
+                  <!-- Righe reali -->
+                  @for (job of filteredJobs(); track job.id) {
+                    <tr class="data-row" [class.row-expanded]="isRowExpanded(job.id)">
+                      @if (hasExtraColumns()) {
+                        <td class="expand-cell" (click)="toggleRowExpansion(job.id)">
+                          <svg 
+                            class="expand-icon"
+                            [class.expand-icon--expanded]="isRowExpanded(job.id)"
+                            viewBox="0 0 24 24" 
+                            fill="none" 
+                            stroke="currentColor" 
+                            stroke-width="2" 
+                            stroke-linecap="round" 
+                            stroke-linejoin="round">
+                            <path d="m9 18 6-6-6-6"/>
+                          </svg>
+                        </td>
+                      }
+                      
+                      @for (column of mainColumns(); track column.id) {
+                        <td 
+                          [class.column-status]="column.field_name === 'status'"
+                          [class.column-date]="column.field_name === 'application_date' || column.field_name === 'announcement_date'"
+                          (click)="hasExtraColumns() && toggleRowExpansion(job.id)">
+                          {{ formatValue(getFieldValue(job, column.field_name), column.field_name) }}
+                        </td>
+                      }
+                    </tr>
+
+                    <!-- Riga espandibile con colonne extra -->
+                    @if (hasExtraColumns() && isRowExpanded(job.id)) {
+                      <tr class="expanded-row">
+                        <td [attr.colspan]="mainColumns().length + 1" class="expanded-cell">
+                          <div class="expanded-content">
+                            @for (column of extraColumns(); track column.id) {
+                              <div 
+                                class="extra-field"
+                                [draggable]="editMode()"
+                                [class.extra-field--draggable]="editMode()"
+                                [class.extra-field--dragging]="isColumnDragging(column.id)"
+                                [class.extra-field--drop-target]="isColumnDropTarget(column.id)"
+                                (dragstart)="onDragStart($event, column.id)"
+                                (dragover)="onDragOver($event, column.id)"
+                                (dragleave)="onDragLeave($event)"
+                                (drop)="onDrop($event, column.id)"
+                                (dragend)="onDragEnd()">
+                                @if (editMode()) {
+                                  <svg class="drag-handle drag-handle--extra" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                    <line x1="3" y1="12" x2="21" y2="12"/>
+                                    <line x1="3" y1="6" x2="21" y2="6"/>
+                                    <line x1="3" y1="18" x2="21" y2="18"/>
+                                  </svg>
+                                }
+                                <div class="extra-field__content">
+                                  <span class="extra-field__label">{{ column.title }}:</span>
+                                  <span class="extra-field__value">
+                                    {{ formatValue(getFieldValue(job, column.field_name), column.field_name) }}
+                                  </span>
+                                </div>
+                              </div>
+                            }
+                          </div>
+                        </td>
+                      </tr>
+                    }
+                  }
+                }
+              </tbody>
+            }
+          </table>
+        </div>
+      }
+    </div>
+  </div>
+</section>
+
