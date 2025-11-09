@@ -57,6 +57,16 @@ export class JobOffersStatsView implements OnInit {
   // Visibilità filtri
   filtersVisible = signal<boolean>(false);
   
+  // Popup opzioni tabella
+  tableOptionsOpen = signal<boolean>(false);
+  
+  // Righe espanse (track degli ID delle righe espanse)
+  expandedRows = signal<Set<number>>(new Set());
+  
+  // Ordinamento tabella
+  sortColumn = signal<string | null>(null);
+  sortDirection = signal<'asc' | 'desc'>('asc');
+  
   // Drag & Drop state
   draggedColumnId = signal<number | null>(null);
   dragOverColumnId = signal<number | null>(null);
@@ -98,20 +108,32 @@ export class JobOffersStatsView implements OnInit {
     });
   }
 
-  // Colonne visibili (filtrate)
+  // Colonne visibili (filtrate e ordinate)
   visibleColumns = computed(() => {
     return this.allColumns()
       .filter(col => col.visible)
       .sort((a, b) => (a.order || 0) - (b.order || 0));
   });
 
-  // Lista candidature filtrate
+  // Prime 4 colonne visibili (sempre mostrate)
+  mainColumns = computed(() => {
+    return this.visibleColumns().slice(0, 4);
+  });
+
+  // Colonne extra (oltre le prime 4, mostrate solo quando espanse)
+  extraColumns = computed(() => {
+    return this.visibleColumns().slice(4);
+  });
+
+  // Lista candidature filtrate e ordinate
   filteredJobOffers = computed(() => {
     let offers = this.allJobOffers();
     const query = this.searchQuery().toLowerCase();
     const status = this.selectedStatus();
     const location = this.selectedLocation();
     const viewType = this.viewType();
+    const sortCol = this.sortColumn();
+    const sortDir = this.sortDirection();
 
     // Filtra per view type
     if (viewType !== 'total' && viewType !== 'email') {
@@ -134,6 +156,30 @@ export class JobOffersStatsView implements OnInit {
     // Filtra per location
     if (location !== 'all') {
       offers = offers.filter(offer => offer.location === location);
+    }
+
+    // Ordina se una colonna è selezionata
+    if (sortCol) {
+      offers = [...offers].sort((a, b) => {
+        const aValue = this.getFieldValue(a, sortCol);
+        const bValue = this.getFieldValue(b, sortCol);
+        
+        // Gestione valori null/undefined
+        if (aValue === null || aValue === undefined) return sortDir === 'asc' ? 1 : -1;
+        if (bValue === null || bValue === undefined) return sortDir === 'asc' ? -1 : 1;
+        
+        // Confronto valori
+        let comparison = 0;
+        if (typeof aValue === 'string' && typeof bValue === 'string') {
+          comparison = aValue.localeCompare(bValue);
+        } else if (typeof aValue === 'number' && typeof bValue === 'number') {
+          comparison = aValue - bValue;
+        } else {
+          comparison = String(aValue).localeCompare(String(bValue));
+        }
+        
+        return sortDir === 'asc' ? comparison : -comparison;
+      });
     }
 
     return offers;
@@ -164,6 +210,74 @@ export class JobOffersStatsView implements OnInit {
   // Toggle visibilità filtri
   toggleFilters(): void {
     this.filtersVisible.set(!this.filtersVisible());
+  }
+
+  // Toggle popup opzioni tabella
+  toggleTableOptions(): void {
+    this.tableOptionsOpen.set(!this.tableOptionsOpen());
+  }
+
+  // Chiudi popup opzioni
+  closeTableOptions(): void {
+    this.tableOptionsOpen.set(false);
+  }
+
+  // Toggle visibilità colonna
+  toggleColumnVisibility(columnId: number, visible: boolean): void {
+    // Update ottimistico locale
+    const columns = this.allColumns().map(col => 
+      col.id === columnId ? { ...col, visible } : col
+    );
+    this.allColumns.set(columns);
+
+    // Salva sul backend
+    this.columnService.updateVisibility(columnId, visible).subscribe({
+      next: () => {
+        // Visibilità aggiornata con successo
+      },
+      error: (err: any) => {
+        console.error('Errore aggiornamento visibilità colonna:', err);
+        // Rollback in caso di errore
+        this.loadData();
+      }
+    });
+  }
+
+  // === ESPANSIONE RIGHE ===
+
+  // Toggle espansione riga
+  toggleRowExpansion(offerId: number): void {
+    const expanded = new Set(this.expandedRows());
+    if (expanded.has(offerId)) {
+      expanded.delete(offerId);
+    } else {
+      expanded.add(offerId);
+    }
+    this.expandedRows.set(expanded);
+  }
+
+  // Verifica se una riga è espansa
+  isRowExpanded(offerId: number): boolean {
+    return this.expandedRows().has(offerId);
+  }
+
+  // Verifica se ci sono colonne extra da mostrare
+  hasExtraColumns(): boolean {
+    return this.extraColumns().length > 0;
+  }
+
+  // Gestisce il click sull'header per ordinare
+  onColumnSort(fieldName: string): void {
+    const currentSortCol = this.sortColumn();
+    
+    if (currentSortCol === fieldName) {
+      // Stessa colonna: inverti direzione
+      this.sortDirection.set(this.sortDirection() === 'asc' ? 'desc' : 'asc');
+    } else {
+      // Nuova colonna: imposta ascendente
+      this.sortColumn.set(fieldName);
+      this.sortDirection.set('asc');
+    }
   }
 
   // Ottieni badge class per status

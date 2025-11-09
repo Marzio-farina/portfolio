@@ -111,6 +111,59 @@
 
     <!-- Tabella -->
     <div class="table-container">
+      <!-- Pulsante opzioni tabella (visibile solo in Edit Mode) -->
+      @if (editMode()) {
+        <button 
+          class="table-options-btn"
+          type="button"
+          title="Opzioni tabella"
+          aria-label="Opzioni tabella"
+          (click)="toggleTableOptions()"
+          (mouseenter)="tableOptionsOpen.set(true)">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M12.22 2h-.44a2 2 0 0 0-2 2v.18a2 2 0 0 1-1 1.73l-.43.25a2 2 0 0 1-2 0l-.15-.08a2 2 0 0 0-2.73.73l-.22.38a2 2 0 0 0 .73 2.73l.15.1a2 2 0 0 1 1 1.72v.51a2 2 0 0 1-1 1.74l-.15.09a2 2 0 0 0-.73 2.73l.22.38a2 2 0 0 0 2.73.73l.15-.08a2 2 0 0 1 2 0l.43.25a2 2 0 0 1 1 1.73V20a2 2 0 0 0 2 2h.44a2 2 0 0 0 2-2v-.18a2 2 0 0 1 1-1.73l.43-.25a2 2 0 0 1 2 0l.15.08a2 2 0 0 0 2.73-.73l.22-.39a2 2 0 0 0-.73-2.73l-.15-.08a2 2 0 0 1-1-1.74v-.5a2 2 0 0 1 1-1.74l.15-.09a2 2 0 0 0 .73-2.73l-.22-.38a2 2 0 0 0-2.73-.73l-.15.08a2 2 0 0 1-2 0l-.43-.25a2 2 0 0 1-1-1.73V4a2 2 0 0 0-2-2z"/>
+            <circle cx="12" cy="12" r="3"/>
+          </svg>
+        </button>
+
+        <!-- Popup opzioni tabella -->
+        @if (tableOptionsOpen()) {
+          <!-- Backdrop invisibile per chiudere al click esterno -->
+          <div 
+            class="table-options-backdrop"
+            (click)="closeTableOptions()"></div>
+
+          <div 
+            class="table-options-popup"
+            (mouseenter)="tableOptionsOpen.set(true)"
+            (mouseleave)="tableOptionsOpen.set(true)">
+            <div class="table-options-popup__content">
+              <!-- Lista colonne con checkbox -->
+              <div class="columns-list">
+                @for (column of allColumns(); track column.id) {
+                  <label class="column-item">
+                    <input 
+                      type="checkbox"
+                      class="column-checkbox"
+                      [checked]="column.visible"
+                      (change)="toggleColumnVisibility(column.id, !column.visible)">
+                    <span class="column-name">{{ column.title }}</span>
+                  </label>
+                }
+              </div>
+
+              <button 
+                class="table-options-popup__close"
+                type="button"
+                (click)="closeTableOptions()"
+                aria-label="Chiudi">
+                ×
+              </button>
+            </div>
+          </div>
+        }
+      }
+
       <!-- Empty State - mostra solo quando non ci sono dati E non è in loading -->
       @if (!loading() && filteredJobOffers().length === 0) {
         <div class="empty-state">
@@ -129,6 +182,9 @@
             @if (loading() && allColumns().length === 0) {
               <thead>
                 <tr>
+                  <!-- Colonna espansione skeleton -->
+                  <th class="expand-column"></th>
+                  
                   @for (i of skeletonColumns(); track i) {
                     <th>
                       <div class="skeleton skeleton-header"></div>
@@ -139,6 +195,11 @@
               <tbody>
                 @for (i of skeletonRows(); track i) {
                   <tr class="skeleton-row">
+                    <!-- Colonna espansione skeleton -->
+                    <td class="expand-cell">
+                      <div class="skeleton skeleton-text" style="width: 20px; margin: auto;"></div>
+                    </td>
+                    
                     @for (j of skeletonColumns(); track j) {
                       <td>
                         <div class="skeleton skeleton-text"></div>
@@ -151,7 +212,13 @@
               <!-- Headers reali quando le colonne sono caricate -->
               <thead>
                 <tr>
-                  @for (column of visibleColumns(); track column.id) {
+                  <!-- Colonna per icona espansione (se ci sono colonne extra) -->
+                  @if (hasExtraColumns()) {
+                    <th class="expand-column"></th>
+                  }
+                  
+                  <!-- Sempre prime 4 colonne visibili -->
+                  @for (column of mainColumns(); track column.id) {
                     <th 
                       [class.column-status]="column.field_name === 'status'"
                       [class.column-date]="column.field_name === 'application_date' || column.field_name === 'announcement_date'"
@@ -164,7 +231,7 @@
                       (dragleave)="onDragLeave($event)"
                       (drop)="onDrop($event, column.id)"
                       (dragend)="onDragEnd()">
-                      <div class="th-content">
+                      <div class="th-content" (click)="!editMode() ? onColumnSort(column.field_name) : null">
                         @if (editMode()) {
                           <svg class="drag-handle" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
                             <line x1="3" y1="12" x2="21" y2="12"/>
@@ -172,7 +239,22 @@
                             <line x1="3" y1="18" x2="21" y2="18"/>
                           </svg>
                         }
-                        <span>{{ column.title }}</span>
+                        <span class="th-text">{{ column.title }}</span>
+                        @if (!editMode()) {
+                          <svg 
+                            class="sort-icon"
+                            [class.sort-icon--active]="sortColumn() === column.field_name"
+                            [class.sort-icon--asc]="sortColumn() === column.field_name && sortDirection() === 'asc'"
+                            [class.sort-icon--desc]="sortColumn() === column.field_name && sortDirection() === 'desc'"
+                            viewBox="0 0 24 24" 
+                            fill="none" 
+                            stroke="currentColor" 
+                            stroke-width="2.5" 
+                            stroke-linecap="round" 
+                            stroke-linejoin="round">
+                            <path d="M12 5v14M19 12l-7 7-7-7"/>
+                          </svg>
+                        }
                       </div>
                     </th>
                   }
@@ -183,7 +265,15 @@
                 @if (loading()) {
                   @for (i of skeletonRows(); track i) {
                     <tr class="skeleton-row">
-                      @for (column of visibleColumns(); track column.id) {
+                      <!-- Colonna espansione skeleton -->
+                      @if (hasExtraColumns()) {
+                        <td class="expand-cell">
+                          <div class="skeleton skeleton-text" style="width: 20px; margin: auto;"></div>
+                        </td>
+                      }
+                      
+                      <!-- Skeleton solo per prime 4 colonne -->
+                      @for (column of mainColumns(); track column.id) {
                         <td 
                           [class.column-status]="column.field_name === 'status'"
                           [class.column-date]="column.field_name === 'application_date' || column.field_name === 'announcement_date'">
@@ -195,11 +285,31 @@
                 } @else {
                   <!-- Righe reali quando i dati sono disponibili -->
                   @for (offer of filteredJobOffers(); track offer.id) {
-                    <tr class="data-row">
-                      @for (column of visibleColumns(); track column.id) {
+                    <!-- Riga principale con prime 4 colonne -->
+                    <tr class="data-row" [class.row-expanded]="isRowExpanded(offer.id)">
+                      <!-- Colonna icona espansione (se ci sono colonne extra) -->
+                      @if (hasExtraColumns()) {
+                        <td class="expand-cell" (click)="toggleRowExpansion(offer.id)">
+                          <svg 
+                            class="expand-icon"
+                            [class.expand-icon--expanded]="isRowExpanded(offer.id)"
+                            viewBox="0 0 24 24" 
+                            fill="none" 
+                            stroke="currentColor" 
+                            stroke-width="2" 
+                            stroke-linecap="round" 
+                            stroke-linejoin="round">
+                            <path d="m9 18 6-6-6-6"/>
+                          </svg>
+                        </td>
+                      }
+                      
+                      <!-- Prime 4 colonne -->
+                      @for (column of mainColumns(); track column.id) {
                         <td 
                           [class.column-status]="column.field_name === 'status'"
-                          [class.column-date]="column.field_name === 'application_date' || column.field_name === 'announcement_date'">
+                          [class.column-date]="column.field_name === 'application_date' || column.field_name === 'announcement_date'"
+                          (click)="hasExtraColumns() && toggleRowExpansion(offer.id)">
                           @if (column.field_name === 'company_name') {
                             <div class="font-bold">{{ offer.company_name }}</div>
                             @if (offer.recruiter_company) {
@@ -223,6 +333,38 @@
                         </td>
                       }
                     </tr>
+
+                    <!-- Riga espandibile con colonne extra -->
+                    @if (hasExtraColumns() && isRowExpanded(offer.id)) {
+                      <tr class="expanded-row">
+                        <td [attr.colspan]="mainColumns().length + 1" class="expanded-cell">
+                          <div class="expanded-content">
+                            @for (column of extraColumns(); track column.id) {
+                              <div class="extra-field">
+                                <span class="extra-field__label">{{ column.title }}:</span>
+                                <span class="extra-field__value">
+                                  @if (column.field_name === 'location') {
+                                    <div class="flex items-center gap-2">
+                                      <svg class="location-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                        <path d="M20 10c0 6-8 12-8 12s-8-6-8-12a8 8 0 0 1 16 0Z"/>
+                                        <circle cx="12" cy="10" r="3"/>
+                                      </svg>
+                                      {{ offer.location || '-' }}
+                                    </div>
+                                  } @else if (column.field_name === 'status') {
+                                    <span class="badge" [ngClass]="getStatusClass(offer.status)">
+                                      {{ getStatusLabel(offer.status) }}
+                                    </span>
+                                  } @else {
+                                    {{ formatValue(getFieldValue(offer, column.field_name), column.field_name) }}
+                                  }
+                                </span>
+                              </div>
+                            }
+                          </div>
+                        </td>
+                      </tr>
+                    }
                   }
                 }
               </tbody>
