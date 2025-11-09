@@ -1,4 +1,5 @@
 <section class="job-offer-detail">
+  <!-- Header con back button e titolo -->
   <div class="header">
     <button class="back-btn" type="button" (click)="goBack()" aria-label="Torna alle statistiche">
       <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
@@ -8,9 +9,166 @@
     <h2 class="title">{{ title() }}</h2>
   </div>
 
-  <div class="placeholder-detail">
-    <p class="placeholder-detail-text">Vista dettaglio per: <strong>{{ viewType() }}</strong></p>
-    <p class="placeholder-detail-info">Qui verrà mostrata la tabella con le candidature filtrate per questa categoria.</p>
+  <!-- Filtro superiore - Search Bar -->
+  <div class="top-filter">
+    <div class="search-wrapper">
+      <svg class="search-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+        <circle cx="11" cy="11" r="8"></circle>
+        <path d="m21 21-4.35-4.35"></path>
+      </svg>
+      <input 
+        type="text" 
+        placeholder="Cerca per azienda o posizione..." 
+        class="input input-bordered search-input"
+        [(ngModel)]="searchQuery"
+        [value]="searchQuery()"
+        (ngModelChange)="searchQuery.set($event)">
+      @if (searchQuery()) {
+        <button type="button" class="clear-search" (click)="searchQuery.set('')" aria-label="Cancella ricerca">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M18 6L6 18M6 6l12 12"/>
+          </svg>
+        </button>
+      }
+    </div>
+    <button class="btn btn-outline btn-sm reset-btn" (click)="resetFilters()" type="button">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+        <path d="M3 12a9 9 0 1 0 9-9 9.75 9.75 0 0 0-6.74 2.74L3 8"/>
+        <path d="M3 3v5h5"/>
+      </svg>
+      Reset Filtri
+    </button>
+  </div>
+
+  <!-- Layout principale: Filtri laterali + Tabella -->
+  <div class="content-layout">
+    <!-- Filtri laterali -->
+    <aside class="side-filters">
+      <div class="filter-card">
+        <h3 class="filter-title">Filtri</h3>
+
+        <!-- Filtro Status -->
+        <div class="filter-group">
+          <label class="filter-label">Stato</label>
+          <select 
+            class="select select-bordered w-full"
+            [(ngModel)]="selectedStatus"
+            [value]="selectedStatus()"
+            (ngModelChange)="selectedStatus.set($event)">
+            <option value="all">Tutti</option>
+            <option value="pending">In Attesa</option>
+            <option value="interview">Colloquio</option>
+            <option value="accepted">Accettata</option>
+            <option value="archived">Archiviata</option>
+          </select>
+        </div>
+
+        <!-- Filtro Location -->
+        <div class="filter-group">
+          <label class="filter-label">Località</label>
+          <select 
+            class="select select-bordered w-full"
+            [(ngModel)]="selectedLocation"
+            [value]="selectedLocation()"
+            (ngModelChange)="selectedLocation.set($event)">
+            <option value="all">Tutte</option>
+            @for (location of uniqueLocations(); track location) {
+              <option [value]="location">{{ location }}</option>
+            }
+          </select>
+        </div>
+
+        <!-- Contatore risultati -->
+        <div class="results-count">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/>
+            <circle cx="9" cy="7" r="4"/>
+            <path d="M22 21v-2a4 4 0 0 0-3-3.87"/>
+            <path d="M16 3.13a4 4 0 0 1 0 7.75"/>
+          </svg>
+          <span>{{ filteredJobOffers().length }} Risultati</span>
+        </div>
+      </div>
+    </aside>
+
+    <!-- Tabella -->
+    <div class="table-container">
+      @if (filteredJobOffers().length === 0) {
+        <div class="empty-state">
+          <svg class="empty-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <circle cx="12" cy="12" r="10"/>
+            <path d="m16 16-4-4-4 4"/>
+            <path d="M12 12V8"/>
+          </svg>
+          <h3>Nessuna candidatura trovata</h3>
+          <p>Prova a modificare i filtri di ricerca</p>
+        </div>
+      } @else {
+        <div class="overflow-x-auto">
+          <table class="table table-zebra">
+            <thead>
+              <tr>
+                <th>Azienda</th>
+                <th>Posizione</th>
+                <th>Località</th>
+                <th>Data</th>
+                <th>Stipendio</th>
+                <th>Stato</th>
+                <th>Azioni</th>
+              </tr>
+            </thead>
+            <tbody>
+              @for (offer of filteredJobOffers(); track offer.id) {
+                <tr>
+                  <td>
+                    <div class="font-bold">{{ offer.company }}</div>
+                  </td>
+                  <td>{{ offer.position }}</td>
+                  <td>
+                    <div class="flex items-center gap-2">
+                      <svg class="location-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                        <path d="M20 10c0 6-8 12-8 12s-8-6-8-12a8 8 0 0 1 16 0Z"/>
+                        <circle cx="12" cy="10" r="3"/>
+                      </svg>
+                      {{ offer.location }}
+                    </div>
+                  </td>
+                  <td>{{ offer.appliedDate }}</td>
+                  <td>{{ offer.salary || '-' }}</td>
+                  <td>
+                    <span class="badge" [ngClass]="getStatusClass(offer.status)">
+                      {{ getStatusLabel(offer.status) }}
+                    </span>
+                  </td>
+                  <td>
+                    <div class="action-buttons">
+                      <button class="btn btn-ghost btn-xs" type="button" aria-label="Visualizza dettagli">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                          <path d="M2 12s3-7 10-7 10 7 10 7-3 7-10 7-10-7-10-7Z"/>
+                          <circle cx="12" cy="12" r="3"/>
+                        </svg>
+                      </button>
+                      <button class="btn btn-ghost btn-xs" type="button" aria-label="Modifica">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                          <path d="M17 3a2.85 2.83 0 1 1 4 4L7.5 20.5 2 22l1.5-5.5Z"/>
+                          <path d="m15 5 4 4"/>
+                        </svg>
+                      </button>
+                      <button class="btn btn-ghost btn-xs text-error" type="button" aria-label="Elimina">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                          <path d="M3 6h18"/>
+                          <path d="M19 6v14c0 1-1 2-2 2H7c-1 0-2-1-2-2V6"/>
+                          <path d="M8 6V4c0-1 1-2 2-2h4c1 0 2 1 2 2v2"/>
+                        </svg>
+                      </button>
+                    </div>
+                  </td>
+                </tr>
+              }
+            </tbody>
+          </table>
+        </div>
+      }
+    </div>
   </div>
 </section>
-
