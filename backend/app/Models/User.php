@@ -135,6 +135,19 @@ class User extends Authenticatable
     }
 
     /**
+     * Get the user's configured job offer columns
+     *
+     * @return \Illuminate\Database\Eloquent\Relations\BelongsToMany
+     */
+    public function jobOfferColumns()
+    {
+        return $this->belongsToMany(JobOfferColumn::class, 'user_job_offer_columns')
+            ->withPivot(['visible', 'order'])
+            ->withTimestamps()
+            ->orderBy('user_job_offer_columns.order');
+    }
+
+    /**
      * Link all testimonials from a visitor (identified by IP and/or User-Agent) to this user
      * This is called when a visitor registers after leaving testimonials
      *
