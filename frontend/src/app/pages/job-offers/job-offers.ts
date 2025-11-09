@@ -34,10 +34,5 @@ export class JobOffers {
   onCardClick(cardType: string): void {
     this.router.navigate(['/job-offers', cardType]);
   }
-
-  // Naviga al form di aggiunta nuova candidatura
-  onAddClick(): void {
-    this.router.navigate(['/job-offers/new']);
-  }
 }
 

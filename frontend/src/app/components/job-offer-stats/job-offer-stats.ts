@@ -54,9 +54,6 @@ export class JobOfferStatsComponent implements OnInit {
 
   // Emette il tipo di card cliccata
   cardClick = output<JobOfferCardType>();
-  
-  // Emette quando viene cliccata la card "Aggiungi"
-  addClick = output<void>();
 
   ngOnInit(): void {
     this.loadCards();
