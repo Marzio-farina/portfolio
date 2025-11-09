@@ -5,6 +5,7 @@ import { switchMap, startWith, takeUntil, map, take } from 'rxjs/operators';
 @Injectable({ providedIn: 'root' })
 export class IdleService {
   private stop$ = new Subject<void>();
+  private cancelWarning$ = new Subject<void>(); // Cancella il timer del warning
   private timeout$ = new Subject<void>();
   private warning$ = new Subject<number>(); // Emette i secondi rimanenti
   private reset$ = new Subject<void>(); // Emette quando l'utente torna attivo
@@ -39,6 +40,9 @@ export class IdleService {
       activity$.pipe(
         startWith(null),
         switchMap(() => {
+          // Cancella il timer del warning precedente quando c'è nuova attività
+          this.cancelWarning$.next();
+          
           // Se non è la prima attività e il countdown è attivo, emetti reset
           if (!isFirstActivity && this.countdownInterval) {
             this.zone.run(() => {
@@ -51,9 +55,11 @@ export class IdleService {
           // Calcola quando mostrare il warning
           const timeUntilWarning = this.idleMs - this.warningMs;
           
-          // Timer per il warning (5 secondi = 65s - 60s)
+          // Timer per il warning - viene cancellato alla prossima attività
           if (timeUntilWarning > 0) {
-            timer(timeUntilWarning).subscribe(() => {
+            timer(timeUntilWarning).pipe(
+              takeUntil(merge(this.stop$, this.cancelWarning$))
+            ).subscribe(() => {
               this.zone.run(() => {
                 this.startCountdown();
               });
