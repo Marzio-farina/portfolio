@@ -7,6 +7,7 @@ import { JobOfferColumnService, JobOfferColumn } from '../../../../services/job-
 import { JobScraperService, ScrapedJob } from '../../../../services/job-scraper.service';
 import { EditModeService } from '../../../../services/edit-mode.service';
 import { TenantService } from '../../../../services/tenant.service';
+import { SafeUrlPipe } from '../../../../pipes/safe-url.pipe';
 
 /**
  * Componente per visualizzare i risultati dello scraping
@@ -15,7 +16,7 @@ import { TenantService } from '../../../../services/tenant.service';
 @Component({
   selector: 'app-job-offers-scraper-results-view',
   standalone: true,
-  imports: [CommonModule, FormsModule],
+  imports: [CommonModule, FormsModule, SafeUrlPipe],
   templateUrl: './job-offers-scraper-results-view.html',
   styleUrl: './job-offers-scraper-results-view.css'
 })
@@ -70,6 +71,10 @@ export class JobOffersScraperResultsView implements OnInit {
   
   // Popup opzioni tabella
   tableOptionsOpen = signal<boolean>(false);
+  
+  // Dialog per visualizzare link offerta
+  jobUrlDialogOpen = signal<boolean>(false);
+  selectedJobUrl = signal<string>('');
   
   // Array placeholder per skeleton
   skeletonRows = computed(() => Array.from({ length: 8 }, (_, i) => i));
@@ -146,18 +151,56 @@ export class JobOffersScraperResultsView implements OnInit {
     });
   }
 
-  // Colonne visibili (filtrate e ordinate)
+  // Colonne visibili (filtrate e ordinate, escluso 'Sito Web' perché gestito dalla colonna "Candidati")
   visibleColumns = computed(() => {
     return this.allColumns()
-      .filter(col => col.visible)
+      .filter(col => col.visible && col.field_name !== 'website')
       .sort((a, b) => (a.order || 0) - (b.order || 0));
   });
 
-  // Prime 4 colonne visibili
-  mainColumns = computed(() => this.visibleColumns().slice(0, 4));
+  /**
+   * Determina le prime 3 colonne da mostrare basandosi sui filtri attivi
+   * Priorità: campi usati nella ricerca
+   */
+  dynamicColumns = computed(() => {
+    const cols = this.allColumns();
+    const dynamicCols: JobOfferColumn[] = [];
+    
+    // 1. Se ha cercato per azienda (company sempre mostrata)
+    const companyCol = cols.find(col => col.field_name === 'company_name');
+    if (companyCol) dynamicCols.push(companyCol);
+    
+    // 2. Se ha specificato località, mostra località
+    if (this.searchLocationInput()) {
+      const locationCol = cols.find(col => col.field_name === 'location');
+      if (locationCol && dynamicCols.length < 3) dynamicCols.push(locationCol);
+    }
+    
+    // 3. Posizione sempre mostrata
+    const positionCol = cols.find(col => col.field_name === 'position');
+    if (positionCol && dynamicCols.length < 3) dynamicCols.push(positionCol);
+    
+    // 4. Se manca spazio, aggiungi altre colonne visibili
+    const remainingCols = this.visibleColumns().filter(col => 
+      !dynamicCols.find(dc => dc.id === col.id)
+    );
+    
+    while (dynamicCols.length < 3 && remainingCols.length > 0) {
+      const nextCol = remainingCols.shift();
+      if (nextCol) dynamicCols.push(nextCol);
+    }
+    
+    return dynamicCols;
+  });
 
-  // Colonne extra (oltre le prime 4)
-  extraColumns = computed(() => this.visibleColumns().slice(4));
+  // Prime 3 colonne dinamiche (sempre le 3 selezionate dinamicamente)
+  mainColumns = computed(() => this.dynamicColumns());
+
+  // Colonne extra (tutte le altre colonne visibili non mostrate nelle prime 3)
+  extraColumns = computed(() => {
+    const dynamicIds = this.dynamicColumns().map(col => col.id);
+    return this.visibleColumns().filter(col => !dynamicIds.includes(col.id));
+  });
 
   // Offerte filtrate e ordinate
   filteredJobs = computed(() => {
@@ -317,9 +360,25 @@ export class JobOffersScraperResultsView implements OnInit {
     this.filtersVisible.set(!this.filtersVisible());
   }
 
-  // Verifica se ci sono colonne extra
+  // Verifica se ci sono colonne extra da mostrare nell'espansione
   hasExtraColumns(): boolean {
     return this.extraColumns().length > 0;
+  }
+
+  /**
+   * Apre il dialog con l'iframe del link dell'offerta
+   */
+  openJobUrl(url: string): void {
+    this.selectedJobUrl.set(url);
+    this.jobUrlDialogOpen.set(true);
+  }
+
+  /**
+   * Chiude il dialog del link offerta
+   */
+  closeJobUrlDialog(): void {
+    this.jobUrlDialogOpen.set(false);
+    this.selectedJobUrl.set('');
   }
 
   // Toggle espansione riga

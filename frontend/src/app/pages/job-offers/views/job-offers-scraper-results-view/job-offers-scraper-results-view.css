@@ -877,6 +877,26 @@
   white-space: nowrap;
 }
 
+/* Colonna Action (Candidati) */
+.table th.column-action,
+.table td.column-action {
+  width: 140px;
+  max-width: 140px;
+  text-align: center;
+  white-space: nowrap;
+}
+
+.view-btn {
+  min-width: 100px;
+  font-weight: 600;
+  transition: all var(--transition-1);
+}
+
+.view-btn:hover {
+  transform: translateY(-1px);
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15);
+}
+
 .table tbody td .font-bold {
   font-weight: 700;
   color: var(--text-primary);
@@ -1047,6 +1067,95 @@
   margin: 0;
   color: var(--text-secondary);
   font-size: 0.9375rem;
+}
+
+/* === JOB URL DIALOG === */
+.job-url-dialog-backdrop {
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.7);
+  z-index: 9999;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 2rem;
+  animation: fadeIn 0.2s ease-out;
+}
+
+.job-url-dialog {
+  background: var(--bg-card);
+  border-radius: 16px;
+  width: 90%;
+  max-width: 1200px;
+  height: 90vh;
+  max-height: 800px;
+  display: flex;
+  flex-direction: column;
+  box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+  animation: slideInUp 0.3s ease-out;
+}
+
+@keyframes slideInUp {
+  from {
+    opacity: 0;
+    transform: translateY(30px) scale(0.95);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+}
+
+.dialog-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 1.5rem 2rem;
+  border-bottom: 1px solid var(--border-primary);
+}
+
+.dialog-title {
+  margin: 0;
+  font-size: 1.25rem;
+  font-weight: 700;
+  color: var(--text-primary);
+}
+
+.dialog-close-btn {
+  width: 36px;
+  height: 36px;
+  border-radius: 50%;
+  background: transparent;
+  border: none;
+  color: var(--text-secondary);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  transition: all var(--transition-1);
+}
+
+.dialog-close-btn:hover {
+  background: var(--bg-secondary);
+  color: var(--text-primary);
+}
+
+.dialog-close-btn svg {
+  width: 20px;
+  height: 20px;
+}
+
+.dialog-body {
+  flex: 1;
+  overflow: hidden;
+  position: relative;
+}
+
+.job-url-iframe {
+  width: 100%;
+  height: 100%;
+  border: none;
+  border-radius: 0 0 16px 16px;
 }
 
 /* === RESPONSIVE === */

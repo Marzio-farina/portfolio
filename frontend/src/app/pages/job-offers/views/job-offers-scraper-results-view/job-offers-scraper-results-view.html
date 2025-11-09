@@ -306,9 +306,12 @@
                   @if (hasExtraColumns()) {
                     <th class="expand-column"></th>
                   }
-                  @for (i of skeletonColumns(); track i) {
+                  <!-- 3 colonne skeleton dinamiche -->
+                  @for (i of [0, 1, 2]; track i) {
                     <th><div class="skeleton skeleton-header"></div></th>
                   }
+                  <!-- Colonna skeleton "Candidati" -->
+                  <th class="column-action"><div class="skeleton skeleton-header"></div></th>
                 </tr>
               </thead>
               <tbody>
@@ -319,9 +322,12 @@
                         <div class="skeleton skeleton-text" style="width: 20px; margin: auto;"></div>
                       </td>
                     }
-                    @for (j of skeletonColumns(); track j) {
+                    <!-- 3 celle skeleton dinamiche -->
+                    @for (j of [0, 1, 2]; track j) {
                       <td><div class="skeleton skeleton-text"></div></td>
                     }
+                    <!-- Cella skeleton "Candidati" -->
+                    <td class="column-action"><div class="skeleton skeleton-text"></div></td>
                   </tr>
                 }
               </tbody>
@@ -333,6 +339,7 @@
                     <th class="expand-column"></th>
                   }
                   
+                  <!-- Prime 3 colonne dinamiche -->
                   @for (column of mainColumns(); track column.id) {
                     <th 
                       [class.column-status]="column.field_name === 'status'"
@@ -373,6 +380,13 @@
                       </div>
                     </th>
                   }
+
+                  <!-- Colonna fissa "Candidati" (sempre 4°) -->
+                  <th class="column-action">
+                    <div class="th-content">
+                      <span class="th-text">Candidati</span>
+                    </div>
+                  </th>
                 </tr>
               </thead>
               <tbody>
@@ -385,6 +399,7 @@
                           <div class="skeleton skeleton-text" style="width: 20px; margin: auto;"></div>
                         </td>
                       }
+                      <!-- 3 celle skeleton per colonne dinamiche -->
                       @for (column of mainColumns(); track column.id) {
                         <td 
                           [class.column-status]="column.field_name === 'status'"
@@ -392,6 +407,10 @@
                           <div class="skeleton skeleton-text"></div>
                         </td>
                       }
+                      <!-- Cella skeleton per colonna "Candidati" -->
+                      <td class="column-action">
+                        <div class="skeleton skeleton-text"></div>
+                      </td>
                     </tr>
                   }
                 } @else {
@@ -414,6 +433,7 @@
                         </td>
                       }
                       
+                      <!-- Prime 3 colonne dinamiche -->
                       @for (column of mainColumns(); track column.id) {
                         <td 
                           [class.column-status]="column.field_name === 'status'"
@@ -422,12 +442,23 @@
                           {{ formatValue(getFieldValue(job, column.field_name), column.field_name) }}
                         </td>
                       }
+
+                      <!-- Colonna fissa "Candidati" con button -->
+                      <td class="column-action">
+                        <button 
+                          class="btn btn-sm btn-primary view-btn"
+                          type="button"
+                          (click)="openJobUrl(job.url)"
+                          title="Visualizza offerta">
+                          Visualizza
+                        </button>
+                      </td>
                     </tr>
 
                     <!-- Riga espandibile con colonne extra -->
                     @if (hasExtraColumns() && isRowExpanded(job.id)) {
                       <tr class="expanded-row">
-                        <td [attr.colspan]="mainColumns().length + 1" class="expanded-cell">
+                        <td [attr.colspan]="mainColumns().length + 2" class="expanded-cell">
                           <div class="expanded-content">
                             @for (column of extraColumns(); track column.id) {
                               <div 
@@ -471,3 +502,30 @@
   </div>
 </section>
 
+<!-- Dialog per visualizzare offerta -->
+@if (jobUrlDialogOpen()) {
+  <div class="job-url-dialog-backdrop" (click)="closeJobUrlDialog()">
+    <div class="job-url-dialog" (click)="$event.stopPropagation()">
+      <div class="dialog-header">
+        <h3 class="dialog-title">Visualizza Offerta</h3>
+        <button 
+          class="dialog-close-btn"
+          type="button"
+          (click)="closeJobUrlDialog()"
+          aria-label="Chiudi">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M18 6L6 18M6 6l12 12"/>
+          </svg>
+        </button>
+      </div>
+      <div class="dialog-body">
+        <iframe 
+          [src]="selectedJobUrl() | safeUrl" 
+          class="job-url-iframe"
+          sandbox="allow-same-origin allow-scripts allow-popups allow-forms"
+          frameborder="0">
+        </iframe>
+      </div>
+    </div>
+  </div>
+}
