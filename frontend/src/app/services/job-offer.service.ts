@@ -34,7 +34,10 @@ export class JobOfferService {
    * Ottiene tutte le job offers dell'utente autenticato
    */
   getJobOffers(): Observable<JobOffer[]> {
-    return this.http.get<JobOffer[]>(`${this.apiUrl}/job-offers`);
+    const url = `${this.apiUrl}/job-offers`;
+    console.log('JobOfferService - getJobOffers URL:', url);
+    console.log('JobOfferService - API_BASE_URL:', this.apiUrl);
+    return this.http.get<JobOffer[]>(url);
   }
 
   /**
