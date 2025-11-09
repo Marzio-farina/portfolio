@@ -390,6 +390,14 @@
   white-space: nowrap;
 }
 
+/* Colonna Date più stretta */
+.table th.column-date,
+.table td.column-date {
+  width: 110px;
+  max-width: 110px;
+  white-space: nowrap;
+}
+
 .table tbody td .font-bold {
   font-weight: 600;
   color: var(--text-primary);
