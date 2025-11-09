@@ -251,12 +251,12 @@
           <div class="table-options-popup">
             <div class="table-options-popup__content">
               <div class="columns-list">
-                @for (column of allColumns(); track column.id) {
+                @for (column of allColumnsForPopup(); track column.id) {
                   <label class="column-item" [class.column-item--disabled]="isColumnCheckboxDisabled(column.id)">
                     <input 
                       type="checkbox"
                       class="column-checkbox"
-                      [checked]="column.visible"
+                      [checked]="isColumnChecked(column)"
                       [disabled]="isColumnCheckboxDisabled(column.id)"
                       (change)="toggleColumnVisibility(column.id, !column.visible)">
                     <span class="column-name">{{ column.title }}</span>

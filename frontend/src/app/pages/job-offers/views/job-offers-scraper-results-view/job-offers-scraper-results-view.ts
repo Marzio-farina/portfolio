@@ -158,6 +158,11 @@ export class JobOffersScraperResultsView implements OnInit {
       .sort((a, b) => (a.order || 0) - (b.order || 0));
   });
 
+  // Tutte le colonne per il popup (include 'website' ma sempre checked e disabled)
+  allColumnsForPopup = computed(() => {
+    return this.allColumns().sort((a, b) => (a.order || 0) - (b.order || 0));
+  });
+
   /**
    * Determina le prime 3 colonne da mostrare basandosi sui filtri attivi
    * Priorità: campi usati nella ricerca
@@ -596,10 +601,22 @@ export class JobOffersScraperResultsView implements OnInit {
 
   isColumnCheckboxDisabled(columnId: number): boolean {
     const column = this.allColumns().find(col => col.id === columnId);
+    
+    // 'Sito Web' sempre disabilitato (gestito dalla colonna Candidati)
+    if (column?.field_name === 'website') return true;
+    
     if (!column?.visible) return false;
     
-    const visibleCount = this.allColumns().filter(col => col.visible).length;
-    return visibleCount <= 1;
+    // Conta solo le colonne visibili escluso website
+    const visibleCount = this.allColumns().filter(col => col.visible && col.field_name !== 'website').length;
+    return visibleCount <= 1; // Disabilita se è l'unica visibile (escluso website)
+  }
+
+  // Verifica se una checkbox deve essere checked (sempre true per website)
+  isColumnChecked(column: JobOfferColumn): boolean {
+    // 'Sito Web' sempre checked (gestito dalla colonna Candidati)
+    if (column.field_name === 'website') return true;
+    return column.visible ?? false;
   }
 
   /**
