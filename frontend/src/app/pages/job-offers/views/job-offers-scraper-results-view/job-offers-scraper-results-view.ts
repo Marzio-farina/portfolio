@@ -6,6 +6,7 @@ import { FormsModule } from '@angular/forms';
 import { JobOfferColumnService, JobOfferColumn } from '../../../../services/job-offer-column.service';
 import { JobScraperService, ScrapedJob } from '../../../../services/job-scraper.service';
 import { EditModeService } from '../../../../services/edit-mode.service';
+import { AboutProfileService, PublicProfileDto } from '../../../../services/about-profile.service';
 
 /**
  * Componente per visualizzare i risultati dello scraping
@@ -24,6 +25,7 @@ export class JobOffersScraperResultsView implements OnInit {
   private columnService = inject(JobOfferColumnService);
   private scraperService = inject(JobScraperService);
   private editModeService = inject(EditModeService);
+  private aboutProfileService = inject(AboutProfileService);
   
   // Edit mode dal service globale
   editMode = this.editModeService.isEditing;
@@ -37,9 +39,11 @@ export class JobOffersScraperResultsView implements OnInit {
   // Loading state
   loading = signal<boolean>(true);
 
-  // Filtri
+  // Filtri tabella risultati
   searchQuery = signal<string>('');
   selectedLocation = signal<string>('all');
+  selectedEmploymentType = signal<string>('all');
+  selectedRemote = signal<string>('all');
   
   // Parametri ricerca Adzuna
   searchKeyword = signal<string>('');
@@ -67,6 +71,23 @@ export class JobOffersScraperResultsView implements OnInit {
   skeletonColumns = computed(() => Array.from({ length: 4 }, (_, i) => i));
 
   ngOnInit(): void {
+    // Carica profilo per valori di default
+    this.aboutProfileService.get$().subscribe({
+      next: (profile: PublicProfileDto) => {
+        // Default professione dal titolo del profilo
+        if (profile.title) {
+          this.searchKeyword.set(profile.title);
+        }
+        // Default località dal profilo
+        if (profile.location) {
+          this.searchLocationInput.set(profile.location);
+        }
+      },
+      error: (err: any) => {
+        console.warn('Profilo non caricato, uso valori vuoti:', err);
+      }
+    });
+    
     // Carica solo la configurazione colonne, non fare scraping
     this.loadColumns();
   }
@@ -139,6 +160,8 @@ export class JobOffersScraperResultsView implements OnInit {
     let jobs = this.scrapedJobs();
     const query = this.searchQuery().toLowerCase();
     const location = this.selectedLocation();
+    const employmentType = this.selectedEmploymentType();
+    const remote = this.selectedRemote();
     const sortCol = this.sortColumn();
     const sortDir = this.sortDirection();
 
@@ -153,6 +176,16 @@ export class JobOffersScraperResultsView implements OnInit {
     // Filtra per location
     if (location !== 'all') {
       jobs = jobs.filter(job => job.location === location);
+    }
+
+    // Filtra per employment type
+    if (employmentType !== 'all') {
+      jobs = jobs.filter(job => job.employment_type === employmentType);
+    }
+
+    // Filtra per remote
+    if (remote !== 'all') {
+      jobs = jobs.filter(job => job.remote === remote);
     }
 
     // Ordina se una colonna è selezionata
@@ -183,9 +216,29 @@ export class JobOffersScraperResultsView implements OnInit {
     const locations = new Set(
       this.scrapedJobs()
         .map(job => job.location)
-        .filter(loc => loc !== null && loc !== '')
+        .filter(loc => loc !== null && loc !== '' && loc !== 'N/A')
     );
     return Array.from(locations).sort();
+  });
+
+  // Lista employment types unici
+  uniqueEmploymentTypes = computed(() => {
+    const types = new Set(
+      this.scrapedJobs()
+        .map(job => job.employment_type)
+        .filter(type => type !== null && type !== undefined && type !== 'N/A')
+    );
+    return Array.from(types).sort();
+  });
+
+  // Lista remote types unici
+  uniqueRemoteTypes = computed(() => {
+    const types = new Set(
+      this.scrapedJobs()
+        .map(job => job.remote)
+        .filter(type => type !== null && type !== undefined && type !== 'N/A')
+    );
+    return Array.from(types).sort();
   });
 
   // Torna alla pagina di aggiunta
@@ -197,6 +250,8 @@ export class JobOffersScraperResultsView implements OnInit {
   resetFilters(): void {
     this.searchQuery.set('');
     this.selectedLocation.set('all');
+    this.selectedEmploymentType.set('all');
+    this.selectedRemote.set('all');
   }
 
   // Toggle visibilità filtri

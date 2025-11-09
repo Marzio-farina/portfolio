@@ -22,14 +22,27 @@
     </svg>
   </button>
 
-  <!-- Filtro superiore - Search Bar -->
+  <!-- Filtro superiore - Pulsante Cerca + Search Bar -->
   @if (filtersVisible()) {
     <div class="top-filter">
       <div class="filter-group-right">
+        <!-- Pulsante Cerca Offerte -->
+        <button 
+          class="btn btn-primary search-action-btn"
+          type="button"
+          (click)="performSearch()"
+          [disabled]="loading() || !searchKeyword()">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <circle cx="11" cy="11" r="8"/>
+            <path d="m21 21-4.35-4.35"/>
+          </svg>
+          Cerca
+        </button>
+
         <div class="search-wrapper">
           <input 
             type="text" 
-            placeholder="Cerca per azienda o posizione..." 
+            placeholder="Filtra per azienda o posizione..." 
             class="input input-bordered search-input"
             [(ngModel)]="searchQuery"
             [value]="searchQuery()"
@@ -62,9 +75,9 @@
         <div class="filter-card">
           <h3 class="filter-title">Ricerca Offerte</h3>
 
-          <!-- Campo Keyword -->
+          <!-- Campo Professione -->
           <div class="filter-group">
-            <label class="filter-label">Parola Chiave *</label>
+            <label class="filter-label">Professione *</label>
             <input 
               type="text" 
               class="input input-bordered w-full"
@@ -74,7 +87,7 @@
               (ngModelChange)="searchKeyword.set($event)">
           </div>
 
-          <!-- Campo Location -->
+          <!-- Campo Località -->
           <div class="filter-group">
             <label class="filter-label">Località</label>
             <input 
@@ -92,7 +105,7 @@
 
             <h3 class="filter-title">Filtra Risultati</h3>
 
-            <!-- Filtro Location -->
+            <!-- Filtro Località -->
             <div class="filter-group">
               <label class="filter-label">Località</label>
               <select 
@@ -103,6 +116,36 @@
                 <option value="all">Tutte</option>
                 @for (location of uniqueLocations(); track location) {
                   <option [value]="location">{{ location }}</option>
+                }
+              </select>
+            </div>
+
+            <!-- Filtro Tipo Contratto -->
+            <div class="filter-group">
+              <label class="filter-label">Tipo Contratto</label>
+              <select 
+                class="select select-bordered w-full"
+                [(ngModel)]="selectedEmploymentType"
+                [value]="selectedEmploymentType()"
+                (ngModelChange)="selectedEmploymentType.set($event)">
+                <option value="all">Tutti</option>
+                @for (type of uniqueEmploymentTypes(); track type) {
+                  <option [value]="type">{{ type }}</option>
+                }
+              </select>
+            </div>
+
+            <!-- Filtro Modalità Lavoro -->
+            <div class="filter-group">
+              <label class="filter-label">Modalità Lavoro</label>
+              <select 
+                class="select select-bordered w-full"
+                [(ngModel)]="selectedRemote"
+                [value]="selectedRemote()"
+                (ngModelChange)="selectedRemote.set($event)">
+                <option value="all">Tutte</option>
+                @for (remote of uniqueRemoteTypes(); track remote) {
+                  <option [value]="remote">{{ remote }}</option>
                 }
               </select>
             </div>
@@ -126,20 +169,6 @@
 
     <!-- Tabella -->
     <div class="table-container">
-      <!-- Pulsante Cerca (position absolute) -->
-      <button 
-        class="search-btn"
-        type="button"
-        title="Cerca offerte"
-        (click)="performSearch()"
-        [disabled]="loading() || !searchKeyword()">
-        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-          <circle cx="11" cy="11" r="8"/>
-          <path d="m21 21-4.35-4.35"/>
-        </svg>
-        <span>Cerca</span>
-      </button>
-
       <!-- Pulsante opzioni tabella (visibile solo in Edit Mode) -->
       @if (editMode()) {
         <button 
