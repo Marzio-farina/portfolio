@@ -1,20 +1,10 @@
-import { Component, inject, computed, signal } from '@angular/core';
+import { Component, inject, computed, signal, OnInit } from '@angular/core';
 import { toSignal } from '@angular/core/rxjs-interop';
 import { ActivatedRoute, Router } from '@angular/router';
 import { map } from 'rxjs';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
-
-export interface JobOffer {
-  id: number;
-  company: string;
-  position: string;
-  location: string;
-  status: 'pending' | 'interview' | 'accepted' | 'archived';
-  appliedDate: string;
-  salary?: string;
-  notes?: string;
-}
+import { JobOfferService, JobOffer } from '../../../services/job-offer.service';
 
 @Component({
   selector: 'app-job-offers-stats-view',
@@ -23,9 +13,10 @@ export interface JobOffer {
   templateUrl: './job-offers-stats-view.html',
   styleUrl: './job-offers-stats-view.css'
 })
-export class JobOffersStatsView {
+export class JobOffersStatsView implements OnInit {
   private route = inject(ActivatedRoute);
   private router = inject(Router);
+  private jobOfferService = inject(JobOfferService);
   
   // Legge il titolo dalla route data
   title = toSignal(this.route.data.pipe(map(d => d['title'] as string)), { initialValue: '' });
@@ -42,19 +33,38 @@ export class JobOffersStatsView {
     return 'total';
   });
 
-  // Dati delle candidature (mock - verranno dal backend)
-  allJobOffers = signal<JobOffer[]>([
-    { id: 1, company: 'Google', position: 'Frontend Developer', location: 'Milano', status: 'pending', appliedDate: '2024-01-15', salary: '45k-55k' },
-    { id: 2, company: 'Amazon', position: 'Full Stack Developer', location: 'Roma', status: 'interview', appliedDate: '2024-01-20', salary: '50k-60k' },
-    { id: 3, company: 'Microsoft', position: 'Angular Developer', location: 'Torino', status: 'accepted', appliedDate: '2024-01-25', salary: '48k-58k' },
-    { id: 4, company: 'Meta', position: 'UI/UX Developer', location: 'Milano', status: 'archived', appliedDate: '2024-01-10', salary: '40k-50k' },
-    { id: 5, company: 'Apple', position: 'Senior Frontend', location: 'Remote', status: 'pending', appliedDate: '2024-02-01', salary: '55k-65k' },
-  ]);
+  // Dati delle candidature dal backend
+  allJobOffers = signal<JobOffer[]>([]);
+  
+  // Loading state
+  loading = signal<boolean>(true);
 
   // Filtri
   searchQuery = signal<string>('');
   selectedStatus = signal<string>('all');
   selectedLocation = signal<string>('all');
+  
+  // Visibilità filtri
+  filtersVisible = signal<boolean>(false);
+
+  ngOnInit(): void {
+    this.loadJobOffers();
+  }
+
+  // Carica le job offers dal backend
+  private loadJobOffers(): void {
+    this.loading.set(true);
+    this.jobOfferService.getJobOffers().subscribe({
+      next: (offers) => {
+        this.allJobOffers.set(offers);
+        this.loading.set(false);
+      },
+      error: (err) => {
+        console.error('Errore caricamento job offers:', err);
+        this.loading.set(false);
+      }
+    });
+  }
 
   // Lista candidature filtrate
   filteredJobOffers = computed(() => {
@@ -65,14 +75,14 @@ export class JobOffersStatsView {
     const viewType = this.viewType();
 
     // Filtra per view type
-    if (viewType !== 'total') {
+    if (viewType !== 'total' && viewType !== 'email') {
       offers = offers.filter(offer => offer.status === viewType);
     }
 
     // Filtra per ricerca
     if (query) {
       offers = offers.filter(offer =>
-        offer.company.toLowerCase().includes(query) ||
+        offer.company_name.toLowerCase().includes(query) ||
         offer.position.toLowerCase().includes(query)
       );
     }
@@ -92,7 +102,11 @@ export class JobOffersStatsView {
 
   // Lista locations uniche
   uniqueLocations = computed(() => {
-    const locations = new Set(this.allJobOffers().map(offer => offer.location));
+    const locations = new Set(
+      this.allJobOffers()
+        .map(offer => offer.location)
+        .filter(loc => loc !== null)
+    );
     return Array.from(locations).sort();
   });
 
@@ -108,12 +122,18 @@ export class JobOffersStatsView {
     this.selectedLocation.set('all');
   }
 
+  // Toggle visibilità filtri
+  toggleFilters(): void {
+    this.filtersVisible.set(!this.filtersVisible());
+  }
+
   // Ottieni badge class per status
   getStatusClass(status: string): string {
     const classes: Record<string, string> = {
       pending: 'badge-warning',
       interview: 'badge-info',
       accepted: 'badge-success',
+      rejected: 'badge-error',
       archived: 'badge-ghost'
     };
     return classes[status] || 'badge-ghost';
@@ -125,6 +145,7 @@ export class JobOffersStatsView {
       pending: 'In Attesa',
       interview: 'Colloquio',
       accepted: 'Accettata',
+      rejected: 'Rifiutata',
       archived: 'Archiviata'
     };
     return labels[status] || status;

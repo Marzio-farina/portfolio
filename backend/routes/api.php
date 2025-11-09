@@ -16,6 +16,7 @@ use App\Http\Controllers\Api\CvFileController;
 use App\Http\Controllers\Api\GitHubProxyController;
 use App\Http\Controllers\Api\GitHubRepositoryController;
 use App\Http\Controllers\Api\JobOfferCardController;
+use App\Http\Controllers\Api\JobOfferController;
 use App\Http\Controllers\Api\ProjectController;
 use App\Http\Controllers\Api\SocialAccountController;
 use App\Http\Controllers\Api\TechnologyController;
@@ -231,6 +232,9 @@ Route::middleware(['api', "throttle:{$throttleLimit}", 'db.connection'])
             Route::patch('job-offer-cards/{id}/toggle', [JobOfferCardController::class, 'toggleVisibility']); // Toggle visibilità
             // Route::post('job-offer-cards', [JobOfferCardController::class, 'store']); // Crea card master (solo admin)
             // Route::delete('job-offer-cards/{id}', [JobOfferCardController::class, 'destroy']); // Elimina card master (solo admin)
+
+            // Job Offers - gestione candidature lavorative
+            Route::apiResource('job-offers', JobOfferController::class);
         });
 
         // ====================================================================

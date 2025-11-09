@@ -9,9 +9,22 @@
     <h2 class="title">{{ title() }}</h2>
   </div>
 
+  <!-- Pulsante Toggle Filtri -->
+  <button 
+    class="filter-toggle-btn" 
+    (click)="toggleFilters()" 
+    type="button"
+    [class.active]="filtersVisible()"
+    [attr.aria-label]="filtersVisible() ? 'Nascondi filtri' : 'Mostra filtri'">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+      <polygon points="22 3 2 3 10 12.46 10 19 14 21 14 12.46 22 3"/>
+    </svg>
+  </button>
+
   <!-- Filtro superiore - Search Bar -->
-  <div class="top-filter">
-    <div class="search-wrapper">
+  @if (filtersVisible()) {
+    <div class="top-filter">
+      <div class="search-wrapper">
       <svg class="search-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
         <circle cx="11" cy="11" r="8"></circle>
         <path d="m21 21-4.35-4.35"></path>
@@ -37,13 +50,15 @@
         <path d="M3 3v5h5"/>
       </svg>
       Reset Filtri
-    </button>
-  </div>
+      </button>
+    </div>
+  }
 
   <!-- Layout principale: Filtri laterali + Tabella -->
-  <div class="content-layout">
+  <div class="content-layout" [class.filters-hidden]="!filtersVisible()">
     <!-- Filtri laterali -->
-    <aside class="side-filters">
+    @if (filtersVisible()) {
+      <aside class="side-filters">
       <div class="filter-card">
         <h3 class="filter-title">Filtri</h3>
 
@@ -59,6 +74,7 @@
             <option value="pending">In Attesa</option>
             <option value="interview">Colloquio</option>
             <option value="accepted">Accettata</option>
+            <option value="rejected">Rifiutata</option>
             <option value="archived">Archiviata</option>
           </select>
         </div>
@@ -89,7 +105,8 @@
           <span>{{ filteredJobOffers().length }} Risultati</span>
         </div>
       </div>
-    </aside>
+      </aside>
+    }
 
     <!-- Tabella -->
     <div class="table-container">
@@ -114,56 +131,43 @@
                 <th>Data</th>
                 <th>Stipendio</th>
                 <th>Stato</th>
-                <th>Azioni</th>
               </tr>
             </thead>
             <tbody>
-              @for (offer of filteredJobOffers(); track offer.id) {
+              @if (loading()) {
                 <tr>
-                  <td>
-                    <div class="font-bold">{{ offer.company }}</div>
-                  </td>
-                  <td>{{ offer.position }}</td>
-                  <td>
-                    <div class="flex items-center gap-2">
-                      <svg class="location-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                        <path d="M20 10c0 6-8 12-8 12s-8-6-8-12a8 8 0 0 1 16 0Z"/>
-                        <circle cx="12" cy="10" r="3"/>
-                      </svg>
-                      {{ offer.location }}
-                    </div>
-                  </td>
-                  <td>{{ offer.appliedDate }}</td>
-                  <td>{{ offer.salary || '-' }}</td>
-                  <td>
-                    <span class="badge" [ngClass]="getStatusClass(offer.status)">
-                      {{ getStatusLabel(offer.status) }}
-                    </span>
-                  </td>
-                  <td>
-                    <div class="action-buttons">
-                      <button class="btn btn-ghost btn-xs" type="button" aria-label="Visualizza dettagli">
-                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                          <path d="M2 12s3-7 10-7 10 7 10 7-3 7-10 7-10-7-10-7Z"/>
-                          <circle cx="12" cy="12" r="3"/>
-                        </svg>
-                      </button>
-                      <button class="btn btn-ghost btn-xs" type="button" aria-label="Modifica">
-                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                          <path d="M17 3a2.85 2.83 0 1 1 4 4L7.5 20.5 2 22l1.5-5.5Z"/>
-                          <path d="m15 5 4 4"/>
-                        </svg>
-                      </button>
-                      <button class="btn btn-ghost btn-xs text-error" type="button" aria-label="Elimina">
-                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                          <path d="M3 6h18"/>
-                          <path d="M19 6v14c0 1-1 2-2 2H7c-1 0-2-1-2-2V6"/>
-                          <path d="M8 6V4c0-1 1-2 2-2h4c1 0 2 1 2 2v2"/>
-                        </svg>
-                      </button>
-                    </div>
+                  <td colspan="6" class="text-center">
+                    <div class="loading-spinner">Caricamento...</div>
                   </td>
                 </tr>
+              } @else {
+                @for (offer of filteredJobOffers(); track offer.id) {
+                  <tr>
+                    <td>
+                      <div class="font-bold">{{ offer.company_name }}</div>
+                      @if (offer.recruiter_company) {
+                        <div class="text-sm text-secondary">via {{ offer.recruiter_company }}</div>
+                      }
+                    </td>
+                    <td>{{ offer.position }}</td>
+                    <td>
+                      <div class="flex items-center gap-2">
+                        <svg class="location-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                          <path d="M20 10c0 6-8 12-8 12s-8-6-8-12a8 8 0 0 1 16 0Z"/>
+                          <circle cx="12" cy="10" r="3"/>
+                        </svg>
+                        {{ offer.location || '-' }}
+                      </div>
+                    </td>
+                    <td>{{ offer.application_date || '-' }}</td>
+                    <td>{{ offer.salary_range || '-' }}</td>
+                    <td>
+                      <span class="badge" [ngClass]="getStatusClass(offer.status)">
+                        {{ getStatusLabel(offer.status) }}
+                      </span>
+                    </td>
+                  </tr>
+                }
               }
             </tbody>
           </table>

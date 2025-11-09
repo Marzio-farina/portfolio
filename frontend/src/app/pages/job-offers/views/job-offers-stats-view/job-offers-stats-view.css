@@ -2,6 +2,7 @@
 .job-offer-detail {
   background: transparent;
   padding: 0;
+  position: relative;
 }
 
 /* Header con back button e titolo */
@@ -46,13 +47,82 @@
   font-size: 1.5rem;
 }
 
+/* === PULSANTE TOGGLE FILTRI === */
+.filter-toggle-btn {
+  position: absolute;
+  top: 60px;
+  left: 32px;
+  width: 56px;
+  height: 56px;
+  background: transparent;
+  border: none;
+  outline: none;
+  box-shadow: none;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--text-primary);
+  transition: color var(--transition-1);
+  z-index: 10;
+  padding: 0;
+}
+
+.filter-toggle-btn:hover {
+  color: var(--accent-primary);
+  background: transparent;
+  outline: none;
+  box-shadow: none;
+}
+
+.filter-toggle-btn:focus {
+  outline: none;
+  box-shadow: none;
+  background: transparent;
+}
+
+.filter-toggle-btn:active {
+  background: transparent;
+  outline: none;
+  box-shadow: none;
+}
+
+.filter-toggle-btn:hover svg {
+  stroke-width: 2.5;
+}
+
+.filter-toggle-btn.active {
+  color: var(--accent-primary);
+  background: transparent;
+}
+
+.filter-toggle-btn svg {
+  width: 28px;
+  height: 28px;
+  stroke-width: 2;
+  transition: stroke-width var(--transition-1);
+}
+
 /* === FILTRO SUPERIORE === */
 .top-filter {
   display: flex;
   gap: 1rem;
   align-items: center;
   margin-bottom: 1.5rem;
+  margin-left: 4rem;
   padding: 0 32px;
+  animation: fadeIn 0.3s ease-out;
+}
+
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(-10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
 }
 
 .search-wrapper {
@@ -133,9 +203,14 @@
 /* === LAYOUT CONTENUTO === */
 .content-layout {
   display: grid;
-  grid-template-columns: 280px 1fr;
+  grid-template-columns: 220px 1fr;
   gap: 1.5rem;
   padding: 0 32px;
+  transition: grid-template-columns var(--transition-1);
+}
+
+.content-layout.filters-hidden {
+  grid-template-columns: 1fr;
 }
 
 /* === FILTRI LATERALI === */
@@ -143,6 +218,18 @@
   position: sticky;
   top: 2rem;
   height: fit-content;
+  animation: slideIn 0.3s ease-out;
+}
+
+@keyframes slideIn {
+  from {
+    opacity: 0;
+    transform: translateX(-20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateX(0);
+  }
 }
 
 .filter-card {
@@ -257,29 +344,26 @@
   color: var(--text-secondary);
 }
 
+.text-sm {
+  font-size: 0.75rem;
+}
+
+.text-secondary {
+  color: var(--text-secondary);
+  font-style: italic;
+  margin-top: 0.25rem;
+}
+
+.loading-spinner {
+  padding: 2rem;
+  color: var(--text-secondary);
+  font-size: 0.9375rem;
+}
+
 .badge {
   font-size: 0.75rem;
   font-weight: 600;
   padding: 0.25rem 0.75rem;
-}
-
-.action-buttons {
-  display: flex;
-  gap: 0.25rem;
-}
-
-.action-buttons .btn {
-  padding: 0.25rem 0.5rem;
-}
-
-.action-buttons .btn svg {
-  width: 16px;
-  height: 16px;
-}
-
-.action-buttons .btn.text-error:hover {
-  background: hsl(0 91% 71% / 0.1);
-  color: hsl(0 91% 71%);
 }
 
 /* === EMPTY STATE === */
@@ -315,7 +399,7 @@
 /* === RESPONSIVE === */
 @media (max-width: 1024px) {
   .content-layout {
-    grid-template-columns: 240px 1fr;
+    grid-template-columns: 200px 1fr;
     gap: 1rem;
   }
 
@@ -349,9 +433,21 @@
     font-size: 1.25rem;
   }
 
+  .filter-toggle-btn {
+    left: 16px;
+    width: 48px;
+    height: 48px;
+  }
+
+  .filter-toggle-btn svg {
+    width: 24px;
+    height: 24px;
+  }
+
   .top-filter {
     flex-direction: column;
     gap: 0.75rem;
+    margin-left: 1rem;
     padding: 0 16px;
   }
 
