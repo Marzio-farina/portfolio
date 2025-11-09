@@ -16,6 +16,7 @@ use App\Http\Controllers\Api\CvFileController;
 use App\Http\Controllers\Api\GitHubProxyController;
 use App\Http\Controllers\Api\GitHubRepositoryController;
 use App\Http\Controllers\Api\JobOfferCardController;
+use App\Http\Controllers\Api\JobOfferColumnController;
 use App\Http\Controllers\Api\JobOfferController;
 use App\Http\Controllers\Api\ProjectController;
 use App\Http\Controllers\Api\SocialAccountController;
@@ -236,6 +237,11 @@ Route::middleware(['api', "throttle:{$throttleLimit}", 'db.connection'])
             // Job Offers - gestione candidature lavorative
             Route::post('job-offers/stats', [JobOfferController::class, 'getStats']); // Statistiche per card visibili
             Route::apiResource('job-offers', JobOfferController::class);
+
+            // Job Offer Columns - configurazione colonne tabella per utente
+            Route::get('job-offer-columns', [JobOfferColumnController::class, 'index']); // Ottieni colonne configurate utente
+            Route::put('job-offer-columns/{columnId}', [JobOfferColumnController::class, 'update']); // Aggiorna visibilità
+            Route::put('job-offer-columns/reorder', [JobOfferColumnController::class, 'updateOrder']); // Riordina colonne
         });
 
         // ====================================================================

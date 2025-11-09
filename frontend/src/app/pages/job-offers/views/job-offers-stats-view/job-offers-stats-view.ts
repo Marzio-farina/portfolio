@@ -1,10 +1,11 @@
 import { Component, inject, computed, signal, OnInit } from '@angular/core';
 import { toSignal } from '@angular/core/rxjs-interop';
 import { ActivatedRoute, Router } from '@angular/router';
-import { map } from 'rxjs';
+import { map, forkJoin } from 'rxjs';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { JobOfferService, JobOffer } from '../../../../services/job-offer.service';
+import { JobOfferColumnService, JobOfferColumn } from '../../../../services/job-offer-column.service';
 
 @Component({
   selector: 'app-job-offers-stats-view',
@@ -17,6 +18,7 @@ export class JobOffersStatsView implements OnInit {
   private route = inject(ActivatedRoute);
   private router = inject(Router);
   private jobOfferService = inject(JobOfferService);
+  private columnService = inject(JobOfferColumnService);
   
   // Legge il titolo dalla route data
   title = toSignal(this.route.data.pipe(map(d => d['title'] as string)), { initialValue: '' });
@@ -36,6 +38,9 @@ export class JobOffersStatsView implements OnInit {
   // Dati delle candidature dal backend
   allJobOffers = signal<JobOffer[]>([]);
   
+  // Colonne configurate dall'utente
+  allColumns = signal<JobOfferColumn[]>([]);
+  
   // Loading state
   loading = signal<boolean>(true);
 
@@ -48,23 +53,36 @@ export class JobOffersStatsView implements OnInit {
   filtersVisible = signal<boolean>(false);
 
   ngOnInit(): void {
-    this.loadJobOffers();
+    this.loadData();
   }
 
-  // Carica le job offers dal backend
-  private loadJobOffers(): void {
+  // Carica job offers e configurazione colonne dal backend
+  private loadData(): void {
     this.loading.set(true);
-    this.jobOfferService.getJobOffers().subscribe({
-      next: (offers) => {
+    
+    // Carica in parallelo job offers e colonne
+    forkJoin({
+      offers: this.jobOfferService.getJobOffers(),
+      columns: this.columnService.getUserColumns()
+    }).subscribe({
+      next: ({ offers, columns }) => {
         this.allJobOffers.set(offers);
+        this.allColumns.set(columns);
         this.loading.set(false);
       },
       error: (err) => {
-        console.error('Errore caricamento job offers:', err);
+        console.error('Errore caricamento dati:', err);
         this.loading.set(false);
       }
     });
   }
+
+  // Colonne visibili (filtrate)
+  visibleColumns = computed(() => {
+    return this.allColumns()
+      .filter(col => col.visible)
+      .sort((a, b) => (a.order || 0) - (b.order || 0));
+  });
 
   // Lista candidature filtrate
   filteredJobOffers = computed(() => {
@@ -149,6 +167,33 @@ export class JobOffersStatsView implements OnInit {
       archived: 'Archiviata'
     };
     return labels[status] || status;
+  }
+
+  // Ottieni il valore di un campo dinamicamente
+  getFieldValue(offer: JobOffer, fieldName: string): any {
+    return (offer as any)[fieldName];
+  }
+
+  // Formatta il valore per la visualizzazione
+  formatValue(value: any, fieldName: string): string {
+    if (value === null || value === undefined) return '-';
+    
+    // Boolean
+    if (fieldName === 'is_registered') {
+      return value ? 'Sì' : 'No';
+    }
+    
+    // Status con badge (gestito separatamente nel template)
+    if (fieldName === 'status') {
+      return this.getStatusLabel(value);
+    }
+    
+    return String(value);
+  }
+
+  // Verifica se una colonna richiede formattazione speciale
+  isSpecialField(fieldName: string): boolean {
+    return ['status', 'location', 'company_name'].includes(fieldName);
   }
 }
 

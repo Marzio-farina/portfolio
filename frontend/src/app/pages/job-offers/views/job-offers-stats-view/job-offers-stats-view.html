@@ -115,36 +115,19 @@
           <table class="table table-zebra">
             <thead>
               <tr>
-                <th>Azienda</th>
-                <th>Posizione</th>
-                <th>Località</th>
-                <th>Data</th>
-                <th>Stipendio</th>
-                <th>Stato</th>
+                @for (column of visibleColumns(); track column.id) {
+                  <th>{{ column.title }}</th>
+                }
               </tr>
             </thead>
             <tbody>
               @for (i of [0,1,2,3,4,5]; track i) {
                 <tr class="skeleton-row">
-                  <td>
-                    <div class="skeleton skeleton-text skeleton-text--lg"></div>
-                    <div class="skeleton skeleton-text skeleton-text--sm"></div>
-                  </td>
-                  <td>
-                    <div class="skeleton skeleton-text"></div>
-                  </td>
-                  <td>
-                    <div class="skeleton skeleton-text"></div>
-                  </td>
-                  <td>
-                    <div class="skeleton skeleton-text skeleton-text--sm"></div>
-                  </td>
-                  <td>
-                    <div class="skeleton skeleton-text skeleton-text--sm"></div>
-                  </td>
-                  <td>
-                    <div class="skeleton skeleton-badge"></div>
-                  </td>
+                  @for (column of visibleColumns(); track column.id) {
+                    <td>
+                      <div class="skeleton skeleton-text"></div>
+                    </td>
+                  }
                 </tr>
               }
             </tbody>
@@ -165,40 +148,38 @@
           <table class="table table-zebra">
             <thead>
               <tr>
-                <th>Azienda</th>
-                <th>Posizione</th>
-                <th>Località</th>
-                <th>Data</th>
-                <th>Stipendio</th>
-                <th>Stato</th>
+                @for (column of visibleColumns(); track column.id) {
+                  <th>{{ column.title }}</th>
+                }
               </tr>
             </thead>
             <tbody>
               @for (offer of filteredJobOffers(); track offer.id) {
                 <tr>
-                  <td>
-                    <div class="font-bold">{{ offer.company_name }}</div>
-                    @if (offer.recruiter_company) {
-                      <div class="text-sm text-secondary">via {{ offer.recruiter_company }}</div>
-                    }
-                  </td>
-                  <td>{{ offer.position }}</td>
-                  <td>
-                    <div class="flex items-center gap-2">
-                      <svg class="location-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                        <path d="M20 10c0 6-8 12-8 12s-8-6-8-12a8 8 0 0 1 16 0Z"/>
-                        <circle cx="12" cy="10" r="3"/>
-                      </svg>
-                      {{ offer.location || '-' }}
-                    </div>
-                  </td>
-                  <td>{{ offer.application_date || '-' }}</td>
-                  <td>{{ offer.salary_range || '-' }}</td>
-                  <td>
-                    <span class="badge" [ngClass]="getStatusClass(offer.status)">
-                      {{ getStatusLabel(offer.status) }}
-                    </span>
-                  </td>
+                  @for (column of visibleColumns(); track column.id) {
+                    <td>
+                      @if (column.field_name === 'company_name') {
+                        <div class="font-bold">{{ offer.company_name }}</div>
+                        @if (offer.recruiter_company) {
+                          <div class="text-sm text-secondary">via {{ offer.recruiter_company }}</div>
+                        }
+                      } @else if (column.field_name === 'location') {
+                        <div class="flex items-center gap-2">
+                          <svg class="location-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                            <path d="M20 10c0 6-8 12-8 12s-8-6-8-12a8 8 0 0 1 16 0Z"/>
+                            <circle cx="12" cy="10" r="3"/>
+                          </svg>
+                          {{ offer.location || '-' }}
+                        </div>
+                      } @else if (column.field_name === 'status') {
+                        <span class="badge" [ngClass]="getStatusClass(offer.status)">
+                          {{ getStatusLabel(offer.status) }}
+                        </span>
+                      } @else {
+                        {{ formatValue(getFieldValue(offer, column.field_name), column.field_name) }}
+                      }
+                    </td>
+                  }
                 </tr>
               }
             </tbody>
