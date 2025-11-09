@@ -15,7 +15,8 @@
     (click)="toggleFilters()" 
     type="button"
     [class.active]="filtersVisible()"
-    [attr.aria-label]="filtersVisible() ? 'Nascondi filtri' : 'Mostra filtri'">
+    [attr.aria-label]="filtersVisible() ? 'Nascondi filtri' : 'Mostra filtri'"
+    title="Toggle Filtri">
     <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
       <polygon points="22 3 2 3 10 12.46 10 19 14 21 14 12.46 22 3"/>
     </svg>
@@ -51,6 +52,20 @@
       </svg>
       Reset Filtri
       </button>
+    </div>
+  }
+
+  <!-- Banner informativo modalità Edit -->
+  @if (editMode()) {
+    <div class="edit-mode-banner">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+        <circle cx="12" cy="12" r="10"/>
+        <path d="M12 16v-4"/>
+        <path d="M12 8h.01"/>
+      </svg>
+      <span>
+        <strong>Modalità Edit attiva:</strong> Trascina gli header delle colonne per riordinarle
+      </span>
     </div>
   }
 
@@ -151,7 +166,27 @@
               <thead>
                 <tr>
                   @for (column of visibleColumns(); track column.id) {
-                    <th>{{ column.title }}</th>
+                    <th 
+                      [draggable]="editMode()"
+                      [class.draggable]="editMode()"
+                      [class.dragging]="isColumnDragging(column.id)"
+                      [class.drop-target]="isColumnDropTarget(column.id)"
+                      (dragstart)="onDragStart($event, column.id)"
+                      (dragover)="onDragOver($event, column.id)"
+                      (dragleave)="onDragLeave($event)"
+                      (drop)="onDrop($event, column.id)"
+                      (dragend)="onDragEnd()">
+                      <div class="th-content">
+                        @if (editMode()) {
+                          <svg class="drag-handle" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                            <line x1="3" y1="12" x2="21" y2="12"/>
+                            <line x1="3" y1="6" x2="21" y2="6"/>
+                            <line x1="3" y1="18" x2="21" y2="18"/>
+                          </svg>
+                        }
+                        <span>{{ column.title }}</span>
+                      </div>
+                    </th>
                   }
                 </tr>
               </thead>

@@ -6,6 +6,7 @@ import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { JobOfferService, JobOffer } from '../../../../services/job-offer.service';
 import { JobOfferColumnService, JobOfferColumn } from '../../../../services/job-offer-column.service';
+import { EditModeService } from '../../../../services/edit-mode.service';
 
 @Component({
   selector: 'app-job-offers-stats-view',
@@ -19,9 +20,13 @@ export class JobOffersStatsView implements OnInit {
   private router = inject(Router);
   private jobOfferService = inject(JobOfferService);
   private columnService = inject(JobOfferColumnService);
+  private editModeService = inject(EditModeService);
   
   // Legge il titolo dalla route data
   title = toSignal(this.route.data.pipe(map(d => d['title'] as string)), { initialValue: '' });
+  
+  // Edit mode dal service globale
+  editMode = this.editModeService.isEditing;
   
   // Determina il tipo di vista dalla route path
   viewType = computed(() => {
@@ -51,6 +56,10 @@ export class JobOffersStatsView implements OnInit {
   
   // Visibilità filtri
   filtersVisible = signal<boolean>(false);
+  
+  // Drag & Drop state
+  draggedColumnId = signal<number | null>(null);
+  dragOverColumnId = signal<number | null>(null);
   
   // Array di placeholder per skeleton rows
   skeletonRows = computed(() => {
@@ -206,6 +215,123 @@ export class JobOffersStatsView implements OnInit {
   // Verifica se una colonna richiede formattazione speciale
   isSpecialField(fieldName: string): boolean {
     return ['status', 'location', 'company_name'].includes(fieldName);
+  }
+
+  // === DRAG & DROP COLONNE ===
+
+  // Inizia drag della colonna
+  onDragStart(event: DragEvent, columnId: number): void {
+    if (!this.editMode()) return;
+    
+    this.draggedColumnId.set(columnId);
+    
+    // Imposta l'effetto di trascinamento
+    if (event.dataTransfer) {
+      event.dataTransfer.effectAllowed = 'move';
+      event.dataTransfer.setData('text/html', '');
+    }
+  }
+
+  // Drag over su una colonna (per mostrare feedback visivo)
+  onDragOver(event: DragEvent, columnId: number): void {
+    if (!this.editMode()) return;
+    
+    event.preventDefault();
+    
+    if (event.dataTransfer) {
+      event.dataTransfer.dropEffect = 'move';
+    }
+    
+    // Imposta la colonna su cui si sta hovering
+    if (this.draggedColumnId() !== columnId) {
+      this.dragOverColumnId.set(columnId);
+    }
+  }
+
+  // Lascia la zona di drop
+  onDragLeave(event: DragEvent): void {
+    if (!this.editMode()) return;
+    this.dragOverColumnId.set(null);
+  }
+
+  // Drop della colonna
+  onDrop(event: DragEvent, targetColumnId: number): void {
+    if (!this.editMode()) return;
+    
+    event.preventDefault();
+    
+    const draggedId = this.draggedColumnId();
+    if (!draggedId || draggedId === targetColumnId) {
+      this.draggedColumnId.set(null);
+      this.dragOverColumnId.set(null);
+      return;
+    }
+
+    // Riordina le colonne
+    this.reorderColumns(draggedId, targetColumnId);
+    
+    // Reset drag state
+    this.draggedColumnId.set(null);
+    this.dragOverColumnId.set(null);
+  }
+
+  // Fine del drag (pulizia)
+  onDragEnd(): void {
+    this.draggedColumnId.set(null);
+    this.dragOverColumnId.set(null);
+  }
+
+  // Riordina le colonne localmente e salva sul backend
+  private reorderColumns(draggedId: number, targetId: number): void {
+    const columns = [...this.visibleColumns()];
+    
+    // Trova gli indici
+    const draggedIndex = columns.findIndex(col => col.id === draggedId);
+    const targetIndex = columns.findIndex(col => col.id === targetId);
+    
+    if (draggedIndex === -1 || targetIndex === -1) return;
+    
+    // Rimuovi la colonna trascinata
+    const [draggedColumn] = columns.splice(draggedIndex, 1);
+    
+    // Inserisci nella nuova posizione
+    columns.splice(targetIndex, 0, draggedColumn);
+    
+    // Aggiorna gli ordini
+    const updatedColumns = columns.map((col, index) => ({
+      ...col,
+      order: index
+    }));
+    
+    // Aggiorna lo stato locale (ottimistico)
+    const allCols = this.allColumns().map(col => {
+      const updated = updatedColumns.find(uc => uc.id === col.id);
+      return updated ? updated : col;
+    });
+    this.allColumns.set(allCols);
+    
+    // Salva sul backend
+    const columnIds = updatedColumns.map(col => col.id);
+    this.columnService.updateColumnOrder(columnIds).subscribe({
+      next: (response: JobOfferColumn[]) => {
+        console.log('Ordine colonne aggiornato con successo', response);
+      },
+      error: (err: any) => {
+        console.error('Errore aggiornamento ordine colonne:', err);
+        // In caso di errore, ricarica i dati
+        this.loadData();
+      }
+    });
+  }
+
+  // Verifica se una colonna è in dragging
+  isColumnDragging(columnId: number): boolean {
+    return this.draggedColumnId() === columnId;
+  }
+
+  // Verifica se una colonna è target del drop
+  isColumnDropTarget(columnId: number): boolean {
+    return this.dragOverColumnId() === columnId && this.draggedColumnId() !== columnId;
   }
 }
 

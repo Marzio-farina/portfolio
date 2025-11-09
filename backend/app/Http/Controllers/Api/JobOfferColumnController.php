@@ -40,9 +40,10 @@ class JobOfferColumnController extends Controller
             }
         }
         
-        // Recupera le colonne con la configurazione utente
+        // Recupera le colonne con la configurazione utente, ordinate per 'order'
         $columns = Auth::user()->jobOfferColumns()
             ->select('job_offer_columns.*', 'user_job_offer_columns.visible', 'user_job_offer_columns.order')
+            ->orderBy('user_job_offer_columns.order')
             ->get()
             ->map(function ($column) {
                 return [
@@ -93,23 +94,53 @@ class JobOfferColumnController extends Controller
      */
     public function updateOrder(Request $request): JsonResponse
     {
+        // Supporta sia il formato con 'columns' che 'column_ids'
         $validated = $request->validate([
-            'columns' => 'required|array',
-            'columns.*.id' => 'required|integer|exists:job_offer_columns,id',
-            'columns.*.order' => 'required|integer',
+            'column_ids' => 'sometimes|array',
+            'column_ids.*' => 'integer|exists:job_offer_columns,id',
+            'columns' => 'sometimes|array',
+            'columns.*.id' => 'integer|exists:job_offer_columns,id',
+            'columns.*.order' => 'integer',
         ]);
 
         $userId = Auth::id();
 
         DB::transaction(function () use ($validated, $userId) {
-            foreach ($validated['columns'] as $columnData) {
-                UserJobOfferColumn::where('user_id', $userId)
-                    ->where('job_offer_column_id', $columnData['id'])
-                    ->update(['order' => $columnData['order']]);
+            // Formato con column_ids (array ordinato di IDs)
+            if (isset($validated['column_ids'])) {
+                foreach ($validated['column_ids'] as $index => $columnId) {
+                    UserJobOfferColumn::where('user_id', $userId)
+                        ->where('job_offer_column_id', $columnId)
+                        ->update(['order' => $index]);
+                }
+            }
+            // Formato con columns array di oggetti
+            else if (isset($validated['columns'])) {
+                foreach ($validated['columns'] as $columnData) {
+                    UserJobOfferColumn::where('user_id', $userId)
+                        ->where('job_offer_column_id', $columnData['id'])
+                        ->update(['order' => $columnData['order']]);
+                }
             }
         });
 
-        return response()->json(['message' => 'Column order updated successfully']);
+        // Ritorna le colonne aggiornate con il nuovo ordine
+        $columns = Auth::user()->jobOfferColumns()
+            ->select('job_offer_columns.*', 'user_job_offer_columns.visible', 'user_job_offer_columns.order')
+            ->orderBy('user_job_offer_columns.order')
+            ->get()
+            ->map(function ($column) {
+                return [
+                    'id' => $column->id,
+                    'title' => $column->title,
+                    'field_name' => $column->field_name,
+                    'default_order' => $column->default_order,
+                    'visible' => (bool) $column->pivot->visible,
+                    'order' => $column->pivot->order,
+                ];
+            });
+
+        return response()->json($columns);
     }
 }
 

@@ -41,5 +41,12 @@ export class JobOfferColumnService {
   updateOrder(columns: { id: number; order: number }[]): Observable<{ message: string }> {
     return this.http.put<{ message: string }>(`${this.apiUrl}/api/job-offer-columns/reorder`, { columns });
   }
+
+  /**
+   * Aggiorna l'ordine delle colonne tramite array di IDs
+   */
+  updateColumnOrder(columnIds: number[]): Observable<JobOfferColumn[]> {
+    return this.http.put<JobOfferColumn[]>(`${this.apiUrl}/api/job-offer-columns/reorder`, { column_ids: columnIds });
+  }
 }
 
