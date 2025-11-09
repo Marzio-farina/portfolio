@@ -382,6 +382,14 @@
   font-size: 0.9375rem;
 }
 
+/* Colonna Stato più stretta */
+.table th.column-status,
+.table td.column-status {
+  width: 120px;
+  max-width: 120px;
+  white-space: nowrap;
+}
+
 .table tbody td .font-bold {
   font-weight: 600;
   color: var(--text-primary);

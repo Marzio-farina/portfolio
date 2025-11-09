@@ -153,6 +153,7 @@
                 <tr>
                   @for (column of visibleColumns(); track column.id) {
                     <th 
+                      [class.column-status]="column.field_name === 'status'"
                       [draggable]="editMode()"
                       [class.draggable]="editMode()"
                       [class.dragging]="isColumnDragging(column.id)"
@@ -182,7 +183,7 @@
                   @for (i of skeletonRows(); track i) {
                     <tr class="skeleton-row">
                       @for (column of visibleColumns(); track column.id) {
-                        <td>
+                        <td [class.column-status]="column.field_name === 'status'">
                           <div class="skeleton skeleton-text"></div>
                         </td>
                       }
@@ -193,7 +194,7 @@
                   @for (offer of filteredJobOffers(); track offer.id) {
                     <tr class="data-row">
                       @for (column of visibleColumns(); track column.id) {
-                        <td>
+                        <td [class.column-status]="column.field_name === 'status'">
                           @if (column.field_name === 'company_name') {
                             <div class="font-bold">{{ offer.company_name }}</div>
                             @if (offer.recruiter_company) {

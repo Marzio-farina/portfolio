@@ -314,7 +314,7 @@ export class JobOffersStatsView implements OnInit {
     const columnIds = updatedColumns.map(col => col.id);
     this.columnService.updateColumnOrder(columnIds).subscribe({
       next: (response: JobOfferColumn[]) => {
-        console.log('Ordine colonne aggiornato con successo', response);
+        // Ordine colonne aggiornato con successo
       },
       error: (err: any) => {
         console.error('Errore aggiornamento ordine colonne:', err);
