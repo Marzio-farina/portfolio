@@ -238,6 +238,7 @@ Route::middleware(['api', "throttle:{$throttleLimit}", 'db.connection'])
             // Job Offers - gestione candidature lavorative
             Route::post('job-offers/stats', [JobOfferController::class, 'getStats']); // Statistiche per card visibili
             Route::apiResource('job-offers', JobOfferController::class);
+            Route::post('job-offers/save-scraped', [JobOfferController::class, 'saveScrapedJobs']); // Salva offerte scrapate con status 'search'
 
             // Job Offer Columns - configurazione colonne tabella per utente
             Route::get('job-offer-columns', [JobOfferColumnController::class, 'index']); // Ottieni colonne configurate utente

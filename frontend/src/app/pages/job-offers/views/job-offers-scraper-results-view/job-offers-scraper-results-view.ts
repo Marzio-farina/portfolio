@@ -5,6 +5,7 @@ import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { JobOfferColumnService, JobOfferColumn } from '../../../../services/job-offer-column.service';
 import { JobScraperService, ScrapedJob } from '../../../../services/job-scraper.service';
+import { JobOfferService } from '../../../../services/job-offer.service';
 import { EditModeService } from '../../../../services/edit-mode.service';
 import { TenantService } from '../../../../services/tenant.service';
 
@@ -24,6 +25,7 @@ export class JobOffersScraperResultsView implements OnInit {
   private router = inject(Router);
   private columnService = inject(JobOfferColumnService);
   private scraperService = inject(JobScraperService);
+  private jobOfferService = inject(JobOfferService);
   private editModeService = inject(EditModeService);
   private tenantService = inject(TenantService);
   
@@ -131,7 +133,6 @@ export class JobOffersScraperResultsView implements OnInit {
         console.log('✅ Adzuna scraping completato:', response);
         console.log(`📊 Trovate ${response.count} offerte:`, response.jobs);
         this.scrapedJobs.set(response.jobs);
-        this.loading.set(false);
         
         // Reset filtri raffinamento dopo nuova ricerca
         this.selectedCompany.set('all');
@@ -141,6 +142,11 @@ export class JobOffersScraperResultsView implements OnInit {
         this.selectedSalaryFilter.set('all');
         this.minSalary.set(null);
         this.maxSalary.set(null);
+        
+        // Salva le offerte scrapate nella tabella job_offers con status 'search'
+        this.saveJobsToDatabase(response.jobs);
+        
+        this.loading.set(false);
       },
       error: (err) => {
         console.error('❌ Errore scraping:', err);
@@ -149,10 +155,17 @@ export class JobOffersScraperResultsView implements OnInit {
     });
   }
 
-  // Colonne visibili (filtrate e ordinate, escluso 'Sito Web' perché gestito dalla colonna "Candidati")
+  // Colonne visibili (filtrate e ordinate, escluso website/status/is_registered)
+  // - 'website' gestito dalla colonna "Candidati"
+  // - 'status' e 'is_registered' non rilevanti per offerte scrapate
   visibleColumns = computed(() => {
     return this.allColumns()
-      .filter(col => col.visible && col.field_name !== 'website')
+      .filter(col => 
+        col.visible && 
+        col.field_name !== 'website' && 
+        col.field_name !== 'status' && 
+        col.field_name !== 'is_registered'
+      )
       .sort((a, b) => (a.order || 0) - (b.order || 0));
   });
 
@@ -204,6 +217,45 @@ export class JobOffersScraperResultsView implements OnInit {
     const dynamicIds = this.dynamicColumns().map(col => col.id);
     return this.visibleColumns().filter(col => !dynamicIds.includes(col.id));
   });
+
+  /**
+   * Filtra le colonne extra per un dato job, mostrando solo quelle con valore
+   */
+  getPopulatedExtraColumns(job: ScrapedJob): JobOfferColumn[] {
+    return this.extraColumns().filter(column => {
+      const value = this.getFieldValue(job, column.field_name);
+      // Mostra solo se ha un valore valido (non null, undefined, stringa vuota, 'N/A')
+      return value !== null && 
+             value !== undefined && 
+             value !== '' && 
+             value !== 'N/A' &&
+             value !== 'Non specificato';
+    });
+  }
+
+  /**
+   * Salva le offerte scrapate nella tabella job_offers con status 'search'
+   */
+  private saveJobsToDatabase(jobs: ScrapedJob[]): void {
+    const jobsToSave = jobs.map(job => ({
+      company: job.company,
+      title: job.title,
+      location: job.location,
+      url: job.url,
+      salary: job.salary,
+      employment_type: job.employment_type,
+      remote: job.remote
+    }));
+
+    this.jobOfferService.saveScrapedJobs(jobsToSave).subscribe({
+      next: (response) => {
+        console.log(`💾 Salvate ${response.saved_count} nuove offerte nel database`);
+      },
+      error: (err) => {
+        console.error('❌ Errore salvataggio offerte:', err);
+      }
+    });
+  }
 
   // Offerte filtrate e ordinate
   filteredJobs = computed(() => {
@@ -593,20 +645,28 @@ export class JobOffersScraperResultsView implements OnInit {
   isColumnCheckboxDisabled(columnId: number): boolean {
     const column = this.allColumns().find(col => col.id === columnId);
     
-    // 'Sito Web' sempre disabilitato (gestito dalla colonna Candidati)
-    if (column?.field_name === 'website') return true;
+    // Colonne sempre disabilitate (non rilevanti per offerte scrapate)
+    if (column?.field_name === 'website') return true;      // Gestito dalla colonna Candidati
+    if (column?.field_name === 'status') return true;       // Status non applicabile a ricerche
+    if (column?.field_name === 'is_registered') return true; // Registrazione non applicabile
     
     if (!column?.visible) return false;
     
-    // Conta solo le colonne visibili escluso website
-    const visibleCount = this.allColumns().filter(col => col.visible && col.field_name !== 'website').length;
-    return visibleCount <= 1; // Disabilita se è l'unica visibile (escluso website)
+    // Conta solo le colonne visibili escluso quelle sempre nascoste
+    const hiddenFields = ['website', 'status', 'is_registered'];
+    const visibleCount = this.allColumns().filter(col => 
+      col.visible && !hiddenFields.includes(col.field_name)
+    ).length;
+    return visibleCount <= 1; // Disabilita se è l'unica visibile
   }
 
-  // Verifica se una checkbox deve essere checked (sempre true per website)
+  // Verifica se una checkbox deve essere checked
   isColumnChecked(column: JobOfferColumn): boolean {
-    // 'Sito Web' sempre checked (gestito dalla colonna Candidati)
-    if (column.field_name === 'website') return true;
+    // Colonne sempre unchecked (non rilevanti per offerte scrapate)
+    if (column.field_name === 'website') return true;       // Gestito dalla colonna Candidati
+    if (column.field_name === 'status') return false;       // Status non applicabile
+    if (column.field_name === 'is_registered') return false; // Registrazione non applicabile
+    
     return column.visible ?? false;
   }
 

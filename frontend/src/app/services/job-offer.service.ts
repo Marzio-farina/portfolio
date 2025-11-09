@@ -15,7 +15,7 @@ export interface JobOffer {
   application_date: string | null;
   website: string | null;
   is_registered: boolean;
-  status: 'pending' | 'interview' | 'accepted' | 'rejected' | 'archived';
+  status: 'pending' | 'interview' | 'accepted' | 'rejected' | 'archived' | 'search';
   salary_range: string | null;
   notes: string | null;
   created_at: string;
@@ -84,6 +84,29 @@ export class JobOfferService {
    */
   deleteJobOffer(id: number): Observable<void> {
     return this.http.delete<void>(`${this.apiUrl}/api/job-offers/${id}`);
+  }
+
+  /**
+   * Salva le offerte scrapate con status 'search'
+   */
+  saveScrapedJobs(jobs: Array<{
+    company: string;
+    title: string;
+    location?: string;
+    url?: string;
+    salary?: string;
+    employment_type?: string;
+    remote?: string;
+  }>): Observable<{
+    success: boolean;
+    saved_count: number;
+    jobs: JobOffer[];
+  }> {
+    return this.http.post<{
+      success: boolean;
+      saved_count: number;
+      jobs: JobOffer[];
+    }>(`${this.apiUrl}/api/job-offers/save-scraped`, { jobs });
   }
 }
 

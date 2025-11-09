@@ -779,6 +779,11 @@
   transition: all var(--transition-1);
 }
 
+/* Colonna Note più larga (occupa 2 colonne nel grid) */
+.extra-field--notes {
+  grid-column: span 2;
+}
+
 .extra-field__content {
   display: flex;
   flex-direction: column;

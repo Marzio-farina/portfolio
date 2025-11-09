@@ -460,9 +460,10 @@
                       <tr class="expanded-row">
                         <td [attr.colspan]="mainColumns().length + 2" class="expanded-cell">
                           <div class="expanded-content">
-                            @for (column of extraColumns(); track column.id) {
+                            @for (column of getPopulatedExtraColumns(job); track column.id) {
                               <div 
                                 class="extra-field"
+                                [class.extra-field--notes]="column.field_name === 'notes'"
                                 [draggable]="editMode()"
                                 [class.extra-field--draggable]="editMode()"
                                 [class.extra-field--dragging]="isColumnDragging(column.id)"

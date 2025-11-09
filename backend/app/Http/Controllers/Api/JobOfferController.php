@@ -16,7 +16,7 @@ class JobOfferController extends Controller
      */
     public function index(): JsonResponse
     {
-        $jobOffers = Auth::user()->jobOffers()
+        $jobOffers = JobOffer::where('user_id', Auth::id())
             ->orderBy('application_date', 'desc')
             ->orderBy('created_at', 'desc')
             ->get();
@@ -99,7 +99,7 @@ class JobOfferController extends Controller
             'application_date' => 'nullable|date',
             'website' => 'nullable|string|max:255',
             'is_registered' => 'boolean',
-            'status' => ['required', Rule::in(['pending', 'interview', 'accepted', 'rejected', 'archived'])],
+            'status' => ['required', Rule::in(['pending', 'interview', 'accepted', 'rejected', 'archived', 'search'])],
             'salary_range' => 'nullable|string|max:255',
             'notes' => 'nullable|string',
         ]);
@@ -144,7 +144,7 @@ class JobOfferController extends Controller
             'application_date' => 'nullable|date',
             'website' => 'nullable|string|max:255',
             'is_registered' => 'boolean',
-            'status' => ['sometimes', 'required', Rule::in(['pending', 'interview', 'accepted', 'rejected', 'archived'])],
+            'status' => ['sometimes', 'required', Rule::in(['pending', 'interview', 'accepted', 'rejected', 'archived', 'search'])],
             'salary_range' => 'nullable|string|max:255',
             'notes' => 'nullable|string',
         ]);
@@ -167,6 +167,62 @@ class JobOfferController extends Controller
         $jobOffer->delete();
 
         return response()->json(['message' => 'Job offer deleted successfully']);
+    }
+
+    /**
+     * Save scraped job offers with status 'search'
+     */
+    public function saveScrapedJobs(Request $request): JsonResponse
+    {
+        $validated = $request->validate([
+            'jobs' => 'required|array',
+            'jobs.*.company' => 'required|string|max:255',
+            'jobs.*.title' => 'required|string|max:255',
+            'jobs.*.location' => 'nullable|string|max:255',
+            'jobs.*.url' => 'nullable|string|max:255',
+            'jobs.*.salary' => 'nullable|string|max:255',
+            'jobs.*.employment_type' => 'nullable|string|max:255',
+            'jobs.*.remote' => 'nullable|string|max:255',
+        ]);
+
+        $userId = Auth::id();
+        $savedJobs = [];
+
+        foreach ($validated['jobs'] as $jobData) {
+            // Verifica se l'offerta esiste già (stesso URL o stessa company+title)
+            $existingJob = JobOffer::where('user_id', $userId)
+                ->where(function ($query) use ($jobData) {
+                    if (!empty($jobData['url'])) {
+                        $query->where('website', $jobData['url']);
+                    } else {
+                        $query->where('company_name', $jobData['company'])
+                              ->where('position', $jobData['title']);
+                    }
+                })
+                ->first();
+
+            if (!$existingJob) {
+                $jobOffer = JobOffer::create([
+                    'user_id' => $userId,
+                    'company_name' => $jobData['company'],
+                    'position' => $jobData['title'],
+                    'location' => $jobData['location'] ?? null,
+                    'website' => $jobData['url'] ?? null,
+                    'salary_range' => $jobData['salary'] ?? null,
+                    'work_mode' => $jobData['remote'] ?? null,
+                    'status' => 'search',
+                    'is_registered' => 0,
+                ]);
+
+                $savedJobs[] = $jobOffer;
+            }
+        }
+
+        return response()->json([
+            'success' => true,
+            'saved_count' => count($savedJobs),
+            'jobs' => $savedJobs
+        ], 201);
     }
 }
 

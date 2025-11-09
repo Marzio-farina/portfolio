@@ -15,6 +15,7 @@ use Laravel\Sanctum\HasApiTokens;
  * 
  * @method \Laravel\Sanctum\NewAccessToken createToken(string $name, array $abilities = ['*'])
  * @method \Laravel\Sanctum\PersonalAccessToken|null currentAccessToken()
+ * @method \Illuminate\Database\Eloquent\Relations\HasMany jobOffers()
  */
 class User extends Authenticatable
 {
