@@ -54,17 +54,13 @@ export class JobOffersStatsView implements OnInit {
   // Carica le job offers dal backend
   private loadJobOffers(): void {
     this.loading.set(true);
-    console.log('Caricamento job offers...');
     this.jobOfferService.getJobOffers().subscribe({
       next: (offers) => {
-        console.log('Job offers ricevute:', offers);
         this.allJobOffers.set(offers);
         this.loading.set(false);
       },
       error: (err) => {
         console.error('Errore caricamento job offers:', err);
-        console.error('Dettagli errore:', err.error);
-        console.error('Status:', err.status);
         this.loading.set(false);
       }
     });

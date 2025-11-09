@@ -34,38 +34,35 @@ export class JobOfferService {
    * Ottiene tutte le job offers dell'utente autenticato
    */
   getJobOffers(): Observable<JobOffer[]> {
-    const url = `${this.apiUrl}/job-offers`;
-    console.log('JobOfferService - getJobOffers URL:', url);
-    console.log('JobOfferService - API_BASE_URL:', this.apiUrl);
-    return this.http.get<JobOffer[]>(url);
+    return this.http.get<JobOffer[]>(`${this.apiUrl}/api/job-offers`);
   }
 
   /**
    * Ottiene una job offer specifica
    */
   getJobOffer(id: number): Observable<JobOffer> {
-    return this.http.get<JobOffer>(`${this.apiUrl}/job-offers/${id}`);
+    return this.http.get<JobOffer>(`${this.apiUrl}/api/job-offers/${id}`);
   }
 
   /**
    * Crea una nuova job offer
    */
   createJobOffer(data: Partial<JobOffer>): Observable<JobOffer> {
-    return this.http.post<JobOffer>(`${this.apiUrl}/job-offers`, data);
+    return this.http.post<JobOffer>(`${this.apiUrl}/api/job-offers`, data);
   }
 
   /**
    * Aggiorna una job offer
    */
   updateJobOffer(id: number, data: Partial<JobOffer>): Observable<JobOffer> {
-    return this.http.put<JobOffer>(`${this.apiUrl}/job-offers/${id}`, data);
+    return this.http.put<JobOffer>(`${this.apiUrl}/api/job-offers/${id}`, data);
   }
 
   /**
    * Elimina una job offer
    */
   deleteJobOffer(id: number): Observable<void> {
-    return this.http.delete<void>(`${this.apiUrl}/job-offers/${id}`);
+    return this.http.delete<void>(`${this.apiUrl}/api/job-offers/${id}`);
   }
 }
 
