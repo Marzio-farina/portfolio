@@ -501,31 +501,3 @@
     </div>
   </div>
 </section>
-
-<!-- Dialog per visualizzare offerta -->
-@if (jobUrlDialogOpen()) {
-  <div class="job-url-dialog-backdrop" (click)="closeJobUrlDialog()">
-    <div class="job-url-dialog" (click)="$event.stopPropagation()">
-      <div class="dialog-header">
-        <h3 class="dialog-title">Visualizza Offerta</h3>
-        <button 
-          class="dialog-close-btn"
-          type="button"
-          (click)="closeJobUrlDialog()"
-          aria-label="Chiudi">
-          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-            <path d="M18 6L6 18M6 6l12 12"/>
-          </svg>
-        </button>
-      </div>
-      <div class="dialog-body">
-        <iframe 
-          [src]="selectedJobUrl() | safeUrl" 
-          class="job-url-iframe"
-          sandbox="allow-same-origin allow-scripts allow-popups allow-forms"
-          frameborder="0">
-        </iframe>
-      </div>
-    </div>
-  </div>
-}

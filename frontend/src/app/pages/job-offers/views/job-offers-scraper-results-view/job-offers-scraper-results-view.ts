@@ -7,7 +7,6 @@ import { JobOfferColumnService, JobOfferColumn } from '../../../../services/job-
 import { JobScraperService, ScrapedJob } from '../../../../services/job-scraper.service';
 import { EditModeService } from '../../../../services/edit-mode.service';
 import { TenantService } from '../../../../services/tenant.service';
-import { SafeUrlPipe } from '../../../../pipes/safe-url.pipe';
 
 /**
  * Componente per visualizzare i risultati dello scraping
@@ -16,7 +15,7 @@ import { SafeUrlPipe } from '../../../../pipes/safe-url.pipe';
 @Component({
   selector: 'app-job-offers-scraper-results-view',
   standalone: true,
-  imports: [CommonModule, FormsModule, SafeUrlPipe],
+  imports: [CommonModule, FormsModule],
   templateUrl: './job-offers-scraper-results-view.html',
   styleUrl: './job-offers-scraper-results-view.css'
 })
@@ -71,10 +70,6 @@ export class JobOffersScraperResultsView implements OnInit {
   
   // Popup opzioni tabella
   tableOptionsOpen = signal<boolean>(false);
-  
-  // Dialog per visualizzare link offerta
-  jobUrlDialogOpen = signal<boolean>(false);
-  selectedJobUrl = signal<string>('');
   
   // Array placeholder per skeleton
   skeletonRows = computed(() => Array.from({ length: 8 }, (_, i) => i));
@@ -371,19 +366,12 @@ export class JobOffersScraperResultsView implements OnInit {
   }
 
   /**
-   * Apre il dialog con l'iframe del link dell'offerta
+   * Apre il link dell'offerta in una nuova finestra/tab
    */
   openJobUrl(url: string): void {
-    this.selectedJobUrl.set(url);
-    this.jobUrlDialogOpen.set(true);
-  }
-
-  /**
-   * Chiude il dialog del link offerta
-   */
-  closeJobUrlDialog(): void {
-    this.jobUrlDialogOpen.set(false);
-    this.selectedJobUrl.set('');
+    if (url) {
+      window.open(url, '_blank', 'noopener,noreferrer');
+    }
   }
 
   // Toggle espansione riga
