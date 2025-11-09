@@ -13,10 +13,12 @@ class JobOfferController extends Controller
 {
     /**
      * Display a listing of the authenticated user's job offers.
+     * Escludi i record con status 'search' (offerte da ricerca scraping)
      */
     public function index(): JsonResponse
     {
         $jobOffers = JobOffer::where('user_id', Auth::id())
+            ->where('status', '!=', 'search')
             ->orderBy('application_date', 'desc')
             ->orderBy('created_at', 'desc')
             ->get();
@@ -47,9 +49,11 @@ class JobOfferController extends Controller
             'emailSent' => 0,
         ];
 
-        // Solo se il tipo è visibile, calcola la statistica
+        // Solo se il tipo è visibile, calcola la statistica (escludi status 'search')
         if (in_array('total', $visibleTypes)) {
-            $stats['total'] = JobOffer::where('user_id', $userId)->count();
+            $stats['total'] = JobOffer::where('user_id', $userId)
+                ->where('status', '!=', 'search')
+                ->count();
         }
 
         if (in_array('pending', $visibleTypes)) {

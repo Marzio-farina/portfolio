@@ -137,6 +137,9 @@ export class JobOffersStatsView implements OnInit {
     const sortCol = this.sortColumn();
     const sortDir = this.sortDirection();
 
+    // Escludi sempre i record con status 'search' (offerte da ricerca scraping)
+    offers = offers.filter(offer => offer.status !== 'search');
+
     // Filtra per view type
     if (viewType !== 'total' && viewType !== 'email') {
       offers = offers.filter(offer => offer.status === viewType);
