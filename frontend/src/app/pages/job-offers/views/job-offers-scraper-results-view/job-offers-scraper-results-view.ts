@@ -1046,10 +1046,8 @@ export class JobOffersScraperResultsView implements OnInit, AfterViewInit {
     if (baseParamsChanged) {
       this.notificationService.add(
         'warning',
-        'Parametri di ricerca modificati. Clicca su "Aggiorna Ricerca"',
-        'search-params-changed',
-        false,
-        true
+        'Filtri modificati. Clicca su "Aggiorna Ricerca"',
+        'search-params-changed'
       );
       return;
     }
@@ -1130,10 +1128,8 @@ export class JobOffersScraperResultsView implements OnInit, AfterViewInit {
     if (needsApiCall) {
       this.notificationService.add(
         'warning',
-        'Parametri di ricerca modificati. Clicca su "Aggiorna Ricerca"',
-        'search-params-changed',
-        false,
-        true
+        'Filtri modificati. Clicca su "Aggiorna Ricerca"',
+        'search-params-changed'
       );
     } else {
       this.notificationService.remove('search-params-changed');
