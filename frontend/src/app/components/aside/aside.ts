@@ -2,7 +2,7 @@ import { Component, DestroyRef, Inject, PLATFORM_ID, computed, effect, inject, s
 import { isPlatformBrowser } from '@angular/common';
 import { toSignal } from '@angular/core/rxjs-interop';
 import { fromEvent, map, startWith, switchMap, of, Subscription } from 'rxjs';
-import { catchError } from 'rxjs/operators';
+import { catchError, take } from 'rxjs/operators';
 import { trigger, transition, style, animate } from '@angular/animations';
 import { Avatar } from "../avatar/avatar";
 import { AvatarEditor, AvatarSelection } from '../avatar-editor/avatar-editor';
@@ -15,6 +15,7 @@ import { AuthService } from '../../services/auth.service';
 import { HttpClient } from '@angular/common/http';
 import { apiUrl } from '../../core/api/api-url';
 import { Router } from '@angular/router';
+import { FormsModule } from '@angular/forms';
 
 @Component({
   selector: 'app-aside',
@@ -36,7 +37,7 @@ import { Router } from '@angular/router';
       ]),
     ]),
   ],
-  imports: [Avatar, AvatarEditor],
+  imports: [Avatar, AvatarEditor, FormsModule],
 })
 export class Aside {
   private readonly LARGE_MIN = 1250;
@@ -54,6 +55,11 @@ export class Aside {
   readonly editMode = this.edit.isEditing;
   private pendingAvatarSel = signal<AvatarSelection | null>(null);
   private saveTimer: any = null;
+  
+  // Valori temporanei per editing contatti (non signal perché usati con ngModel)
+  tempPhone = '';
+  tempBirthday = '';
+  tempLocation = '';
 
    // === DATI PROFILO (API) ===
   private readonly svc = inject(AboutProfileService);
@@ -274,6 +280,91 @@ export class Aside {
         this.pendingAvatarSel.set(null);
       }
     }
+  }
+  
+  // Salva numero di telefono
+  savePhone(): void {
+    const phone = this.tempPhone.trim();
+    if (!phone) return;
+    
+    console.log('💾 Saving phone:', phone);
+    const url = apiUrl('profile');
+    
+    // Usa take(1) per completare immediatamente la subscription
+    // Questo garantisce che la richiesta HTTP completi anche se il componente viene distrutto
+    this.http.put(url, { phone }).pipe(take(1)).subscribe({
+      next: () => {
+        console.log('✅ Phone saved successfully');
+        // Aggiorna direttamente il signal del profilo senza ricaricare la pagina
+        const currentProfile = this.profile();
+        if (currentProfile) {
+          this.profile.set({ ...currentProfile, phone });
+        }
+        this.tempPhone = '';
+      },
+      error: (err) => {
+        console.error('❌ Error saving phone:', err);
+      }
+    });
+  }
+  
+  // Salva data di nascita
+  saveBirthday(): void {
+    const birthday = this.tempBirthday.trim();
+    if (!birthday) return;
+    
+    console.log('💾 Saving birthday:', birthday);
+    const url = apiUrl('profile');
+    
+    // Usa take(1) per completare immediatamente la subscription
+    // Questo garantisce che la richiesta HTTP completi anche se il componente viene distrutto
+    this.http.put(url, { date_of_birth: birthday }).pipe(take(1)).subscribe({
+      next: () => {
+        console.log('✅ Birthday saved successfully');
+        // Aggiorna direttamente il signal del profilo con la data formattata
+        const currentProfile = this.profile();
+        if (currentProfile) {
+          // Formatta la data in formato italiano (dd/mm/yyyy)
+          const [year, month, day] = birthday.split('-');
+          const dateIt = `${day}/${month}/${year}`;
+          this.profile.set({ 
+            ...currentProfile, 
+            date_of_birth: birthday,
+            date_of_birth_it: dateIt
+          });
+        }
+        this.tempBirthday = '';
+      },
+      error: (err) => {
+        console.error('❌ Error saving birthday:', err);
+      }
+    });
+  }
+  
+  // Salva località
+  saveLocation(): void {
+    const location = this.tempLocation.trim();
+    if (!location) return;
+    
+    console.log('💾 Saving location:', location);
+    const url = apiUrl('profile');
+    
+    // Usa take(1) per completare immediatamente la subscription
+    // Questo garantisce che la richiesta HTTP completi anche se il componente viene distrutto
+    this.http.put(url, { location }).pipe(take(1)).subscribe({
+      next: () => {
+        console.log('✅ Location saved successfully');
+        // Aggiorna direttamente il signal del profilo senza ricaricare la pagina
+        const currentProfile = this.profile();
+        if (currentProfile) {
+          this.profile.set({ ...currentProfile, location });
+        }
+        this.tempLocation = '';
+      },
+      error: (err) => {
+        console.error('❌ Error saving location:', err);
+      }
+    });
   }
 
   // Handler cambio avatar dall'editor

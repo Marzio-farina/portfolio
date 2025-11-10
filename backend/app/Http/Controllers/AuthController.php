@@ -311,6 +311,13 @@ class AuthController extends Controller
             unset($data['icon_id']);
         }
 
+        // Gestione data di nascita (campo su users, non su profile)
+        if (array_key_exists('date_of_birth', $data)) {
+            $user->date_of_birth = $data['date_of_birth'];
+            $user->save();
+            unset($data['date_of_birth']);
+        }
+        
         // Campi profilo rimanenti
         $profile->fill($data);
         $profile->save();

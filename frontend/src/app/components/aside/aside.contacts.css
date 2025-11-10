@@ -18,6 +18,45 @@
   gap: 6px; /* Ulteriormente ridotto */
 }
 
+/* Contatto editabile (campo mancante in edit mode) */
+.contact--editable {
+  border: 2px dashed var(--accent-primary);
+  border-radius: 8px;
+  padding: 8px 12px 8px 8px; /* Padding extra a destra */
+  background: rgba(var(--accent-primary-rgb, 255, 138, 0), 0.05);
+  transition: all var(--transition-1);
+  width: 220px; /* Larghezza fissa uguale per tutti */
+  max-width: 100%; /* Non supera il contenitore */
+}
+
+.contact--editable:hover {
+  border-color: var(--accent-hover);
+  background: rgba(var(--accent-primary-rgb, 255, 138, 0), 0.1);
+}
+
+/* Input per contatti editabili */
+.contact__input {
+  width: 100%; /* Occupa tutto lo spazio disponibile nel contenitore */
+  padding: 4px 8px;
+  border: 1px solid var(--border-primary);
+  border-radius: 4px;
+  background: var(--bg-card);
+  color: var(--text-primary);
+  font-size: 0.8rem;
+  transition: all var(--transition-1);
+}
+
+.contact__input:focus {
+  outline: none;
+  border-color: var(--accent-primary);
+  box-shadow: 0 0 0 2px rgba(var(--accent-primary-rgb, 255, 138, 0), 0.1);
+}
+
+.contact__input::placeholder {
+  color: var(--text-muted);
+  opacity: 0.6;
+}
+
 .contact__icon {
   line-height: 0;
   position: relative;
