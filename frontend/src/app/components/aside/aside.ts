@@ -313,6 +313,17 @@ export class Aside {
     const birthday = this.tempBirthday.trim();
     if (!birthday) return;
     
+    // Validazione: la data deve essere almeno 8 anni fa
+    const birthDate = new Date(birthday);
+    const today = new Date();
+    const eightYearsAgo = new Date(today.getFullYear() - 8, today.getMonth(), today.getDate());
+    
+    if (birthDate > eightYearsAgo) {
+      console.warn('⚠️ Data di nascita non valida: deve essere almeno 8 anni fa');
+      alert('Inserisci una data giusta. La data di nascita deve essere almeno 8 anni fa.');
+      return;
+    }
+    
     console.log('💾 Saving birthday:', birthday);
     const url = apiUrl('profile');
     
@@ -337,6 +348,9 @@ export class Aside {
       },
       error: (err) => {
         console.error('❌ Error saving birthday:', err);
+        // Mostra errore specifico dal backend se disponibile
+        const errorMsg = err?.error?.message || 'Errore durante il salvataggio della data di nascita';
+        alert(errorMsg);
       }
     });
   }
