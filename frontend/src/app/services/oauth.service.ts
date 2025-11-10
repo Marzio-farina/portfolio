@@ -20,13 +20,13 @@ export interface OAuthConfig {
  */
 @Injectable({ providedIn: 'root' })
 export class OAuthService {
-  private readonly http = inject(HttpClient);
-  private readonly router = inject(Router);
-  private readonly route = inject(ActivatedRoute);
-  private readonly auth = inject(AuthService);
-  private readonly logger = inject(LoggerService);
+  private http = inject(HttpClient);
+  private router = inject(Router);
+  private route = inject(ActivatedRoute);
+  private auth = inject(AuthService);
+  private logger = inject(LoggerService);
 
-  private readonly backendUrl = 'http://localhost:8000'; // TODO: spostare in environment
+  private backendUrl = 'http://localhost:8000'; // TODO: spostare in environment
 
   /**
    * Configurazione dei provider OAuth disponibili
@@ -127,4 +127,3 @@ export class OAuthService {
     });
   }
 }
-

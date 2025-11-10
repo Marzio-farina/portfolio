@@ -3,7 +3,8 @@ import { AbstractControl, FormBuilder, FormGroup, ReactiveFormsModule, Validatio
 import { Router } from '@angular/router';
 import { AuthService, LoginDto, RegisterDto } from '../../services/auth.service';
 import { OAuthService } from '../../services/oauth.service';
-import { TenantRouterService } from '../../services/tenant-router.service';
+import { TenantService } from '../../services/tenant.service';
+import { AboutProfileService } from '../../services/about-profile.service';
 import { Notification as NotificationCmp, NotificationType } from '../notification/notification';
 import { finalize } from 'rxjs';
 import { Notification } from '../notification/notification';
@@ -47,7 +48,8 @@ export class Auth {
   private fb = inject(FormBuilder);
   private router = inject(Router);
   private auth = inject(AuthService);
-  private tenantRouter = inject(TenantRouterService);
+  private tenant = inject(TenantService);
+  private aboutProfile = inject(AboutProfileService);
   protected oauth = inject(OAuthService);
   protected notificationService = inject(NotificationService);
 
@@ -117,20 +119,22 @@ export class Auth {
         this.success.set(`Accesso effettuato come ${res.user?.email || 'utente'}`);
         this.notificationService.clear();
         
-        // Reindirizza alla homepage dell'utente con il suo slug
-        setTimeout(() => {
-          this.auth.me$.subscribe(profile => {
-            if (profile?.user) {
-              const userSlug = (profile.user as any).slug;
-              if (userSlug) {
-                this.router.navigate([`/${userSlug}/about`]);
-              } else {
-                // Fallback se lo slug non è disponibile
-                this.router.navigate(['/about']);
-              }
-            }
-          });
-        }, 500);
+        // Reindirizza direttamente usando lo slug dalla risposta di login
+        const userSlug = (res.user as any)?.slug;
+        if (userSlug && res.user) {
+          // Pulisci la cache del profilo per forzare il caricamento dei dati del nuovo utente
+          this.aboutProfile.clearCache();
+          // Imposta il tenant manualmente prima della navigazione
+          this.tenant.setTenant(userSlug, res.user.id);
+          // Naviga alla pagina personale dell'utente con forza il reload
+          setTimeout(() => {
+            // Usa window.location.href per forzare un reload completo della pagina
+            window.location.href = `/${userSlug}/about`;
+          }, 300);
+        } else {
+          // Fallback se lo slug non è disponibile
+          this.router.navigate(['/about']);
+        }
       },
       error: (err) => {
         const message = this.humanizeError(err);
@@ -163,22 +167,22 @@ export class Auth {
         this.tooltipVisible.set(null);
         this.showRegPass.set(false);
         
-        // Ottieni lo slug dell'utente dalla risposta e reindirizza alla sua homepage
-        // Carica il profilo completo per ottenere lo slug
-        setTimeout(() => {
-          this.auth.me$.subscribe(profile => {
-            if (profile?.user) {
-              // Usa il router diretto per navigare all'URL con slug
-              const userSlug = (profile.user as any).slug;
-              if (userSlug) {
-                this.router.navigate([`/${userSlug}/about`]);
-              } else {
-                // Fallback se lo slug non è disponibile
-                this.router.navigate(['/about']);
-              }
-            }
-          });
-        }, 500);
+        // Reindirizza direttamente usando lo slug dalla risposta di registrazione
+        const userSlug = (res.user as any)?.slug;
+        if (userSlug && res.user) {
+          // Pulisci la cache del profilo per forzare il caricamento dei dati del nuovo utente
+          this.aboutProfile.clearCache();
+          // Imposta il tenant manualmente prima della navigazione
+          this.tenant.setTenant(userSlug, res.user.id);
+          // Naviga alla pagina personale dell'utente con forza il reload
+          setTimeout(() => {
+            // Usa window.location.href per forzare un reload completo della pagina
+            window.location.href = `/${userSlug}/about`;
+          }, 300);
+        } else {
+          // Fallback se lo slug non è disponibile
+          this.router.navigate(['/about']);
+        }
       },
       error: (err) => {
         const message = this.humanizeError(err);

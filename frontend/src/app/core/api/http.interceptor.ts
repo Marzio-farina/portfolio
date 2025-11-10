@@ -33,9 +33,12 @@ export class ApiInterceptor implements HttpInterceptor {
     // GitHub API: timeout più lungo (può essere lento)
     // Altre API: timeout standard
     const isGitHubApi = clone.url.includes('/github/');
+    const isPublicProfile = clone.url.includes('/public-profile');
     const requestTimeout = isGitHubApi 
       ? 60000 // 60s per GitHub API (può essere lenta)
-      : (environment.production ? 5000 : 10000); // 10s in locale, 5s in produzione
+      : isPublicProfile
+        ? 30000 // 30s per public-profile (caricamento iniziale può richiedere più tempo)
+        : (environment.production ? 10000 : 15000); // 15s in locale, 10s in produzione
 
     return next.handle(clone).pipe(
       timeout(requestTimeout),

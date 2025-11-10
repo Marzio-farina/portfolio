@@ -23,9 +23,10 @@ export const tenantResolver: ResolveFn<boolean> = (route: ActivatedRouteSnapshot
       queueMicrotask(() => router.navigate(['/about'], { replaceUrl: true, state: { toast: { type: 'error', message: 'Utente non esistente' } } }));
       return true;
     }),
-    catchError(() => {
+    catchError((error) => {
+      console.error('❌ TenantResolver: Errore caricamento utente', slug, ':', error?.message || error);
       tenant.clear();
-      queueMicrotask(() => router.navigate(['/about'], { replaceUrl: true, state: { toast: { type: 'error', message: 'Utente non esistente' } } }));
+      queueMicrotask(() => router.navigate(['/about'], { replaceUrl: true, state: { toast: { type: 'error', message: 'Errore caricamento profilo utente' } } }));
       return of(true);
     })
   );

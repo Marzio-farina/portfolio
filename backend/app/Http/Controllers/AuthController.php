@@ -111,7 +111,13 @@ class AuthController extends Controller
 
             return response()->json([
                 'token' => $token,
-                'user' => $result
+                'user' => [
+                    'id' => $result->id,
+                    'name' => $result->name,
+                    'surname' => $result->surname,
+                    'email' => $result->email,
+                    'slug' => $result->slug
+                ]
             ], 201);
             
         } catch (\Throwable $e) {
@@ -168,7 +174,13 @@ class AuthController extends Controller
 
             return response()->json([
                 'token' => $token,
-                'user' => $user
+                'user' => [
+                    'id' => $user->id,
+                    'name' => $user->name,
+                    'surname' => $user->surname,
+                    'email' => $user->email,
+                    'slug' => $user->slug
+                ]
             ]);
             
         } catch (\Throwable $e) {

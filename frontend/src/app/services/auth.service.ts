@@ -32,6 +32,7 @@ export interface AuthResponse {
     id: number;
     name: string;
     email: string;
+    slug?: string;
   };
 }
 
