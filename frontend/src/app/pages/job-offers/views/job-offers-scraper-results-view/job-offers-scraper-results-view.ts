@@ -136,10 +136,6 @@ export class JobOffersScraperResultsView implements OnInit {
   
   // Popup opzioni tabella
   tableOptionsOpen = signal<boolean>(false);
-  
-  // Array placeholder per skeleton
-  skeletonRows = computed(() => Array.from({ length: 8 }, (_, i) => i));
-  skeletonColumns = computed(() => Array.from({ length: 4 }, (_, i) => i));
 
   ngOnInit(): void {
     // Carica solo le colonne configurate
@@ -267,10 +263,6 @@ export class JobOffersScraperResultsView implements OnInit {
       .sort((a, b) => (a.order || 0) - (b.order || 0));
   });
 
-  // Tutte le colonne per il popup (include 'website' ma sempre checked e disabled)
-  allColumnsForPopup = computed(() => {
-    return this.allColumns().sort((a, b) => (a.order || 0) - (b.order || 0));
-  });
 
   /**
    * Determina le prime 3 colonne da mostrare basandosi sui filtri attivi
@@ -316,20 +308,6 @@ export class JobOffersScraperResultsView implements OnInit {
     return this.visibleColumns().filter(col => !dynamicIds.includes(col.id));
   });
 
-  /**
-   * Filtra le colonne extra per un dato job, mostrando solo quelle con valore
-   */
-  getPopulatedExtraColumns(job: ScrapedJob): JobOfferColumn[] {
-    return this.extraColumns().filter(column => {
-      const value = this.getFieldValue(job, column.field_name);
-      // Mostra solo se ha un valore valido (non null, undefined, stringa vuota, 'N/A')
-      return value !== null && 
-             value !== undefined && 
-             value !== '' && 
-             value !== 'N/A' &&
-             value !== 'Non specificato';
-    });
-  }
 
   /**
    * Salva le offerte scrapate nella tabella job_offers con status 'search'
@@ -458,10 +436,6 @@ export class JobOffersScraperResultsView implements OnInit {
     return Array.from(types).sort();
   });
 
-  // Verifica se un filtro ha opzioni disponibili
-  hasAvailableCompanies = computed(() => this.availableCompanies().length > 0);
-  hasAvailableEmploymentTypes = computed(() => this.availableEmploymentTypes().length > 0);
-  hasAvailableRemoteTypes = computed(() => this.availableRemoteTypes().length > 0);
   
   // Torna alla pagina di aggiunta
   goBack(): void {
@@ -586,11 +560,6 @@ export class JobOffersScraperResultsView implements OnInit {
     this.selectedCurrency.set(newCurrency);
   }
 
-  // Verifica se ci sono colonne extra da mostrare nell'espansione
-  hasExtraColumns(): boolean {
-    return this.extraColumns().length > 0;
-  }
-
   /**
    * Apre il link dell'offerta in una nuova finestra/tab
    */
@@ -611,11 +580,6 @@ export class JobOffersScraperResultsView implements OnInit {
     this.expandedRows.set(expanded);
   }
 
-  // Verifica se una riga è espansa
-  isRowExpanded(jobId: string): boolean {
-    return this.expandedRows().has(jobId);
-  }
-
   // Gestisce il click sull'header per ordinare
   onColumnSort(fieldName: string): void {
     const currentSortCol = this.sortColumn();
@@ -629,71 +593,18 @@ export class JobOffersScraperResultsView implements OnInit {
   }
 
   /**
-   * Mappa i campi dello scraper ai campi del database
+   * Ottiene il valore di un campo per l'ordinamento
+   * Mappatura semplificata dei campi principali
    */
-  getFieldValue(job: ScrapedJob, fieldName: string): any {
+  private getFieldValue(job: ScrapedJob, fieldName: string): any {
     const mapping: Record<string, any> = {
       'company_name': job.company,
       'position': job.title,
       'location': job.location,
       'announcement_date': job.posted_date,
-      'website': job.url,
-      'salary_range': job.salary,
-      'work_mode': this.formatWorkMode(job.employment_type, job.remote),
-      'notes': job.description,
-      // Campi non forniti da Adzuna
-      'recruiter_company': null,
-      'application_date': null,
-      'is_registered': false,
-      'status': 'pending'
+      'salary_range': job.salary
     };
-    
     return mapping[fieldName] ?? null;
-  }
-
-  /**
-   * Combina employment_type e remote per work_mode
-   */
-  private formatWorkMode(employmentType?: string, remote?: string): string {
-    const parts = [];
-    if (employmentType) parts.push(employmentType);
-    if (remote && remote !== 'N/A') parts.push(remote);
-    return parts.join(' - ') || 'Non specificato';
-  }
-
-  /**
-   * Formatta il valore per la visualizzazione
-   */
-  formatValue(value: any, fieldName: string): string {
-    if (value === null || value === undefined) return '-';
-    
-    if (fieldName === 'is_registered') {
-      return value ? 'Sì' : 'No';
-    }
-    
-    if (fieldName === 'announcement_date' || fieldName === 'application_date') {
-      return this.formatDate(value);
-    }
-    
-    return String(value);
-  }
-
-  /**
-   * Formatta una data in formato italiano DD/MM/YYYY
-   */
-  private formatDate(dateString: string): string {
-    if (!dateString) return '-';
-    
-    try {
-      const date = new Date(dateString);
-      const day = String(date.getDate()).padStart(2, '0');
-      const month = String(date.getMonth() + 1).padStart(2, '0');
-      const year = date.getFullYear();
-      
-      return `${day}/${month}/${year}`;
-    } catch (error) {
-      return dateString;
-    }
   }
 
   // Metodi drag & drop (copiati da stats-view)
@@ -811,34 +722,6 @@ export class JobOffersScraperResultsView implements OnInit {
         this.loadInitialData();
       }
     });
-  }
-
-  isColumnCheckboxDisabled(columnId: number): boolean {
-    const column = this.allColumns().find(col => col.id === columnId);
-    
-    // Colonne sempre disabilitate (non rilevanti per offerte scrapate)
-    if (column?.field_name === 'website') return true;      // Gestito dalla colonna Candidati
-    if (column?.field_name === 'status') return true;       // Status non applicabile a ricerche
-    if (column?.field_name === 'is_registered') return true; // Registrazione non applicabile
-    
-    if (!column?.visible) return false;
-    
-    // Conta solo le colonne visibili escluso quelle sempre nascoste
-    const hiddenFields = ['website', 'status', 'is_registered'];
-    const visibleCount = this.allColumns().filter(col => 
-      col.visible && !hiddenFields.includes(col.field_name)
-    ).length;
-    return visibleCount <= 1; // Disabilita se è l'unica visibile
-  }
-
-  // Verifica se una checkbox deve essere checked
-  isColumnChecked(column: JobOfferColumn): boolean {
-    // Colonne sempre unchecked (non rilevanti per offerte scrapate)
-    if (column.field_name === 'website') return true;       // Gestito dalla colonna Candidati
-    if (column.field_name === 'status') return false;       // Status non applicabile
-    if (column.field_name === 'is_registered') return false; // Registrazione non applicabile
-    
-    return column.visible ?? false;
   }
 
   /**
