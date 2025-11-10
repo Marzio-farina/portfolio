@@ -319,7 +319,16 @@ export class JobOffersScraperResultsView implements OnInit {
 
     this.jobOfferService.saveScrapedJobs(jobsToSave).subscribe({
       next: (response) => {
-        console.log(`💾 Salvate ${response.saved_count} nuove offerte nel database`);
+        const skippedCount = (response as any).skipped_count || 0;
+        if (response.saved_count > 0) {
+          console.log(`💾 Salvate ${response.saved_count} nuove offerte nel database`);
+        }
+        if (skippedCount > 0) {
+          console.log(`⏭️ ${skippedCount} offerte già presenti nel database (duplicate skippate)`);
+        }
+        if (response.saved_count === 0 && skippedCount === 0) {
+          console.warn('⚠️ Nessuna offerta salvata (verificare i dati inviati)');
+        }
       },
       error: (err) => {
         console.error('❌ Errore salvataggio offerte:', err);

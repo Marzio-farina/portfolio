@@ -191,6 +191,7 @@ class JobOfferController extends Controller
 
         $userId = Auth::id();
         $savedJobs = [];
+        $skippedCount = 0;
 
         foreach ($validated['jobs'] as $jobData) {
             // Verifica se l'offerta esiste già (stesso URL o stessa company+title)
@@ -219,12 +220,17 @@ class JobOfferController extends Controller
                 ]);
 
                 $savedJobs[] = $jobOffer;
+            } else {
+                $skippedCount++;
             }
         }
+
+        \Log::info("💾 Salvataggio offerte: " . count($savedJobs) . " nuove, {$skippedCount} duplicate skippate");
 
         return response()->json([
             'success' => true,
             'saved_count' => count($savedJobs),
+            'skipped_count' => $skippedCount,
             'jobs' => $savedJobs
         ], 201);
     }
