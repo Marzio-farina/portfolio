@@ -52,8 +52,8 @@
       <p class="profile__role">Full Stack Developer</p>
     </div>
 
-    <!-- Bottone Modifica (stile uguale al Login/Logout nella section) -->
-    @if (isAuthed()) {
+    <!-- Bottone Modifica (visibile solo se l'utente può modificare questa pagina) -->
+    @if (edit.canEdit()) {
       <button
         class="btn btn-sm profile__edit"
         [class.profile__edit--offset]="showContacts()"
