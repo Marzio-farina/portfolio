@@ -1,6 +1,5 @@
-import { Component, inject, computed, signal, effect, OnInit } from '@angular/core';
-import { toSignal } from '@angular/core/rxjs-interop';
-import { ActivatedRoute, Router } from '@angular/router';
+import { Component, inject, computed, signal, OnInit } from '@angular/core';
+import { Router } from '@angular/router';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { JobOfferColumnService, JobOfferColumn } from '../../../../services/job-offer-column.service';
@@ -34,7 +33,6 @@ import { JobResultsTableComponent } from './components/job-results-table/job-res
   styleUrl: './job-offers-scraper-results-view.css'
 })
 export class JobOffersScraperResultsView implements OnInit {
-  private route = inject(ActivatedRoute);
   private router = inject(Router);
   private columnService = inject(JobOfferColumnService);
   private scraperService = inject(JobScraperService);
@@ -113,10 +111,6 @@ export class JobOffersScraperResultsView implements OnInit {
       this.maxSalary() !== last.maxSalary
     );
   });
-  
-  constructor() {
-    // Nessun effect necessario - i filtri avanzati filtrano solo lato frontend
-  }
   
   // Visibilità filtri (di default visibili)
   filtersVisible = signal<boolean>(true);
