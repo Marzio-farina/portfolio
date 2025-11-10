@@ -919,9 +919,28 @@ export class JobOffersScraperResultsView implements OnInit, AfterViewInit {
       return { min: 0, max: 100000 };
     }
 
+    const minValue = Math.min(...salaries);
+    const maxValue = Math.max(...salaries);
+    
+    // Se c'è un solo valore o range troppo stretto, aggiungi margine
+    if (minValue === maxValue) {
+      // Range singolo: aggiungi ±10k per permettere filtraggio
+      return {
+        min: Math.max(0, minValue - 10000),
+        max: maxValue + 10000
+      };
+    } else if (maxValue - minValue < 5000) {
+      // Range molto stretto: espandi a minimo 10k
+      const center = (minValue + maxValue) / 2;
+      return {
+        min: Math.max(0, Math.floor(center - 5000)),
+        max: Math.ceil(center + 5000)
+      };
+    }
+
     return {
-      min: Math.min(...salaries),
-      max: Math.max(...salaries)
+      min: minValue,
+      max: maxValue
     };
   });
 

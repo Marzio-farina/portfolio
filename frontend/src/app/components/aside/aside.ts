@@ -246,6 +246,10 @@ export class Aside {
 
   // Naviga alla pagina Gestione Offerte Lavorative (solo per utenti autenticati)
   goToJobOffers() {
+    // Chiudi l'aside se non siamo in modalità large
+    if (this.viewMode() !== 'large') {
+      this.expanded.set(false);
+    }
     this.router.navigate(['/job-offers']);
   }
 
