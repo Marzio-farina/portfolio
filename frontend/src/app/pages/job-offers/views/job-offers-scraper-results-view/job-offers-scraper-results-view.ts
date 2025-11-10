@@ -60,6 +60,20 @@ export class JobOffersScraperResultsView implements OnInit, AfterViewInit {
   selectedCompany = signal<string>('');
   minSalary = signal<number | null>(null);
   maxSalary = signal<number | null>(null);
+  selectedCurrency = signal<string>('EUR'); // Valuta selezionata
+  
+  // Valute disponibili
+  availableCurrencies = [
+    { code: 'EUR', symbol: '€', name: 'Euro' },
+    { code: 'USD', symbol: '$', name: 'Dollaro USA' },
+    { code: 'GBP', symbol: '£', name: 'Sterlina' }
+  ];
+  
+  // Symbol della valuta corrente
+  currencySymbol = computed(() => {
+    const curr = this.availableCurrencies.find(c => c.code === this.selectedCurrency());
+    return curr?.symbol || '€';
+  });
   
   // Parametri ricerca Adzuna
   searchKeyword = signal<string>('');
@@ -455,6 +469,7 @@ export class JobOffersScraperResultsView implements OnInit, AfterViewInit {
     this.selectedCompany.set('');
     this.minSalary.set(null);
     this.maxSalary.set(null);
+    this.selectedCurrency.set('EUR');
     
     // Pulisci risultati e snapshot parametri
     this.scrapedJobs.set([]);
@@ -474,6 +489,16 @@ export class JobOffersScraperResultsView implements OnInit, AfterViewInit {
   showFiltersOnHover(): void {
     if (!this.filtersVisible()) {
       this.filtersVisible.set(true);
+    }
+  }
+
+  // Gestisce il cambio di valuta
+  onCurrencyChange(newCurrency: string): void {
+    this.selectedCurrency.set(newCurrency);
+    
+    // Aggiorna il grafico per mostrare il nuovo simbolo
+    if (this.scrapedJobs().length > 0 && this.salaryChart) {
+      setTimeout(() => this.updateSalaryChart(), 100);
     }
   }
 
@@ -846,7 +871,8 @@ export class JobOffersScraperResultsView implements OnInit, AfterViewInit {
               title: (items) => {
                 const index = items[0].dataIndex;
                 const bucket = buckets[index];
-                return `${Math.round(bucket.min / 1000)}k - ${Math.round(bucket.max / 1000)}k €`;
+                const symbol = this.currencySymbol();
+                return `${Math.round(bucket.min / 1000)}k - ${Math.round(bucket.max / 1000)}k ${symbol}`;
               },
               label: (context) => {
                 const count = context.parsed.y;

@@ -218,8 +218,8 @@
 
               <!-- Valori Min/Max sotto lo slider -->
               <div class="salary-range-values">
-                <span class="range-value-min">{{ minSalary() !== null ? (minSalary() | number:'1.0-0') : salaryRange().min }} €</span>
-                <span class="range-value-max">{{ maxSalary() !== null ? (maxSalary() | number:'1.0-0') : salaryRange().max }} €</span>
+                <span class="range-value-min">{{ minSalary() !== null ? (minSalary() | number:'1.0-0') : salaryRange().min }} {{ currencySymbol() }}</span>
+                <span class="range-value-max">{{ maxSalary() !== null ? (maxSalary() | number:'1.0-0') : salaryRange().max }} {{ currencySymbol() }}</span>
               </div>
             </div>
           } @else {
@@ -227,6 +227,19 @@
               <p>Nessun dato stipendio disponibile</p>
             </div>
           }
+        </div>
+
+        <!-- Card Valuta -->
+        <div class="filter-card">
+          <select 
+            class="select w-full"
+            [(ngModel)]="selectedCurrency"
+            [value]="selectedCurrency()"
+            (ngModelChange)="onCurrencyChange($event)">
+            @for (currency of availableCurrencies; track currency.code) {
+              <option [value]="currency.code">{{ currency.symbol }} {{ currency.name }}</option>
+            }
+          </select>
         </div>
 
         <!-- Contatore risultati -->

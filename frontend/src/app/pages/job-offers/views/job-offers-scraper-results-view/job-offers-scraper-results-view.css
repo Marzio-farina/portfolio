@@ -232,7 +232,31 @@
   position: sticky;
   top: 2rem;
   height: fit-content;
+  max-height: calc(100vh - 150px);
+  overflow-y: auto;
+  overflow-x: hidden;
+  padding-right: 4px;
   animation: slideIn 0.3s ease-out;
+  scrollbar-width: thin;
+  scrollbar-color: var(--border-primary) transparent;
+}
+
+/* Scrollbar personalizzata per WebKit (Chrome, Safari, Edge) */
+.side-filters::-webkit-scrollbar {
+  width: 6px;
+}
+
+.side-filters::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+.side-filters::-webkit-scrollbar-thumb {
+  background: var(--border-primary);
+  border-radius: 3px;
+}
+
+.side-filters::-webkit-scrollbar-thumb:hover {
+  background: var(--accent-primary);
 }
 
 @keyframes slideIn {
@@ -251,22 +275,23 @@
   border-radius: 12px;
   padding: 1.25rem;
   border: 1px solid var(--border-primary);
-  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.08), 0 1px 2px rgba(0, 0, 0, 0.04);
+  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.04);
   margin-bottom: 0.75rem;
   transition: all var(--transition-1);
 }
 
 .filter-card:hover {
-  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1), 0 1px 3px rgba(0, 0, 0, 0.06);
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.06);
 }
 
 .filter-card:last-child {
   margin-bottom: 0;
 }
 
-.filter-title {
+.filter-card .filter-title,
+.filter-card h3.filter-title {
   margin: 0 0 1rem 0;
-  font-size: 0.9rem;
+  font-size: 13px !important;
   font-weight: 700;
   color: var(--text-primary);
   text-transform: uppercase;
