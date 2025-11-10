@@ -21,7 +21,13 @@ class JobScraperController extends Controller
         $validated = $request->validate([
             'keyword' => 'required|string|max:255',
             'location' => 'nullable|string|max:255',
-            'limit' => 'nullable|integer|min:1|max:50'
+            'limit' => 'nullable|integer|min:1|max:50',
+            'company' => 'nullable|string|max:255',
+            'employment_type' => 'nullable|string|max:255',
+            'remote' => 'nullable|string|max:255',
+            'salary_filter' => 'nullable|string|in:all,with,without',
+            'min_salary' => 'nullable|integer|min:0',
+            'max_salary' => 'nullable|integer|min:0'
         ]);
 
         try {
@@ -36,6 +42,9 @@ class JobScraperController extends Controller
                 // Chiamata reale all'API Adzuna
                 $jobs = $this->scrapeAdzunaReal($validated, $appId, $appKey);
             }
+
+            // Applica filtri avanzati sui risultati
+            $jobs = $this->applyAdvancedFilters($jobs, $validated);
 
             return response()->json([
                 'success' => true,
@@ -157,5 +166,104 @@ class JobScraperController extends Controller
         
         return 'Non specificato';
     }
+
+    /**
+     * Apply advanced filters to job results
+     * 
+     * @param array $jobs
+     * @param array $filters
+     * @return array
+     */
+    private function applyAdvancedFilters(array $jobs, array $filters): array
+    {
+        $filtered = $jobs;
+
+        // Filtro per azienda (case-insensitive, partial match)
+        if (!empty($filters['company'])) {
+            $company = strtolower($filters['company']);
+            $filtered = array_filter($filtered, function($job) use ($company) {
+                return stripos(strtolower($job['company']), $company) !== false;
+            });
+        }
+
+        // Filtro per tipo di contratto (exact match)
+        if (!empty($filters['employment_type'])) {
+            $filtered = array_filter($filtered, function($job) use ($filters) {
+                return $job['employment_type'] === $filters['employment_type'];
+            });
+        }
+
+        // Filtro per modalità lavoro (exact match)
+        if (!empty($filters['remote'])) {
+            $filtered = array_filter($filtered, function($job) use ($filters) {
+                return $job['remote'] === $filters['remote'];
+            });
+        }
+
+        // Filtro per stipendio (con/senza)
+        if (!empty($filters['salary_filter']) && $filters['salary_filter'] !== 'all') {
+            if ($filters['salary_filter'] === 'with') {
+                $filtered = array_filter($filtered, function($job) {
+                    return !empty($job['salary']) && 
+                           $job['salary'] !== 'Non specificato' && 
+                           $job['salary'] !== 'N/A';
+                });
+            } elseif ($filters['salary_filter'] === 'without') {
+                $filtered = array_filter($filtered, function($job) {
+                    return empty($job['salary']) || 
+                           $job['salary'] === 'Non specificato' || 
+                           $job['salary'] === 'N/A';
+                });
+            }
+        }
+
+        // Filtro per range stipendio (min/max)
+        if (!empty($filters['min_salary']) || !empty($filters['max_salary'])) {
+            $minSal = $filters['min_salary'] ?? 0;
+            $maxSal = $filters['max_salary'] ?? PHP_INT_MAX;
+            
+            $filtered = array_filter($filtered, function($job) use ($minSal, $maxSal) {
+                $salaryNum = $this->extractSalaryNumber($job['salary'] ?? '');
+                if ($salaryNum === null) return false;
+                return $salaryNum >= $minSal && $salaryNum <= $maxSal;
+            });
+        }
+
+        // Re-index array dopo il filtering
+        return array_values($filtered);
+    }
+
+    /**
+     * Extract numeric value from salary string for filtering
+     * 
+     * @param string $salaryStr
+     * @return int|null
+     */
+    private function extractSalaryNumber(string $salaryStr): ?int
+    {
+        if (empty($salaryStr) || $salaryStr === 'Non specificato' || $salaryStr === 'N/A') {
+            return null;
+        }
+
+        // Cerca numeri nel formato "30.000 - 50.000" o "30000 - 50000"
+        preg_match_all('/\d+(?:\.\d+)*/', $salaryStr, $matches);
+        
+        if (empty($matches[0])) {
+            return null;
+        }
+
+        // Rimuovi separatori e converti
+        $numbers = array_map(function($num) {
+            return (int) str_replace('.', '', $num);
+        }, $matches[0]);
+
+        // Se ci sono 2 numeri (min-max), fai la media
+        if (count($numbers) >= 2) {
+            return (int) (($numbers[0] + $numbers[1]) / 2);
+        }
+
+        return $numbers[0];
+    }
+
 }
 

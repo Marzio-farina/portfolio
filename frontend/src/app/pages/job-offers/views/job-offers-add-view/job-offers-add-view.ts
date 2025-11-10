@@ -22,9 +22,7 @@ export class JobOffersAddView {
    * Naviga alla vista risultati scraping
    * TODO: mostrare dialog con form per keyword e location
    */
-  searchJobs(): void {
-    console.log('🔍 Navigazione a risultati scraping...');
-    
+  searchJobs(): void {    
     const tenantSlug = this.tenantService.userSlug();
     const basePath = tenantSlug ? `/${tenantSlug}/job-offers/search-results` : '/job-offers/search-results';
     

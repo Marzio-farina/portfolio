@@ -303,6 +303,28 @@
   outline: none;
 }
 
+/* Filtri disabilitati */
+.filter-disabled {
+  opacity: 0.5;
+  cursor: not-allowed !important;
+  background-color: var(--bg-secondary) !important;
+  color: var(--text-secondary) !important;
+  border-color: var(--border-secondary) !important;
+}
+
+.filter-disabled:hover {
+  border-color: var(--border-secondary) !important;
+  background-color: var(--bg-secondary) !important;
+}
+
+.input:disabled,
+.select:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+  background-color: var(--bg-secondary);
+  color: var(--text-secondary);
+}
+
 .filter-separator {
   height: 1px;
   background: var(--border-primary);

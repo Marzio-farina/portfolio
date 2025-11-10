@@ -1,4 +1,4 @@
-import { Component, inject, computed, signal, OnInit } from '@angular/core';
+import { Component, inject, computed, signal, effect, OnInit } from '@angular/core';
 import { toSignal } from '@angular/core/rxjs-interop';
 import { ActivatedRoute, Router } from '@angular/router';
 import { CommonModule } from '@angular/common';
@@ -8,6 +8,8 @@ import { JobScraperService, ScrapedJob } from '../../../../services/job-scraper.
 import { JobOfferService } from '../../../../services/job-offer.service';
 import { EditModeService } from '../../../../services/edit-mode.service';
 import { TenantService } from '../../../../services/tenant.service';
+import { NotificationService } from '../../../../services/notification.service';
+import { Notification } from '../../../../components/notification/notification';
 
 /**
  * Componente per visualizzare i risultati dello scraping
@@ -16,7 +18,8 @@ import { TenantService } from '../../../../services/tenant.service';
 @Component({
   selector: 'app-job-offers-scraper-results-view',
   standalone: true,
-  imports: [CommonModule, FormsModule],
+  imports: [CommonModule, FormsModule, Notification],
+  providers: [NotificationService],
   templateUrl: './job-offers-scraper-results-view.html',
   styleUrl: './job-offers-scraper-results-view.css'
 })
@@ -28,6 +31,7 @@ export class JobOffersScraperResultsView implements OnInit {
   private jobOfferService = inject(JobOfferService);
   private editModeService = inject(EditModeService);
   private tenantService = inject(TenantService);
+  protected notificationService = inject(NotificationService);
   
   // Edit mode dal service globale
   editMode = this.editModeService.isEditing;
@@ -43,10 +47,9 @@ export class JobOffersScraperResultsView implements OnInit {
 
   // Filtri tabella risultati
   searchQuery = signal<string>('');
-  selectedLocation = signal<string>('all');
-  selectedEmploymentType = signal<string>('all');
-  selectedRemote = signal<string>('all');
-  selectedCompany = signal<string>('all');
+  selectedEmploymentType = signal<string>('');
+  selectedRemote = signal<string>('');
+  selectedCompany = signal<string>('');
   selectedSalaryFilter = signal<string>('all'); // 'all', 'with', 'without'
   minSalary = signal<number | null>(null);
   maxSalary = signal<number | null>(null);
@@ -55,6 +58,44 @@ export class JobOffersScraperResultsView implements OnInit {
   searchKeyword = signal<string>('');
   searchLocationInput = signal<string>('');
   resultsLimit = signal<number>(50);
+  
+  // Flag per tracciare se è stata fatta almeno una ricerca
+  hasPerformedSearch = signal<boolean>(false);
+  
+  // Snapshot parametri ricerca dell'ultima chiamata API
+  lastSearchParams = signal<{
+    keyword: string;
+    location: string;
+    limit: number;
+    company: string;
+    employmentType: string;
+    remote: string;
+    salaryFilter: string;
+    minSalary: number | null;
+    maxSalary: number | null;
+  } | null>(null);
+  
+  // Verifica se i parametri di ricerca sono cambiati (TUTTI i filtri triggerano notifica)
+  searchParamsChanged = computed(() => {
+    const last = this.lastSearchParams();
+    if (!last || this.scrapedJobs().length === 0) return false;
+    
+    return (
+      this.searchKeyword() !== last.keyword ||
+      this.searchLocationInput() !== last.location ||
+      this.resultsLimit() !== last.limit ||
+      this.selectedCompany() !== last.company ||
+      this.selectedEmploymentType() !== last.employmentType ||
+      this.selectedRemote() !== last.remote ||
+      this.selectedSalaryFilter() !== last.salaryFilter ||
+      this.minSalary() !== last.minSalary ||
+      this.maxSalary() !== last.maxSalary
+    );
+  });
+  
+  constructor() {
+    // Nessun effect necessario - i filtri avanzati filtrano solo lato frontend
+  }
   
   // Visibilità filtri (di default visibili)
   filtersVisible = signal<boolean>(true);
@@ -114,7 +155,10 @@ export class JobOffersScraperResultsView implements OnInit {
     console.log('🔍 Ricerca offerte tramite Adzuna con parametri:', {
       keyword,
       location: this.searchLocationInput(),
-      limit: this.resultsLimit()
+      limit: this.resultsLimit(),
+      company: this.selectedCompany(),
+      employmentType: this.selectedEmploymentType(),
+      remote: this.selectedRemote()
     });
     
     this.loading.set(true);
@@ -122,10 +166,19 @@ export class JobOffersScraperResultsView implements OnInit {
     // Nascondi i filtri dopo aver avviato la ricerca
     this.filtersVisible.set(false);
     
+    // Marca che è stata fatta la prima ricerca
+    this.hasPerformedSearch.set(true);
+    
     const params = {
       keyword: keyword,
       location: this.searchLocationInput() || 'Italia',
-      limit: this.resultsLimit()
+      limit: this.resultsLimit(),
+      company: this.selectedCompany(),
+      employment_type: this.selectedEmploymentType(),
+      remote: this.selectedRemote(),
+      salary_filter: this.selectedSalaryFilter(),
+      min_salary: this.minSalary(),
+      max_salary: this.maxSalary()
     };
 
     this.scraperService.scrapeAdzuna(params).subscribe({
@@ -134,14 +187,21 @@ export class JobOffersScraperResultsView implements OnInit {
         console.log(`📊 Trovate ${response.count} offerte:`, response.jobs);
         this.scrapedJobs.set(response.jobs);
         
-        // Reset filtri raffinamento dopo nuova ricerca
-        this.selectedCompany.set('all');
-        this.selectedLocation.set('all');
-        this.selectedEmploymentType.set('all');
-        this.selectedRemote.set('all');
-        this.selectedSalaryFilter.set('all');
-        this.minSalary.set(null);
-        this.maxSalary.set(null);
+        // Salva snapshot parametri ricerca per rilevare modifiche future
+        this.lastSearchParams.set({
+          keyword: keyword,
+          location: this.searchLocationInput(),
+          limit: this.resultsLimit(),
+          company: this.selectedCompany(),
+          employmentType: this.selectedEmploymentType(),
+          remote: this.selectedRemote(),
+          salaryFilter: this.selectedSalaryFilter(),
+          minSalary: this.minSalary(),
+          maxSalary: this.maxSalary()
+        });
+        
+        // Rimuovi la notifica di parametri modificati
+        this.notificationService.remove('search-params-changed');
         
         // Salva le offerte scrapate nella tabella job_offers con status 'search'
         this.saveJobsToDatabase(response.jobs);
@@ -154,6 +214,7 @@ export class JobOffersScraperResultsView implements OnInit {
       }
     });
   }
+
 
   // Colonne visibili (filtrate e ordinate, escluso website/status/is_registered)
   // - 'website' gestito dalla colonna "Candidati"
@@ -261,7 +322,6 @@ export class JobOffersScraperResultsView implements OnInit {
   filteredJobs = computed(() => {
     let jobs = this.scrapedJobs();
     const query = this.searchQuery().toLowerCase();
-    const location = this.selectedLocation();
     const employmentType = this.selectedEmploymentType();
     const remote = this.selectedRemote();
     const company = this.selectedCompany();
@@ -279,23 +339,20 @@ export class JobOffersScraperResultsView implements OnInit {
       );
     }
 
-    // Filtra per azienda
-    if (company !== 'all') {
-      jobs = jobs.filter(job => job.company === company);
-    }
-
-    // Filtra per location
-    if (location !== 'all') {
-      jobs = jobs.filter(job => job.location === location);
+    // Filtra per azienda (testo parziale)
+    if (company && company.trim() !== '') {
+      jobs = jobs.filter(job => 
+        job.company.toLowerCase().includes(company.toLowerCase())
+      );
     }
 
     // Filtra per employment type
-    if (employmentType !== 'all') {
+    if (employmentType && employmentType.trim() !== '') {
       jobs = jobs.filter(job => job.employment_type === employmentType);
     }
 
     // Filtra per remote
-    if (remote !== 'all') {
+    if (remote && remote.trim() !== '') {
       jobs = jobs.filter(job => job.remote === remote);
     }
 
@@ -342,46 +399,39 @@ export class JobOffersScraperResultsView implements OnInit {
     return jobs;
   });
 
-  // Lista locations uniche
-  uniqueLocations = computed(() => {
-    const locations = new Set(
-      this.scrapedJobs()
-        .map(job => job.location)
-        .filter(loc => loc !== null && loc !== '' && loc !== 'N/A')
-    );
-    return Array.from(locations).sort();
-  });
-
-  // Lista employment types unici
-  uniqueEmploymentTypes = computed(() => {
-    const types = new Set(
-      this.scrapedJobs()
-        .map(job => job.employment_type)
-        .filter(type => type !== null && type !== undefined && type !== 'N/A')
-    );
-    return Array.from(types).sort();
-  });
-
-  // Lista remote types unici
-  uniqueRemoteTypes = computed(() => {
-    const types = new Set(
-      this.scrapedJobs()
-        .map(job => job.remote)
-        .filter(type => type !== null && type !== undefined && type !== 'N/A')
-    );
-    return Array.from(types).sort();
-  });
-
-  // Lista aziende uniche
-  uniqueCompanies = computed(() => {
+  // Valori unici disponibili dai risultati (per popolare i filtri)
+  availableCompanies = computed(() => {
     const companies = new Set(
       this.scrapedJobs()
         .map(job => job.company)
-        .filter(comp => comp !== null && comp !== undefined && comp !== 'N/A')
+        .filter(comp => comp && comp !== 'N/A')
     );
     return Array.from(companies).sort();
   });
 
+  availableEmploymentTypes = computed(() => {
+    const types = new Set(
+      this.scrapedJobs()
+        .map(job => job.employment_type)
+        .filter(type => type && type !== 'N/A')
+    );
+    return Array.from(types).sort();
+  });
+
+  availableRemoteTypes = computed(() => {
+    const types = new Set(
+      this.scrapedJobs()
+        .map(job => job.remote)
+        .filter(type => type && type !== 'N/A')
+    );
+    return Array.from(types).sort();
+  });
+
+  // Verifica se un filtro ha opzioni disponibili
+  hasAvailableCompanies = computed(() => this.availableCompanies().length > 0);
+  hasAvailableEmploymentTypes = computed(() => this.availableEmploymentTypes().length > 0);
+  hasAvailableRemoteTypes = computed(() => this.availableRemoteTypes().length > 0);
+  
   // Torna alla pagina di aggiunta
   goBack(): void {
     const tenantSlug = this.tenantService.userSlug();
@@ -398,16 +448,20 @@ export class JobOffersScraperResultsView implements OnInit {
     
     // Reset filtri raffinamento
     this.searchQuery.set('');
-    this.selectedLocation.set('all');
-    this.selectedEmploymentType.set('all');
-    this.selectedRemote.set('all');
-    this.selectedCompany.set('all');
+    this.selectedEmploymentType.set('');
+    this.selectedRemote.set('');
+    this.selectedCompany.set('');
     this.selectedSalaryFilter.set('all');
     this.minSalary.set(null);
     this.maxSalary.set(null);
     
-    // Pulisci risultati
+    // Pulisci risultati e snapshot parametri
     this.scrapedJobs.set([]);
+    this.lastSearchParams.set(null);
+    this.hasPerformedSearch.set(false);
+    
+    // Mostra i filtri se erano nascosti
+    this.filtersVisible.set(true);
   }
 
   // Toggle visibilità filtri
@@ -693,6 +747,140 @@ export class JobOffersScraperResultsView implements OnInit {
     
     // Altrimenti ritorna il singolo valore
     return cleaned[0];
+  }
+
+  /**
+   * Ottiene la notifica più grave per l'icona nell'angolo
+   */
+  getMostSevereNotification() {
+    return this.notificationService.getMostSevere();
+  }
+
+  /**
+   * Mostra la notifica se i parametri di ricerca sono cambiati in modo NON restrittivo
+   * (solo se cercano valori non presenti nei risultati attuali)
+   */
+  checkAndShowParamsChangedNotification(): void {
+    const last = this.lastSearchParams();
+    
+    // Se non ci sono ancora risultati, non mostrare notifica
+    if (!last || this.scrapedJobs().length === 0) {
+      return;
+    }
+    
+    // Verifica se i parametri BASE sono cambiati (sempre triggerano notifica)
+    const baseParamsChanged = 
+      this.searchKeyword() !== last.keyword ||
+      this.searchLocationInput() !== last.location ||
+      this.resultsLimit() !== last.limit;
+    
+    if (baseParamsChanged) {
+      this.notificationService.add(
+        'warning',
+        'Parametri di ricerca modificati. Clicca su "Aggiorna Ricerca"',
+        'search-params-changed',
+        false,
+        true
+      );
+      return;
+    }
+    
+    // Verifica se i filtri AVANZATI sono cambiati in modo NON restrittivo
+    let needsApiCall = false;
+    
+    // Controlla Azienda
+    const company = this.selectedCompany().trim();
+    if (company !== last.company) {
+      // Se rimuove un'azienda precedentemente cercata (amplia la ricerca)
+      if (!company && last.company) {
+        needsApiCall = true;
+      } else if (company) {
+        // Se l'azienda cercata NON è nei risultati attuali, serve nuova ricerca
+        const availableCompanies = this.availableCompanies();
+        if (!availableCompanies.some(c => c.toLowerCase().includes(company.toLowerCase()))) {
+          needsApiCall = true;
+        }
+      }
+    }
+    
+    // Controlla Tipo Contratto
+    const employmentType = this.selectedEmploymentType();
+    if (employmentType !== last.employmentType) {
+      // Se passa a "Tutti" (stringa vuota) da un valore specifico, serve nuova ricerca
+      if (!employmentType && last.employmentType) {
+        needsApiCall = true;
+      } else if (employmentType) {
+        // Se seleziona un valore specifico che NON è nei risultati
+        const availableTypes = this.availableEmploymentTypes();
+        if (!availableTypes.includes(employmentType)) {
+          needsApiCall = true;
+        }
+      }
+    }
+    
+    // Controlla Modalità Lavoro
+    const remote = this.selectedRemote();
+    if (remote !== last.remote) {
+      // Se passa a "Tutte" (stringa vuota) da un valore specifico, serve nuova ricerca
+      if (!remote && last.remote) {
+        needsApiCall = true;
+      } else if (remote) {
+        // Se seleziona un valore specifico che NON è nei risultati
+        const availableRemote = this.availableRemoteTypes();
+        if (!availableRemote.includes(remote)) {
+          needsApiCall = true;
+        }
+      }
+    }
+    
+    // Controlla Stipendio (con/senza)
+    const salaryFilter = this.selectedSalaryFilter();
+    if (salaryFilter !== last.salaryFilter) {
+      // Se passa a "Tutti" da un filtro specifico, serve nuova ricerca
+      if (salaryFilter === 'all' && last.salaryFilter !== 'all') {
+        needsApiCall = true;
+      } else if (salaryFilter !== 'all') {
+        // Se seleziona un filtro specifico diverso da quello precedente
+        needsApiCall = true;
+      }
+    }
+    
+    // Controlla Range Stipendio
+    const minSal = this.minSalary();
+    const maxSal = this.maxSalary();
+    if (minSal !== last.minSalary || maxSal !== last.maxSalary) {
+      // Se rimuove un range precedentemente impostato (amplia la ricerca)
+      if ((minSal === null && last.minSalary !== null) || (maxSal === null && last.maxSalary !== null)) {
+        needsApiCall = true;
+      } else if (minSal !== null || maxSal !== null) {
+        // Verifica se il range richiesto è al di fuori dei risultati attuali
+        const salariesInResults = this.scrapedJobs()
+          .map(job => this.extractSalaryNumber(job.salary))
+          .filter(s => s !== null) as number[];
+        
+        if (salariesInResults.length > 0) {
+          const currentMin = Math.min(...salariesInResults);
+          const currentMax = Math.max(...salariesInResults);
+          
+          // Se cerca salari fuori dal range attuale, serve nuova ricerca
+          if ((minSal !== null && minSal < currentMin) || (maxSal !== null && maxSal > currentMax)) {
+            needsApiCall = true;
+          }
+        }
+      }
+    }
+    
+    if (needsApiCall) {
+      this.notificationService.add(
+        'warning',
+        'Parametri di ricerca modificati. Clicca su "Aggiorna Ricerca"',
+        'search-params-changed',
+        false,
+        true
+      );
+    } else {
+      this.notificationService.remove('search-params-changed');
+    }
   }
 }
 
