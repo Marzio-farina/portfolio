@@ -108,5 +108,12 @@ export class JobOfferService {
       jobs: JobOffer[];
     }>(`${this.apiUrl}/api/job-offers/save-scraped`, { jobs });
   }
+
+  /**
+   * Recupera la cronologia delle offerte scrapate (status = 'search')
+   */
+  getSearchHistory(): Observable<JobOffer[]> {
+    return this.http.get<JobOffer[]>(`${this.apiUrl}/api/job-offers/search-history`);
+  }
 }
 

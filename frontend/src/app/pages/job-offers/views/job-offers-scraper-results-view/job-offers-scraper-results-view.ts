@@ -118,6 +118,8 @@ export class JobOffersScraperResultsView implements OnInit, AfterViewInit {
   
   // Visibilità filtri (di default visibili)
   filtersVisible = signal<boolean>(true);
+  historyVisible = signal<boolean>(false);
+  isHistoryMode = signal<boolean>(false); // Flag per modalità cronologia
   
   // Righe espanse
   expandedRows = signal<Set<string>>(new Set());
@@ -168,6 +170,22 @@ export class JobOffersScraperResultsView implements OnInit, AfterViewInit {
    * Usa tutti i parametri di ricerca impostati nei filtri
    */
   performSearch(): void {
+    // Modalità cronologia: filtra solo i risultati già caricati
+    if (this.isHistoryMode()) {
+      console.log('🔍 Filtraggio cronologia locale (nessun scraping)');
+      // Il filtraggio avviene automaticamente tramite filteredJobs() computed
+      // Chiudi i filtri per mostrare risultati
+      this.filtersVisible.set(false);
+      
+      this.notificationService.add(
+        'info',
+        'Filtri applicati alla cronologia',
+        'history-filter'
+      );
+      return;
+    }
+
+    // Modalità scraping normale
     const keyword = this.searchKeyword().trim();
     
     if (!keyword) {
@@ -456,7 +474,7 @@ export class JobOffersScraperResultsView implements OnInit, AfterViewInit {
   }
 
   // Reset tutti i filtri (ricerca e raffinamento)
-  resetFilters(): void {
+  resetFilters(showFilters: boolean = true): void {
     // Reset filtri ricerca
     this.searchKeyword.set('');
     this.searchLocationInput.set('');
@@ -476,13 +494,87 @@ export class JobOffersScraperResultsView implements OnInit, AfterViewInit {
     this.lastSearchParams.set(null);
     this.hasPerformedSearch.set(false);
     
-    // Mostra i filtri se erano nascosti
-    this.filtersVisible.set(true);
+    // Mostra i filtri se il parametro è true (default)
+    if (showFilters) {
+      this.filtersVisible.set(true);
+    }
   }
 
   // Toggle visibilità filtri
   toggleFilters(): void {
     this.filtersVisible.set(!this.filtersVisible());
+  }
+
+  /**
+   * Toggle visibilità cronologia scraping
+   */
+  toggleHistory(): void {
+    const newHistoryState = !this.historyVisible();
+    this.historyVisible.set(newHistoryState);
+    this.isHistoryMode.set(newHistoryState);
+    
+    if (newHistoryState) {
+      // Chiudere i filtri se sono aperti
+      this.filtersVisible.set(false);
+      
+      // Azzerare i filtri SENZA riaprirli
+      this.resetFilters(false);
+      
+      // Caricare le offerte dalla cronologia (status = 'search')
+      this.loadSearchHistory();
+    } else {
+      // Modalità cronologia disattivata
+      console.log('❌ Modalità cronologia disattivata');
+      
+      // Azzerare i risultati per richiedere nuovo scraping
+      this.scrapedJobs.set([]);
+      this.resetFilters();
+    }
+  }
+
+  /**
+   * Carica la cronologia delle offerte scrapate (status = 'search')
+   */
+  private loadSearchHistory(): void {
+    this.loading.set(true);
+    
+    this.jobOfferService.getSearchHistory().subscribe({
+      next: (offers) => {
+        console.log('📊 Cronologia caricata:', offers.length, 'offerte');
+        
+        // Convertire JobOffer[] in ScrapedJob[]
+        const scrapedJobs = offers.map(offer => ({
+          id: offer.id.toString(),
+          company: offer.company_name,
+          title: offer.position,
+          location: offer.location || 'Non specificata',
+          url: offer.website || '',
+          salary: offer.salary_range || undefined,
+          employment_type: offer.work_mode || undefined,
+          remote: undefined, // Non disponibile direttamente
+          description: offer.notes || '',
+          posted_date: offer.announcement_date || offer.created_at
+        }));
+        
+        this.scrapedJobs.set(scrapedJobs);
+        this.loading.set(false);
+        
+        this.notificationService.add(
+          'success',
+          `Cronologia caricata: ${offers.length} offerte trovate`,
+          'history-loaded'
+        );
+      },
+      error: (err) => {
+        console.error('Errore nel caricamento cronologia:', err);
+        this.loading.set(false);
+        this.notificationService.add(
+          'error',
+          'Errore nel caricamento della cronologia',
+          'history-error'
+        );
+      }
+    });
   }
 
   // Mostra i filtri all'hover sull'icona se sono nascosti

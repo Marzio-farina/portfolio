@@ -50,19 +50,151 @@
       <!-- Form interno alla card -->
       <div class="manual-form">
         <form>
-          <div class="form-group">
-            <label class="form-label">Azienda</label>
-            <input type="text" class="input input-bordered w-full" placeholder="Nome azienda">
+          <!-- Grid a 2 colonne (1 colonna su mobile) -->
+          <div class="form-grid">
+            <!-- Colonna 1 -->
+            <div class="form-group">
+              <label class="form-label">Azienda *</label>
+              <input 
+                type="text" 
+                class="input input-bordered w-full" 
+                placeholder="Nome azienda"
+                [ngModel]="companyName()"
+                (ngModelChange)="companyName.set($event)"
+                name="companyName">
+            </div>
+
+            <div class="form-group">
+              <label class="form-label">Azienda Recruitatrice</label>
+              <input 
+                type="text" 
+                class="input input-bordered w-full" 
+                placeholder="Nome azienda recruitatrice (opzionale)"
+                [ngModel]="recruiterCompany()"
+                (ngModelChange)="recruiterCompany.set($event)"
+                name="recruiterCompany">
+            </div>
+
+            <div class="form-group">
+              <label class="form-label">Posizione *</label>
+              <input 
+                type="text" 
+                class="input input-bordered w-full" 
+                placeholder="Titolo posizione"
+                [ngModel]="position()"
+                (ngModelChange)="position.set($event)"
+                name="position">
+            </div>
+
+            <div class="form-group">
+              <label class="form-label">Modalità di Lavoro</label>
+              <select 
+                class="select select-bordered w-full"
+                [ngModel]="workMode()"
+                (ngModelChange)="workMode.set($event)"
+                name="workMode">
+                <option value="">Seleziona...</option>
+                <option value="Remote">Remoto</option>
+                <option value="Hybrid">Ibrido</option>
+                <option value="On-site">In Presenza</option>
+                <option value="Full-time">Full Time</option>
+                <option value="Part-time">Part Time</option>
+                <option value="Contract">Contratto</option>
+              </select>
+            </div>
+
+            <div class="form-group">
+              <label class="form-label">Località</label>
+              <input 
+                type="text" 
+                class="input input-bordered w-full" 
+                placeholder="Città, Provincia"
+                [ngModel]="location()"
+                (ngModelChange)="location.set($event)"
+                name="location">
+            </div>
+
+            <div class="form-group">
+              <label class="form-label">Fascia Salariale</label>
+              <input 
+                type="text" 
+                class="input input-bordered w-full" 
+                placeholder="Es: 30.000€ - 40.000€"
+                [ngModel]="salaryRange()"
+                (ngModelChange)="salaryRange.set($event)"
+                name="salaryRange">
+            </div>
+
+            <!-- Colonna 2 -->
+            <div class="form-group">
+              <label class="form-label">Data Annuncio</label>
+              <input 
+                type="date" 
+                class="input input-bordered w-full"
+                [ngModel]="announcementDate()"
+                (ngModelChange)="announcementDate.set($event)"
+                name="announcementDate">
+            </div>
+
+            <div class="form-group">
+              <label class="form-label">Data Candidatura</label>
+              <input 
+                type="date" 
+                class="input input-bordered w-full"
+                [ngModel]="applicationDate()"
+                (ngModelChange)="applicationDate.set($event)"
+                name="applicationDate">
+            </div>
+
+            <div class="form-group">
+              <label class="form-label">Sito Web</label>
+              <input 
+                type="url" 
+                class="input input-bordered w-full" 
+                placeholder="https://..."
+                [ngModel]="website()"
+                (ngModelChange)="website.set($event)"
+                name="website">
+            </div>
+
+            <div class="form-group">
+              <label class="form-label">Stato</label>
+              <select 
+                class="select select-bordered w-full"
+                [ngModel]="status()"
+                (ngModelChange)="status.set($event)"
+                name="status">
+                <option value="pending">In Attesa</option>
+                <option value="interview">Colloquio</option>
+                <option value="accepted">Accettata</option>
+                <option value="rejected">Rifiutata</option>
+                <option value="archived">Archiviata</option>
+              </select>
+            </div>
+
+            <div class="form-group form-group--checkbox">
+              <label class="checkbox-label">
+                <input 
+                  type="checkbox" 
+                  class="checkbox"
+                  [ngModel]="isRegistered()"
+                  (ngModelChange)="isRegistered.set($event)"
+                  name="isRegistered">
+                <span>Registrato sul sito</span>
+              </label>
+            </div>
           </div>
 
-          <div class="form-group">
-            <label class="form-label">Posizione</label>
-            <input type="text" class="input input-bordered w-full" placeholder="Titolo posizione">
-          </div>
-
-          <div class="form-group">
-            <label class="form-label">Località</label>
-            <input type="text" class="input input-bordered w-full" placeholder="Città, Provincia">
+          <!-- Note a tutta larghezza -->
+          <div class="form-group form-group--full">
+            <label class="form-label">Note</label>
+            <textarea 
+              class="textarea textarea-bordered w-full" 
+              rows="4"
+              placeholder="Aggiungi eventuali note o informazioni aggiuntive..."
+              [ngModel]="notes()"
+              (ngModelChange)="notes.set($event)"
+              name="notes"></textarea>
           </div>
 
           <div class="form-actions">

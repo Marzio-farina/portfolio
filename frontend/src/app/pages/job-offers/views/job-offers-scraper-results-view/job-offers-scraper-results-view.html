@@ -13,7 +13,13 @@
         <path d="M19 12H5M12 19l-7-7 7-7"/>
       </svg>
     </button>
-    <h2 class="title">Risultati Ricerca Offerte</h2>
+    <h2 class="title">
+      @if (isHistoryMode()) {
+        Cronologia Ricerche
+      } @else {
+        Risultati Ricerca Offerte
+      }
+    </h2>
   </div>
 
   <!-- Pulsante Toggle Filtri -->
@@ -30,22 +36,43 @@
     </svg>
   </button>
 
+  <!-- Pulsante Cronologia Scraping -->
+  <button 
+    class="history-toggle-btn" 
+    (click)="toggleHistory()"
+    type="button"
+    [class.active]="historyVisible()"
+    [attr.aria-label]="historyVisible() ? 'Nascondi cronologia' : 'Mostra cronologia'"
+    title="Cronologia Scraping">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+      <circle cx="12" cy="12" r="10"/>
+      <polyline points="12 6 12 12 16 14"/>
+    </svg>
+  </button>
+
   <!-- Filtro superiore - Pulsante Cerca + Search Bar -->
   @if (filtersVisible()) {
     <div class="top-filter">
       <div class="filter-group-right">
-        <!-- Pulsante Cerca Offerte -->
+        <!-- Pulsante Cerca Offerte / Applica Filtri -->
         <button 
           class="btn btn-primary search-action-btn"
           type="button"
           (click)="performSearch()"
-          [disabled]="loading() || !searchKeyword()"
-          [class.btn-warning]="searchParamsChanged()">
+          [disabled]="loading() || (!searchKeyword() && !isHistoryMode())"
+          [class.btn-warning]="searchParamsChanged()"
+          [class.btn-info]="isHistoryMode()">
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-            <circle cx="11" cy="11" r="8"/>
-            <path d="m21 21-4.35-4.35"/>
+            @if (isHistoryMode()) {
+              <polygon points="22 3 2 3 10 12.46 10 19 14 21 14 12.46 22 3"/>
+            } @else {
+              <circle cx="11" cy="11" r="8"/>
+              <path d="m21 21-4.35-4.35"/>
+            }
           </svg>
-          @if (searchParamsChanged()) {
+          @if (isHistoryMode()) {
+            Applica Filtri
+          } @else if (searchParamsChanged()) {
             Aggiorna Ricerca
           } @else {
             Cerca

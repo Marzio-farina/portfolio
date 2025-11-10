@@ -48,10 +48,10 @@
 }
 
 /* === PULSANTE TOGGLE FILTRI === */
-.filter-toggle-btn {
+.filter-toggle-btn,
+.history-toggle-btn {
   position: absolute;
   top: 60px;
-  left: 32px;
   width: 56px;
   height: 56px;
   background: transparent;
@@ -68,35 +68,49 @@
   padding: 0;
 }
 
-.filter-toggle-btn:hover {
+.filter-toggle-btn {
+  left: 32px;
+}
+
+.history-toggle-btn {
+  left: 72px; /* 32px + 56px (larghezza bottone) + 8px (gap) */
+}
+
+.filter-toggle-btn:hover,
+.history-toggle-btn:hover {
   color: var(--accent-primary);
   background: transparent;
   outline: none;
   box-shadow: none;
 }
 
-.filter-toggle-btn:focus {
+.filter-toggle-btn:focus,
+.history-toggle-btn:focus {
   outline: none;
   box-shadow: none;
   background: transparent;
 }
 
-.filter-toggle-btn:active {
+.filter-toggle-btn:active,
+.history-toggle-btn:active {
   background: transparent;
   outline: none;
   box-shadow: none;
 }
 
-.filter-toggle-btn:hover svg {
+.filter-toggle-btn:hover svg,
+.history-toggle-btn:hover svg {
   stroke-width: 2.5;
 }
 
-.filter-toggle-btn.active {
+.filter-toggle-btn.active,
+.history-toggle-btn.active {
   color: var(--accent-primary);
   background: transparent;
 }
 
-.filter-toggle-btn svg {
+.filter-toggle-btn svg,
+.history-toggle-btn svg {
   width: 28px;
   height: 28px;
   stroke-width: 2;
@@ -1314,13 +1328,22 @@
     font-size: 1.25rem;
   }
 
-  .filter-toggle-btn {
-    left: 16px;
+  .filter-toggle-btn,
+  .history-toggle-btn {
     width: 48px;
     height: 48px;
   }
 
-  .filter-toggle-btn svg {
+  .filter-toggle-btn {
+    left: 16px;
+  }
+
+  .history-toggle-btn {
+    left: 72px; /* 16px + 48px + 8px */
+  }
+
+  .filter-toggle-btn svg,
+  .history-toggle-btn svg {
     width: 24px;
     height: 24px;
   }

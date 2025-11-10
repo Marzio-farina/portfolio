@@ -228,5 +228,19 @@ class JobOfferController extends Controller
             'jobs' => $savedJobs
         ], 201);
     }
+
+    /**
+     * Recupera tutte le offerte scrapate (status = 'search') dell'utente autenticato
+     * Utilizzato per la cronologia delle ricerche
+     */
+    public function getSearchHistory(): JsonResponse
+    {
+        $jobOffers = JobOffer::where('user_id', Auth::id())
+            ->where('status', 'search')
+            ->orderBy('created_at', 'desc')
+            ->get();
+
+        return response()->json($jobOffers);
+    }
 }
 
