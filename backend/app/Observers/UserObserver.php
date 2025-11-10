@@ -4,6 +4,7 @@ namespace App\Observers;
 
 use App\Models\User;
 use App\Models\JobOfferCard;
+use Illuminate\Support\Facades\DB;
 
 class UserObserver
 {
@@ -28,13 +29,13 @@ class UserObserver
             $insertData[] = [
                 'user_id' => $user->id,
                 'job_offer_card_id' => $card->id,
-                'visible' => \DB::raw('true'), // Cast esplicito a boolean per PostgreSQL
+                'visible' => DB::raw('true'), // Cast esplicito a boolean per PostgreSQL
                 'created_at' => now(),
                 'updated_at' => now()
             ];
         }
         
-        \DB::table('user_job_offer_card')->insert($insertData);
+        DB::table('user_job_offer_card')->insert($insertData);
     }
 
     /**
