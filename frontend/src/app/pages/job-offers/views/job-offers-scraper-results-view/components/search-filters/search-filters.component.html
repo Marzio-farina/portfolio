@@ -1,0 +1,174 @@
+<aside class="side-filters">
+  <!-- Card Ricerca Base -->
+  <div class="filter-card">
+    <h3 class="filter-title">Ricerca Offerte</h3>
+
+    <!-- Campo Professione -->
+    <div class="filter-group">
+      <label class="filter-label">Professione *</label>
+      <input 
+        type="text" 
+        class="input w-full"
+        placeholder="es. PHP Developer"
+        [ngModel]="searchKeyword"
+        (ngModelChange)="onSearchKeywordChange($event)">
+    </div>
+
+    <!-- Campo Località -->
+    <div class="filter-group">
+      <label class="filter-label">Località</label>
+      <input 
+        type="text" 
+        class="input w-full"
+        placeholder="es. Milano"
+        [ngModel]="searchLocationInput"
+        (ngModelChange)="onSearchLocationChange($event)">
+    </div>
+
+    <!-- Numero Risultati -->
+    <div class="filter-group">
+      <label class="filter-label">Numero Risultati</label>
+      <select 
+        class="select w-full"
+        [ngModel]="resultsLimit"
+        (ngModelChange)="onResultsLimitChange($event)">
+        <option [value]="10">10 offerte</option>
+        <option [value]="20">20 offerte</option>
+        <option [value]="30">30 offerte</option>
+        <option [value]="50">50 offerte</option>
+      </select>
+    </div>
+  </div>
+
+  <!-- Card Azienda -->
+  <div class="filter-card">
+    <h3 class="filter-title">Azienda</h3>
+    <div class="filter-group">
+      <input 
+        type="text" 
+        class="input w-full"
+        placeholder="es. Google, Microsoft..."
+        [ngModel]="selectedCompany"
+        (ngModelChange)="onCompanyChange($event)">
+    </div>
+  </div>
+
+  <!-- Card Tipo Contratto -->
+  <div class="filter-card">
+    <h3 class="filter-title">Tipo Contratto</h3>
+    <div class="filter-group">
+      <select 
+        class="select w-full"
+        [ngModel]="selectedEmploymentType"
+        (ngModelChange)="onEmploymentTypeChange($event)">
+        <option value="">Tutti</option>
+        <option value="Full-time">Full Time</option>
+        <option value="Part-time">Part Time</option>
+        <option value="Contract">Contratto</option>
+      </select>
+    </div>
+  </div>
+
+  <!-- Card Modalità Lavoro -->
+  <div class="filter-card">
+    <h3 class="filter-title">Modalità Lavoro</h3>
+    <div class="filter-group">
+      <select 
+        class="select w-full"
+        [ngModel]="selectedRemote"
+        (ngModelChange)="onRemoteChange($event)">
+        <option value="">Tutte</option>
+        <option value="Remote">Remoto</option>
+        <option value="Hybrid">Ibrido</option>
+        <option value="On-site">In Presenza</option>
+      </select>
+    </div>
+  </div>
+
+  <!-- Card Stipendio -->
+  <div class="filter-card">
+    <h3 class="filter-title">Stipendio</h3>
+    
+    @if (scrapedJobs.length > 0 && salaryRange.max > 0) {
+      <!-- Grafico distribuzione stipendi -->
+      <app-salary-chart 
+        [scrapedJobs]="scrapedJobs"
+        [currencySymbol]="currencySymbol"
+        [minSalary]="minSalary"
+        [maxSalary]="maxSalary"
+        [salaryRange]="salaryRange">
+      </app-salary-chart>
+
+      <!-- Range Slider Doppio -->
+      <div class="filter-group">
+        <div class="double-slider-container">
+          <!-- Slider Min -->
+          <input 
+            type="range" 
+            class="salary-slider salary-slider-min"
+            [min]="salaryRange.min"
+            [max]="salaryRange.max"
+            [step]="1000"
+            [value]="minSalary !== null ? minSalary : salaryRange.min"
+            (input)="onMinSalaryChange($event)"
+            (change)="checkParamsChanged.emit()">
+          
+          <!-- Slider Max -->
+          <input 
+            type="range" 
+            class="salary-slider salary-slider-max"
+            [min]="salaryRange.min"
+            [max]="salaryRange.max"
+            [step]="1000"
+            [value]="maxSalary !== null ? maxSalary : salaryRange.max"
+            (input)="onMaxSalaryChange($event)"
+            (change)="checkParamsChanged.emit()">
+          
+          <!-- Track visibile -->
+          <div class="slider-track"></div>
+          <div class="slider-range" 
+               [style.left.%]="getSliderRangeLeft()" 
+               [style.width.%]="getSliderRangeWidth()"></div>
+        </div>
+
+        <!-- Valori Min/Max sotto lo slider -->
+        <div class="salary-range-values">
+          <span class="range-value-min">{{ minSalary !== null ? (minSalary | number:'1.0-0') : salaryRange.min }} {{ currencySymbol }}</span>
+          <span class="range-value-max">{{ maxSalary !== null ? (maxSalary | number:'1.0-0') : salaryRange.max }} {{ currencySymbol }}</span>
+        </div>
+      </div>
+    } @else {
+      <div class="no-salary-data">
+        <p>Nessun dato stipendio disponibile</p>
+      </div>
+    }
+  </div>
+
+  <!-- Card Valuta -->
+  <div class="filter-card">
+    <select 
+      class="select w-full"
+      [ngModel]="selectedCurrency"
+      (ngModelChange)="onCurrencyChange($event)">
+      @for (currency of availableCurrencies; track currency.code) {
+        <option [value]="currency.code">{{ currency.symbol }} {{ currency.name }}</option>
+      }
+    </select>
+  </div>
+
+  <!-- Contatore risultati -->
+  @if (scrapedJobs.length > 0) {
+    <div class="filter-card">
+      <div class="results-count">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/>
+          <circle cx="9" cy="7" r="4"/>
+          <path d="M22 21v-2a4 4 0 0 0-3-3.87"/>
+          <path d="M16 3.13a4 4 0 0 1 0 7.75"/>
+        </svg>
+        <span>{{ filteredJobsCount }} Risultati</span>
+      </div>
+    </div>
+  }
+</aside>
+

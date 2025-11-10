@@ -1,0 +1,596 @@
+/* === TABELLA === */
+.table-container {
+  background: var(--bg-card);
+  border-radius: 12px;
+  padding: 1.5rem;
+  border: 1px solid var(--border-primary);
+  overflow: hidden;
+  position: relative;
+}
+
+/* Pulsante opzioni tabella */
+.table-options-btn {
+  position: absolute;
+  top: 0;
+  right: 0;
+  width: 56px;
+  height: 56px;
+  background: transparent;
+  border: none;
+  outline: none;
+  box-shadow: none;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--text-primary);
+  border-radius: 0 12px 0 8px;
+  transition: color var(--transition-1);
+  z-index: 1001;
+  padding: 0;
+}
+
+.table-options-btn:hover {
+  color: var(--accent-primary);
+  background: transparent;
+  outline: none;
+  box-shadow: none;
+}
+
+.table-options-btn:focus {
+  outline: none;
+  box-shadow: none;
+  background: transparent;
+}
+
+.table-options-btn:active {
+  background: transparent;
+  outline: none;
+  box-shadow: none;
+}
+
+.table-options-btn:hover svg {
+  stroke-width: 2.5;
+  transform: rotate(90deg);
+}
+
+.table-options-btn svg {
+  width: 28px;
+  height: 28px;
+  stroke-width: 2;
+  transition: stroke-width var(--transition-1), transform var(--transition-1);
+}
+
+.table {
+  width: 100%;
+}
+
+.table thead {
+  background: var(--bg-secondary);
+  border-bottom: 2px solid var(--border-primary);
+}
+
+.table thead th {
+  color: var(--text-primary);
+  font-weight: 800;
+  font-size: 0.875rem;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  padding: 1rem;
+  position: relative;
+  transition: all var(--transition-1);
+  text-align: center;
+}
+
+/* === DRAG & DROP HEADER STYLES === */
+.table thead th.draggable {
+  cursor: grab;
+  user-select: none;
+}
+
+.table thead th.draggable:active {
+  cursor: grabbing;
+}
+
+.table thead th.dragging {
+  opacity: 0.5;
+  background: var(--accent-primary);
+  color: white;
+  transform: scale(1.05);
+  cursor: grabbing;
+}
+
+.table thead th.drop-target {
+  background: color-mix(in oklab, var(--accent-primary) 20%, transparent 80%);
+  border-left: 3px solid var(--accent-primary);
+  box-shadow: 0 0 0 2px var(--accent-primary) inset;
+}
+
+.th-content {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  justify-content: center;
+  cursor: pointer;
+  padding: 0.25rem 0.5rem;
+  border-radius: 6px;
+  transition: background-color var(--transition-1);
+}
+
+.th-content:hover {
+  background: color-mix(in oklab, var(--bg-secondary) 80%, var(--accent-primary) 20%);
+}
+
+.table thead th.draggable .th-content {
+  cursor: grab;
+  pointer-events: none;
+}
+
+.table thead th.draggable .th-content:hover {
+  background: transparent;
+}
+
+.table thead th.draggable:active .th-content {
+  cursor: grabbing;
+}
+
+.table thead th.draggable {
+  pointer-events: auto;
+}
+
+.th-text {
+  user-select: none;
+}
+
+.drag-handle {
+  width: 16px;
+  height: 16px;
+  color: var(--text-secondary);
+  flex-shrink: 0;
+  transition: color var(--transition-1);
+}
+
+.table thead th.draggable:hover .drag-handle {
+  color: var(--accent-primary);
+}
+
+.table thead th.dragging .drag-handle {
+  color: white;
+}
+
+/* === ICONA ORDINAMENTO === */
+.sort-icon {
+  width: 18px;
+  height: 18px;
+  color: var(--text-secondary);
+  flex-shrink: 0;
+  opacity: 0;
+  visibility: hidden;
+  transition: all 0.3s ease;
+}
+
+.th-content:hover .sort-icon {
+  opacity: 1;
+  visibility: visible;
+}
+
+.sort-icon--active {
+  opacity: 1;
+  visibility: visible;
+  color: var(--accent-primary);
+}
+
+.th-content:hover .sort-icon {
+  color: var(--accent-primary);
+}
+
+.sort-icon--asc {
+  transform: rotate(180deg);
+}
+
+.sort-icon--desc {
+  transform: rotate(0deg);
+}
+
+/* === COLONNA ESPANSIONE === */
+.expand-column {
+  width: 50px;
+  max-width: 50px;
+}
+
+.expand-cell {
+  width: 50px;
+  padding: 1rem 0.5rem;
+  cursor: pointer;
+  text-align: center;
+}
+
+.expand-icon {
+  width: 20px;
+  height: 20px;
+  color: var(--text-secondary);
+  transition: transform var(--transition-1), color var(--transition-1);
+  display: inline-block;
+}
+
+.expand-cell:hover .expand-icon {
+  color: var(--accent-primary);
+}
+
+.expand-icon--expanded {
+  transform: rotate(90deg);
+}
+
+/* === RIGHE TABELLA === */
+.table tbody tr {
+  border-bottom: 1px solid var(--border-primary);
+  transition: background-color var(--transition-1);
+}
+
+.table tbody tr:hover {
+  background: var(--bg-secondary);
+}
+
+.table tbody tr.data-row {
+  cursor: pointer;
+}
+
+.table tbody tr.row-expanded {
+  background: var(--bg-secondary);
+  border-bottom: none;
+}
+
+/* === RIGA ESPANSA === */
+.expanded-row {
+  background: var(--bg-secondary);
+  animation: expandRow 0.3s ease-out;
+}
+
+.expanded-row:hover {
+  background: var(--bg-secondary);
+}
+
+@keyframes expandRow {
+  from {
+    opacity: 0;
+    max-height: 0;
+  }
+  to {
+    opacity: 1;
+    max-height: 500px;
+  }
+}
+
+.expanded-cell {
+  padding: 0 1rem 1rem 1rem;
+}
+
+.expanded-content {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+  gap: 1rem;
+  padding: 1rem;
+  background: var(--bg-card);
+  border-radius: 8px;
+  border: 1px solid var(--border-primary);
+}
+
+.extra-field {
+  display: flex;
+  flex-direction: row;
+  align-items: flex-start;
+  gap: 0.5rem;
+  padding: 0.75rem;
+  border-radius: 8px;
+  transition: all var(--transition-1);
+}
+
+.extra-field--notes {
+  grid-column: span 2;
+}
+
+.extra-field__content {
+  display: flex;
+  flex-direction: column;
+  gap: 0.375rem;
+  flex: 1;
+  text-align: center;
+}
+
+.drag-handle--extra {
+  width: 16px;
+  height: 16px;
+  margin-top: 4px;
+  opacity: 0;
+  transition: opacity var(--transition-1);
+  flex-shrink: 0;
+}
+
+.extra-field--draggable {
+  cursor: grab;
+  user-select: none;
+}
+
+.extra-field--draggable:hover {
+  background: color-mix(in oklab, var(--bg-secondary) 80%, var(--accent-primary) 20%);
+}
+
+.extra-field--draggable:hover .drag-handle--extra {
+  opacity: 1;
+}
+
+.extra-field--draggable:active {
+  cursor: grabbing;
+}
+
+.extra-field--dragging {
+  opacity: 0.5;
+  background: var(--accent-primary);
+  cursor: grabbing;
+}
+
+.extra-field--dragging .extra-field__label,
+.extra-field--dragging .extra-field__value {
+  color: white;
+}
+
+.extra-field--dragging .drag-handle--extra {
+  opacity: 1;
+  color: white;
+}
+
+.extra-field--drop-target {
+  background: color-mix(in oklab, var(--accent-primary) 20%, transparent 80%);
+  border: 2px dashed var(--accent-primary);
+}
+
+.extra-field__label {
+  font-size: 0.75rem;
+  font-weight: 800;
+  color: var(--text-primary);
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+}
+
+.extra-field__value {
+  font-size: 0.9375rem;
+  color: var(--text-secondary);
+  font-weight: 500;
+}
+
+.extra-field__value .flex {
+  justify-content: center;
+}
+
+.table tbody td {
+  padding: 1rem;
+  color: var(--text-secondary);
+  font-size: 0.9375rem;
+  text-align: center;
+}
+
+.table th.column-status,
+.table td.column-status {
+  width: 120px;
+  max-width: 120px;
+  white-space: nowrap;
+}
+
+.table th.column-date,
+.table td.column-date {
+  width: 130px;
+  max-width: 130px;
+  white-space: nowrap;
+}
+
+.table th.column-action,
+.table td.column-action {
+  width: 140px;
+  max-width: 140px;
+  text-align: center;
+  white-space: nowrap;
+}
+
+.view-btn {
+  min-width: 100px;
+  font-weight: 600;
+  transition: all var(--transition-1);
+}
+
+.view-btn:hover {
+  transform: translateY(-1px);
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15);
+}
+
+.table tbody td .font-bold {
+  font-weight: 700;
+  color: var(--text-primary);
+}
+
+.location-icon {
+  width: 16px;
+  height: 16px;
+  color: var(--text-secondary);
+}
+
+.table tbody td .flex {
+  justify-content: center;
+}
+
+.text-sm {
+  font-size: 0.75rem;
+}
+
+.text-secondary {
+  color: var(--text-secondary);
+  font-style: italic;
+  margin-top: 0.25rem;
+}
+
+.loading-spinner {
+  padding: 2rem;
+  color: var(--text-secondary);
+  font-size: 0.9375rem;
+}
+
+/* === SKELETON LOADERS === */
+.skeleton {
+  background: linear-gradient(
+    90deg,
+    var(--bg-secondary) 25%,
+    color-mix(in oklab, var(--bg-secondary) 90%, var(--text-primary) 10%) 50%,
+    var(--bg-secondary) 75%
+  );
+  background-size: 200% 100%;
+  animation: shimmer 1.5s infinite;
+  border-radius: 4px;
+}
+
+@keyframes shimmer {
+  0% {
+    background-position: 200% 0;
+  }
+  100% {
+    background-position: -200% 0;
+  }
+}
+
+.skeleton-row {
+  pointer-events: none;
+  animation: fadeIn 0.3s ease-out;
+}
+
+.skeleton-row:hover {
+  background: transparent !important;
+}
+
+.skeleton-header {
+  height: 0.875rem;
+  width: 70%;
+  margin: 0.25rem auto;
+}
+
+.skeleton-text {
+  height: 1rem;
+  width: 80%;
+  margin: 0.25rem auto;
+}
+
+.skeleton-text--lg {
+  height: 1.125rem;
+  width: 90%;
+  margin: 0.25rem auto;
+}
+
+.skeleton-text--sm {
+  height: 0.875rem;
+  width: 60%;
+  margin: 0.375rem auto 0.25rem;
+}
+
+.skeleton-badge {
+  height: 1.5rem;
+  width: 70px;
+  border-radius: 12px;
+  margin: 0.25rem auto;
+}
+
+/* === DATA ROW ANIMATION === */
+.data-row {
+  animation: fadeInSlide 0.4s ease-out;
+  animation-fill-mode: both;
+}
+
+.data-row:nth-child(1) { animation-delay: 0.05s; }
+.data-row:nth-child(2) { animation-delay: 0.1s; }
+.data-row:nth-child(3) { animation-delay: 0.15s; }
+.data-row:nth-child(4) { animation-delay: 0.2s; }
+.data-row:nth-child(5) { animation-delay: 0.25s; }
+.data-row:nth-child(6) { animation-delay: 0.3s; }
+.data-row:nth-child(7) { animation-delay: 0.35s; }
+.data-row:nth-child(8) { animation-delay: 0.4s; }
+.data-row:nth-child(n+9) { animation-delay: 0.45s; }
+
+@keyframes fadeInSlide {
+  from {
+    opacity: 0;
+    transform: translateY(-10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(-10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.badge {
+  font-size: 0.75rem;
+  font-weight: 600;
+  padding: 2px 0.875rem 0 0.875rem;
+  display: inline-block;
+  min-width: 100px;
+  text-align: center;
+}
+
+.table tbody td .text-secondary {
+  text-align: center;
+}
+
+/* === EMPTY STATE === */
+.empty-state {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 4rem 2rem;
+  text-align: center;
+}
+
+.empty-icon {
+  width: 64px;
+  height: 64px;
+  color: var(--text-secondary);
+  margin-bottom: 1rem;
+}
+
+.empty-icon--search {
+  width: 120px;
+  height: 120px;
+  color: var(--accent-primary);
+  opacity: 0.6;
+}
+
+.empty-state h3 {
+  margin: 0 0 0.5rem 0;
+  font-size: 1.25rem;
+  font-weight: 700;
+  color: var(--text-primary);
+}
+
+.empty-state p {
+  margin: 0;
+  color: var(--text-secondary);
+  font-size: 0.9375rem;
+}
+
+/* === RESPONSIVE === */
+@media (max-width: 768px) {
+  .table-container {
+    overflow-x: auto;
+  }
+
+  .table {
+    min-width: 800px;
+  }
+}
+

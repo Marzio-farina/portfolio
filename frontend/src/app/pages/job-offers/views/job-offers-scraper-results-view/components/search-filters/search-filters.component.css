@@ -1,0 +1,287 @@
+/* === FILTRI LATERALI === */
+.side-filters {
+  position: sticky;
+  top: 2rem;
+  height: fit-content;
+  max-height: calc(100vh - 150px);
+  overflow-y: auto;
+  overflow-x: hidden;
+  padding-right: 4px;
+  animation: slideIn 0.3s ease-out;
+  scrollbar-width: thin;
+  scrollbar-color: var(--border-primary) transparent;
+}
+
+/* Scrollbar personalizzata per WebKit (Chrome, Safari, Edge) */
+.side-filters::-webkit-scrollbar {
+  width: 6px;
+}
+
+.side-filters::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+.side-filters::-webkit-scrollbar-thumb {
+  background: var(--border-primary);
+  border-radius: 3px;
+}
+
+.side-filters::-webkit-scrollbar-thumb:hover {
+  background: var(--accent-primary);
+}
+
+@keyframes slideIn {
+  from {
+    opacity: 0;
+    transform: translateX(-20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateX(0);
+  }
+}
+
+.filter-card {
+  background: var(--bg-card);
+  border-radius: 12px;
+  padding: 1.25rem;
+  border: 1px solid var(--border-primary);
+  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.04);
+  margin-bottom: 0.75rem;
+  transition: all var(--transition-1);
+}
+
+.filter-card:hover {
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.06);
+}
+
+.filter-card:last-child {
+  margin-bottom: 0;
+}
+
+.filter-card .filter-title,
+.filter-card h3.filter-title {
+  margin: 0 0 1rem 0;
+  font-size: 13px !important;
+  font-weight: 700;
+  color: var(--text-primary);
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.filter-group {
+  margin-bottom: 1rem;
+}
+
+.filter-group:last-of-type {
+  margin-bottom: 0;
+}
+
+.filter-label {
+  display: block;
+  margin-bottom: 0.5rem;
+  font-size: 0.875rem;
+  font-weight: 600;
+  color: var(--text-secondary);
+}
+
+.input {
+  background: var(--bg-secondary);
+  border: none;
+  color: var(--text-primary);
+  padding: 0.625rem 0.875rem;
+  border-radius: 8px;
+  transition: all var(--transition-1);
+  font-size: 0.9rem;
+}
+
+.input::placeholder {
+  color: var(--text-secondary);
+  opacity: 0.7;
+}
+
+.input:hover {
+  background: var(--bg-primary);
+}
+
+.input:focus {
+  background: var(--bg-primary);
+  outline: 2px solid var(--accent-primary);
+  outline-offset: -2px;
+}
+
+.select {
+  background: var(--bg-secondary);
+  border: none;
+  color: var(--text-primary);
+  padding: 0.625rem 0.875rem;
+  border-radius: 8px;
+  cursor: pointer;
+  transition: all var(--transition-1);
+  font-size: 0.9rem;
+}
+
+.select:hover {
+  background: var(--bg-primary);
+}
+
+.select:focus {
+  background: var(--bg-primary);
+  outline: 2px solid var(--accent-primary);
+  outline-offset: -2px;
+}
+
+/* === DOPPIO SLIDER STIPENDIO === */
+.double-slider-container {
+  position: relative;
+  height: 40px;
+  display: flex;
+  align-items: center;
+  margin-bottom: 0.75rem;
+}
+
+.salary-range-values {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  font-size: 0.875rem;
+  font-weight: 600;
+  color: var(--text-secondary);
+}
+
+.range-value-min,
+.range-value-max {
+  color: var(--text-primary);
+  font-weight: 700;
+  font-size: 0.875rem;
+}
+
+.slider-track {
+  position: absolute;
+  width: 100%;
+  height: 6px;
+  background: var(--bg-secondary);
+  border-radius: 3px;
+  top: 50%;
+  transform: translateY(-50%);
+  z-index: 1;
+}
+
+.slider-range {
+  position: absolute;
+  height: 6px;
+  background: var(--accent-primary);
+  border-radius: 3px;
+  top: 50%;
+  transform: translateY(-50%);
+  z-index: 2;
+  transition: all 0.1s ease;
+}
+
+.salary-slider {
+  position: absolute;
+  width: 100%;
+  height: 6px;
+  -webkit-appearance: none;
+  appearance: none;
+  background: transparent;
+  outline: none;
+  z-index: 3;
+  pointer-events: none;
+  top: 50%;
+  transform: translateY(-50%);
+  cursor: pointer;
+}
+
+.salary-slider::-webkit-slider-thumb {
+  -webkit-appearance: none;
+  appearance: none;
+  width: 18px;
+  height: 18px;
+  border-radius: 50%;
+  background: var(--accent-primary);
+  border: 3px solid var(--bg-card);
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+  cursor: grab;
+  pointer-events: auto;
+  transition: all var(--transition-1);
+}
+
+.salary-slider::-webkit-slider-thumb:hover {
+  transform: scale(1.15);
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.3);
+  cursor: grab;
+}
+
+.salary-slider::-webkit-slider-thumb:active {
+  transform: scale(1.05);
+  cursor: grabbing;
+}
+
+.salary-slider::-moz-range-thumb {
+  width: 18px;
+  height: 18px;
+  border-radius: 50%;
+  background: var(--accent-primary);
+  border: 3px solid var(--bg-card);
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+  cursor: grab;
+  pointer-events: auto;
+  transition: all var(--transition-1);
+}
+
+.salary-slider::-moz-range-thumb:hover {
+  transform: scale(1.15);
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.3);
+  cursor: grab;
+}
+
+.salary-slider::-moz-range-thumb:active {
+  transform: scale(1.05);
+  cursor: grabbing;
+}
+
+.salary-slider-max {
+  z-index: 4;
+}
+
+.no-salary-data {
+  padding: 1.5rem;
+  text-align: center;
+  color: var(--text-secondary);
+  font-size: 0.875rem;
+  background: var(--bg-secondary);
+  border-radius: 8px;
+}
+
+.no-salary-data p {
+  margin: 0;
+}
+
+.results-count {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+  color: var(--text-secondary);
+  font-size: 0.875rem;
+  font-weight: 600;
+}
+
+.results-count svg {
+  width: 18px;
+  height: 18px;
+  color: var(--accent-primary);
+}
+
+/* === RESPONSIVE === */
+@media (max-width: 768px) {
+  .side-filters {
+    position: static;
+  }
+
+  .filter-card {
+    margin-bottom: 1rem;
+  }
+}
+

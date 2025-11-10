@@ -1,0 +1,31 @@
+/* === GRAFICO DISTRIBUZIONE STIPENDI === */
+.salary-chart-container {
+  width: 100%;
+  height: 80px;
+  margin-bottom: 0.75rem;
+  position: relative;
+  background: rgba(251, 191, 36, 0.08);
+  border-radius: 8px;
+  padding: 0.5rem 0.25rem;
+  overflow: hidden;
+}
+
+.salary-chart-container canvas {
+  width: 100% !important;
+  height: 100% !important;
+  display: block;
+}
+
+.no-salary-data {
+  padding: 1.5rem;
+  text-align: center;
+  color: var(--text-secondary);
+  font-size: 0.875rem;
+  background: var(--bg-secondary);
+  border-radius: 8px;
+}
+
+.no-salary-data p {
+  margin: 0;
+}
+

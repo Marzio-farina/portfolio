@@ -1,0 +1,10 @@
+@if (hasData()) {
+  <div class="salary-chart-container">
+    <canvas #salaryDistributionChart></canvas>
+  </div>
+} @else {
+  <div class="no-salary-data">
+    <p>Nessun dato stipendio disponibile</p>
+  </div>
+}
+

@@ -1,0 +1,30 @@
+@if (tableOptionsOpen) {
+  <div class="table-options-backdrop" (click)="onClosePopup()"></div>
+
+  <div class="table-options-popup">
+    <div class="table-options-popup__content">
+      <div class="columns-list">
+        @for (column of allColumns; track column.id) {
+          <label class="column-item" [class.column-item--disabled]="isColumnCheckboxDisabled(column)">
+            <input 
+              type="checkbox"
+              class="column-checkbox"
+              [checked]="isColumnChecked(column)"
+              [disabled]="isColumnCheckboxDisabled(column)"
+              (change)="onToggleVisibility(column)">
+            <span class="column-name">{{ column.title }}</span>
+          </label>
+        }
+      </div>
+
+      <button 
+        class="table-options-popup__close"
+        type="button"
+        (click)="onClosePopup()"
+        aria-label="Chiudi">
+        ×
+      </button>
+    </div>
+  </div>
+}
+

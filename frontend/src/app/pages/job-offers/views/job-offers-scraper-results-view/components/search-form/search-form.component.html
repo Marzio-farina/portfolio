@@ -1,0 +1,55 @@
+@if (filtersVisible) {
+  <div class="top-filter">
+    <div class="filter-group-right">
+      <!-- Pulsante Cerca Offerte / Applica Filtri -->
+      <button 
+        class="btn btn-primary search-action-btn"
+        type="button"
+        (click)="onPerformSearch()"
+        [disabled]="loading || (!searchKeyword && !isHistoryMode)"
+        [class.btn-warning]="searchParamsChanged"
+        [class.btn-info]="isHistoryMode">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          @if (isHistoryMode) {
+            <polygon points="22 3 2 3 10 12.46 10 19 14 21 14 12.46 22 3"/>
+          } @else {
+            <circle cx="11" cy="11" r="8"/>
+            <path d="m21 21-4.35-4.35"/>
+          }
+        </svg>
+        @if (isHistoryMode) {
+          Applica Filtri
+        } @else if (searchParamsChanged) {
+          Aggiorna Ricerca
+        } @else {
+          Cerca
+        }
+      </button>
+
+      <div class="search-wrapper">
+        <input 
+          type="text" 
+          placeholder="Filtra per azienda o posizione..." 
+          class="input input-bordered search-input"
+          [ngModel]="searchQuery"
+          (ngModelChange)="onSearchQueryChange($event)">
+        @if (searchQuery) {
+          <button type="button" class="clear-search" (click)="clearSearchQuery()" aria-label="Cancella ricerca">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+              <path d="M18 6L6 18M6 6l12 12"/>
+            </svg>
+          </button>
+        }
+      </div>
+      
+      <button class="btn btn-outline btn-sm reset-btn" (click)="onResetFilters()" type="button">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <path d="M3 12a9 9 0 1 0 9-9 9.75 9.75 0 0 0-6.74 2.74L3 8"/>
+          <path d="M3 3v5h5"/>
+        </svg>
+        Reset Ricerca
+      </button>
+    </div>
+  </div>
+}
+
