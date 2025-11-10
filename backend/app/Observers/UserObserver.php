@@ -16,13 +16,25 @@ class UserObserver
         // Ottieni tutte le card master
         $cards = JobOfferCard::all();
         
-        // Assegna tutte le card all'utente con visible=true
-        $syncData = [];
-        foreach ($cards as $card) {
-            $syncData[$card->id] = ['visible' => true];
+        // Se non ci sono card, skip per evitare errori
+        if ($cards->isEmpty()) {
+            return;
         }
         
-        $user->jobOfferCards()->sync($syncData);
+        // Usa DB::table per inserimento diretto con cast esplicito a boolean
+        // Questo evita il problema di type conversion di Eloquent con PostgreSQL
+        $insertData = [];
+        foreach ($cards as $card) {
+            $insertData[] = [
+                'user_id' => $user->id,
+                'job_offer_card_id' => $card->id,
+                'visible' => \DB::raw('true'), // Cast esplicito a boolean per PostgreSQL
+                'created_at' => now(),
+                'updated_at' => now()
+            ];
+        }
+        
+        \DB::table('user_job_offer_card')->insert($insertData);
     }
 
     /**
