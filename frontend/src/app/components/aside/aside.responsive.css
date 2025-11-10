@@ -150,8 +150,8 @@
 
 /* ========== TABLET/MEDIUM (750px - 1249px): 2 colonne ========== */
 @media (min-width: 750px) and (max-width: 1249px) {
-  .contacts__list {
-    grid-template-columns: repeat(2, 1fr);
+  .contacts__list:not(.contacts__list--single) {
+    grid-template-columns: repeat(2, 1fr) !important;
     column-gap: var(--space-4);
     row-gap: var(--space-3);
     padding-left: 1rem;
@@ -161,8 +161,8 @@
 /* ========== DESKTOP (>=1250px): torna a singola colonna ========== */
 @media (min-width: 1250px) {
   .profile__header { flex-direction: column; }
-  .contacts__list { 
-    grid-template-columns: auto;
+  .contacts__list:not(.contacts__list--single) { 
+    grid-template-columns: auto !important;
     padding-left: 1rem;
   }
 }
