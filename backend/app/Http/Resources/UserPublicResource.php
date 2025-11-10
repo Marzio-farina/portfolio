@@ -26,6 +26,7 @@ class UserPublicResource extends JsonResource
             'name'        => $this->name,
             'surname'     => $this->surname ?? null,
             'email'       => $this->email,
+            'slug'        => $this->slug ?? null,
             'title'       => $this->profile->title ?? null,
             'headline'    => $this->profile->headline ?? null,
             'bio'         => $this->profile->bio ?? null,

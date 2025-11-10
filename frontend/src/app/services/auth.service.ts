@@ -1,7 +1,7 @@
 import { Injectable, inject, signal } from '@angular/core';
 import { HttpClient, HttpErrorResponse } from '@angular/common/http';
 import { Observable, ReplaySubject } from 'rxjs';
-import { shareReplay, switchMap, catchError } from 'rxjs/operators';
+import { shareReplay, switchMap, catchError, map } from 'rxjs/operators';
 import { of } from 'rxjs';
 import { Router } from '@angular/router';
 
@@ -41,6 +41,7 @@ export interface PublicProfile {
     id: number;
     name: string;
     email: string;
+    slug?: string | null;
     title?: string | null;
     avatar_url?: string | null;
   } | null;
@@ -226,15 +227,15 @@ export class AuthService {
    * @param dto Login credentials
    * @returns Observable of user profile after successful login
    */
-  login(dto: LoginDto): Observable<PublicProfile> {
+  login(dto: LoginDto): Observable<AuthResponse> {
     return this.http.post<AuthResponse>(apiUrl('/login'), dto).pipe(
-      switchMap(response => {
+      map(response => {
         this.setToken(response.token);
         // Memorizza l'ID dell'utente autenticato
         this.authenticatedUserId.set(response.user.id);
         this.editMode.setAuthenticatedUserId(response.user.id);
         this.refreshMe();
-        return this.me$;
+        return response;
       })
     );
   }
@@ -245,7 +246,7 @@ export class AuthService {
    * @param dto Registration data
    * @returns Observable of user profile after successful registration
    */
-  register(dto: RegisterDto): Observable<PublicProfile> {
+  register(dto: RegisterDto): Observable<AuthResponse> {
     // Sanitizza: invia solo i campi permessi, ignora eventuali extra (es. role_id)
     const payload: RegisterDto = {
       name: dto.name,
@@ -253,13 +254,13 @@ export class AuthService {
       password: dto.password,
     };
     return this.http.post<AuthResponse>(apiUrl('/register'), payload).pipe(
-      switchMap(response => {
+      map(response => {
         this.setToken(response.token);
         // Memorizza l'ID dell'utente autenticato
         this.authenticatedUserId.set(response.user.id);
         this.editMode.setAuthenticatedUserId(response.user.id);
         this.refreshMe();
-        return this.me$;
+        return response;
       })
     );
   }

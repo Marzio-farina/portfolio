@@ -18,6 +18,7 @@ export interface PublicProfileDto {
   name: string;
   surname: string | null;
   email: string;
+  slug?: string | null;
   title: string | null;
   headline: string | null;
   bio: string | null;
