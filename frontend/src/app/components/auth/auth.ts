@@ -1,7 +1,9 @@
 import { Component, inject, signal } from '@angular/core';
 import { AbstractControl, FormBuilder, FormGroup, ReactiveFormsModule, ValidationErrors, Validators } from '@angular/forms';
+import { Router } from '@angular/router';
 import { AuthService, LoginDto, RegisterDto } from '../../services/auth.service';
 import { OAuthService } from '../../services/oauth.service';
+import { TenantRouterService } from '../../services/tenant-router.service';
 import { Notification as NotificationCmp, NotificationType } from '../notification/notification';
 import { finalize } from 'rxjs';
 import { Notification } from '../notification/notification';
@@ -43,7 +45,9 @@ function strongPassword() {
 })
 export class Auth {
   private fb = inject(FormBuilder);
+  private router = inject(Router);
   private auth = inject(AuthService);
+  private tenantRouter = inject(TenantRouterService);
   protected oauth = inject(OAuthService);
   protected notificationService = inject(NotificationService);
 
@@ -112,6 +116,21 @@ export class Auth {
       next: (res) => {
         this.success.set(`Accesso effettuato come ${res.user?.email || 'utente'}`);
         this.notificationService.clear();
+        
+        // Reindirizza alla homepage dell'utente con il suo slug
+        setTimeout(() => {
+          this.auth.me$.subscribe(profile => {
+            if (profile?.user) {
+              const userSlug = (profile.user as any).slug;
+              if (userSlug) {
+                this.router.navigate([`/${userSlug}/about`]);
+              } else {
+                // Fallback se lo slug non è disponibile
+                this.router.navigate(['/about']);
+              }
+            }
+          });
+        }, 500);
       },
       error: (err) => {
         const message = this.humanizeError(err);
@@ -133,7 +152,8 @@ export class Auth {
     ).subscribe({
       next: (res) => {
         const registeredEmail = res.user?.email || '';
-        this.success.set(`Registrazione completata: accesso effettuato come ${res.user?.name || 'utente'} (${registeredEmail}).`);
+        const userName = res.user?.name || 'utente';
+        this.success.set(`Registrazione completata: accesso effettuato come ${userName} (${registeredEmail}).`);
 
         // Pulisci campi registrazione e stato UI
         this.registerForm.reset({ name: '', email: '', password: '', confirm: '', terms: false });
@@ -142,8 +162,23 @@ export class Auth {
         this.notificationService.clear();
         this.tooltipVisible.set(null);
         this.showRegPass.set(false);
-        // L'utente è già autenticato (token impostato da AuthService.register)
-        // La modale verrà chiusa automaticamente da App quando authed == true
+        
+        // Ottieni lo slug dell'utente dalla risposta e reindirizza alla sua homepage
+        // Carica il profilo completo per ottenere lo slug
+        setTimeout(() => {
+          this.auth.me$.subscribe(profile => {
+            if (profile?.user) {
+              // Usa il router diretto per navigare all'URL con slug
+              const userSlug = (profile.user as any).slug;
+              if (userSlug) {
+                this.router.navigate([`/${userSlug}/about`]);
+              } else {
+                // Fallback se lo slug non è disponibile
+                this.router.navigate(['/about']);
+              }
+            }
+          });
+        }, 500);
       },
       error: (err) => {
         const message = this.humanizeError(err);

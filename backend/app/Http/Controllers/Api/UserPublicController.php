@@ -30,7 +30,7 @@ class UserPublicController extends Controller
                 $publicEmail  = env('PUBLIC_USER_EMAIL', 'marziofarina@icloud.com');
                 $publicUserId = (int) env('PUBLIC_USER_ID', 0);
 
-                $query = User::query()->select(['id','name','surname','email','date_of_birth','icon_id']);
+                $query = User::query()->select(['id','name','surname','email','date_of_birth','icon_id','slug']);
 
                 if ($publicUserId > 0) {
                     $query->where('id', $publicUserId);
