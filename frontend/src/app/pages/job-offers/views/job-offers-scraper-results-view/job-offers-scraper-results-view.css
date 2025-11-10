@@ -249,19 +249,32 @@
 .filter-card {
   background: var(--bg-card);
   border-radius: 12px;
-  padding: 1.5rem;
+  padding: 1.25rem;
   border: 1px solid var(--border-primary);
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.08), 0 1px 2px rgba(0, 0, 0, 0.04);
+  margin-bottom: 0.75rem;
+  transition: all var(--transition-1);
+}
+
+.filter-card:hover {
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1), 0 1px 3px rgba(0, 0, 0, 0.06);
+}
+
+.filter-card:last-child {
+  margin-bottom: 0;
 }
 
 .filter-title {
-  margin: 0 0 1.25rem 0;
-  font-size: 1.125rem;
+  margin: 0 0 1rem 0;
+  font-size: 0.9rem;
   font-weight: 700;
   color: var(--text-primary);
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
 }
 
 .filter-group {
-  margin-bottom: 1.25rem;
+  margin-bottom: 1rem;
 }
 
 .filter-group:last-of-type {
@@ -273,34 +286,53 @@
   margin-bottom: 0.5rem;
   font-size: 0.875rem;
   font-weight: 600;
-  color: var(--text-primary);
+  color: var(--text-secondary);
 }
 
 .input {
   background: var(--bg-secondary);
-  border-color: var(--border-primary);
+  border: none;
   color: var(--text-primary);
+  padding: 0.625rem 0.875rem;
+  border-radius: 8px;
+  transition: all var(--transition-1);
+  font-size: 0.9rem;
 }
 
 .input::placeholder {
   color: var(--text-secondary);
-  opacity: 1;
+  opacity: 0.7;
+}
+
+.input:hover {
+  background: var(--bg-primary);
 }
 
 .input:focus {
-  border-color: var(--accent-primary);
-  outline: none;
+  background: var(--bg-primary);
+  outline: 2px solid var(--accent-primary);
+  outline-offset: -2px;
 }
 
 .select {
   background: var(--bg-secondary);
-  border-color: var(--border-primary);
+  border: none;
   color: var(--text-primary);
+  padding: 0.625rem 0.875rem;
+  border-radius: 8px;
+  cursor: pointer;
+  transition: all var(--transition-1);
+  font-size: 0.9rem;
+}
+
+.select:hover {
+  background: var(--bg-primary);
 }
 
 .select:focus {
-  border-color: var(--accent-primary);
-  outline: none;
+  background: var(--bg-primary);
+  outline: 2px solid var(--accent-primary);
+  outline-offset: -2px;
 }
 
 /* Filtri disabilitati */
@@ -325,32 +357,156 @@
   color: var(--text-secondary);
 }
 
-.filter-separator {
-  height: 1px;
-  background: var(--border-primary);
-  margin: 1.5rem 0;
+/* === GRAFICO DISTRIBUZIONE STIPENDI === */
+.salary-chart-container {
+  width: 100%;
+  height: 80px;
+  margin-bottom: 0.75rem;
+  position: relative;
+  background: rgba(251, 191, 36, 0.08); /* Giallo tenue come nell'esempio */
+  border-radius: 8px;
+  padding: 0.5rem 0.25rem;
+  overflow: hidden;
 }
 
-/* Range Stipendio */
-.salary-range-inputs {
+.salary-chart-container canvas {
+  width: 100% !important;
+  height: 100% !important;
+  display: block;
+}
+
+/* === DOPPIO SLIDER STIPENDIO === */
+.double-slider-container {
+  position: relative;
+  height: 40px;
   display: flex;
   align-items: center;
-  gap: 0.5rem;
+  margin-bottom: 0.75rem;
 }
 
-.salary-separator {
-  color: var(--text-secondary);
+.salary-range-values {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  font-size: 0.875rem;
   font-weight: 600;
-  flex-shrink: 0;
+  color: var(--text-secondary);
+}
+
+.range-value-min,
+.range-value-max {
+  color: var(--text-primary);
+  font-weight: 700;
+  font-size: 0.875rem;
+}
+
+.slider-track {
+  position: absolute;
+  width: 100%;
+  height: 6px;
+  background: var(--bg-secondary);
+  border-radius: 3px;
+  top: 50%;
+  transform: translateY(-50%);
+  z-index: 1;
+}
+
+.slider-range {
+  position: absolute;
+  height: 6px;
+  background: var(--accent-primary);
+  border-radius: 3px;
+  top: 50%;
+  transform: translateY(-50%);
+  z-index: 2;
+  transition: all 0.1s ease;
+}
+
+.salary-slider {
+  position: absolute;
+  width: 100%;
+  height: 6px;
+  -webkit-appearance: none;
+  appearance: none;
+  background: transparent;
+  outline: none;
+  z-index: 3;
+  pointer-events: none;
+  top: 50%;
+  transform: translateY(-50%);
+  cursor: pointer;
+}
+
+.salary-slider::-webkit-slider-thumb {
+  -webkit-appearance: none;
+  appearance: none;
+  width: 18px;
+  height: 18px;
+  border-radius: 50%;
+  background: var(--accent-primary);
+  border: 3px solid var(--bg-card);
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+  cursor: grab;
+  pointer-events: auto;
+  transition: all var(--transition-1);
+}
+
+.salary-slider::-webkit-slider-thumb:hover {
+  transform: scale(1.15);
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.3);
+  cursor: grab;
+}
+
+.salary-slider::-webkit-slider-thumb:active {
+  transform: scale(1.05);
+  cursor: grabbing;
+}
+
+.salary-slider::-moz-range-thumb {
+  width: 18px;
+  height: 18px;
+  border-radius: 50%;
+  background: var(--accent-primary);
+  border: 3px solid var(--bg-card);
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+  cursor: grab;
+  pointer-events: auto;
+  transition: all var(--transition-1);
+}
+
+.salary-slider::-moz-range-thumb:hover {
+  transform: scale(1.15);
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.3);
+  cursor: grab;
+}
+
+.salary-slider::-moz-range-thumb:active {
+  transform: scale(1.05);
+  cursor: grabbing;
+}
+
+.salary-slider-max {
+  z-index: 4;
+}
+
+.no-salary-data {
+  padding: 1.5rem;
+  text-align: center;
+  color: var(--text-secondary);
+  font-size: 0.875rem;
+  background: var(--bg-secondary);
+  border-radius: 8px;
+}
+
+.no-salary-data p {
+  margin: 0;
 }
 
 .results-count {
   display: flex;
   align-items: center;
+  justify-content: center;
   gap: 0.5rem;
-  margin-top: 1.5rem;
-  padding-top: 1.5rem;
-  border-top: 1px solid var(--border-primary);
   color: var(--text-secondary);
   font-size: 0.875rem;
   font-weight: 600;

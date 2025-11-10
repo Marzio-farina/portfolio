@@ -25,7 +25,6 @@ class JobScraperController extends Controller
             'company' => 'nullable|string|max:255',
             'employment_type' => 'nullable|string|max:255',
             'remote' => 'nullable|string|max:255',
-            'salary_filter' => 'nullable|string|in:all,with,without',
             'min_salary' => 'nullable|integer|min:0',
             'max_salary' => 'nullable|integer|min:0'
         ]);
@@ -198,23 +197,6 @@ class JobScraperController extends Controller
             $filtered = array_filter($filtered, function($job) use ($filters) {
                 return $job['remote'] === $filters['remote'];
             });
-        }
-
-        // Filtro per stipendio (con/senza)
-        if (!empty($filters['salary_filter']) && $filters['salary_filter'] !== 'all') {
-            if ($filters['salary_filter'] === 'with') {
-                $filtered = array_filter($filtered, function($job) {
-                    return !empty($job['salary']) && 
-                           $job['salary'] !== 'Non specificato' && 
-                           $job['salary'] !== 'N/A';
-                });
-            } elseif ($filters['salary_filter'] === 'without') {
-                $filtered = array_filter($filtered, function($job) {
-                    return empty($job['salary']) || 
-                           $job['salary'] === 'Non specificato' || 
-                           $job['salary'] === 'N/A';
-                });
-            }
         }
 
         // Filtro per range stipendio (min/max)

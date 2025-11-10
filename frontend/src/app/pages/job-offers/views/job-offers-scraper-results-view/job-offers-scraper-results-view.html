@@ -20,6 +20,7 @@
   <button 
     class="filter-toggle-btn" 
     (click)="toggleFilters()" 
+    (mouseenter)="showFiltersOnHover()"
     type="button"
     [class.active]="filtersVisible()"
     [attr.aria-label]="filtersVisible() ? 'Nascondi filtri' : 'Mostra filtri'"
@@ -84,6 +85,7 @@
     <!-- Filtri laterali -->
     @if (filtersVisible()) {
       <aside class="side-filters">
+        <!-- Card Ricerca Base -->
         <div class="filter-card">
           <h3 class="filter-title">Ricerca Offerte</h3>
 
@@ -92,7 +94,7 @@
             <label class="filter-label">Professione *</label>
             <input 
               type="text" 
-              class="input input-bordered w-full"
+              class="input w-full"
               placeholder="es. PHP Developer"
               [ngModel]="searchKeyword()"
               (ngModelChange)="searchKeyword.set($event); checkAndShowParamsChangedNotification()">
@@ -103,7 +105,7 @@
             <label class="filter-label">Località</label>
             <input 
               type="text" 
-              class="input input-bordered w-full"
+              class="input w-full"
               placeholder="es. Milano"
               [ngModel]="searchLocationInput()"
               (ngModelChange)="searchLocationInput.set($event); checkAndShowParamsChangedNotification()">
@@ -113,7 +115,7 @@
           <div class="filter-group">
             <label class="filter-label">Numero Risultati</label>
             <select 
-              class="select select-bordered w-full"
+              class="select w-full"
               [(ngModel)]="resultsLimit"
               [value]="resultsLimit()"
               (ngModelChange)="resultsLimit.set($event); checkAndShowParamsChangedNotification()">
@@ -123,26 +125,27 @@
               <option [value]="50">50 offerte</option>
             </select>
           </div>
+        </div>
 
-          <div class="filter-separator"></div>
-          <h3 class="filter-title">Filtri Avanzati</h3>
-
-          <!-- Filtro Azienda -->
+        <!-- Card Azienda -->
+        <div class="filter-card">
+          <h3 class="filter-title">Azienda</h3>
           <div class="filter-group">
-            <label class="filter-label">Azienda</label>
             <input 
               type="text" 
-              class="input input-bordered w-full"
+              class="input w-full"
               placeholder="es. Google, Microsoft..."
               [ngModel]="selectedCompany()"
               (ngModelChange)="selectedCompany.set($event); checkAndShowParamsChangedNotification()">
           </div>
+        </div>
 
-          <!-- Filtro Tipo Contratto -->
+        <!-- Card Tipo Contratto -->
+        <div class="filter-card">
+          <h3 class="filter-title">Tipo Contratto</h3>
           <div class="filter-group">
-            <label class="filter-label">Tipo Contratto</label>
             <select 
-              class="select select-bordered w-full"
+              class="select w-full"
               [(ngModel)]="selectedEmploymentType"
               [value]="selectedEmploymentType()"
               (ngModelChange)="selectedEmploymentType.set($event); checkAndShowParamsChangedNotification()">
@@ -152,12 +155,14 @@
               <option value="Contract">Contratto</option>
             </select>
           </div>
+        </div>
 
-          <!-- Filtro Modalità Lavoro -->
+        <!-- Card Modalità Lavoro -->
+        <div class="filter-card">
+          <h3 class="filter-title">Modalità Lavoro</h3>
           <div class="filter-group">
-            <label class="filter-label">Modalità Lavoro</label>
             <select 
-              class="select select-bordered w-full"
+              class="select w-full"
               [(ngModel)]="selectedRemote"
               [value]="selectedRemote()"
               (ngModelChange)="selectedRemote.set($event); checkAndShowParamsChangedNotification()">
@@ -167,45 +172,66 @@
               <option value="On-site">In Presenza</option>
             </select>
           </div>
+        </div>
 
-          <!-- Filtro Stipendio -->
-          <div class="filter-group">
-            <label class="filter-label">Stipendio</label>
-            <select 
-              class="select select-bordered w-full"
-              [(ngModel)]="selectedSalaryFilter"
-              [value]="selectedSalaryFilter()"
-              (ngModelChange)="selectedSalaryFilter.set($event); checkAndShowParamsChangedNotification()">
-              <option value="all">Tutti</option>
-              <option value="with">Con stipendio</option>
-              <option value="without">Senza stipendio</option>
-            </select>
-          </div>
-
-          <!-- Range Stipendio -->
-          <div class="filter-group">
-            <label class="filter-label">Range Stipendio (EUR)</label>
-            <div class="salary-range-inputs">
-              <input 
-                type="number" 
-                placeholder="Min"
-                class="input input-bordered w-full input-sm"
-                [(ngModel)]="minSalary"
-                [value]="minSalary()"
-                (ngModelChange)="minSalary.set($event ? +$event : null); checkAndShowParamsChangedNotification()">
-              <span class="salary-separator">-</span>
-              <input 
-                type="number" 
-                placeholder="Max"
-                class="input input-bordered w-full input-sm"
-                [(ngModel)]="maxSalary"
-                [value]="maxSalary()"
-                (ngModelChange)="maxSalary.set($event ? +$event : null); checkAndShowParamsChangedNotification()">
+        <!-- Card Stipendio -->
+        <div class="filter-card">
+          <h3 class="filter-title">Stipendio</h3>
+          
+          @if (scrapedJobs().length > 0 && salaryRange().max > 0) {
+            <!-- Grafico distribuzione stipendi -->
+            <div class="salary-chart-container">
+              <canvas #salaryDistributionChart></canvas>
             </div>
-          </div>
 
-          <!-- Contatore risultati -->
-          @if (scrapedJobs().length > 0) {
+            <!-- Range Slider Doppio -->
+            <div class="filter-group">
+              <div class="double-slider-container">
+                <!-- Slider Min -->
+                <input 
+                  type="range" 
+                  class="salary-slider salary-slider-min"
+                  [min]="salaryRange().min"
+                  [max]="salaryRange().max"
+                  [step]="1000"
+                  [value]="minSalary() !== null ? minSalary() : salaryRange().min"
+                  (input)="onMinSalaryChange($event)"
+                  (change)="checkAndShowParamsChangedNotification()">
+                
+                <!-- Slider Max -->
+                <input 
+                  type="range" 
+                  class="salary-slider salary-slider-max"
+                  [min]="salaryRange().min"
+                  [max]="salaryRange().max"
+                  [step]="1000"
+                  [value]="maxSalary() !== null ? maxSalary() : salaryRange().max"
+                  (input)="onMaxSalaryChange($event)"
+                  (change)="checkAndShowParamsChangedNotification()">
+                
+                <!-- Track visibile -->
+                <div class="slider-track"></div>
+                <div class="slider-range" 
+                     [style.left.%]="getSliderRangeLeft()" 
+                     [style.width.%]="getSliderRangeWidth()"></div>
+              </div>
+
+              <!-- Valori Min/Max sotto lo slider -->
+              <div class="salary-range-values">
+                <span class="range-value-min">{{ minSalary() !== null ? (minSalary() | number:'1.0-0') : salaryRange().min }} €</span>
+                <span class="range-value-max">{{ maxSalary() !== null ? (maxSalary() | number:'1.0-0') : salaryRange().max }} €</span>
+              </div>
+            </div>
+          } @else {
+            <div class="no-salary-data">
+              <p>Nessun dato stipendio disponibile</p>
+            </div>
+          }
+        </div>
+
+        <!-- Contatore risultati -->
+        @if (scrapedJobs().length > 0) {
+          <div class="filter-card">
             <div class="results-count">
               <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
                 <path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/>
@@ -215,8 +241,8 @@
               </svg>
               <span>{{ filteredJobs().length }} Risultati</span>
             </div>
-          }
-        </div>
+          </div>
+        }
       </aside>
     }
 

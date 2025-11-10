@@ -1,4 +1,4 @@
-import { Component, inject, computed, signal, effect, OnInit } from '@angular/core';
+import { Component, inject, computed, signal, effect, OnInit, ViewChild, ElementRef, AfterViewInit } from '@angular/core';
 import { toSignal } from '@angular/core/rxjs-interop';
 import { ActivatedRoute, Router } from '@angular/router';
 import { CommonModule } from '@angular/common';
@@ -10,6 +10,10 @@ import { EditModeService } from '../../../../services/edit-mode.service';
 import { TenantService } from '../../../../services/tenant.service';
 import { NotificationService } from '../../../../services/notification.service';
 import { Notification } from '../../../../components/notification/notification';
+import { Chart, ChartConfiguration, registerables } from 'chart.js';
+
+// Registra i componenti Chart.js
+Chart.register(...registerables);
 
 /**
  * Componente per visualizzare i risultati dello scraping
@@ -23,7 +27,7 @@ import { Notification } from '../../../../components/notification/notification';
   templateUrl: './job-offers-scraper-results-view.html',
   styleUrl: './job-offers-scraper-results-view.css'
 })
-export class JobOffersScraperResultsView implements OnInit {
+export class JobOffersScraperResultsView implements OnInit, AfterViewInit {
   private route = inject(ActivatedRoute);
   private router = inject(Router);
   private columnService = inject(JobOfferColumnService);
@@ -32,6 +36,10 @@ export class JobOffersScraperResultsView implements OnInit {
   private editModeService = inject(EditModeService);
   private tenantService = inject(TenantService);
   protected notificationService = inject(NotificationService);
+  
+  // Canvas per Chart.js (distribuzione stipendi)
+  @ViewChild('salaryDistributionChart') salaryChartCanvas?: ElementRef<HTMLCanvasElement>;
+  private salaryChart?: Chart;
   
   // Edit mode dal service globale
   editMode = this.editModeService.isEditing;
@@ -50,7 +58,6 @@ export class JobOffersScraperResultsView implements OnInit {
   selectedEmploymentType = signal<string>('');
   selectedRemote = signal<string>('');
   selectedCompany = signal<string>('');
-  selectedSalaryFilter = signal<string>('all'); // 'all', 'with', 'without'
   minSalary = signal<number | null>(null);
   maxSalary = signal<number | null>(null);
   
@@ -70,7 +77,6 @@ export class JobOffersScraperResultsView implements OnInit {
     company: string;
     employmentType: string;
     remote: string;
-    salaryFilter: string;
     minSalary: number | null;
     maxSalary: number | null;
   } | null>(null);
@@ -87,7 +93,6 @@ export class JobOffersScraperResultsView implements OnInit {
       this.selectedCompany() !== last.company ||
       this.selectedEmploymentType() !== last.employmentType ||
       this.selectedRemote() !== last.remote ||
-      this.selectedSalaryFilter() !== last.salaryFilter ||
       this.minSalary() !== last.minSalary ||
       this.maxSalary() !== last.maxSalary
     );
@@ -121,6 +126,10 @@ export class JobOffersScraperResultsView implements OnInit {
   ngOnInit(): void {
     // Carica solo le colonne configurate
     this.loadInitialData();
+  }
+
+  ngAfterViewInit(): void {
+    // Il grafico sarà creato manualmente dopo ogni ricerca
   }
 
   /**
@@ -176,7 +185,6 @@ export class JobOffersScraperResultsView implements OnInit {
       company: this.selectedCompany(),
       employment_type: this.selectedEmploymentType(),
       remote: this.selectedRemote(),
-      salary_filter: this.selectedSalaryFilter(),
       min_salary: this.minSalary(),
       max_salary: this.maxSalary()
     };
@@ -195,7 +203,6 @@ export class JobOffersScraperResultsView implements OnInit {
           company: this.selectedCompany(),
           employmentType: this.selectedEmploymentType(),
           remote: this.selectedRemote(),
-          salaryFilter: this.selectedSalaryFilter(),
           minSalary: this.minSalary(),
           maxSalary: this.maxSalary()
         });
@@ -205,6 +212,9 @@ export class JobOffersScraperResultsView implements OnInit {
         
         // Salva le offerte scrapate nella tabella job_offers con status 'search'
         this.saveJobsToDatabase(response.jobs);
+        
+        // Aggiorna il grafico degli stipendi dopo che Angular ha renderizzato il canvas
+        setTimeout(() => this.updateSalaryChart(), 250);
         
         this.loading.set(false);
       },
@@ -325,7 +335,6 @@ export class JobOffersScraperResultsView implements OnInit {
     const employmentType = this.selectedEmploymentType();
     const remote = this.selectedRemote();
     const company = this.selectedCompany();
-    const salaryFilter = this.selectedSalaryFilter();
     const minSal = this.minSalary();
     const maxSal = this.maxSalary();
     const sortCol = this.sortColumn();
@@ -354,13 +363,6 @@ export class JobOffersScraperResultsView implements OnInit {
     // Filtra per remote
     if (remote && remote.trim() !== '') {
       jobs = jobs.filter(job => job.remote === remote);
-    }
-
-    // Filtra per stipendio (con/senza)
-    if (salaryFilter === 'with') {
-      jobs = jobs.filter(job => job.salary && job.salary !== 'Non specificato' && job.salary !== 'N/A');
-    } else if (salaryFilter === 'without') {
-      jobs = jobs.filter(job => !job.salary || job.salary === 'Non specificato' || job.salary === 'N/A');
     }
 
     // Filtra per range stipendio (min/max)
@@ -451,7 +453,6 @@ export class JobOffersScraperResultsView implements OnInit {
     this.selectedEmploymentType.set('');
     this.selectedRemote.set('');
     this.selectedCompany.set('');
-    this.selectedSalaryFilter.set('all');
     this.minSalary.set(null);
     this.maxSalary.set(null);
     
@@ -467,6 +468,13 @@ export class JobOffersScraperResultsView implements OnInit {
   // Toggle visibilità filtri
   toggleFilters(): void {
     this.filtersVisible.set(!this.filtersVisible());
+  }
+
+  // Mostra i filtri all'hover sull'icona se sono nascosti
+  showFiltersOnHover(): void {
+    if (!this.filtersVisible()) {
+      this.filtersVisible.set(true);
+    }
   }
 
   // Verifica se ci sono colonne extra da mostrare nell'espansione
@@ -757,6 +765,241 @@ export class JobOffersScraperResultsView implements OnInit {
   }
 
   /**
+   * Aggiorna o crea il grafico di distribuzione stipendi
+   */
+  private updateSalaryChart(): void {
+    if (!this.salaryChartCanvas?.nativeElement) {
+      return;
+    }
+
+    const salaries = this.scrapedJobs()
+      .map(job => this.extractSalaryNumber(job.salary))
+      .filter(s => s !== null) as number[];
+
+    if (salaries.length === 0) {
+      // Distruggi il grafico se non ci sono stipendi
+      if (this.salaryChart) {
+        this.salaryChart.destroy();
+        this.salaryChart = undefined;
+      }
+      return;
+    }
+
+    // Raggruppa gli stipendi in fasce da 5k basandosi sui valori effettivi presenti
+    const bucketSizeFixed = 5000; // Fasce da 5k
+    const salaryMap = new Map<number, number>(); // fascia -> count
+    
+    // Raggruppa ogni stipendio nella sua fascia
+    salaries.forEach(salary => {
+      const bucketStart = Math.floor(salary / bucketSizeFixed) * bucketSizeFixed;
+      salaryMap.set(bucketStart, (salaryMap.get(bucketStart) || 0) + 1);
+    });
+
+    // Converti in array e ordina per fascia
+    const buckets = Array.from(salaryMap.entries())
+      .map(([bucketStart, count]) => ({
+        label: `${Math.round(bucketStart / 1000)}k`,
+        count,
+        min: bucketStart,
+        max: bucketStart + bucketSizeFixed
+      }))
+      .sort((a, b) => a.min - b.min);
+
+    if (buckets.length === 0) {
+      return;
+    }
+
+    const chartData: ChartConfiguration = {
+      type: 'bar',
+      data: {
+        labels: buckets.map(b => b.label),
+        datasets: [{
+          data: buckets.map(b => b.count),
+          backgroundColor: 'rgba(203, 213, 225, 0.6)', // Grigio molto tenue
+          borderColor: 'transparent',
+          borderWidth: 0,
+          borderRadius: 2,
+          barPercentage: 0.9,
+          categoryPercentage: 0.9
+        }]
+      },
+      options: {
+        responsive: true,
+        maintainAspectRatio: false,
+        interaction: {
+          mode: 'index',
+          intersect: false
+        },
+        plugins: {
+          legend: { display: false },
+          tooltip: {
+            enabled: true,
+            backgroundColor: 'rgba(0, 0, 0, 0.85)',
+            padding: 10,
+            titleFont: { size: 12, weight: 'bold' },
+            bodyFont: { size: 11 },
+            displayColors: false,
+            borderColor: 'rgba(148, 163, 184, 0.5)',
+            borderWidth: 1,
+            cornerRadius: 6,
+            callbacks: {
+              title: (items) => {
+                const index = items[0].dataIndex;
+                const bucket = buckets[index];
+                return `${Math.round(bucket.min / 1000)}k - ${Math.round(bucket.max / 1000)}k €`;
+              },
+              label: (context) => {
+                const count = context.parsed.y;
+                return count === 1 ? '📊 1 offerta' : `📊 ${count} offerte`;
+              }
+            }
+          }
+        },
+        scales: {
+          x: {
+            display: false,
+            grid: { display: false }
+          },
+          y: {
+            display: false,
+            grid: { display: false },
+            beginAtZero: true,
+            ticks: {
+              stepSize: 1
+            }
+          }
+        }
+      }
+    };
+
+    if (this.salaryChart) {
+      // Distruggi il grafico esistente e ricrealo con nuovi dati
+      this.salaryChart.destroy();
+    }
+    
+    // Crea nuovo grafico
+    this.salaryChart = new Chart(this.salaryChartCanvas.nativeElement, chartData);
+  }
+
+  /**
+   * Range stipendi disponibili nei risultati
+   */
+  salaryRange = computed(() => {
+    const salaries = this.scrapedJobs()
+      .map(job => this.extractSalaryNumber(job.salary))
+      .filter(s => s !== null) as number[];
+
+    if (salaries.length === 0) {
+      return { min: 0, max: 100000 };
+    }
+
+    return {
+      min: Math.min(...salaries),
+      max: Math.max(...salaries)
+    };
+  });
+
+  /**
+   * Gestisce il cambio del valore minimo dello stipendio
+   */
+  onMinSalaryChange(event: Event): void {
+    const input = event.target as HTMLInputElement;
+    const value = parseInt(input.value);
+    const range = this.salaryRange();
+    const currentMax = this.maxSalary() !== null ? this.maxSalary()! : range.max;
+    
+    // Impedisci che min superi max
+    const clampedValue = Math.min(value, currentMax);
+    
+    // Aggiorna anche il valore dell'input per sincronizzazione visiva
+    input.value = clampedValue.toString();
+    
+    this.minSalary.set(clampedValue);
+    
+    // Aggiorna la trasparenza delle barre del grafico
+    this.updateChartBarOpacity();
+  }
+
+  /**
+   * Gestisce il cambio del valore massimo dello stipendio
+   */
+  onMaxSalaryChange(event: Event): void {
+    const input = event.target as HTMLInputElement;
+    const value = parseInt(input.value);
+    const range = this.salaryRange();
+    const currentMin = this.minSalary() !== null ? this.minSalary()! : range.min;
+    
+    // Impedisci che max sia inferiore a min
+    const clampedValue = Math.max(value, currentMin);
+    
+    // Aggiorna anche il valore dell'input per sincronizzazione visiva
+    input.value = clampedValue.toString();
+    
+    this.maxSalary.set(clampedValue);
+    
+    // Aggiorna la trasparenza delle barre del grafico
+    this.updateChartBarOpacity();
+  }
+
+  /**
+   * Aggiorna la trasparenza delle barre del grafico in base al range selezionato
+   */
+  private updateChartBarOpacity(): void {
+    if (!this.salaryChart) {
+      return;
+    }
+
+    const minSelected = this.minSalary() !== null ? this.minSalary()! : this.salaryRange().min;
+    const maxSelected = this.maxSalary() !== null ? this.maxSalary()! : this.salaryRange().max;
+
+    // Ottieni i bucket attuali dal grafico
+    const dataset = this.salaryChart.data.datasets[0];
+    const labels = this.salaryChart.data.labels as string[];
+    
+    // Aggiorna il colore di ogni barra in base al range
+    const newColors = labels.map((label, index) => {
+      // Estrai il valore della fascia dalla label (es. "30k" → 30000)
+      const bucketValue = parseInt(label.replace('k', '')) * 1000;
+      const bucketMax = bucketValue + 5000; // Fasce da 5k
+      
+      // Verifica se la fascia è fuori dal range selezionato
+      if (bucketMax <= minSelected || bucketValue >= maxSelected) {
+        return 'rgba(203, 213, 225, 0.15)'; // Quasi invisibile
+      } else {
+        return 'rgba(203, 213, 225, 0.7)'; // Visibile
+      }
+    });
+
+    dataset.backgroundColor = newColors;
+    this.salaryChart.update('none'); // Update senza animazione per fluidità
+  }
+
+  /**
+   * Calcola la posizione left% del range visibile
+   */
+  getSliderRangeLeft(): number {
+    const range = this.salaryRange();
+    const min = this.minSalary() !== null ? this.minSalary()! : range.min;
+    const total = range.max - range.min;
+    
+    if (total === 0) return 0;
+    return ((min - range.min) / total) * 100;
+  }
+
+  /**
+   * Calcola la larghezza% del range visibile
+   */
+  getSliderRangeWidth(): number {
+    const range = this.salaryRange();
+    const min = this.minSalary() !== null ? this.minSalary()! : range.min;
+    const max = this.maxSalary() !== null ? this.maxSalary()! : range.max;
+    const total = range.max - range.min;
+    
+    if (total === 0) return 100;
+    return ((max - min) / total) * 100;
+  }
+
+  /**
    * Mostra la notifica se i parametri di ricerca sono cambiati in modo NON restrittivo
    * (solo se cercano valori non presenti nei risultati attuali)
    */
@@ -830,18 +1073,6 @@ export class JobOffersScraperResultsView implements OnInit {
         if (!availableRemote.includes(remote)) {
           needsApiCall = true;
         }
-      }
-    }
-    
-    // Controlla Stipendio (con/senza)
-    const salaryFilter = this.selectedSalaryFilter();
-    if (salaryFilter !== last.salaryFilter) {
-      // Se passa a "Tutti" da un filtro specifico, serve nuova ricerca
-      if (salaryFilter === 'all' && last.salaryFilter !== 'all') {
-        needsApiCall = true;
-      } else if (salaryFilter !== 'all') {
-        // Se seleziona un filtro specifico diverso da quello precedente
-        needsApiCall = true;
       }
     }
     

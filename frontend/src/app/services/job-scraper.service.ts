@@ -13,7 +13,6 @@ export interface JobSearchParams {
   company?: string;
   employment_type?: string;
   remote?: string;
-  salary_filter?: string;
   min_salary?: number | null;
   max_salary?: number | null;
 }
