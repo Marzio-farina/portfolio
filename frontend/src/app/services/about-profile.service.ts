@@ -74,11 +74,13 @@ export class AboutProfileService {
   }
 
   getBySlug(slug: string): Observable<PublicProfileDto> {
-    const key = `s:${slug}`;
+    // Normalizza lo slug in minuscolo per coerenza con il database
+    const normalizedSlug = slug.toLowerCase();
+    const key = `s:${normalizedSlug}`;
     const cached = this.cache.get(key);
     if (cached) return cached;
 
-    const stream = this.http.get<PublicProfileDto>(apiUrl(`${slug}/public-profile`)).pipe(
+    const stream = this.http.get<PublicProfileDto>(apiUrl(`${normalizedSlug}/public-profile`)).pipe(
       map(res => ({
         ...res,
         socials: (res.socials ?? []).map(s => ({

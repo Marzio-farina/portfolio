@@ -61,9 +61,9 @@ export class AuthService {
   private readonly http = inject(HttpClient);
   private readonly tenant = inject(TenantService);
   private readonly tenantRouter = inject(TenantRouterService);
-  private readonly editMode = inject(EditModeService);
   private readonly router = inject(Router);
   private readonly logger = inject(LoggerService);
+  private readonly editMode = inject(EditModeService);
 
   // ========================================================================
   // State Management
@@ -145,6 +145,8 @@ export class AuthService {
         }
         
         this.authenticatedUserId.set(user.id);
+        // Notifica EditModeService dell'ID utente autenticato
+        this.editMode.setAuthenticatedUserId(user.id);
       },
       error: (err: HttpErrorResponse | any) => {
         // Fa logout SOLO se il token non è valido (401)
@@ -155,6 +157,7 @@ export class AuthService {
           this.logger.warn('Token invalid (401), logging out');
           this.setToken(null);
           this.authenticatedUserId.set(null);
+          this.editMode.setAuthenticatedUserId(null);
         } else {
           this.logger.error('Failed to load authenticated user ID', err, {
             status,
@@ -229,6 +232,7 @@ export class AuthService {
         this.setToken(response.token);
         // Memorizza l'ID dell'utente autenticato
         this.authenticatedUserId.set(response.user.id);
+        this.editMode.setAuthenticatedUserId(response.user.id);
         this.refreshMe();
         return this.me$;
       })
@@ -253,6 +257,7 @@ export class AuthService {
         this.setToken(response.token);
         // Memorizza l'ID dell'utente autenticato
         this.authenticatedUserId.set(response.user.id);
+        this.editMode.setAuthenticatedUserId(response.user.id);
         this.refreshMe();
         return this.me$;
       })
@@ -302,10 +307,8 @@ export class AuthService {
       }
     } catch {}
 
-    // Disattiva la modalità edit se attiva
-    if (this.editMode.isEditing()) {
-      this.editMode.disable();
-    }
+    // La modalità edit si disabiliterà automaticamente tramite l'effect in EditModeService
+    // quando cambia l'utente autenticato o il tenant
 
     // Controlla se l'utente è su una rotta protetta (che richiede auth)
     const currentUrl = this.router.url;
@@ -320,6 +323,7 @@ export class AuthService {
     // Pulisci comunque lo stato locale
     this.setToken(null);
     this.authenticatedUserId.set(null);
+    this.editMode.setAuthenticatedUserId(null);
     this.refreshMe();
 
     // Se era su una rotta protetta, reindirizza a /about con notifica
@@ -355,6 +359,7 @@ export class AuthService {
     } else {
       localStorage.removeItem('auth_token');
       this.authenticatedUserId.set(null);
+      this.editMode.setAuthenticatedUserId(null);
     }
   }
 }

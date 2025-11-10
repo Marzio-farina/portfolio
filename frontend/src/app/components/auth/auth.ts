@@ -120,7 +120,7 @@ export class Auth {
         this.notificationService.clear();
         
         // Reindirizza direttamente usando lo slug dalla risposta di login
-        const userSlug = (res.user as any)?.slug;
+        const userSlug = ((res.user as any)?.slug || '').toLowerCase();
         if (userSlug && res.user) {
           // Pulisci la cache del profilo per forzare il caricamento dei dati del nuovo utente
           this.aboutProfile.clearCache();
@@ -168,7 +168,7 @@ export class Auth {
         this.showRegPass.set(false);
         
         // Reindirizza direttamente usando lo slug dalla risposta di registrazione
-        const userSlug = (res.user as any)?.slug;
+        const userSlug = ((res.user as any)?.slug || '').toLowerCase();
         if (userSlug && res.user) {
           // Pulisci la cache del profilo per forzare il caricamento dei dati del nuovo utente
           this.aboutProfile.clearCache();

@@ -6,8 +6,9 @@ import { catchError } from 'rxjs/operators';
 import { trigger, transition, style, animate } from '@angular/animations';
 import { Avatar } from "../avatar/avatar";
 import { AvatarEditor, AvatarSelection } from '../avatar-editor/avatar-editor';
-import { AboutProfileService, PublicProfileDto, SocialLink } from '../../services/about-profile.service'
+import { AboutProfileService, PublicProfileDto, SocialLink } from '../../services/about-profile.service';
 import { TenantService } from '../../services/tenant.service';
+import { TenantRouterService } from '../../services/tenant-router.service';
 import { ThemeService } from '../../services/theme.service';
 import { EditModeService } from '../../services/edit-mode.service';
 import { AuthService } from '../../services/auth.service';
@@ -62,6 +63,7 @@ export class Aside {
   private readonly http = inject(HttpClient);
   private readonly router = inject(Router);
   private readonly tenant = inject(TenantService);
+  private readonly tenantRouter = inject(TenantRouterService);
 
   // Gestione manuale caricamento profilo (senza helper)
   private lastProfileKey: string | null = null;
@@ -241,7 +243,8 @@ export class Aside {
 
   // Naviga alla pagina Contatti nella section
   goToContacts() {
-    this.router.navigate(['/contatti']);
+    // Usa TenantRouterService per mantenere lo slug nell'URL
+    this.tenantRouter.navigate(['contatti']);
   }
 
   // Naviga alla pagina Gestione Offerte Lavorative (solo per utenti autenticati)
@@ -250,7 +253,8 @@ export class Aside {
     if (this.viewMode() !== 'large') {
       this.expanded.set(false);
     }
-    this.router.navigate(['/job-offers']);
+    // Usa TenantRouterService per mantenere lo slug nell'URL
+    this.tenantRouter.navigate(['job-offers']);
   }
 
   // Click su icona matita avatar

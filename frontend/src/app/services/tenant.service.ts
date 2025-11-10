@@ -23,7 +23,8 @@ export class TenantService {
   }
 
   setTenant(slug: string, id: number): void {
-    this.userSlug.set(slug);
+    // Normalizza sempre lo slug in minuscolo per coerenza con il database
+    this.userSlug.set(slug.toLowerCase());
     this.userId.set(id);
   }
 }
