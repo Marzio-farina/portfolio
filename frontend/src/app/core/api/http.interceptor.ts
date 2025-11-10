@@ -29,8 +29,13 @@ export class ApiInterceptor implements HttpInterceptor {
 
     const isGet = clone.method === 'GET';
     
-    // Timeout più lungo in locale per sviluppo
-    const requestTimeout = environment.production ? 5000 : 30000; // 30s in locale, 5s in produzione
+    // Timeout differenziato per tipo di richiesta
+    // GitHub API: timeout più lungo (può essere lento)
+    // Altre API: timeout standard
+    const isGitHubApi = clone.url.includes('/github/');
+    const requestTimeout = isGitHubApi 
+      ? 60000 // 60s per GitHub API (può essere lenta)
+      : (environment.production ? 5000 : 10000); // 10s in locale, 5s in produzione
 
     return next.handle(clone).pipe(
       timeout(requestTimeout),

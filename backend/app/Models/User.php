@@ -34,7 +34,11 @@ class User extends Authenticatable
         'email',
         'password',
         'role_id',
-        'icon_id'
+        'icon_id',
+        'oauth_provider',
+        'oauth_provider_id',
+        'oauth_token',
+        'oauth_avatar_url'
     ];
 
     /**

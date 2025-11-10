@@ -1,10 +1,12 @@
 import { Component, inject, signal } from '@angular/core';
 import { AbstractControl, FormBuilder, FormGroup, ReactiveFormsModule, ValidationErrors, Validators } from '@angular/forms';
 import { AuthService, LoginDto, RegisterDto } from '../../services/auth.service';
+import { OAuthService } from '../../services/oauth.service';
 import { Notification as NotificationCmp, NotificationType } from '../notification/notification';
 import { finalize } from 'rxjs';
 import { Notification } from '../notification/notification';
 import { NotificationService } from '../../services/notification.service';
+import { CommonModule } from '@angular/common';
 
 /**
  * Standalone Auth component: Accedi / Registrati
@@ -34,7 +36,7 @@ function strongPassword() {
 
 @Component({
   selector: 'app-auth',
-  imports: [ReactiveFormsModule, NotificationCmp],
+  imports: [ReactiveFormsModule, NotificationCmp, CommonModule],
   providers: [NotificationService],
   templateUrl: './auth.html',
   styleUrl: './auth.css'
@@ -42,6 +44,7 @@ function strongPassword() {
 export class Auth {
   private fb = inject(FormBuilder);
   private auth = inject(AuthService);
+  protected oauth = inject(OAuthService);
   protected notificationService = inject(NotificationService);
 
   // UI state

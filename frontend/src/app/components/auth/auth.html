@@ -68,6 +68,26 @@
       {{ loading() ? 'Accesso in corso…' : 'Accedi' }}
     </button>
 
+    <div class="oauth-divider">
+      <span>O continua con</span>
+    </div>
+
+    <div class="oauth-buttons">
+      @for (provider of oauth.providers; track provider.provider) {
+        <button 
+          type="button"
+          class="oauth-btn"
+          [style.--oauth-color]="provider.color"
+          (click)="oauth.loginWithProvider(provider.provider)"
+          [disabled]="loading()">
+          <svg [attr.viewBox]="provider.provider === 'google' ? '0 0 24 24' : '0 0 24 24'" class="oauth-icon">
+            <path [attr.d]="provider.icon" [attr.fill]="provider.color"/>
+          </svg>
+          <span>{{ provider.name }}</span>
+        </button>
+      }
+    </div>
+
     <p class="hint">
       Hai dimenticato la password?
       <a href="#" (click)="$event.preventDefault(); onForgotPassword()">Recupera</a>
@@ -228,5 +248,25 @@
     <button class="primary" type="submit" [disabled]="registerForm.invalid || loading()">
       {{ loading() ? 'Registrazione…' : 'Crea account' }}
     </button>
+
+    <div class="oauth-divider">
+      <span>O registrati con</span>
+    </div>
+
+    <div class="oauth-buttons">
+      @for (provider of oauth.providers; track provider.provider) {
+        <button 
+          type="button"
+          class="oauth-btn"
+          [style.--oauth-color]="provider.color"
+          (click)="oauth.loginWithProvider(provider.provider)"
+          [disabled]="loading()">
+          <svg [attr.viewBox]="provider.provider === 'google' ? '0 0 24 24' : '0 0 24 24'" class="oauth-icon">
+            <path [attr.d]="provider.icon" [attr.fill]="provider.color"/>
+          </svg>
+          <span>{{ provider.name }}</span>
+        </button>
+      }
+    </div>
   </form>
 }
