@@ -21,8 +21,20 @@ export class CvService {
 
   get$(userId?: number): Observable<CvUi> {
     const url = apiUrl('cv');
-    const options: any = userId ? { params: { user_id: String(userId) } } : {};
-    return this.http.get<CvResponse>(url, { ...options, observe: 'events', reportProgress: false }).pipe(
+    const options: any = userId 
+      ? { params: { user_id: String(userId), _t: Date.now().toString() } } 
+      : { params: { _t: Date.now().toString() } }; // Cache busting
+    
+    return this.http.get<CvResponse>(url, { 
+      ...options, 
+      observe: 'events', 
+      reportProgress: false,
+      headers: {
+        'Cache-Control': 'no-cache, no-store, must-revalidate',
+        'Pragma': 'no-cache',
+        'Expires': '0'
+      }
+    }).pipe(
       filter((e): e is HttpResponse<CvResponse> => e instanceof HttpResponse),
       map(e => (e.body as CvResponse)),
       map((res: CvResponse) => ({

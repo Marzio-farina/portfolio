@@ -16,7 +16,17 @@
   <div class="tli__content">
     <!-- Wrapper per titolo e date con flex column -->
     <div class="tli__header">
-      <h4 class="tli__title" (mouseenter)="onMouseEnter()" role="heading" aria-level="4">{{ displayedTitle() }}</h4>
+      <h4 class="tli__title" [class.tli__title--editable]="canEdit()" (mouseenter)="onMouseEnter()" role="heading" aria-level="4">
+        {{ displayedTitle() }}
+        
+        @if (canEdit()) {
+          <button type="button" 
+                  class="tli__delete-btn" 
+                  (click)="onDeleteClick()"
+                  title="Elimina"
+                  aria-label="Elimina elemento">×</button>
+        }
+      </h4>
       <div class="tli__years">{{ displayedYears() }}</div>
     </div>
     

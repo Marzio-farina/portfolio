@@ -94,16 +94,24 @@
     id="sec-edu"
     icon="book"
     title="Studi"
+    type="education"
     [items]="education()"
-    [open]="true">
+    [canEdit]="canEdit()"
+    [open]="true"
+    (addItem)="onAddCvItem($event)"
+    (deleteItem)="onDeleteCvItem($event)">
   </app-resume-section>
 
   <app-resume-section
     id="sec-exp"
     icon="briefcase"
     title="Esperienze"
+    type="experience"
     [items]="experience()"
-    [open]="true">
+    [canEdit]="canEdit()"
+    [open]="true"
+    (addItem)="onAddCvItem($event)"
+    (deleteItem)="onDeleteCvItem($event)">
   </app-resume-section>
 }
 <app-skills-section/>

@@ -3,16 +3,19 @@ import { DomSanitizer, SafeResourceUrl } from '@angular/platform-browser';
 import { toSignal, takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { ActivatedRoute } from '@angular/router';
 import { map, catchError, of } from 'rxjs';
-import { ResumeSection } from '../../components/resume-section/resume-section';
+import { ResumeSection, NewCvItem } from '../../components/resume-section/resume-section';
 import { SkillsSectionComponent } from '../../components/skills/skills';
 import { CvService } from '../../services/cv.service';
 import { TenantService } from '../../services/tenant.service';
 import { CvFileService } from '../../services/cv-file.service';
 import { Notification, NotificationType } from '../../components/notification/notification';
 import { AuthService } from '../../services/auth.service';
+import { EditModeService } from '../../services/edit-mode.service';
 import { CvUploadModalService } from '../../services/cv-upload-modal.service';
 import { CvPreviewModalService } from '../../services/cv-preview-modal.service';
 import { NotificationService } from '../../services/notification.service';
+import { HttpClient } from '@angular/common/http';
+import { apiUrl } from '../../core/api/api-url';
 
 type TimelineItem = { title: string; years: string; description: string };
 
@@ -33,11 +36,16 @@ export class Curriculum {
   private tenant = inject(TenantService);
   private cvFile = inject(CvFileService);
   private auth = inject(AuthService);
+  private edit = inject(EditModeService);
   private cvUploadModal = inject(CvUploadModalService);
   private cvPreviewModal = inject(CvPreviewModalService);
   private sanitizer = inject(DomSanitizer);
   private destroyRef = inject(DestroyRef);
+  private http = inject(HttpClient);
   protected notificationService = inject(NotificationService);
+  
+  // Permette editing solo se autenticato e in edit mode
+  canEdit = computed(() => this.auth.isAuthenticated() && this.edit.isEditing());
 
   title = toSignal(this.route.data.pipe(map(d => d['title'] as string)), { initialValue: '' });
 
@@ -267,6 +275,125 @@ export class Curriculum {
    */
   getMostSevereNotification() {
     return this.notificationService.getMostSevere();
+  }
+  
+  /**
+   * Gestisce l'eliminazione di un elemento CV con optimistic update
+   */
+  onDeleteCvItem(item: { title: string; years: string; type: 'education' | 'experience' }): void {
+    // 🚀 OPTIMISTIC DELETE: Rimuovi subito dalla lista
+    const removedItem = item.type === 'education' 
+      ? this.education().find(i => i.title === item.title && i.years === item.years)
+      : this.experience().find(i => i.title === item.title && i.years === item.years);
+    
+    if (!removedItem) return;
+    
+    if (item.type === 'education') {
+      this.education.update(items => items.filter(i => i !== removedItem));
+    } else {
+      this.experience.update(items => items.filter(i => i !== removedItem));
+    }
+    
+    // Invia richiesta DELETE al backend
+    // Usa title e years come identificatori (il backend cercherà l'elemento corrispondente)
+    const params = {
+      type: item.type,
+      title: item.title,
+      years: item.years
+    };
+    
+    this.http.delete(apiUrl('cv'), { params }).subscribe({
+      next: () => {
+        this.notificationService.add('success', 'Elemento eliminato con successo', 'cv-delete');
+        
+        // 🔄 Ricarica i dati dal backend per sincronizzare (esclude soft-deleted)
+        const uid = this.tenant.userId();
+        this.cv.get$(uid ?? undefined).subscribe({
+          next: data => {
+            this.education.set(data.education);
+            this.experience.set(data.experience);
+          }
+        });
+      },
+      error: (err) => {
+        // ⚠️ ROLLBACK: Ripristina l'elemento eliminato
+        if (removedItem) {
+          if (item.type === 'education') {
+            this.education.update(items => [...items, removedItem]);
+          } else {
+            this.experience.update(items => [...items, removedItem]);
+          }
+        }
+        
+        const message = err?.error?.message || 'Errore durante l\'eliminazione';
+        this.notificationService.add('error', message, 'cv-delete');
+      }
+    });
+  }
+  
+  /**
+   * Gestisce l'aggiunta di un nuovo elemento CV (education o experience)
+   * Usa optimistic update per mostrare subito il risultato
+   */
+  onAddCvItem(item: NewCvItem): void {
+    // Formatta le date per la visualizzazione
+    const formatDate = (dateStr: string) => {
+      const date = new Date(dateStr);
+      return date.toLocaleDateString('it-IT', { day: '2-digit', month: '2-digit', year: 'numeric' });
+    };
+    
+    const startFormatted = formatDate(item.startDate);
+    const endFormatted = item.endDate ? formatDate(item.endDate) : 'In Corso';
+    const years = `${startFormatted} — ${endFormatted}`;
+    
+    // Crea l'elemento ottimistico per la UI
+    const optimisticItem: TimelineItem = {
+      title: item.title,
+      years: years,
+      description: item.description || ''
+    };
+    
+    // 🚀 OPTIMISTIC UPDATE: Aggiungi subito alla lista
+    if (item.type === 'education') {
+      this.education.update(items => [optimisticItem, ...items]);
+    } else {
+      this.experience.update(items => [optimisticItem, ...items]);
+    }
+    
+    // Invia al backend
+    const payload = {
+      type: item.type,
+      title: item.title,
+      time_start: item.startDate,
+      time_end: item.endDate,
+      description: item.description
+    };
+    
+    this.http.post(apiUrl('cv'), payload).subscribe({
+      next: () => {
+        this.notificationService.add('success', 'Elemento aggiunto con successo', 'cv-add');
+        
+        // Ricarica dal backend per avere i dati corretti (con ID, ecc.)
+        const uid = this.tenant.userId();
+        this.cv.get$(uid ?? undefined).subscribe({
+          next: data => {
+            this.education.set(data.education);
+            this.experience.set(data.experience);
+          }
+        });
+      },
+      error: (err) => {
+        // ⚠️ ROLLBACK: Rimuovi l'elemento ottimistico
+        if (item.type === 'education') {
+          this.education.update(items => items.filter(i => i !== optimisticItem));
+        } else {
+          this.experience.update(items => items.filter(i => i !== optimisticItem));
+        }
+        
+        const message = err?.error?.message || 'Errore durante l\'aggiunta';
+        this.notificationService.add('error', message, 'cv-add');
+      }
+    });
   }
 
   /**

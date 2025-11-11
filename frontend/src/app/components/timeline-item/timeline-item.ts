@@ -1,4 +1,4 @@
-import { Component, input, signal, computed, OnDestroy, OnInit, ChangeDetectionStrategy, untracked } from '@angular/core';
+import { Component, input, output, signal, computed, OnDestroy, OnInit, ChangeDetectionStrategy, untracked } from '@angular/core';
 
 @Component({
   selector: 'app-timeline-item',
@@ -11,6 +11,10 @@ export class TimelineItem implements OnInit, OnDestroy {
   title = input.required<string>();
   years = input.required<string>();
   description = input<string>('');
+  canEdit = input<boolean>(false);
+  
+  // Output per eliminazione
+  delete = output<void>();
 
   // Typewriter effect state
   displayedTitle = signal('');
@@ -165,5 +169,12 @@ export class TimelineItem implements OnInit, OnDestroy {
       
       return `<a href="${url}" target="_blank" rel="noopener noreferrer" class="tli__link">${siteName}</a>`;
     });
+  }
+  
+  /**
+   * Gestisce il click sul bottone elimina
+   */
+  onDeleteClick(): void {
+    this.delete.emit();
   }
 }

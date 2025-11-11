@@ -77,6 +77,202 @@
   min-height: 320px;
 }
 
+/* Riduce l'altezza minima quando non ci sono elementi */
+.timeline.timeline--empty {
+  min-height: 100px;
+}
+
+/* Messaggio quando non ci sono dati */
+.timeline__empty-message {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 100px;
+  padding: 20px;
+  color: var(--text-secondary);
+  font-size: 0.95rem;
+  font-style: italic;
+  text-align: center;
+  list-style: none;
+}
+
+/* Pulsante per aggiungere elemento quando vuoto (edit mode) */
+.timeline__add-container {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 100px;
+  padding: 20px;
+  list-style: none;
+}
+
+.timeline__add-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 12px 24px;
+  background: var(--accent-primary-alpha);
+  border: 2px dashed var(--accent-primary);
+  border-radius: 8px;
+  color: var(--accent-primary);
+  font-size: 0.95rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all var(--transition-1);
+}
+
+.timeline__add-btn:hover {
+  background: var(--accent-primary);
+  color: var(--bg-card);
+  transform: translateY(-2px);
+  box-shadow: var(--shadow-2);
+}
+
+.timeline__add-btn svg {
+  width: 20px;
+  height: 20px;
+  stroke: currentColor;
+  fill: none;
+  stroke-width: 2;
+}
+
+/* Elemento timeline in modalità editing (espansione del pulsante) */
+.timeline__item--editing {
+  background: var(--bg-card);
+  border: 2px dashed var(--accent-primary);
+  border-radius: 8px;
+  padding: 16px;
+  animation: expandIn 0.5s cubic-bezier(0.34, 1.56, 0.64, 1);
+  transform-origin: center;
+}
+
+@keyframes expandIn {
+  0% {
+    opacity: 0;
+    transform: scale(0.3) translateY(-10px);
+    border-radius: 20px;
+  }
+  50% {
+    opacity: 0.8;
+    transform: scale(1.05) translateY(-2px);
+  }
+  100% {
+    opacity: 1;
+    transform: scale(1) translateY(0);
+    border-radius: 8px;
+  }
+}
+
+.timeline__item--editing .timeline__content {
+  padding: 0;
+}
+
+.timeline__item--editing .timeline__title {
+  font-size: 1.1rem;
+  font-weight: 700;
+  color: var(--text-primary);
+  margin: 0 0 8px;
+  padding: 8px;
+  border: 1px solid transparent;
+  border-radius: 4px;
+  min-height: 32px;
+  transition: border-color var(--transition-1);
+}
+
+.timeline__item--editing .timeline__title:focus {
+  outline: none;
+  border-color: var(--accent-primary);
+  background: var(--bg-primary);
+}
+
+.timeline__item--editing .timeline__title:empty::before {
+  content: attr(placeholder);
+  color: var(--text-secondary);
+  font-style: italic;
+}
+
+.timeline__item--editing .timeline__years {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 12px;
+}
+
+.timeline__date-input {
+  padding: 6px 10px;
+  background: var(--bg-primary);
+  border: 1px solid var(--border-primary);
+  border-radius: 4px;
+  color: var(--accent-primary);
+  font-size: 0.9rem;
+  font-weight: 600;
+  transition: border-color var(--transition-1);
+}
+
+.timeline__date-input:focus {
+  outline: none;
+  border-color: var(--accent-primary);
+  box-shadow: 0 0 0 2px var(--accent-primary-alpha);
+}
+
+.timeline__date-input:disabled {
+  opacity: 0.4;
+  cursor: not-allowed;
+  background: var(--bg-primary);
+}
+
+.timeline__date-separator {
+  color: var(--accent-primary);
+  font-weight: 600;
+}
+
+.timeline__checkbox {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  cursor: pointer;
+  font-size: 0.85rem;
+  color: var(--text-secondary);
+}
+
+.timeline__checkbox input[type="checkbox"] {
+  width: 16px;
+  height: 16px;
+  cursor: pointer;
+}
+
+.timeline__item--editing .timeline__description {
+  color: var(--text-secondary);
+  font-size: 0.95rem;
+  line-height: 1.6;
+  margin: 0;
+  padding: 8px;
+  border: 1px solid transparent;
+  border-radius: 4px;
+  min-height: 60px;
+  white-space: pre-wrap;
+  transition: border-color var(--transition-1);
+}
+
+.timeline__item--editing .timeline__description:focus {
+  outline: none;
+  border-color: var(--accent-primary);
+  background: var(--bg-primary);
+}
+
+.timeline__item--editing .timeline__description:empty::before {
+  content: attr(placeholder);
+  color: var(--text-secondary);
+  font-style: italic;
+}
+
+/* Responsive: mantieni il layout inline anche su mobile */
+@media (max-width: 580px) {
+  .timeline__years {
+    flex-wrap: wrap;
+  }
+}
+
 /* override mirato della regola @layer utilities (.timeline > li) */
 .timeline > li.timeline__item {
   /* disattiva la grid forzata da Tailwind */
@@ -88,6 +284,7 @@
   grid-template-columns: none;
   align-items: initial;
 }
+
 
 .timeline::before {
   content: none;
