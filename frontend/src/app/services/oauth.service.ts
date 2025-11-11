@@ -97,22 +97,34 @@ export class OAuthService {
       if (token) {
         console.log(`✅ OAuth callback ricevuto da ${provider}`);
         
-        // Salva il token nel servizio di autenticazione
-        this.auth.token.set(token);
-        localStorage.setItem('auth_token', token);
-        
-        // Carica l'ID utente autenticato
-        this.http.get<{ id: number }>(`${this.backendUrl}/api/me`).subscribe({
+        // Prima carica i dati dell'utente per ottenere lo slug
+        this.http.get<{ id: number; slug?: string }>(
+          `${this.backendUrl}/api/me`,
+          { headers: { Authorization: `Bearer ${token}` } }
+        ).subscribe({
           next: (user) => {
+            // Determina lo slug corretto
+            const userSlug = user.id === 1 ? null : user.slug;
+            const tokenKey = userSlug ? `auth_token_${userSlug}` : 'auth_token_main';
+            
+            // Salva il token con la chiave corretta
+            localStorage.setItem(tokenKey, token);
+            console.log(`✅ OAuth: Token salvato per slug: ${userSlug || 'main'}`);
+            
+            // Aggiorna AuthService
+            this.auth.token.set(token);
             this.auth.authenticatedUserId.set(user.id);
+            
+            // Refresh del profilo utente
+            this.auth.refreshMe();
           },
           error: (err) => {
-            console.error('Errore caricamento ID utente', err);
+            console.error('Errore caricamento ID utente OAuth', err);
+            // Fallback: salva come main se non riusciamo a ottenere i dati
+            localStorage.setItem('auth_token_main', token);
+            this.auth.token.set(token);
           }
         });
-        
-        // Refresh del profilo utente
-        this.auth.refreshMe();
         
         // Redirect alla homepage dell'utente
         this.router.navigate(['/about'], {

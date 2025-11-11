@@ -70,14 +70,63 @@ export class AuthService {
   // State Management
   // ========================================================================
 
-  /** Authentication token signal */
-  token = signal<string | null>(localStorage.getItem('auth_token'));
+  /** Authentication token signal - ora legge dal token dello slug corrente */
+  token = signal<string | null>(this.getCurrentToken());
 
   /** Authenticated user ID - memorizzato quando si fa login */
   authenticatedUserId = signal<number | null>(null);
 
   /** Profile refresh subject for reactive updates */
   private readonly meRefresh$ = new ReplaySubject<void>(1);
+  
+  // ========================================================================
+  // Token Management per Slug
+  // ========================================================================
+  
+  /**
+   * Ottiene il token per lo slug corrente
+   * - Utente principale (senza slug): 'auth_token_main'
+   * - Altri utenti: 'auth_token_{slug}'
+   */
+  private getCurrentToken(): string | null {
+    const slug = this.tenant.userSlug();
+    const key = slug ? `auth_token_${slug}` : 'auth_token_main';
+    return localStorage.getItem(key);
+  }
+  
+  /**
+   * Ottiene il token per uno slug specifico
+   */
+  getTokenForSlug(slug: string | null): string | null {
+    const key = slug ? `auth_token_${slug}` : 'auth_token_main';
+    return localStorage.getItem(key);
+  }
+  
+  /**
+   * Salva il token per uno slug specifico
+   */
+  private setTokenForSlug(slug: string | null, token: string | null): void {
+    const key = slug ? `auth_token_${slug}` : 'auth_token_main';
+    
+    if (token) {
+      localStorage.setItem(key, token);
+      console.log(`✅ Token salvato per slug: ${slug || 'main'}`);
+    } else {
+      localStorage.removeItem(key);
+      console.log(`🗑️ Token rimosso per slug: ${slug || 'main'}`);
+    }
+  }
+  
+  /**
+   * Rimuove il token legacy (auth_token) se esiste
+   * Utile per migrazione da sistema single-token a multi-token
+   */
+  private removeLegacyToken(): void {
+    if (localStorage.getItem('auth_token')) {
+      localStorage.removeItem('auth_token');
+      console.log('🔄 Token legacy rimosso');
+    }
+  }
 
   // ========================================================================
   // Public Properties
@@ -230,7 +279,11 @@ export class AuthService {
   login(dto: LoginDto): Observable<AuthResponse> {
     return this.http.post<AuthResponse>(apiUrl('/login'), dto).pipe(
       map(response => {
-        this.setToken(response.token);
+        // Salva il token con lo slug specifico dell'utente
+        const userSlug = response.user.id === 1 ? null : response.user.slug;
+        console.log(`🔐 Login: salvando token per slug: ${userSlug || 'main (utente principale)'}`);
+        this.setToken(response.token, userSlug);
+        
         // Memorizza l'ID dell'utente autenticato
         this.authenticatedUserId.set(response.user.id);
         this.editMode.setAuthenticatedUserId(response.user.id);
@@ -255,7 +308,11 @@ export class AuthService {
     };
     return this.http.post<AuthResponse>(apiUrl('/register'), payload).pipe(
       map(response => {
-        this.setToken(response.token);
+        // Salva il token con lo slug specifico dell'utente
+        const userSlug = response.user.id === 1 ? null : response.user.slug;
+        console.log(`📝 Register: salvando token per slug: ${userSlug || 'main (utente principale)'}`);
+        this.setToken(response.token, userSlug);
+        
         // Memorizza l'ID dell'utente autenticato
         this.authenticatedUserId.set(response.user.id);
         this.editMode.setAuthenticatedUserId(response.user.id);
@@ -345,20 +402,45 @@ export class AuthService {
   // ========================================================================
 
   /**
-   * Set authentication token
-   * Updates token signal and localStorage
+   * Set authentication token per lo slug corrente
+   * Updates token signal and localStorage con chiave specifica per slug
    * 
    * @param token Authentication token or null to clear
+   * @param userSlug Slug dell'utente (opzionale, usa slug corrente se non fornito)
    */
-  private setToken(token: string | null): void {
+  private setToken(token: string | null, userSlug?: string | null): void {
+    // Usa lo slug fornito o quello corrente
+    const slug = userSlug !== undefined ? userSlug : this.tenant.userSlug();
+    
+    // Salva il token per lo slug specifico
+    this.setTokenForSlug(slug, token);
+    
+    // Rimuovi token legacy se esiste
+    this.removeLegacyToken();
+    
+    // Aggiorna il signal del token
     this.token.set(token);
     
     if (token) {
-      localStorage.setItem('auth_token', token);
       // Carica l'ID dell'utente autenticato quando si imposta un nuovo token
       this.loadAuthenticatedUserId();
     } else {
-      localStorage.removeItem('auth_token');
+      this.authenticatedUserId.set(null);
+      this.editMode.setAuthenticatedUserId(null);
+    }
+  }
+  
+  /**
+   * Aggiorna il token signal dopo cambio rotta
+   * Ricarica il token dello slug corrente
+   */
+  refreshTokenSignal(): void {
+    const currentToken = this.getCurrentToken();
+    this.token.set(currentToken);
+    
+    if (currentToken) {
+      this.loadAuthenticatedUserId();
+    } else {
       this.authenticatedUserId.set(null);
       this.editMode.setAuthenticatedUserId(null);
     }

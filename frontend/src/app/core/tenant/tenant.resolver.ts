@@ -1,15 +1,19 @@
 import { inject } from '@angular/core';
 import { ActivatedRouteSnapshot, ResolveFn, Router } from '@angular/router';
-import { catchError, map, of } from 'rxjs';
+import { catchError, map, of, tap } from 'rxjs';
 import { TenantService } from '../../services/tenant.service';
+import { AuthService } from '../../services/auth.service';
 
 export const tenantResolver: ResolveFn<boolean> = (route: ActivatedRouteSnapshot) => {
   const slugParam = route.paramMap.get('userSlug');
   const tenant = inject(TenantService);
   const router = inject(Router);
+  const auth = inject(AuthService);
   
   if (!slugParam) {
     tenant.clear();
+    // Aggiorna il token per la pagina principale
+    auth.refreshTokenSignal();
     return of(true);
   }
   
@@ -37,11 +41,17 @@ export const tenantResolver: ResolveFn<boolean> = (route: ActivatedRouteSnapshot
       if (id) {
         console.log('✅ TenantResolver: Setting tenant - Slug:', slug, 'ID:', id);
         tenant.setTenant(slug, id);
+        
+        // Aggiorna il token signal per lo slug corrente
+        auth.refreshTokenSignal();
+        console.log('🔄 TenantResolver: Token signal aggiornato per slug:', slug);
+        
         return true;
       }
       // Slug non trovato → redirect root con notifica
       console.warn('⚠️ TenantResolver: No ID in response, redirecting to /about');
       tenant.clear();
+      auth.refreshTokenSignal();
       queueMicrotask(() => router.navigate(['/about'], { replaceUrl: true, state: { toast: { type: 'error', message: 'Utente non esistente' } } }));
       return true;
     }),
@@ -55,6 +65,7 @@ export const tenantResolver: ResolveFn<boolean> = (route: ActivatedRouteSnapshot
       });
       console.error('❌ Redirecting to /about due to error');
       tenant.clear();
+      auth.refreshTokenSignal();
       queueMicrotask(() => router.navigate(['/about'], { replaceUrl: true, state: { toast: { type: 'error', message: 'Errore caricamento profilo utente' } } }));
       return of(true);
     })

@@ -1,9 +1,10 @@
-import { Injectable, signal, computed, inject, effect } from '@angular/core';
+import { Injectable, signal, computed, inject, effect, Injector } from '@angular/core';
 import { TenantService } from './tenant.service';
 
 @Injectable({ providedIn: 'root' })
 export class EditModeService {
   private tenant = inject(TenantService);
+  private injector = inject(Injector);
   
   private _isEditingInternal = signal(false);
   
@@ -11,16 +12,6 @@ export class EditModeService {
   private authenticatedUserId = signal<number | null>(null);
   
   constructor() {
-    // Leggi l'ID utente autenticato all'avvio
-    this.syncAuthenticatedUserId();
-    
-    // Monitora i cambiamenti nel localStorage (quando si fa login/logout)
-    if (typeof window !== 'undefined') {
-      window.addEventListener('storage', () => {
-        this.syncAuthenticatedUserId();
-      });
-    }
-    
     // Disabilita automaticamente l'edit mode quando l'utente non può più modificare
     effect(() => {
       const canModify = this.canEdit();
@@ -29,24 +20,9 @@ export class EditModeService {
       // Se stava modificando ma ora non può più, disabilita
       if (isCurrentlyEditing && !canModify) {
         this._isEditingInternal.set(false);
-        console.log('ℹ️ Edit mode disabilitato: sei su una pagina di un altro utente');
+        console.log('ℹ️ Edit mode disabilitato: sei su una pagina di un altro utente o non hai più permessi');
       }
     });
-  }
-  
-  /**
-   * Sincronizza l'ID utente autenticato dal token nel localStorage
-   */
-  private syncAuthenticatedUserId(): void {
-    const token = typeof window !== 'undefined' ? localStorage.getItem('auth_token') : null;
-    // Per ora, assumiamo che se c'è un token l'utente è autenticato
-    // L'ID viene gestito da AuthService e possiamo accedervi tramite signal condivisi
-    if (token) {
-      // L'ID viene impostato da AuthService dopo il login
-      // Per ora, manteniamo lo stato corrente
-    } else {
-      this.authenticatedUserId.set(null);
-    }
   }
   
   /**
@@ -59,11 +35,19 @@ export class EditModeService {
   /**
    * Verifica se l'utente autenticato può modificare la pagina corrente
    * Un utente può modificare solo se:
-   * 1. È autenticato (ha un token)
+   * 1. È autenticato (ha un token per lo slug corrente)
    * 2. Sta visualizzando la sua pagina personale (userId corrisponde al tenant)
    */
   readonly canEdit = computed(() => {
-    const hasToken = typeof window !== 'undefined' && !!localStorage.getItem('auth_token');
+    if (typeof window === 'undefined') return false;
+    
+    // Ottieni lo slug corrente dalla pagina
+    const currentSlug = this.tenant.userSlug();
+    
+    // Verifica token per lo slug corrente
+    const tokenKey = currentSlug ? `auth_token_${currentSlug}` : 'auth_token_main';
+    const hasToken = !!localStorage.getItem(tokenKey);
+    
     if (!hasToken) return false;
     
     const authUserId = this.authenticatedUserId();
