@@ -411,6 +411,49 @@ export class About {
     }, 100);
   }
 
+  /**
+   * Elimina una card con aggiornamento ottimistico
+   */
+  deleteCard(cardId: string): void {
+    const currentCards = this.cards();
+    const cardToDelete = currentCards.find(c => c.id === cardId);
+    
+    if (!cardToDelete) {
+      return;
+    }
+
+    // Salva lo stato precedente per rollback
+    const previousCards = currentCards;
+    
+    // 🚀 OPTIMISTIC UPDATE: Rimuovi immediatamente la card
+    this.cards.set(currentCards.filter(c => c.id !== cardId));
+    
+    // Converti l'ID in numero (rimuovendo eventuale prefisso "temp-")
+    const numericId = parseInt(cardId.replace('temp-', ''), 10);
+    
+    if (isNaN(numericId)) {
+      // Se l'ID non è valido (es. card temporanea non ancora salvata), non fare la chiamata API
+      this.notification.add('error', 'Impossibile eliminare la card', 'card-delete', false);
+      this.cards.set(previousCards);
+      return;
+    }
+    
+    // Invia richiesta al backend
+    this.whatIDoApi.delete$(numericId).pipe(take(1)).subscribe({
+      next: () => {
+        this.notification.add('success', 'Card eliminata con successo', 'card-delete', false);
+      },
+      error: (err) => {
+        console.error('❌ Error deleting card:', err);
+        
+        // ⚠️ ROLLBACK: Ripristina stato precedente
+        this.cards.set(previousCards);
+        
+        this.notification.add('error', 'Errore durante l\'eliminazione della card', 'card-delete', false);
+      }
+    });
+  }
+
 
   // ========================================================================
   // Private Methods

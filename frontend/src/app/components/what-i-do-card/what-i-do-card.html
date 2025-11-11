@@ -1,4 +1,4 @@
-<div class="card">
+<div class="card" [class.card--editable]="editMode()">
   @if (loading()) {
     <div class="skel-icon skeleton" aria-hidden="true"></div>
     <div class="description_card">
@@ -14,5 +14,13 @@
       <h4>{{ title() }}</h4>
       <p>{{ displayText() }}</p>
     </div>
+    
+    @if (editMode()) {
+      <button type="button" 
+              class="card__delete-btn" 
+              (click)="onDelete($event)"
+              title="Elimina card"
+              aria-label="Elimina card">×</button>
+    }
   }
 </div>

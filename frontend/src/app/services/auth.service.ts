@@ -429,12 +429,18 @@ export class AuthService {
    * Ricarica il token dello slug corrente
    */
   refreshTokenSignal(): void {
+    const currentSlug = this.tenant.userSlug();
     const currentToken = this.getCurrentToken();
+    
+    console.log('🔄 refreshTokenSignal:', { slug: currentSlug, hasToken: !!currentToken });
+    
     this.token.set(currentToken);
     
     if (currentToken) {
+      console.log('📞 Calling loadAuthenticatedUserId for slug:', currentSlug || 'main');
       this.loadAuthenticatedUserId();
     } else {
+      console.log('⚠️ No token found for slug:', currentSlug || 'main');
       this.authenticatedUserId.set(null);
       this.editMode.setAuthenticatedUserId(null);
     }

@@ -32,7 +32,10 @@
                 [title]="c.title"
                 [description]="c.description"
                 [icon]="c.icon ?? ''"
-                [loading]="loading()">
+                [cardId]="c.id"
+                [editMode]="editMode.isEditing()"
+                [loading]="loading()"
+                (delete)="deleteCard($event)">
             </app-what-i-do-card>
         }
         

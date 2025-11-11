@@ -1,4 +1,4 @@
-import { Component, computed, input, signal, ElementRef, AfterViewInit, OnDestroy } from '@angular/core';
+import { Component, computed, input, output, signal, ElementRef, AfterViewInit, OnDestroy } from '@angular/core';
 
 @Component({
   selector: 'app-what-i-do-card',
@@ -10,8 +10,13 @@ export class WhatIDoCard implements AfterViewInit, OnDestroy {
   title = input<string>('');
   description = input<string>('');
   icon = input<string>('');
+  cardId = input<string>('');                   // ID della card per eliminazione
   clampChars = input<number>(65);               // limite caratteri preview
   loading = input<boolean>(false);              // mostra skeleton durante caricamento
+  editMode = input<boolean>(false);             // modalità edit
+  
+  // Output events
+  delete = output<string>();                    // Emette l'ID della card da eliminare
 
   // overlay on/off
   overlayOpen = signal(false);
@@ -43,6 +48,17 @@ export class WhatIDoCard implements AfterViewInit, OnDestroy {
   private mouseMoveThrottle = 16; // ~60fps
 
   constructor(private elementRef: ElementRef) {}
+
+  /**
+   * Emette l'evento di eliminazione
+   */
+  onDelete(event: Event): void {
+    event.stopPropagation();
+    const id = this.cardId();
+    if (id) {
+      this.delete.emit(id);
+    }
+  }
 
   ngAfterViewInit() {
     this.cardElement = this.elementRef.nativeElement.querySelector('.card');
