@@ -189,7 +189,7 @@ input:focus {
 }
 
 .primary:hover:not([disabled]) {
-    background: var(--accent-primary-hover);
+    background: var(--accent-hover);
 }
 
 .primary[disabled] {
