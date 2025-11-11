@@ -5,10 +5,11 @@ namespace App\Models;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Illuminate\Database\Eloquent\SoftDeletes;
 
 class Cv extends Model
 {
-    use HasFactory;
+    use HasFactory, SoftDeletes;
 
     protected $table = 'curricula'; // nome irregolare
 
@@ -25,6 +26,7 @@ class Cv extends Model
     protected $casts = [
         'time_start' => 'date',
         'time_end'   => 'date',
+        'deleted_at' => 'datetime',
     ];
 
     protected static function booted(): void

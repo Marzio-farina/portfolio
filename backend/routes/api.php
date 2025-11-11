@@ -212,6 +212,10 @@ Route::middleware(['api', "throttle:{$throttleLimit}", 'db.connection'])
             Route::put('github-repositories/reorder', [GitHubRepositoryController::class, 'updateOrder']);
             Route::delete('github-repositories/{id}', [GitHubRepositoryController::class, 'delete']);
             
+            // CV (Curricula) - gestione elementi CV (richiede autenticazione)
+            Route::post('cv', [CvController::class, 'store']);
+            Route::delete('cv', [CvController::class, 'destroy']);
+            
             // CV Files - gestione completa (richiede autenticazione)
             Route::get('cv-files', [CvFileController::class, 'index']);
             Route::post('cv-files/upload', [CvFileController::class, 'upload']);
