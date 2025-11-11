@@ -16,6 +16,7 @@ import { HttpClient } from '@angular/common/http';
 import { apiUrl } from '../../core/api/api-url';
 import { Router } from '@angular/router';
 import { FormsModule } from '@angular/forms';
+import { NotificationService } from '../../services/notification.service';
 
 @Component({
   selector: 'app-aside',
@@ -60,6 +61,11 @@ export class Aside {
   tempPhone = '';
   tempBirthday = '';
   tempLocation = '';
+  
+  // Stati di editing per ogni campo
+  editingPhone = signal(false);
+  editingBirthday = signal(false);
+  editingLocation = signal(false);
 
    // === DATI PROFILO (API) ===
   private readonly svc = inject(AboutProfileService);
@@ -70,6 +76,7 @@ export class Aside {
   private readonly router = inject(Router);
   private readonly tenant = inject(TenantService);
   private readonly tenantRouter = inject(TenantRouterService);
+  private readonly notification = inject(NotificationService);
 
   // Gestione manuale caricamento profilo (senza helper)
   private lastProfileKey: string | null = null;
@@ -282,101 +289,286 @@ export class Aside {
     }
   }
   
-  // Salva numero di telefono
-  savePhone(): void {
-    const phone = this.tempPhone.trim();
-    if (!phone) return;
+  // Attiva editing per phone
+  startEditPhone(): void {
+    this.tempPhone = this.profile()?.phone || '';
+    this.editingPhone.set(true);
+    // Focus sull'input dopo il render
+    setTimeout(() => {
+      const input = document.querySelector('.contact__input[type="tel"]') as HTMLInputElement;
+      if (input) input.focus();
+    }, 50);
+  }
+  
+  // Attiva editing per birthday
+  startEditBirthday(): void {
+    this.tempBirthday = this.profile()?.date_of_birth || '';
+    this.editingBirthday.set(true);
+    setTimeout(() => {
+      const input = document.querySelector('.contact__input[type="date"]') as HTMLInputElement;
+      if (input) input.focus();
+    }, 50);
+  }
+  
+  // Attiva editing per location
+  startEditLocation(): void {
+    this.tempLocation = this.profile()?.location || '';
+    this.editingLocation.set(true);
+    setTimeout(() => {
+      const input = document.querySelector('.contact__input[type="text"]') as HTMLInputElement;
+      if (input) input.focus();
+    }, 50);
+  }
+  
+  // Gestisce click su location (edit o navigate)
+  handleLocationClick(): void {
+    if (this.editMode() && this.locationTxt() && !this.editingLocation()) {
+      this.startEditLocation();
+    } else if (!this.editMode() && this.locationTxt()) {
+      this.goToContacts();
+    }
+  }
+  
+  // Cancella numero di telefono (con optimistic update)
+  clearPhone(event: Event): void {
+    event.stopPropagation(); // Evita trigger del click sul parent
     
-    console.log('💾 Saving phone:', phone);
+    const currentProfile = this.profile();
+    if (!currentProfile) return;
+    
+    const previousPhone = currentProfile.phone;
+    
+    // 🚀 OPTIMISTIC UPDATE: Rimuovi immediatamente
+    this.profile.set({ ...currentProfile, phone: null });
+    
+    console.log('🗑️ Clearing phone (optimistic)');
     const url = apiUrl('profile');
     
-    // Usa take(1) per completare immediatamente la subscription
-    // Questo garantisce che la richiesta HTTP completi anche se il componente viene distrutto
-    this.http.put(url, { phone }).pipe(take(1)).subscribe({
+    // Invia richiesta al backend
+    this.http.put(url, { phone: null }).pipe(take(1)).subscribe({
       next: () => {
-        console.log('✅ Phone saved successfully');
-        // Aggiorna direttamente il signal del profilo senza ricaricare la pagina
-        const currentProfile = this.profile();
-        if (currentProfile) {
-          this.profile.set({ ...currentProfile, phone });
-        }
-        this.tempPhone = '';
+        console.log('✅ Phone cleared successfully');
       },
       error: (err) => {
-        console.error('❌ Error saving phone:', err);
+        console.error('❌ Error clearing phone:', err);
+        // ⚠️ ROLLBACK: Ripristina valore precedente
+        const current = this.profile();
+        if (current) {
+          this.profile.set({ ...current, phone: previousPhone });
+        }
+        this.notification.add('error', 'Errore durante la rimozione del telefono', 'phone-clear', false);
       }
     });
   }
   
-  // Salva data di nascita
+  // Cancella data di nascita (con optimistic update)
+  clearBirthday(event: Event): void {
+    event.stopPropagation();
+    
+    const currentProfile = this.profile();
+    if (!currentProfile) return;
+    
+    const previousBirthday = currentProfile.date_of_birth;
+    const previousBirthdayIt = currentProfile.date_of_birth_it;
+    
+    // 🚀 OPTIMISTIC UPDATE: Rimuovi immediatamente
+    this.profile.set({ 
+      ...currentProfile, 
+      date_of_birth: null,
+      date_of_birth_it: null
+    });
+    
+    console.log('🗑️ Clearing birthday (optimistic)');
+    const url = apiUrl('profile');
+    
+    // Invia richiesta al backend
+    this.http.put(url, { date_of_birth: null }).pipe(take(1)).subscribe({
+      next: () => {
+        console.log('✅ Birthday cleared successfully');
+      },
+      error: (err) => {
+        console.error('❌ Error clearing birthday:', err);
+        // ⚠️ ROLLBACK: Ripristina valori precedenti
+        const current = this.profile();
+        if (current) {
+          this.profile.set({ 
+            ...current, 
+            date_of_birth: previousBirthday,
+            date_of_birth_it: previousBirthdayIt
+          });
+        }
+        this.notification.add('error', 'Errore durante la rimozione del compleanno', 'birthday-clear', false);
+      }
+    });
+  }
+  
+  // Cancella località (con optimistic update)
+  clearLocation(event: Event): void {
+    event.stopPropagation();
+    
+    const currentProfile = this.profile();
+    if (!currentProfile) return;
+    
+    const previousLocation = currentProfile.location;
+    
+    // 🚀 OPTIMISTIC UPDATE: Rimuovi immediatamente
+    this.profile.set({ ...currentProfile, location: null });
+    
+    console.log('🗑️ Clearing location (optimistic)');
+    const url = apiUrl('profile');
+    
+    // Invia richiesta al backend
+    this.http.put(url, { location: null }).pipe(take(1)).subscribe({
+      next: () => {
+        console.log('✅ Location cleared successfully');
+      },
+      error: (err) => {
+        console.error('❌ Error clearing location:', err);
+        // ⚠️ ROLLBACK: Ripristina valore precedente
+        const current = this.profile();
+        if (current) {
+          this.profile.set({ ...current, location: previousLocation });
+        }
+        this.notification.add('error', 'Errore durante la rimozione della località', 'location-clear', false);
+      }
+    });
+  }
+  
+  // Salva numero di telefono (con optimistic update)
+  savePhone(): void {
+    const phone = this.tempPhone.trim();
+    this.editingPhone.set(false);
+    if (!phone) return;
+    
+    // Salva valore precedente per rollback
+    const currentProfile = this.profile();
+    if (!currentProfile) return;
+    
+    const previousPhone = currentProfile.phone;
+    
+    // 🚀 OPTIMISTIC UPDATE: Aggiorna immediatamente l'interfaccia
+    this.profile.set({ ...currentProfile, phone });
+    this.tempPhone = '';
+    
+    console.log('💾 Saving phone (optimistic):', phone);
+    const url = apiUrl('profile');
+    
+    // Invia richiesta al backend
+    this.http.put(url, { phone }).pipe(take(1)).subscribe({
+      next: () => {
+        console.log('✅ Phone saved successfully');
+        // Il valore è già aggiornato, nessuna azione necessaria
+      },
+      error: (err) => {
+        console.error('❌ Error saving phone:', err);
+        // ⚠️ ROLLBACK: Ripristina valore precedente
+        const current = this.profile();
+        if (current) {
+          this.profile.set({ ...current, phone: previousPhone });
+        }
+        // Mostra notifica di errore
+        this.notification.add('error', 'Errore durante il salvataggio del numero di telefono', 'phone-save', false);
+      }
+    });
+  }
+  
+  // Salva data di nascita (con optimistic update)
   saveBirthday(): void {
     const birthday = this.tempBirthday.trim();
+    this.editingBirthday.set(false);
     if (!birthday) return;
     
-    // Validazione: la data deve essere almeno 8 anni fa
+    // Validazione frontend: la data deve essere almeno 8 anni fa
     const birthDate = new Date(birthday);
     const today = new Date();
     const eightYearsAgo = new Date(today.getFullYear() - 8, today.getMonth(), today.getDate());
     
     if (birthDate > eightYearsAgo) {
       console.warn('⚠️ Data di nascita non valida: deve essere almeno 8 anni fa');
-      alert('Inserisci una data giusta. La data di nascita deve essere almeno 8 anni fa.');
+      this.notification.add('error', 'Inserisci una data giusta', 'birthday-validation', false);
       return;
     }
     
-    console.log('💾 Saving birthday:', birthday);
+    // Salva valori precedenti per rollback
+    const currentProfile = this.profile();
+    if (!currentProfile) return;
+    
+    const previousBirthday = currentProfile.date_of_birth;
+    const previousBirthdayIt = currentProfile.date_of_birth_it;
+    
+    // Formatta la data in formato italiano (dd/mm/yyyy)
+    const [year, month, day] = birthday.split('-');
+    const dateIt = `${day}/${month}/${year}`;
+    
+    // 🚀 OPTIMISTIC UPDATE: Aggiorna immediatamente l'interfaccia
+    this.profile.set({ 
+      ...currentProfile, 
+      date_of_birth: birthday,
+      date_of_birth_it: dateIt
+    });
+    this.tempBirthday = '';
+    
+    console.log('💾 Saving birthday (optimistic):', birthday);
     const url = apiUrl('profile');
     
-    // Usa take(1) per completare immediatamente la subscription
-    // Questo garantisce che la richiesta HTTP completi anche se il componente viene distrutto
+    // Invia richiesta al backend
     this.http.put(url, { date_of_birth: birthday }).pipe(take(1)).subscribe({
       next: () => {
         console.log('✅ Birthday saved successfully');
-        // Aggiorna direttamente il signal del profilo con la data formattata
-        const currentProfile = this.profile();
-        if (currentProfile) {
-          // Formatta la data in formato italiano (dd/mm/yyyy)
-          const [year, month, day] = birthday.split('-');
-          const dateIt = `${day}/${month}/${year}`;
-          this.profile.set({ 
-            ...currentProfile, 
-            date_of_birth: birthday,
-            date_of_birth_it: dateIt
-          });
-        }
-        this.tempBirthday = '';
+        // Il valore è già aggiornato, nessuna azione necessaria
       },
       error: (err) => {
         console.error('❌ Error saving birthday:', err);
-        // Mostra errore specifico dal backend se disponibile
+        // ⚠️ ROLLBACK: Ripristina valori precedenti
+        const current = this.profile();
+        if (current) {
+          this.profile.set({ 
+            ...current, 
+            date_of_birth: previousBirthday,
+            date_of_birth_it: previousBirthdayIt
+          });
+        }
+        // Mostra notifica con messaggio specifico dal backend se disponibile
         const errorMsg = err?.error?.message || 'Errore durante il salvataggio della data di nascita';
-        alert(errorMsg);
+        this.notification.add('error', errorMsg, 'birthday-save', false);
       }
     });
   }
   
-  // Salva località
+  // Salva località (con optimistic update)
   saveLocation(): void {
     const location = this.tempLocation.trim();
+    this.editingLocation.set(false);
     if (!location) return;
     
-    console.log('💾 Saving location:', location);
+    // Salva valore precedente per rollback
+    const currentProfile = this.profile();
+    if (!currentProfile) return;
+    
+    const previousLocation = currentProfile.location;
+    
+    // 🚀 OPTIMISTIC UPDATE: Aggiorna immediatamente l'interfaccia
+    this.profile.set({ ...currentProfile, location });
+    this.tempLocation = '';
+    
+    console.log('💾 Saving location (optimistic):', location);
     const url = apiUrl('profile');
     
-    // Usa take(1) per completare immediatamente la subscription
-    // Questo garantisce che la richiesta HTTP completi anche se il componente viene distrutto
+    // Invia richiesta al backend
     this.http.put(url, { location }).pipe(take(1)).subscribe({
       next: () => {
         console.log('✅ Location saved successfully');
-        // Aggiorna direttamente il signal del profilo senza ricaricare la pagina
-        const currentProfile = this.profile();
-        if (currentProfile) {
-          this.profile.set({ ...currentProfile, location });
-        }
-        this.tempLocation = '';
+        // Il valore è già aggiornato, nessuna azione necessaria
       },
       error: (err) => {
         console.error('❌ Error saving location:', err);
+        // ⚠️ ROLLBACK: Ripristina valore precedente
+        const current = this.profile();
+        if (current) {
+          this.profile.set({ ...current, location: previousLocation });
+        }
+        // Mostra notifica di errore
+        this.notification.add('error', 'Errore durante il salvataggio della località', 'location-save', false);
       }
     });
   }

@@ -18,20 +18,97 @@
   gap: 6px; /* Ulteriormente ridotto */
 }
 
-/* Contatto editabile (campo mancante in edit mode) */
+/* Contatto editabile (campo mancante in edit mode O in editing) */
 .contact--editable {
   border: 2px dashed var(--accent-primary);
   border-radius: 8px;
-  padding: 8px 12px 8px 8px; /* Padding extra a destra */
+  padding: 0 16px 0 0; /* Padding extra a destra per respiro */
   background: rgba(var(--accent-primary-rgb, 255, 138, 0), 0.05);
   transition: all var(--transition-1);
-  width: 220px; /* Larghezza fissa uguale per tutti */
-  max-width: 100%; /* Non supera il contenitore */
+  width: 100%; /* Larghezza fissa uguale per tutti */
+  max-width: 220px !important; /* Larghezza massima uniforme */
 }
 
 .contact--editable:hover {
   border-color: var(--accent-hover);
   background: rgba(var(--accent-primary-rgb, 255, 138, 0), 0.1);
+}
+
+/* Contatto con dato esistente in edit mode (hover per mostrare edit) */
+.contact--editable-hover {
+  position: relative; /* Necessario per posizionare l'icona X in absolute */
+  cursor: pointer;
+  transition: all var(--transition-1);
+  border-radius: 8px;
+  padding: 0 16px 0 0; /* Padding extra a destra per respiro */
+  width: fit-content; /* Si adatta al contenuto */
+  min-width: 180px; /* Larghezza minima uniforme */
+  max-width: 100%;
+  border: 2px dashed transparent; /* Bordo trasparente per evitare shift */
+}
+
+.contact--editable-hover:hover {
+  background: rgba(var(--accent-primary-rgb, 255, 138, 0), 0.05);
+  border-color: var(--accent-primary); /* Cambia solo il colore, non aggiunge bordo */
+}
+
+/* Icona edit che appare all'hover (spostata leggermente a sinistra) */
+.contact__edit-icon {
+  width: 18px;
+  height: 18px;
+  color: var(--accent-primary);
+  opacity: 0;
+  transition: opacity var(--transition-1);
+  flex-shrink: 0;
+  margin-left: auto;
+  margin-right: 8px; /* Spostata leggermente a sinistra */
+}
+
+.contact--editable-hover:hover .contact__edit-icon {
+  opacity: 1;
+}
+
+/* Bottone X per rimuovere i dati (in alto a destra sul bordo) - stile card progetti */
+.contact__remove-btn {
+  position: absolute;
+  top: -12px;
+  right: -12px;
+  width: 28px;
+  height: 28px;
+  border-radius: 50%;
+  background: transparent; /* Background trasparente come nelle card progetti */
+  border: 3px solid #ef4444; /* Bordo rosso */
+  color: #ef4444; /* Colore testo */
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  opacity: 0;
+  transition: transform var(--transition-1), box-shadow var(--transition-1), opacity var(--transition-1);
+  z-index: 10;
+  padding: 0;
+  font-size: 0;
+  line-height: 1;
+}
+
+.contact__remove-btn:hover {
+  transform: scale(1.08); /* Stesso effetto hover delle card progetti */
+  box-shadow: 0 6px 18px rgba(239, 68, 68, 0.35);
+}
+
+.contact__remove-btn:active {
+  transform: scale(1.0);
+}
+
+.contact__remove-btn > span {
+  display: block;
+  font-size: 22px; /* Adattato per il bottone più piccolo */
+  line-height: 1;
+  font-weight: 900;
+}
+
+.contact--editable-hover:hover .contact__remove-btn {
+  opacity: 1;
 }
 
 /* Input per contatti editabili */

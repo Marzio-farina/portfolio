@@ -141,7 +141,10 @@
 
           <!-- PHONE -->
           @if (profile()?.phone || editMode()) {
-            <li class="contact" [class.contact--editable]="editMode() && !profile()?.phone">
+            <li class="contact" 
+                [class.contact--editable]="editMode() && (!profile()?.phone || editingPhone())"
+                [class.contact--editable-hover]="editMode() && profile()?.phone && !editingPhone()"
+                (click)="editMode() && profile()?.phone && !editingPhone() ? startEditPhone() : null">
               <div class="contact__icon">
                 <svg class="icon-20 mute" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true">
                   <rect x="7" y="2" width="10" height="20" rx="2" ry="2"/>
@@ -150,24 +153,37 @@
               </div>
               <div class="contact__body">
                 <p class="contact__label">Cellulare</p>
-                @if (editMode() && !profile()?.phone) {
+                @if (editMode() && (!profile()?.phone || editingPhone())) {
                   <input 
                     type="tel" 
                     class="contact__input" 
                     placeholder="Inserisci numero"
                     [(ngModel)]="tempPhone"
                     (blur)="savePhone()"
-                    (keyup.enter)="savePhone()" />
+                    (keyup.enter)="savePhone()"
+                    #phoneInput />
                 } @else {
                   <a class="contact__link" [href]="phoneHref()">{{ profile()?.phone }}</a>
                 }
               </div>
+              @if (editMode() && profile()?.phone && !editingPhone()) {
+                <button type="button" class="contact__remove-btn" (click)="clearPhone($event)" aria-label="Rimuovi telefono" title="Rimuovi telefono">
+                  <span aria-hidden="true">X</span>
+                </button>
+                <svg class="contact__edit-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                  <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/>
+                  <path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/>
+                </svg>
+              }
             </li>
           }
 
           <!-- CALENDAR / BIRTHDAY -->
           @if (birthdayHuman() || editMode()) {
-            <li class="contact" [class.contact--editable]="editMode() && !birthdayHuman()">
+            <li class="contact" 
+                [class.contact--editable]="editMode() && (!birthdayHuman() || editingBirthday())"
+                [class.contact--editable-hover]="editMode() && birthdayHuman() && !editingBirthday()"
+                (click)="editMode() && birthdayHuman() && !editingBirthday() ? startEditBirthday() : null">
               <div class="contact__icon">
                 <svg class="icon-20 mute" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true">
                   <rect x="3" y="4" width="18" height="18" rx="2"/>
@@ -178,28 +194,40 @@
               </div>
               <div class="contact__body">
                 <p class="contact__label">Compleanno</p>
-                @if (editMode() && !birthdayHuman()) {
+                @if (editMode() && (!birthdayHuman() || editingBirthday())) {
                   <input 
                     type="date" 
                     class="contact__input" 
                     [(ngModel)]="tempBirthday"
                     (blur)="saveBirthday()"
-                    (keyup.enter)="saveBirthday()" />
+                    (keyup.enter)="saveBirthday()"
+                    #birthdayInput />
                 } @else {
                   <time class="contact__text" [attr.datetime]="birthdayISO() ?? undefined">
                     {{ birthdayHuman() }}
                   </time>
                 }
               </div>
+              @if (editMode() && birthdayHuman() && !editingBirthday()) {
+                <button type="button" class="contact__remove-btn" (click)="clearBirthday($event)" aria-label="Rimuovi compleanno" title="Rimuovi compleanno">
+                  <span aria-hidden="true">X</span>
+                </button>
+                <svg class="contact__edit-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                  <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/>
+                  <path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/>
+                </svg>
+              }
             </li>
           }
 
           <!-- LOCATION -->
           @if (locationTxt() || editMode()) {
-            <li class="contact" [class.contact--editable]="editMode() && !locationTxt()" 
-                [attr.role]="editMode() && !locationTxt() ? null : 'button'" 
-                [attr.tabindex]="editMode() && !locationTxt() ? null : '0'" 
-                (click)="editMode() && !locationTxt() ? null : goToContacts()">
+            <li class="contact" 
+                [class.contact--editable]="editMode() && (!locationTxt() || editingLocation())"
+                [class.contact--editable-hover]="editMode() && locationTxt() && !editingLocation()"
+                [attr.role]="editMode() && locationTxt() && !editingLocation() ? 'button' : null" 
+                [attr.tabindex]="editMode() && locationTxt() && !editingLocation() ? '0' : null" 
+                (click)="handleLocationClick()">
               <div class="contact__icon">
                 <svg class="icon-20 mute" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true">
                   <path d="M12 21s-6-5.686-6-10a6 6 0 1 1 12 0c0 4.314-6 10-6 10z"/>
@@ -208,18 +236,28 @@
               </div>
               <div class="contact__body">
                 <p class="contact__label">Posizione</p>
-                @if (editMode() && !locationTxt()) {
+                @if (editMode() && (!locationTxt() || editingLocation())) {
                   <input 
                     type="text" 
                     class="contact__input" 
                     placeholder="Inserisci località"
                     [(ngModel)]="tempLocation"
                     (blur)="saveLocation()"
-                    (keyup.enter)="saveLocation()" />
+                    (keyup.enter)="saveLocation()"
+                    #locationInput />
                 } @else {
                   <address class="contact__text">{{ locationTxt() }}</address>
                 }
               </div>
+              @if (editMode() && locationTxt() && !editingLocation()) {
+                <button type="button" class="contact__remove-btn" (click)="clearLocation($event)" aria-label="Rimuovi posizione" title="Rimuovi posizione">
+                  <span aria-hidden="true">X</span>
+                </button>
+                <svg class="contact__edit-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                  <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/>
+                  <path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/>
+                </svg>
+              }
             </li>
           }
         </ul>
