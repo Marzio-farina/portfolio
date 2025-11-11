@@ -56,14 +56,16 @@
   height: 18px;
   color: var(--accent-primary);
   opacity: 0;
-  transition: opacity var(--transition-1);
+  transition: opacity var(--transition-1), transform var(--transition-1);
   flex-shrink: 0;
   margin-left: auto;
   margin-right: 8px; /* Spostata leggermente a sinistra */
+  pointer-events: none; /* Non intercetta eventi del mouse */
 }
 
 .contact--editable-hover:hover .contact__edit-icon {
   opacity: 1;
+  transform: scale(1.1); /* Leggero zoom all'hover per maggiore visibilità */
 }
 
 /* Bottone X per rimuovere i dati (in alto a destra sul bordo) - stile card progetti */

@@ -804,42 +804,78 @@ export class Aside {
   
   // Attiva editing per phone
   startEditPhone(): void {
+    console.log('🟢 startEditPhone() called');
     this.tempPhone = this.profile()?.phone || '';
     this.editingPhone.set(true);
+    console.log('  - tempPhone set to:', this.tempPhone);
+    console.log('  - editingPhone set to:', true);
     // Focus sull'input dopo il render
     setTimeout(() => {
       const input = document.querySelector('.contact__input[type="tel"]') as HTMLInputElement;
-      if (input) input.focus();
+      if (input) {
+        input.focus();
+        console.log('  - input focused');
+      }
     }, 50);
   }
   
   // Attiva editing per birthday
   startEditBirthday(): void {
+    console.log('🟢 startEditBirthday() called');
     this.tempBirthday = this.profile()?.date_of_birth || '';
     this.editingBirthday.set(true);
+    console.log('  - tempBirthday set to:', this.tempBirthday);
+    console.log('  - editingBirthday set to:', true);
     setTimeout(() => {
       const input = document.querySelector('.contact__input[type="date"]') as HTMLInputElement;
-      if (input) input.focus();
+      if (input) {
+        input.focus();
+        console.log('  - input focused');
+      }
     }, 50);
   }
   
   // Attiva editing per location
   startEditLocation(): void {
+    console.log('🟢 startEditLocation() called');
     this.tempLocation = this.profile()?.location || '';
     this.editingLocation.set(true);
+    console.log('  - tempLocation set to:', this.tempLocation);
+    console.log('  - editingLocation set to:', true);
     setTimeout(() => {
       const input = document.querySelector('.contact__input[type="text"]') as HTMLInputElement;
-      if (input) input.focus();
+      if (input) {
+        input.focus();
+        console.log('  - input focused');
+      }
     }, 50);
   }
   
-  // Gestisce click su location (edit o navigate)
+  // Gestisce click su location (edit or navigate)
   handleLocationClick(): void {
     if (this.editMode() && this.locationTxt() && !this.editingLocation()) {
       this.startEditLocation();
     } else if (!this.editMode() && this.locationTxt()) {
       this.goToContacts();
     }
+  }
+  
+  // Annulla editing phone (ESC)
+  cancelEditPhone(): void {
+    this.editingPhone.set(false);
+    this.tempPhone = '';
+  }
+  
+  // Annulla editing birthday (ESC)
+  cancelEditBirthday(): void {
+    this.editingBirthday.set(false);
+    this.tempBirthday = '';
+  }
+  
+  // Annulla editing location (ESC)
+  cancelEditLocation(): void {
+    this.editingLocation.set(false);
+    this.tempLocation = '';
   }
   
   // Cancella numero di telefono (con optimistic update)
@@ -949,25 +985,32 @@ export class Aside {
   
   // Salva numero di telefono (con optimistic update)
   savePhone(): void {
-    // Previeni salvataggi duplicati
-    if (!this.editingPhone()) {
-      return;
-    }
+    console.log('🔵 savePhone() called');
+    console.log('  - editingPhone:', this.editingPhone());
+    console.log('  - tempPhone:', this.tempPhone);
     
     const phone = this.tempPhone.trim();
+    console.log('  - phone (trimmed):', phone);
+    
     if (!phone) {
+      console.log('❌ savePhone: phone is empty, closing input');
       this.editingPhone.set(false);
       return;
     }
     
     // Salva valore precedente per rollback
     const currentProfile = this.profile();
-    if (!currentProfile) return;
+    if (!currentProfile) {
+      console.log('❌ savePhone: currentProfile is null');
+      return;
+    }
     
     const previousPhone = currentProfile.phone;
+    console.log('  - previousPhone:', previousPhone);
     
     // Chiudi editing PRIMA dell'optimistic update per evitare doppi trigger
     this.editingPhone.set(false);
+    console.log('✅ savePhone: closed editing, starting save');
     
     // 🚀 OPTIMISTIC UPDATE: Aggiorna immediatamente l'interfaccia
     this.profile.set({ ...currentProfile, phone });
@@ -997,13 +1040,15 @@ export class Aside {
   
   // Salva data di nascita (con optimistic update)
   saveBirthday(): void {
-    // Previeni salvataggi duplicati
-    if (!this.editingBirthday()) {
-      return;
-    }
+    console.log('🔵 saveBirthday() called');
+    console.log('  - editingBirthday:', this.editingBirthday());
+    console.log('  - tempBirthday:', this.tempBirthday);
     
     const birthday = this.tempBirthday.trim();
+    console.log('  - birthday (trimmed):', birthday);
+    
     if (!birthday) {
+      console.log('❌ saveBirthday: birthday is empty, closing input');
       this.editingBirthday.set(false);
       return;
     }
@@ -1012,6 +1057,9 @@ export class Aside {
     const birthDate = new Date(birthday);
     const today = new Date();
     const eightYearsAgo = new Date(today.getFullYear() - 8, today.getMonth(), today.getDate());
+    
+    console.log('  - birthDate:', birthDate);
+    console.log('  - eightYearsAgo:', eightYearsAgo);
     
     if (birthDate > eightYearsAgo) {
       console.warn('⚠️ Data di nascita non valida: deve essere almeno 8 anni fa');
@@ -1022,10 +1070,14 @@ export class Aside {
     
     // Salva valori precedenti per rollback
     const currentProfile = this.profile();
-    if (!currentProfile) return;
+    if (!currentProfile) {
+      console.log('❌ saveBirthday: currentProfile is null');
+      return;
+    }
     
     const previousBirthday = currentProfile.date_of_birth;
     const previousBirthdayIt = currentProfile.date_of_birth_it;
+    console.log('  - previousBirthday:', previousBirthday);
     
     // Formatta la data in formato italiano (dd/mm/yyyy)
     const [year, month, day] = birthday.split('-');
@@ -1033,6 +1085,7 @@ export class Aside {
     
     // Chiudi editing PRIMA dell'optimistic update per evitare doppi trigger
     this.editingBirthday.set(false);
+    console.log('✅ saveBirthday: closed editing, starting save');
     
     // 🚀 OPTIMISTIC UPDATE: Aggiorna immediatamente l'interfaccia
     this.profile.set({ 
@@ -1042,7 +1095,7 @@ export class Aside {
     });
     this.tempBirthday = '';
     
-    console.log('💾 Saving birthday (optimistic):', birthday);
+    console.log('💾 Saving birthday (optimistic):', birthday, 'formatted:', dateIt);
     const url = apiUrl('profile');
     
     // Invia richiesta al backend
@@ -1071,25 +1124,32 @@ export class Aside {
   
   // Salva località (con optimistic update)
   saveLocation(): void {
-    // Previeni salvataggi duplicati
-    if (!this.editingLocation()) {
-      return;
-    }
+    console.log('🔵 saveLocation() called');
+    console.log('  - editingLocation:', this.editingLocation());
+    console.log('  - tempLocation:', this.tempLocation);
     
     const location = this.tempLocation.trim();
+    console.log('  - location (trimmed):', location);
+    
     if (!location) {
+      console.log('❌ saveLocation: location is empty, closing input');
       this.editingLocation.set(false);
       return;
     }
     
     // Salva valore precedente per rollback
     const currentProfile = this.profile();
-    if (!currentProfile) return;
+    if (!currentProfile) {
+      console.log('❌ saveLocation: currentProfile is null');
+      return;
+    }
     
     const previousLocation = currentProfile.location;
+    console.log('  - previousLocation:', previousLocation);
     
     // Chiudi editing PRIMA dell'optimistic update per evitare doppi trigger
     this.editingLocation.set(false);
+    console.log('✅ saveLocation: closed editing, starting save');
     
     // 🚀 OPTIMISTIC UPDATE: Aggiorna immediatamente l'interfaccia
     this.profile.set({ ...currentProfile, location });

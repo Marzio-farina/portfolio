@@ -268,7 +268,8 @@
                     placeholder="Inserisci numero"
                     [(ngModel)]="tempPhone"
                     (blur)="savePhone()"
-                    (keyup.enter)="savePhone()"
+                    (keydown.enter)="$event.preventDefault(); savePhone()"
+                    (keydown.escape)="cancelEditPhone()"
                     #phoneInput />
                 } @else {
                   <a class="contact__link" [href]="phoneHref()">{{ profile()?.phone }}</a>
@@ -308,7 +309,8 @@
                     class="contact__input" 
                     [(ngModel)]="tempBirthday"
                     (blur)="saveBirthday()"
-                    (keyup.enter)="saveBirthday()"
+                    (keydown.enter)="$event.preventDefault(); saveBirthday()"
+                    (keydown.escape)="cancelEditBirthday()"
                     #birthdayInput />
                 } @else {
                   <time class="contact__text" [attr.datetime]="birthdayISO() ?? undefined">
@@ -351,7 +353,8 @@
                     placeholder="Inserisci località"
                     [(ngModel)]="tempLocation"
                     (blur)="saveLocation()"
-                    (keyup.enter)="saveLocation()"
+                    (keydown.enter)="$event.preventDefault(); saveLocation()"
+                    (keydown.escape)="cancelEditLocation()"
                     #locationInput />
                 } @else {
                   <address class="contact__text">{{ locationTxt() }}</address>
