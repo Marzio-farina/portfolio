@@ -20,7 +20,6 @@ export class EditModeService {
       // Se stava modificando ma ora non può più, disabilita
       if (isCurrentlyEditing && !canModify) {
         this._isEditingInternal.set(false);
-        console.log('ℹ️ Edit mode disabilitato: sei su una pagina di un altro utente o non hai più permessi');
       }
     });
   }
@@ -76,8 +75,6 @@ export class EditModeService {
   enable(): void { 
     if (this.canEdit()) {
       this._isEditingInternal.set(true);
-    } else {
-      console.warn('⚠️ Non puoi modificare questa pagina. Puoi modificare solo le tue pagine personali.');
     }
   }
   

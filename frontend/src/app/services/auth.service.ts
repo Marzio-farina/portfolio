@@ -110,10 +110,8 @@ export class AuthService {
     
     if (token) {
       localStorage.setItem(key, token);
-      console.log(`✅ Token salvato per slug: ${slug || 'main'}`);
     } else {
       localStorage.removeItem(key);
-      console.log(`🗑️ Token rimosso per slug: ${slug || 'main'}`);
     }
   }
   
@@ -124,7 +122,6 @@ export class AuthService {
   private removeLegacyToken(): void {
     if (localStorage.getItem('auth_token')) {
       localStorage.removeItem('auth_token');
-      console.log('🔄 Token legacy rimosso');
     }
   }
 
@@ -281,7 +278,6 @@ export class AuthService {
       map(response => {
         // Salva il token con lo slug specifico dell'utente
         const userSlug = response.user.id === 1 ? null : response.user.slug;
-        console.log(`🔐 Login: salvando token per slug: ${userSlug || 'main (utente principale)'}`);
         this.setToken(response.token, userSlug);
         
         // Memorizza l'ID dell'utente autenticato
@@ -310,7 +306,6 @@ export class AuthService {
       map(response => {
         // Salva il token con lo slug specifico dell'utente
         const userSlug = response.user.id === 1 ? null : response.user.slug;
-        console.log(`📝 Register: salvando token per slug: ${userSlug || 'main (utente principale)'}`);
         this.setToken(response.token, userSlug);
         
         // Memorizza l'ID dell'utente autenticato

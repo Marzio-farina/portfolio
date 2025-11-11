@@ -401,19 +401,16 @@ export class Aside {
     this.profile.set({ ...currentProfile, name });
     this.tempName = '';
     
-    console.log('💾 Saving name (optimistic):', name);
     const url = apiUrl('profile');
     
     // Invia richiesta al backend
     this.http.put(url, { name }).pipe(take(1)).subscribe({
       next: () => {
-        console.log('✅ Name saved successfully');
         this.notification.add('success', 'Nome aggiornato', 'name-save', false);
         // Invalida cache per ricaricare i dati
         this.svc.clearCache();
       },
       error: (err) => {
-        console.error('❌ Error saving name:', err);
         // ⚠️ ROLLBACK: Ripristina valore precedente
         const current = this.profile();
         if (current) {
@@ -453,19 +450,16 @@ export class Aside {
     this.profile.set({ ...currentProfile, surname });
     this.tempSurname = '';
     
-    console.log('💾 Saving surname (optimistic):', surname);
     const url = apiUrl('profile');
     
     // Invia richiesta al backend
     this.http.put(url, { surname }).pipe(take(1)).subscribe({
       next: () => {
-        console.log('✅ Surname saved successfully');
         this.notification.add('success', 'Cognome aggiornato', 'surname-save', false);
         // Invalida cache per ricaricare i dati
         this.svc.clearCache();
       },
       error: (err) => {
-        console.error('❌ Error saving surname:', err);
         // ⚠️ ROLLBACK: Ripristina valore precedente
         const current = this.profile();
         if (current) {
@@ -488,19 +482,16 @@ export class Aside {
     // 🚀 OPTIMISTIC UPDATE: Rimuovi immediatamente
     this.profile.set({ ...currentProfile, surname: null });
     
-    console.log('🗑️ Clearing surname (optimistic)');
     const url = apiUrl('profile');
     
     // Invia richiesta al backend
     this.http.put(url, { surname: null }).pipe(take(1)).subscribe({
       next: () => {
-        console.log('✅ Surname cleared successfully');
         this.notification.add('success', 'Cognome rimosso', 'surname-clear', false);
         // Invalida cache per ricaricare i dati
         this.svc.clearCache();
       },
       error: (err) => {
-        console.error('❌ Error clearing surname:', err);
         // ⚠️ ROLLBACK: Ripristina valore precedente
         const current = this.profile();
         if (current) {
@@ -557,19 +548,16 @@ export class Aside {
     this.profile.set({ ...currentProfile, title });
     this.tempTitle = '';
     
-    console.log('💾 Saving title (optimistic):', title);
     const url = apiUrl('profile');
     
     // Invia richiesta al backend
     this.http.put(url, { title }).pipe(take(1)).subscribe({
       next: () => {
-        console.log('✅ Title saved successfully');
         this.notification.add('success', 'Titolo aggiornato', 'title-save', false);
         // Invalida cache per ricaricare i dati
         this.svc.clearCache();
       },
       error: (err) => {
-        console.error('❌ Error saving title:', err);
         // ⚠️ ROLLBACK: Ripristina valore precedente
         const current = this.profile();
         if (current) {
@@ -592,19 +580,16 @@ export class Aside {
     // 🚀 OPTIMISTIC UPDATE: Rimuovi immediatamente
     this.profile.set({ ...currentProfile, title: null });
     
-    console.log('🗑️ Clearing title (optimistic)');
     const url = apiUrl('profile');
     
     // Invia richiesta al backend
     this.http.put(url, { title: null }).pipe(take(1)).subscribe({
       next: () => {
-        console.log('✅ Title cleared successfully');
         this.notification.add('success', 'Titolo rimosso', 'title-clear', false);
         // Invalida cache per ricaricare i dati
         this.svc.clearCache();
       },
       error: (err) => {
-        console.error('❌ Error clearing title:', err);
         // ⚠️ ROLLBACK: Ripristina valore precedente
         const current = this.profile();
         if (current) {
@@ -741,7 +726,6 @@ export class Aside {
         this.svc.clearCache();
       },
       error: (err) => {
-        console.error('❌ Error saving social:', err);
         // ⚠️ ROLLBACK: Ripristina array precedente
         const current = this.profile();
         if (current) {
@@ -787,7 +771,6 @@ export class Aside {
         this.svc.clearCache();
       },
       error: (err) => {
-        console.error('❌ Error deleting social:', err);
         // ⚠️ ROLLBACK: Ripristina array precedente
         const current = this.profile();
         if (current) {
@@ -804,50 +787,32 @@ export class Aside {
   
   // Attiva editing per phone
   startEditPhone(): void {
-    console.log('🟢 startEditPhone() called');
     this.tempPhone = this.profile()?.phone || '';
     this.editingPhone.set(true);
-    console.log('  - tempPhone set to:', this.tempPhone);
-    console.log('  - editingPhone set to:', true);
     // Focus sull'input dopo il render
     setTimeout(() => {
       const input = document.querySelector('.contact__input[type="tel"]') as HTMLInputElement;
-      if (input) {
-        input.focus();
-        console.log('  - input focused');
-      }
+      if (input) input.focus();
     }, 50);
   }
   
   // Attiva editing per birthday
   startEditBirthday(): void {
-    console.log('🟢 startEditBirthday() called');
     this.tempBirthday = this.profile()?.date_of_birth || '';
     this.editingBirthday.set(true);
-    console.log('  - tempBirthday set to:', this.tempBirthday);
-    console.log('  - editingBirthday set to:', true);
     setTimeout(() => {
       const input = document.querySelector('.contact__input[type="date"]') as HTMLInputElement;
-      if (input) {
-        input.focus();
-        console.log('  - input focused');
-      }
+      if (input) input.focus();
     }, 50);
   }
   
   // Attiva editing per location
   startEditLocation(): void {
-    console.log('🟢 startEditLocation() called');
     this.tempLocation = this.profile()?.location || '';
     this.editingLocation.set(true);
-    console.log('  - tempLocation set to:', this.tempLocation);
-    console.log('  - editingLocation set to:', true);
     setTimeout(() => {
       const input = document.querySelector('.contact__input[type="text"]') as HTMLInputElement;
-      if (input) {
-        input.focus();
-        console.log('  - input focused');
-      }
+      if (input) input.focus();
     }, 50);
   }
   
@@ -890,16 +855,14 @@ export class Aside {
     // 🚀 OPTIMISTIC UPDATE: Rimuovi immediatamente
     this.profile.set({ ...currentProfile, phone: null });
     
-    console.log('🗑️ Clearing phone (optimistic)');
     const url = apiUrl('profile');
     
     // Invia richiesta al backend
     this.http.put(url, { phone: null }).pipe(take(1)).subscribe({
       next: () => {
-        console.log('✅ Phone cleared successfully');
+        // Il valore è già aggiornato
       },
       error: (err) => {
-        console.error('❌ Error clearing phone:', err);
         // ⚠️ ROLLBACK: Ripristina valore precedente
         const current = this.profile();
         if (current) {
@@ -927,16 +890,14 @@ export class Aside {
       date_of_birth_it: null
     });
     
-    console.log('🗑️ Clearing birthday (optimistic)');
     const url = apiUrl('profile');
     
     // Invia richiesta al backend
     this.http.put(url, { date_of_birth: null }).pipe(take(1)).subscribe({
       next: () => {
-        console.log('✅ Birthday cleared successfully');
+        // Il valore è già aggiornato
       },
       error: (err) => {
-        console.error('❌ Error clearing birthday:', err);
         // ⚠️ ROLLBACK: Ripristina valori precedenti
         const current = this.profile();
         if (current) {
@@ -963,16 +924,14 @@ export class Aside {
     // 🚀 OPTIMISTIC UPDATE: Rimuovi immediatamente
     this.profile.set({ ...currentProfile, location: null });
     
-    console.log('🗑️ Clearing location (optimistic)');
     const url = apiUrl('profile');
     
     // Invia richiesta al backend
     this.http.put(url, { location: null }).pipe(take(1)).subscribe({
       next: () => {
-        console.log('✅ Location cleared successfully');
+        // Il valore è già aggiornato
       },
       error: (err) => {
-        console.error('❌ Error clearing location:', err);
         // ⚠️ ROLLBACK: Ripristina valore precedente
         const current = this.profile();
         if (current) {
@@ -985,48 +944,34 @@ export class Aside {
   
   // Salva numero di telefono (con optimistic update)
   savePhone(): void {
-    console.log('🔵 savePhone() called');
-    console.log('  - editingPhone:', this.editingPhone());
-    console.log('  - tempPhone:', this.tempPhone);
-    
     const phone = this.tempPhone.trim();
-    console.log('  - phone (trimmed):', phone);
     
     if (!phone) {
-      console.log('❌ savePhone: phone is empty, closing input');
       this.editingPhone.set(false);
       return;
     }
     
     // Salva valore precedente per rollback
     const currentProfile = this.profile();
-    if (!currentProfile) {
-      console.log('❌ savePhone: currentProfile is null');
-      return;
-    }
+    if (!currentProfile) return;
     
     const previousPhone = currentProfile.phone;
-    console.log('  - previousPhone:', previousPhone);
     
     // Chiudi editing PRIMA dell'optimistic update per evitare doppi trigger
     this.editingPhone.set(false);
-    console.log('✅ savePhone: closed editing, starting save');
     
     // 🚀 OPTIMISTIC UPDATE: Aggiorna immediatamente l'interfaccia
     this.profile.set({ ...currentProfile, phone });
     this.tempPhone = '';
     
-    console.log('💾 Saving phone (optimistic):', phone);
     const url = apiUrl('profile');
     
     // Invia richiesta al backend
     this.http.put(url, { phone }).pipe(take(1)).subscribe({
       next: () => {
-        console.log('✅ Phone saved successfully');
         // Il valore è già aggiornato, nessuna azione necessaria
       },
       error: (err) => {
-        console.error('❌ Error saving phone:', err);
         // ⚠️ ROLLBACK: Ripristina valore precedente
         const current = this.profile();
         if (current) {
@@ -1040,15 +985,9 @@ export class Aside {
   
   // Salva data di nascita (con optimistic update)
   saveBirthday(): void {
-    console.log('🔵 saveBirthday() called');
-    console.log('  - editingBirthday:', this.editingBirthday());
-    console.log('  - tempBirthday:', this.tempBirthday);
-    
     const birthday = this.tempBirthday.trim();
-    console.log('  - birthday (trimmed):', birthday);
     
     if (!birthday) {
-      console.log('❌ saveBirthday: birthday is empty, closing input');
       this.editingBirthday.set(false);
       return;
     }
@@ -1058,11 +997,7 @@ export class Aside {
     const today = new Date();
     const eightYearsAgo = new Date(today.getFullYear() - 8, today.getMonth(), today.getDate());
     
-    console.log('  - birthDate:', birthDate);
-    console.log('  - eightYearsAgo:', eightYearsAgo);
-    
     if (birthDate > eightYearsAgo) {
-      console.warn('⚠️ Data di nascita non valida: deve essere almeno 8 anni fa');
       this.editingBirthday.set(false);
       this.notification.add('error', 'Inserisci una data giusta', 'birthday-validation', false);
       return;
@@ -1070,14 +1005,10 @@ export class Aside {
     
     // Salva valori precedenti per rollback
     const currentProfile = this.profile();
-    if (!currentProfile) {
-      console.log('❌ saveBirthday: currentProfile is null');
-      return;
-    }
+    if (!currentProfile) return;
     
     const previousBirthday = currentProfile.date_of_birth;
     const previousBirthdayIt = currentProfile.date_of_birth_it;
-    console.log('  - previousBirthday:', previousBirthday);
     
     // Formatta la data in formato italiano (dd/mm/yyyy)
     const [year, month, day] = birthday.split('-');
@@ -1085,7 +1016,6 @@ export class Aside {
     
     // Chiudi editing PRIMA dell'optimistic update per evitare doppi trigger
     this.editingBirthday.set(false);
-    console.log('✅ saveBirthday: closed editing, starting save');
     
     // 🚀 OPTIMISTIC UPDATE: Aggiorna immediatamente l'interfaccia
     this.profile.set({ 
@@ -1095,17 +1025,14 @@ export class Aside {
     });
     this.tempBirthday = '';
     
-    console.log('💾 Saving birthday (optimistic):', birthday, 'formatted:', dateIt);
     const url = apiUrl('profile');
     
     // Invia richiesta al backend
     this.http.put(url, { date_of_birth: birthday }).pipe(take(1)).subscribe({
       next: () => {
-        console.log('✅ Birthday saved successfully');
         // Il valore è già aggiornato, nessuna azione necessaria
       },
       error: (err) => {
-        console.error('❌ Error saving birthday:', err);
         // ⚠️ ROLLBACK: Ripristina valori precedenti
         const current = this.profile();
         if (current) {
@@ -1124,48 +1051,34 @@ export class Aside {
   
   // Salva località (con optimistic update)
   saveLocation(): void {
-    console.log('🔵 saveLocation() called');
-    console.log('  - editingLocation:', this.editingLocation());
-    console.log('  - tempLocation:', this.tempLocation);
-    
     const location = this.tempLocation.trim();
-    console.log('  - location (trimmed):', location);
     
     if (!location) {
-      console.log('❌ saveLocation: location is empty, closing input');
       this.editingLocation.set(false);
       return;
     }
     
     // Salva valore precedente per rollback
     const currentProfile = this.profile();
-    if (!currentProfile) {
-      console.log('❌ saveLocation: currentProfile is null');
-      return;
-    }
+    if (!currentProfile) return;
     
     const previousLocation = currentProfile.location;
-    console.log('  - previousLocation:', previousLocation);
     
     // Chiudi editing PRIMA dell'optimistic update per evitare doppi trigger
     this.editingLocation.set(false);
-    console.log('✅ saveLocation: closed editing, starting save');
     
     // 🚀 OPTIMISTIC UPDATE: Aggiorna immediatamente l'interfaccia
     this.profile.set({ ...currentProfile, location });
     this.tempLocation = '';
     
-    console.log('💾 Saving location (optimistic):', location);
     const url = apiUrl('profile');
     
     // Invia richiesta al backend
     this.http.put(url, { location }).pipe(take(1)).subscribe({
       next: () => {
-        console.log('✅ Location saved successfully');
         // Il valore è già aggiornato, nessuna azione necessaria
       },
       error: (err) => {
-        console.error('❌ Error saving location:', err);
         // ⚠️ ROLLBACK: Ripristina valore precedente
         const current = this.profile();
         if (current) {

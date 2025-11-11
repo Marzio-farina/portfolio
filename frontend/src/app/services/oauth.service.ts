@@ -60,7 +60,6 @@ export class OAuthService {
    */
   loginWithProvider(provider: OAuthProvider): void {
     try {
-      console.log(`🔐 Iniziando autenticazione OAuth con ${provider}`);
       
       // Redirect alla route backend che gestisce l'OAuth
       const oauthUrl = `${this.backendUrl}/api/auth/${provider}`;
@@ -95,8 +94,6 @@ export class OAuthService {
       }
 
       if (token) {
-        console.log(`✅ OAuth callback ricevuto da ${provider}`);
-        
         // Prima carica i dati dell'utente per ottenere lo slug
         this.http.get<{ id: number; slug?: string }>(
           `${this.backendUrl}/api/me`,
@@ -109,7 +106,6 @@ export class OAuthService {
             
             // Salva il token con la chiave corretta
             localStorage.setItem(tokenKey, token);
-            console.log(`✅ OAuth: Token salvato per slug: ${userSlug || 'main'}`);
             
             // Aggiorna AuthService
             this.auth.token.set(token);
@@ -119,7 +115,6 @@ export class OAuthService {
             this.auth.refreshMe();
           },
           error: (err) => {
-            console.error('Errore caricamento ID utente OAuth', err);
             // Fallback: salva come main se non riusciamo a ottenere i dati
             localStorage.setItem('auth_token_main', token);
             this.auth.token.set(token);

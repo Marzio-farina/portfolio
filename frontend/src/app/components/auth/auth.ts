@@ -119,27 +119,32 @@ export class Auth {
         this.success.set(`Accesso effettuato come ${res.user?.email || 'utente'}`);
         this.notificationService.clear();
         
-        // Reindirizza direttamente usando lo slug dalla risposta di login
-        const userSlug = ((res.user as any)?.slug || '').toLowerCase();
+        // Pulisci la cache del profilo per forzare il caricamento dei dati del nuovo utente
+        this.aboutProfile.clearCache();
         
-        if (userSlug && res.user) {
-          console.log('🔑 Login successful! User:', res.user.name, 'ID:', res.user.id, 'Slug:', userSlug);
-          // Pulisci la cache del profilo per forzare il caricamento dei dati del nuovo utente
-          this.aboutProfile.clearCache();
-          // Imposta il tenant manualmente prima della navigazione
-          this.tenant.setTenant(userSlug, res.user.id);
-          
-          console.log('🔄 Redirecting to:', `/${userSlug}/about`);
-          
-          // Naviga alla pagina personale dell'utente con forza il reload
+        // Reindirizza in base al tipo di utente
+        if (res.user?.id === 1) {
+          // Utente principale (ID=1) → Pagina principale senza slug
+          this.tenant.clear(); // Nessun tenant per l'utente principale
           setTimeout(() => {
-            // Usa window.location.href per forzare un reload completo della pagina
-            window.location.href = `/${userSlug}/about`;
+            window.location.href = '/about';
           }, 300);
         } else {
-          // Fallback se lo slug non è disponibile
-          console.warn('⚠️ No slug available, redirecting to /about');
-          this.router.navigate(['/about']);
+          // Altri utenti → Pagina con slug
+          const userSlug = ((res.user as any)?.slug || '').toLowerCase();
+          
+          if (userSlug && res.user) {
+            // Imposta il tenant manualmente prima della navigazione
+            this.tenant.setTenant(userSlug, res.user.id);
+            
+            // Naviga alla pagina personale dell'utente con forza il reload
+            setTimeout(() => {
+              window.location.href = `/${userSlug}/about`;
+            }, 300);
+          } else {
+            // Fallback: nessuno slug per utenti secondari
+            this.router.navigate(['/about']);
+          }
         }
       },
       error: (err) => {
@@ -173,21 +178,32 @@ export class Auth {
         this.tooltipVisible.set(null);
         this.showRegPass.set(false);
         
-        // Reindirizza direttamente usando lo slug dalla risposta di registrazione
-        const userSlug = ((res.user as any)?.slug || '').toLowerCase();
-        if (userSlug && res.user) {
-          // Pulisci la cache del profilo per forzare il caricamento dei dati del nuovo utente
-          this.aboutProfile.clearCache();
-          // Imposta il tenant manualmente prima della navigazione
-          this.tenant.setTenant(userSlug, res.user.id);
-          // Naviga alla pagina personale dell'utente con forza il reload
+        // Pulisci la cache del profilo per forzare il caricamento dei dati del nuovo utente
+        this.aboutProfile.clearCache();
+        
+        // Reindirizza in base al tipo di utente
+        if (res.user?.id === 1) {
+          // Utente principale (ID=1) → Pagina principale senza slug
+          this.tenant.clear(); // Nessun tenant per l'utente principale
           setTimeout(() => {
-            // Usa window.location.href per forzare un reload completo della pagina
-            window.location.href = `/${userSlug}/about`;
+            window.location.href = '/about';
           }, 300);
         } else {
-          // Fallback se lo slug non è disponibile
-          this.router.navigate(['/about']);
+          // Altri utenti → Pagina con slug
+          const userSlug = ((res.user as any)?.slug || '').toLowerCase();
+          
+          if (userSlug && res.user) {
+            // Imposta il tenant manualmente prima della navigazione
+            this.tenant.setTenant(userSlug, res.user.id);
+            
+            // Naviga alla pagina personale dell'utente con forza il reload
+            setTimeout(() => {
+              window.location.href = `/${userSlug}/about`;
+            }, 300);
+          } else {
+            // Fallback: nessuno slug per utenti secondari
+            this.router.navigate(['/about']);
+          }
         }
       },
       error: (err) => {
