@@ -67,6 +67,11 @@ export class Aside {
   tempBirthday = '';
   tempLocation = '';
   
+  // Valori temporanei per editing social
+  tempSocialUrl = '';
+  editingSocialProvider = signal<string | null>(null);
+  private socialEditTimer: any = null;
+  
   // Stati di editing per ogni campo
   editingName = signal(false);
   editingSurname = signal(false);
@@ -140,10 +145,42 @@ export class Aside {
   birthdayISO   = computed(() => this.profile()?.date_of_birth ?? null);
   locationTxt   = computed(() => this.profile()?.location ?? null);
 
-  // Social dinamici
+  // Social dinamici (solo configurati)
   socials = computed<SocialLink[]>(() =>
     (this.profile()?.socials ?? []).filter((s: SocialLink) => !!s.url)
   );
+  
+  // Lista completa social per edit mode (include quelli mancanti)
+  allPossibleSocials = ['facebook', 'instagram', 'github', 'linkedin', 'x', 'youtube'] as const;
+  
+  // Social per edit mode: include quelli configurati + segnaposto per quelli mancanti
+  socialsForEdit = computed<Array<SocialLink & { isEmpty?: boolean }>>(() => {
+    if (!this.editMode()) {
+      return this.socials(); // In modalità normale, solo configurati
+    }
+    
+    const configured = this.profile()?.socials ?? [];
+    const result: Array<SocialLink & { isEmpty?: boolean }> = [];
+    
+    // Aggiungi tutti i social possibili
+    this.allPossibleSocials.forEach(provider => {
+      const existing = configured.find(s => s.provider === provider);
+      if (existing && existing.url) {
+        // Social configurato
+        result.push(existing);
+      } else {
+        // Social mancante → segnaposto
+        result.push({
+          provider: provider,
+          handle: null,
+          url: null,
+          isEmpty: true
+        });
+      }
+    });
+    
+    return result;
+  });
 
   mainAvatarData = computed(() => {
     const p = this.profile();
@@ -574,6 +611,159 @@ export class Aside {
           this.profile.set({ ...current, title: previousTitle });
         }
         this.notification.add('error', 'Errore durante la rimozione del titolo', 'title-clear', false);
+      }
+    });
+  }
+  
+  // ========================================
+  // EDITING SOCIAL LINKS
+  // ========================================
+  
+  startAddSocial(event: Event, provider: string): void {
+    event.preventDefault();
+    event.stopPropagation();
+    
+    // Cancella timer precedente se esiste
+    if (this.socialEditTimer) {
+      clearTimeout(this.socialEditTimer);
+      this.socialEditTimer = null;
+    }
+    
+    this.tempSocialUrl = '';
+    this.editingSocialProvider.set(provider);
+    
+    // Focus automatico sull'input dopo rendering
+    setTimeout(() => {
+      const input = document.querySelector(`input[name="socialUrl-${provider}"]`) as HTMLInputElement;
+      if (input) input.focus();
+    }, 50);
+    
+    // Timer: chiude automaticamente dopo 5 secondi se non viene inserito nulla
+    this.socialEditTimer = setTimeout(() => {
+      if (this.editingSocialProvider() === provider && !this.tempSocialUrl.trim()) {
+        this.editingSocialProvider.set(null);
+        this.tempSocialUrl = '';
+      }
+      this.socialEditTimer = null;
+    }, 5000);
+  }
+  
+  handleSocialClick(event: Event, social: SocialLink & { isEmpty?: boolean }): void {
+    if (social.isEmpty && this.editMode()) {
+      this.startAddSocial(event, social.provider);
+    } else if (social.isEmpty) {
+      event.preventDefault();
+    }
+    // Altrimenti lascia che il link funzioni normalmente
+  }
+  
+  saveSocial(provider: string): void {
+    // Cancella timer quando l'utente interagisce
+    if (this.socialEditTimer) {
+      clearTimeout(this.socialEditTimer);
+      this.socialEditTimer = null;
+    }
+    
+    // Previeni salvataggi duplicati
+    if (this.editingSocialProvider() !== provider) {
+      return;
+    }
+    
+    const url = this.tempSocialUrl.trim();
+    if (!url) {
+      // Se vuoto, chiudi senza salvare
+      this.editingSocialProvider.set(null);
+      this.tempSocialUrl = '';
+      return;
+    }
+    
+    const currentProfile = this.profile();
+    if (!currentProfile) return;
+    
+    const previousSocials = currentProfile.socials;
+    
+    // Chiudi editing PRIMA dell'optimistic update
+    this.editingSocialProvider.set(null);
+    this.tempSocialUrl = '';
+    
+    // 🚀 OPTIMISTIC UPDATE: Aggiungi/Aggiorna il social nell'array
+    const existingIndex = currentProfile.socials.findIndex(s => s.provider === provider);
+    let updatedSocials;
+    
+    if (existingIndex >= 0) {
+      // Aggiorna esistente
+      updatedSocials = [...currentProfile.socials];
+      updatedSocials[existingIndex] = { ...updatedSocials[existingIndex], url, handle: provider };
+    } else {
+      // Aggiungi nuovo
+      updatedSocials = [...currentProfile.socials, { provider, url, handle: provider }];
+    }
+    
+    this.profile.set({ ...currentProfile, socials: updatedSocials });
+    
+    const apiUrlPath = apiUrl('social-accounts');
+    
+    // Invia richiesta al backend
+    this.http.post(apiUrlPath, { provider, url, handle: provider }).pipe(take(1)).subscribe({
+      next: () => {
+        this.notification.add('success', `${provider} aggiunto`, 'social-save', false);
+        // Invalida cache per ricaricare i dati
+        this.svc.clearCache();
+      },
+      error: (err) => {
+        console.error('❌ Error saving social:', err);
+        // ⚠️ ROLLBACK: Ripristina array precedente
+        const current = this.profile();
+        if (current) {
+          this.profile.set({ ...current, socials: previousSocials });
+        }
+        this.notification.add('error', `Errore durante l'aggiunta di ${provider}`, 'social-save', false);
+      }
+    });
+  }
+  
+  cancelAddSocial(): void {
+    // Cancella timer se esiste
+    if (this.socialEditTimer) {
+      clearTimeout(this.socialEditTimer);
+      this.socialEditTimer = null;
+    }
+    
+    this.editingSocialProvider.set(null);
+    this.tempSocialUrl = '';
+  }
+  
+  deleteSocial(event: Event, provider: string): void {
+    event.stopPropagation();
+    event.preventDefault();
+    
+    const currentProfile = this.profile();
+    if (!currentProfile) return;
+    
+    // Salva l'array precedente per rollback
+    const previousSocials = currentProfile.socials;
+    
+    // 🚀 OPTIMISTIC UPDATE: Rimuovi immediatamente il social dall'array
+    const updatedSocials = currentProfile.socials.filter(s => s.provider !== provider);
+    this.profile.set({ ...currentProfile, socials: updatedSocials });
+    
+    const url = apiUrl(`social-accounts/${provider}`);
+    
+    // Invia richiesta al backend
+    this.http.delete(url).pipe(take(1)).subscribe({
+      next: () => {
+        this.notification.add('success', `${provider} rimosso`, 'social-delete', false);
+        // Invalida cache per ricaricare i dati
+        this.svc.clearCache();
+      },
+      error: (err) => {
+        console.error('❌ Error deleting social:', err);
+        // ⚠️ ROLLBACK: Ripristina array precedente
+        const current = this.profile();
+        if (current) {
+          this.profile.set({ ...current, socials: previousSocials });
+        }
+        this.notification.add('error', `Errore durante la rimozione di ${provider}`, 'social-delete', false);
       }
     });
   }

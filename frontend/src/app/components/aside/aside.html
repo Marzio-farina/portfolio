@@ -394,10 +394,37 @@
 
       <!-- SOCIAL DINAMICI -->
         <ul class="socials">
-          @for (s of socials(); track s.provider) {
-            <li>
-              <a class="contact__icon" [href]="s.url!" target="_blank" rel="noopener" [attr.aria-label]="s.provider">
-                @switch (iconKind(s.provider)) {
+          @for (s of socialsForEdit(); track s.provider) {
+            <li class="social-item" 
+                [class.social-item--editable]="editMode()"
+                [class.social-item--empty]="s.isEmpty && editingSocialProvider() !== s.provider"
+                [class.social-item--editing]="editingSocialProvider() === s.provider">
+              
+              @if (editingSocialProvider() === s.provider) {
+                <!-- INPUT PER AGGIUNGERE SOCIAL -->
+                <div class="social-input-container">
+                  <input 
+                    type="url" 
+                    [name]="'socialUrl-' + s.provider"
+                    class="social-input" 
+                    [(ngModel)]="tempSocialUrl"
+                    (blur)="saveSocial(s.provider)"
+                    (keydown.enter)="$event.preventDefault(); saveSocial(s.provider)"
+                    (keydown.escape)="$event.preventDefault(); $event.stopPropagation(); cancelAddSocial()"
+                    [placeholder]="'URL ' + s.provider"
+                    autocomplete="off"
+                    #socialInput>
+                </div>
+              } @else {
+                <!-- ICONA SOCIAL -->
+                <a class="contact__icon" 
+                   [class.contact__icon--empty]="s.isEmpty"
+                   [href]="s.url || '#'" 
+                   [attr.target]="s.url ? '_blank' : null" 
+                   [attr.rel]="s.url ? 'noopener' : null" 
+                   [attr.aria-label]="s.provider"
+                   (click)="handleSocialClick($event, s)">
+                  @switch (iconKind(s.provider)) {
                   @case ('facebook') {
                     <svg xmlns="http://www.w3.org/2000/svg" class="icon-20 mute hover-unmute" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">
                       <path d="M22 12a10 10 0 1 0-11.6 9.9v-7H8v-3h2.4V9.8c0-2.4 1.4-3.8 3.6-3.8 1 0 2 .2 2 .2v2.2h-1.1c-1.1 0-1.4.7-1.4 1.3V12h2.4l-.4 3h-2v6.9A10 10 0 0 0 22 12z"/>
@@ -438,7 +465,16 @@
                     </svg>
                   }
                 }
-              </a>
+                </a>
+                @if (editMode() && !s.isEmpty) {
+                  <button 
+                    type="button"
+                    class="social__remove-btn" 
+                    (click)="deleteSocial($event, s.provider)"
+                    [title]="'Rimuovi ' + s.provider"
+                    [attr.aria-label]="'Rimuovi ' + s.provider">×</button>
+                }
+              }
             </li>
           }
           

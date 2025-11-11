@@ -220,17 +220,17 @@
   cursor: pointer;
 }
 
-/* Hover specifico per tema light */
-[data-theme="light"] .contact__icon:hover,
-:not([data-theme]) .contact__icon:hover {
+/* Hover specifico per tema light (esclusi social vuoti) */
+[data-theme="light"] .contact__icon:not(.contact__icon--empty):hover,
+:not([data-theme]) .contact__icon:not(.contact__icon--empty):hover {
   background: var(--accent-primary);
   color: var(--bg-card);
   border-color: var(--accent-primary);
 }
 
-/* Hover reciproco per tema light: quando si passa sopra il container contact */
-[data-theme="light"] .contact:hover .contact__icon,
-:not([data-theme]) .contact:hover .contact__icon {
+/* Hover reciproco per tema light: quando si passa sopra il container contact (esclusi social vuoti) */
+[data-theme="light"] .contact:hover .contact__icon:not(.contact__icon--empty),
+:not([data-theme]) .contact:hover .contact__icon:not(.contact__icon--empty) {
   background: var(--accent-primary);
   color: var(--bg-card);
   border-color: var(--accent-primary);
@@ -265,6 +265,125 @@
   align-items: center;
   gap: 0.75rem; /* Ulteriormente ridotto */
   opacity: 0.9;
+}
+
+/* Social item con position relative per il bottone X */
+.social-item {
+  position: relative;
+  display: inline-flex;
+  transition: all var(--transition-1);
+}
+
+/* In edit mode, mostra il bottone X all'hover */
+.social-item--editable {
+  position: relative;
+}
+
+/* Social vuoto in edit mode (bordo tratteggiato) */
+.social-item--empty .contact__icon {
+  border: 2px dashed var(--accent-primary);
+  background: rgba(var(--accent-primary-rgb), 0.05);
+  cursor: pointer;
+}
+
+/* Override dell'opacity sulle icone SVG dentro social vuoti */
+.social-item--empty .contact__icon svg {
+  opacity: 0.6 !important; /* Applica opacity solo all'SVG, non al contenitore */
+  color: var(--accent-primary) !important;
+}
+
+.social-item--empty .contact__icon:hover {
+  border-color: var(--accent-hover);
+  background: rgba(var(--accent-primary-rgb), 0.1);
+  transform: scale(1.1);
+}
+
+.social-item--empty .contact__icon:hover svg {
+  opacity: 1 !important; /* Icona completamente visibile all'hover */
+}
+
+/* Social in editing (con input) */
+.social-item--editing {
+  position: relative;
+}
+
+.social-input-container {
+  width: 180px; /* Larghezza aumentata per l'input */
+  height: 36px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border: 2px dashed var(--accent-primary);
+  border-radius: 18px; /* Molto più arrotondato */
+  background: rgba(var(--accent-primary-rgb), 0.05);
+  padding: 4px 8px;
+  box-sizing: border-box;
+  transition: all var(--transition-1);
+}
+
+.social-input {
+  width: 100%;
+  padding: 4px 8px;
+  font-size: 0.75rem;
+  font-weight: 600;
+  color: var(--text-primary);
+  background: transparent;
+  border: none;
+  border-radius: 0;
+  outline: none;
+  transition: all var(--transition-1);
+  box-sizing: border-box;
+  text-align: center;
+}
+
+.social-input:focus {
+  outline: none;
+}
+
+.social-input::placeholder {
+  color: var(--text-muted);
+  opacity: 0.6;
+  font-size: 0.7rem;
+}
+
+/* Bottone X per rimuovere social con sfondo sfocato */
+.social__remove-btn {
+  position: absolute;
+  top: -8px;
+  right: -8px;
+  width: 22px;
+  height: 22px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 18px;
+  font-weight: 900;
+  line-height: 1;
+  color: #ef4444;
+  background: rgba(255, 255, 255, 0.3); /* Background semi-trasparente */
+  backdrop-filter: blur(8px); /* Effetto sfocatura */
+  -webkit-backdrop-filter: blur(8px); /* Safari */
+  border: 2px solid #ef4444;
+  border-radius: 50%;
+  cursor: pointer;
+  opacity: 0;
+  transition: all 0.2s ease;
+  z-index: 10;
+  padding: 0;
+}
+
+.social-item--editable:hover .social__remove-btn {
+  opacity: 1;
+}
+
+.social__remove-btn:hover {
+  background: rgba(255, 255, 255, 0.5); /* Background più intenso all'hover */
+  transform: scale(1.08);
+  box-shadow: 0 6px 18px rgba(239, 68, 68, 0.35);
+}
+
+.social__remove-btn:active {
+  transform: scale(1.0);
 }
 
 .socials__link {
