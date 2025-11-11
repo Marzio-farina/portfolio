@@ -14,6 +14,12 @@ class UpdateProfileRequest extends FormRequest
     public function rules(): array
     {
         return [
+            // Campi su users
+            'name'          => ['sometimes','required','string','max:255'], // Il nome è obbligatorio se presente
+            'surname'       => ['nullable','string','max:255'],
+            'date_of_birth' => ['nullable','date','before_or_equal:' . now()->subYears(8)->format('Y-m-d')],
+            
+            // Campi su profiles
             'title'         => ['nullable','string','max:255'],
             'headline'      => ['nullable','string','max:255'],
             'bio'           => ['nullable','string'],
@@ -22,7 +28,6 @@ class UpdateProfileRequest extends FormRequest
             'location_url'  => ['nullable','url','max:500'],
             'avatar_url'    => ['nullable','url','max:500'],
             'icon_id'       => ['nullable','integer','exists:icons,id'],
-            'date_of_birth' => ['nullable','date','before_or_equal:' . now()->subYears(8)->format('Y-m-d')],
         ];
     }
     

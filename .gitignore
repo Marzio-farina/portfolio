@@ -91,3 +91,4 @@ build/
 .env.*.local
 *.local
 .tern-port
+nul

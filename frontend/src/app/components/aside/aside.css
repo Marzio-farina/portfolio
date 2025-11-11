@@ -25,7 +25,13 @@
 /* Overlay icona matita sull'avatar quando autenticato */
 .avatar-wrap {
   position: relative;
-  display: inline-block;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 220px; /* Larghezza fissa per contenere avatar + frecce laterali */
+  height: 120px; /* Altezza fissa per evitare spostamenti */
+  flex-shrink: 0; /* Non si riduce in flex */
+  overflow: visible; /* Permette alle frecce di essere visibili */
 }
 
 .avatar-edit {
@@ -63,6 +69,7 @@
   color: var(--text-secondary);
   transition: color var(--transition-1);
   margin-top: 15px;
+  overflow: visible; /* Permette al bottone X di essere visibile */
 }
 
 .profile__name {
@@ -71,30 +78,245 @@
   line-height: 1.1;
   margin: 0;
   white-space: nowrap; /* Evita il wrap del testo */
-  color: var(--text-primary);
   text-shadow: 0 2px 4px rgba(0, 0, 0, 0.1); /* Ombra sottile per profondità */
   letter-spacing: -0.02em; /* Spaziatura leggermente ridotta per eleganza */
-  background: linear-gradient(135deg, var(--text-primary) 0%, var(--accent-primary) 100%);
-  -webkit-background-clip: text;
-  -webkit-text-fill-color: transparent;
-  background-clip: text;
-  transition: all var(--transition-1);
-}
-
-/* Effetto hover per massima prominenza */
-.profile__name:hover {
-  transform: scale(1.05);
-  text-shadow: 0 4px 8px rgba(0, 0, 0, 0.15);
   background: linear-gradient(135deg, var(--accent-primary) 0%, var(--accent-hover) 100%);
   -webkit-background-clip: text;
   -webkit-text-fill-color: transparent;
   background-clip: text;
+  transition: text-shadow var(--transition-1);
+}
+
+/* Effetto hover sincronizzato su tutta la riga fullname (solo quando NON in edit mode) */
+/* Ingrandimento del contenitore per effetto "unico testo" */
+.profile__fullname-row:not(:has(.profile__name-container--editable)):not(:has(.profile__surname-container--editable)):not(:has(.profile__surname-container--editable-hover)):hover {
+  transform: scale(1.05);
+}
+
+/* Ombra più marcata sui testi in hover */
+.profile__fullname-row:not(:has(.profile__name-container--editable)):not(:has(.profile__surname-container--editable)):not(:has(.profile__surname-container--editable-hover)):hover .profile__name,
+.profile__fullname-row:not(:has(.profile__name-container--editable)):not(:has(.profile__surname-container--editable)):not(:has(.profile__surname-container--editable-hover)):hover .profile__surname {
+  text-shadow: 0 4px 8px rgba(0, 0, 0, 0.15);
+}
+
+/* Riga che contiene nome e cognome affiancati */
+.profile__fullname-row {
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+  gap: 8px;
+  flex-wrap: wrap;
+  width: fit-content;
+  transition: all var(--transition-1);
+  overflow: visible; /* Permette al bottone X di essere visibile fuori dal contenitore */
+}
+
+/* Cognome con stesso stile del nome */
+.profile__surname {
+  display: inline-block; /* Necessario per span per supportare transforms */
+  font-size: 1.8rem !important; /* Override del reset globale span { font-size: 0.85rem !important } */
+  font-weight: 800; /* Stesso del nome */
+  line-height: 1.1 !important;
+  margin: 0;
+  white-space: nowrap;
+  text-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+  letter-spacing: -0.02em;
+  background: linear-gradient(135deg, var(--accent-primary) 0%, var(--accent-hover) 100%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+  transition: text-shadow var(--transition-1);
+}
+
+/* Placeholder per cognome vuoto in edit mode */
+.profile__surname-placeholder {
+  /* Stesse dimensioni dell'input per evitare cambiamenti visivi */
+  width: 100%; /* Si adatta al contenitore (180px) */
+  padding: 6px 12px; /* Padding per dare spazio al testo */
+  
+  /* Stili testo */
+  font-size: 0.9rem;
+  font-weight: 600;
+  color: var(--text-muted);
+  opacity: 0.7;
+  text-align: center;
+  
+  /* Layout */
+  display: block;
+  cursor: pointer;
+  user-select: none;
+  box-sizing: border-box; /* Include padding e border nel calcolo della larghezza */
+  
+  /* Nessun bordo sul placeholder stesso (il bordo è sul contenitore) */
+  border: none;
+  border-radius: 0;
+  /* Nessun background, usa quello del contenitore */
+  
+  transition: all var(--transition-1);
+}
+
+.profile__surname-placeholder:hover {
+  opacity: 1;
+  color: var(--accent-primary);
 }
 
 .profile__role {
   margin: 0.125rem 0 0;
   opacity: 0.7;
   font-size: 0.9rem; /* Ridotto per compattezza */
+}
+
+/* ========================================
+   EDITING NOME E COGNOME (INLINE)
+   ======================================== */
+
+.profile__name-container,
+.profile__surname-container {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  transition: all var(--transition-1);
+  overflow: visible; /* Permette al bottone X di essere visibile fuori dal contenitore */
+}
+
+/* Nome o cognome in edit mode (hover su esistente) */
+.profile__name-container--editable,
+.profile__surname-container--editable-hover {
+  cursor: pointer;
+  padding: 4px 0; /* Padding verticale uniforme */
+  border-radius: 6px;
+  border: 2px dashed transparent;
+  transition: all var(--transition-1);
+  margin: -4px 0; /* Compensazione per il border e padding */
+}
+
+/* Spostamento sottile in edit mode per centrare meglio */
+.profile__name-container--editable {
+  margin-left: 1px; /* Nome spostato 1px a destra */
+}
+
+.profile__surname-container--editable-hover {
+  margin-right: 1px; /* Cognome spostato 1px a sinistra */
+  width: 150px; /* Larghezza aumentata per distanziare le icone */
+}
+
+.profile__name-container--editable:hover,
+.profile__surname-container--editable-hover:hover {
+  border-color: var(--accent-primary);
+  background: rgba(var(--accent-primary-rgb), 0.05);
+}
+
+/* Cognome editabile vuoto (stile come contatti vuoti) */
+.profile__surname-container--editable {
+  width: 150px; /* Larghezza aumentata per distanziare le icone */
+  padding: 4px 0; /* Padding verticale uniforme */
+  border-radius: 8px; /* Arrotondamento come contatti */
+  border: 2px dashed var(--accent-primary); /* Bordo tratteggiato arancione */
+  background: rgba(var(--accent-primary-rgb), 0.05); /* Background semi-trasparente */
+  transition: all var(--transition-1);
+  margin: -4px 0; /* Compensazione per il border e padding */
+  margin-right: 1px; /* Cognome spostato 1px a sinistra */
+}
+
+.profile__surname-container--editable:hover {
+  border-color: var(--accent-hover);
+  background: rgba(var(--accent-primary-rgb), 0.1);
+}
+
+/* Quando contiene un input attivo, cambia bordo da dashed a solid */
+.profile__surname-container--editable:has(input) {
+  border-style: solid;
+}
+
+/* Input editing */
+.profile__input {
+  width: 100%; /* Si adatta al contenitore */
+  padding: 6px 12px; /* Stesso padding del placeholder */
+  font-size: 0.9rem;
+  font-weight: 600;
+  color: var(--text-primary);
+  /* Nessun background, usa quello del contenitore */
+  border: none; /* Nessun bordo (il bordo è sul contenitore) */
+  border-radius: 0;
+  outline: none;
+  transition: all var(--transition-1);
+  box-sizing: border-box; /* Include padding e border nel calcolo della larghezza */
+}
+
+.profile__input:focus {
+  /* Nessun effetto focus sul bordo, il focus è visibile dal contenitore */
+  outline: none;
+}
+
+.profile__input::placeholder {
+  color: var(--text-muted);
+  opacity: 0.6;
+}
+
+/* Icona matita per editing inline nome/cognome */
+.profile__inline-edit-icon {
+  width: 18px;
+  height: 18px;
+  color: var(--accent-primary);
+  opacity: 0;
+  transition: opacity var(--transition-1), transform var(--transition-1);
+  flex-shrink: 0;
+  margin-right: 8px;
+}
+
+/* Icona a sinistra (per il nome) */
+.profile__inline-edit-icon--left {
+  margin-right: 8px;
+  margin-left: -4px; /* Spostata leggermente a sinistra */
+  order: -1; /* Forza posizionamento a sinistra */
+}
+
+.profile__name-container--editable:hover .profile__inline-edit-icon,
+.profile__surname-container--editable-hover:hover .profile__inline-edit-icon {
+  opacity: 1;
+}
+
+.profile__inline-edit-icon:hover {
+  transform: scale(1.1);
+}
+
+/* Bottone X per rimuovere cognome (stile admin-delete-button) */
+.profile__remove-btn {
+  position: absolute;
+  top: -12px;
+  right: -12px;
+  width: 28px;
+  height: 28px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 24px;
+  font-weight: 900;
+  line-height: 1;
+  color: #ef4444; /* X rossa */
+  background: transparent; /* Background trasparente come admin-delete-button */
+  border: 3px solid #ef4444;
+  border-radius: 50%;
+  cursor: pointer;
+  opacity: 0;
+  transition: all 0.2s ease;
+  z-index: 10;
+  padding: 0;
+}
+
+.profile__surname-container--editable-hover:hover .profile__remove-btn {
+  opacity: 1;
+}
+
+.profile__remove-btn:hover {
+  background: transparent; /* Mantiene background trasparente anche al hover */
+  transform: scale(1.08);
+  box-shadow: 0 6px 18px rgba(239, 68, 68, 0.35);
+}
+
+.profile__remove-btn:active {
+  transform: scale(1.0);
 }
 
 /* Toggle (in alto a destra) */

@@ -57,12 +57,18 @@ export class Aside {
   private pendingAvatarSel = signal<AvatarSelection | null>(null);
   private saveTimer: any = null;
   
+  // Valori temporanei per editing identità (non signal perché usati con ngModel)
+  tempName = '';
+  tempSurname = '';
+  
   // Valori temporanei per editing contatti (non signal perché usati con ngModel)
   tempPhone = '';
   tempBirthday = '';
   tempLocation = '';
   
   // Stati di editing per ogni campo
+  editingName = signal(false);
+  editingSurname = signal(false);
   editingPhone = signal(false);
   editingBirthday = signal(false);
   editingLocation = signal(false);
@@ -289,6 +295,187 @@ export class Aside {
     }
   }
   
+  // ========================================
+  // EDITING IDENTITÀ (NOME E COGNOME)
+  // ========================================
+  
+  startEditName(): void {
+    const currentProfile = this.profile();
+    if (!currentProfile) return;
+    
+    this.tempName = currentProfile.name || '';
+    this.editingName.set(true);
+    
+    // Focus automatico sull'input dopo rendering
+    setTimeout(() => {
+      const input = document.querySelector('input[name="tempName"]') as HTMLInputElement;
+      if (input) input.focus();
+    }, 50);
+  }
+  
+  startEditSurname(): void {
+    const currentProfile = this.profile();
+    if (!currentProfile) return;
+    
+    this.tempSurname = currentProfile.surname || '';
+    this.editingSurname.set(true);
+    
+    // Focus automatico sull'input dopo rendering
+    setTimeout(() => {
+      const input = document.querySelector('input[name="tempSurname"]') as HTMLInputElement;
+      if (input) input.focus();
+    }, 50);
+  }
+  
+  saveName(): void {
+    // Previeni salvataggi duplicati
+    if (!this.editingName()) {
+      return;
+    }
+    
+    const name = this.tempName.trim();
+    
+    // Validazione: il nome è obbligatorio
+    if (!name) {
+      this.editingName.set(false);
+      this.notification.add('error', 'Il nome è obbligatorio', 'name-validation', false);
+      return;
+    }
+    
+    // Salva valore precedente per rollback
+    const currentProfile = this.profile();
+    if (!currentProfile) return;
+    
+    const previousName = currentProfile.name;
+    
+    // Se il valore non è cambiato, esci
+    if (name === previousName) {
+      this.editingName.set(false);
+      this.tempName = '';
+      return;
+    }
+    
+    // Chiudi editing PRIMA dell'optimistic update per evitare doppi trigger
+    this.editingName.set(false);
+    
+    // 🚀 OPTIMISTIC UPDATE: Aggiorna immediatamente l'interfaccia
+    this.profile.set({ ...currentProfile, name });
+    this.tempName = '';
+    
+    console.log('💾 Saving name (optimistic):', name);
+    const url = apiUrl('profile');
+    
+    // Invia richiesta al backend
+    this.http.put(url, { name }).pipe(take(1)).subscribe({
+      next: () => {
+        console.log('✅ Name saved successfully');
+        this.notification.add('success', 'Nome aggiornato', 'name-save', false);
+        // Invalida cache per ricaricare i dati
+        this.svc.clearCache();
+      },
+      error: (err) => {
+        console.error('❌ Error saving name:', err);
+        // ⚠️ ROLLBACK: Ripristina valore precedente
+        const current = this.profile();
+        if (current) {
+          this.profile.set({ ...current, name: previousName });
+        }
+        // Mostra notifica di errore
+        this.notification.add('error', 'Errore durante il salvataggio del nome', 'name-save', false);
+      }
+    });
+  }
+  
+  saveSurname(): void {
+    // Previeni salvataggi duplicati
+    if (!this.editingSurname()) {
+      return;
+    }
+    
+    const surname = this.tempSurname.trim() || null;
+    
+    // Salva valore precedente per rollback
+    const currentProfile = this.profile();
+    if (!currentProfile) return;
+    
+    const previousSurname = currentProfile.surname;
+    
+    // Se il valore non è cambiato, esci
+    if (surname === previousSurname) {
+      this.editingSurname.set(false);
+      this.tempSurname = '';
+      return;
+    }
+    
+    // Chiudi editing PRIMA dell'optimistic update per evitare doppi trigger
+    this.editingSurname.set(false);
+    
+    // 🚀 OPTIMISTIC UPDATE: Aggiorna immediatamente l'interfaccia
+    this.profile.set({ ...currentProfile, surname });
+    this.tempSurname = '';
+    
+    console.log('💾 Saving surname (optimistic):', surname);
+    const url = apiUrl('profile');
+    
+    // Invia richiesta al backend
+    this.http.put(url, { surname }).pipe(take(1)).subscribe({
+      next: () => {
+        console.log('✅ Surname saved successfully');
+        this.notification.add('success', 'Cognome aggiornato', 'surname-save', false);
+        // Invalida cache per ricaricare i dati
+        this.svc.clearCache();
+      },
+      error: (err) => {
+        console.error('❌ Error saving surname:', err);
+        // ⚠️ ROLLBACK: Ripristina valore precedente
+        const current = this.profile();
+        if (current) {
+          this.profile.set({ ...current, surname: previousSurname });
+        }
+        // Mostra notifica di errore
+        this.notification.add('error', 'Errore durante il salvataggio del cognome', 'surname-save', false);
+      }
+    });
+  }
+  
+  clearSurname(event: Event): void {
+    event.stopPropagation();
+    
+    const currentProfile = this.profile();
+    if (!currentProfile) return;
+    
+    const previousSurname = currentProfile.surname;
+    
+    // 🚀 OPTIMISTIC UPDATE: Rimuovi immediatamente
+    this.profile.set({ ...currentProfile, surname: null });
+    
+    console.log('🗑️ Clearing surname (optimistic)');
+    const url = apiUrl('profile');
+    
+    // Invia richiesta al backend
+    this.http.put(url, { surname: null }).pipe(take(1)).subscribe({
+      next: () => {
+        console.log('✅ Surname cleared successfully');
+        this.notification.add('success', 'Cognome rimosso', 'surname-clear', false);
+        // Invalida cache per ricaricare i dati
+        this.svc.clearCache();
+      },
+      error: (err) => {
+        console.error('❌ Error clearing surname:', err);
+        // ⚠️ ROLLBACK: Ripristina valore precedente
+        const current = this.profile();
+        if (current) {
+          this.profile.set({ ...current, surname: previousSurname });
+        }
+        this.notification.add('error', 'Errore durante la rimozione del cognome', 'surname-clear', false);
+      }
+    });
+  }
+  
+  // ========================================
+  // EDITING CONTATTI
+  // ========================================
+  
   // Attiva editing per phone
   startEditPhone(): void {
     this.tempPhone = this.profile()?.phone || '';
@@ -436,15 +623,25 @@ export class Aside {
   
   // Salva numero di telefono (con optimistic update)
   savePhone(): void {
+    // Previeni salvataggi duplicati
+    if (!this.editingPhone()) {
+      return;
+    }
+    
     const phone = this.tempPhone.trim();
-    this.editingPhone.set(false);
-    if (!phone) return;
+    if (!phone) {
+      this.editingPhone.set(false);
+      return;
+    }
     
     // Salva valore precedente per rollback
     const currentProfile = this.profile();
     if (!currentProfile) return;
     
     const previousPhone = currentProfile.phone;
+    
+    // Chiudi editing PRIMA dell'optimistic update per evitare doppi trigger
+    this.editingPhone.set(false);
     
     // 🚀 OPTIMISTIC UPDATE: Aggiorna immediatamente l'interfaccia
     this.profile.set({ ...currentProfile, phone });
@@ -474,9 +671,16 @@ export class Aside {
   
   // Salva data di nascita (con optimistic update)
   saveBirthday(): void {
+    // Previeni salvataggi duplicati
+    if (!this.editingBirthday()) {
+      return;
+    }
+    
     const birthday = this.tempBirthday.trim();
-    this.editingBirthday.set(false);
-    if (!birthday) return;
+    if (!birthday) {
+      this.editingBirthday.set(false);
+      return;
+    }
     
     // Validazione frontend: la data deve essere almeno 8 anni fa
     const birthDate = new Date(birthday);
@@ -485,6 +689,7 @@ export class Aside {
     
     if (birthDate > eightYearsAgo) {
       console.warn('⚠️ Data di nascita non valida: deve essere almeno 8 anni fa');
+      this.editingBirthday.set(false);
       this.notification.add('error', 'Inserisci una data giusta', 'birthday-validation', false);
       return;
     }
@@ -499,6 +704,9 @@ export class Aside {
     // Formatta la data in formato italiano (dd/mm/yyyy)
     const [year, month, day] = birthday.split('-');
     const dateIt = `${day}/${month}/${year}`;
+    
+    // Chiudi editing PRIMA dell'optimistic update per evitare doppi trigger
+    this.editingBirthday.set(false);
     
     // 🚀 OPTIMISTIC UPDATE: Aggiorna immediatamente l'interfaccia
     this.profile.set({ 
@@ -537,15 +745,25 @@ export class Aside {
   
   // Salva località (con optimistic update)
   saveLocation(): void {
+    // Previeni salvataggi duplicati
+    if (!this.editingLocation()) {
+      return;
+    }
+    
     const location = this.tempLocation.trim();
-    this.editingLocation.set(false);
-    if (!location) return;
+    if (!location) {
+      this.editingLocation.set(false);
+      return;
+    }
     
     // Salva valore precedente per rollback
     const currentProfile = this.profile();
     if (!currentProfile) return;
     
     const previousLocation = currentProfile.location;
+    
+    // Chiudi editing PRIMA dell'optimistic update per evitare doppi trigger
+    this.editingLocation.set(false);
     
     // 🚀 OPTIMISTIC UPDATE: Aggiorna immediatamente l'interfaccia
     this.profile.set({ ...currentProfile, location });

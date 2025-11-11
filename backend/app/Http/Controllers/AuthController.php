@@ -311,11 +311,29 @@ class AuthController extends Controller
             unset($data['icon_id']);
         }
 
-        // Gestione data di nascita (campo su users, non su profile)
+        // Gestione campi su users (non su profile)
+        $userFieldsChanged = false;
+        
+        if (array_key_exists('name', $data)) {
+            $user->name = $data['name'];
+            $userFieldsChanged = true;
+            unset($data['name']);
+        }
+        
+        if (array_key_exists('surname', $data)) {
+            $user->surname = $data['surname'];
+            $userFieldsChanged = true;
+            unset($data['surname']);
+        }
+        
         if (array_key_exists('date_of_birth', $data)) {
             $user->date_of_birth = $data['date_of_birth'];
-            $user->save();
+            $userFieldsChanged = true;
             unset($data['date_of_birth']);
+        }
+        
+        if ($userFieldsChanged) {
+            $user->save();
         }
         
         // Campi profilo rimanenti

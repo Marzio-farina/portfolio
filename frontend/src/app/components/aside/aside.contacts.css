@@ -16,6 +16,7 @@
   column-gap: var(--space-3); /* Ridotto da var(--space-3) */
   margin: 6px 0 0 0; /* Ulteriormente ridotto */
   gap: 6px; /* Ulteriormente ridotto */
+  overflow: visible; /* Permette al bottone X di essere visibile fuori dal contenitore */
 }
 
 /* Contatto editabile (campo mancante in edit mode O in editing) */
@@ -25,8 +26,7 @@
   padding: 0 16px 0 0; /* Padding extra a destra per respiro */
   background: rgba(var(--accent-primary-rgb, 255, 138, 0), 0.05);
   transition: all var(--transition-1);
-  width: 100%; /* Larghezza fissa uguale per tutti */
-  max-width: 220px !important; /* Larghezza massima uniforme */
+  width: 250px; /* Larghezza fissa uguale per tutti */
 }
 
 .contact--editable:hover {
@@ -41,9 +41,7 @@
   transition: all var(--transition-1);
   border-radius: 8px;
   padding: 0 16px 0 0; /* Padding extra a destra per respiro */
-  width: fit-content; /* Si adatta al contenuto */
-  min-width: 180px; /* Larghezza minima uniforme */
-  max-width: 100%;
+  width: 250px; /* Larghezza fissa uguale per tutti */
   border: 2px dashed transparent; /* Bordo trasparente per evitare shift */
 }
 
@@ -118,6 +116,7 @@
   border: 1px solid var(--border-primary);
   border-radius: 4px;
   background: var(--bg-card);
+  box-sizing: border-box; /* Include padding e border nel calcolo della larghezza */
   color: var(--text-primary);
   font-size: 0.8rem;
   transition: all var(--transition-1);

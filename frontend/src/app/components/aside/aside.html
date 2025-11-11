@@ -40,15 +40,84 @@
         <app-avatar-editor
           [context]="'aside'"
           [editing]="editMode()"
-          [width]="100"
-          [height]="100"
+          [width]="120"
+          [height]="120"
           [initialUrl]="mainAvatarData()?.img || null"
           (avatarChange)="onAvatarEditorChange($event)">
         </app-avatar-editor>
       }
     </div>
     <div class="profile__identity">
-      <h1 class="profile__name" [title]="fullName() || '—'">{{ fullName() || '—' }}</h1>
+      <!-- NOME E COGNOME (sulla stessa riga) -->
+      <div class="profile__fullname-row">
+        <!-- NOME (sempre visibile, obbligatorio) -->
+        <div class="profile__name-container"
+             [class.profile__name-container--editable]="editMode() && !editingName()"
+             [class.profile__name-container--editing]="editMode() && editingName()"
+             (click)="editMode() && !editingName() ? startEditName() : null">
+        @if (!editMode() || !editingName()) {
+          @if (editMode() && !editingName()) {
+            <svg class="profile__inline-edit-icon profile__inline-edit-icon--left" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true">
+              <path d="M11 4H4a2 2 0 00-2 2v14a2 2 0 002 2h14a2 2 0 002-2v-7"/>
+              <path d="M18.5 2.5a2.121 2.121 0 013 3L12 15l-4 1 1-4 9.5-9.5z"/>
+            </svg>
+          }
+          <h1 class="profile__name" [title]="profile()?.name || '—'">{{ profile()?.name || '—' }}</h1>
+        } @else {
+            <input 
+              type="text" 
+              name="tempName"
+              class="profile__input" 
+              [(ngModel)]="tempName"
+              (blur)="saveName()"
+              (keydown.enter)="saveName()"
+              (keydown.escape)="editingName.set(false); tempName = ''"
+              placeholder="Nome"
+              maxlength="255"
+              #nameInput>
+          }
+        </div>
+
+        <!-- COGNOME (opzionale, con X per rimuovere) -->
+        @if (profile()?.surname || editMode()) {
+          <div class="profile__surname-container"
+               [class.profile__surname-container--editable]="editMode() && (!profile()?.surname || editingSurname())"
+               [class.profile__surname-container--editable-hover]="editMode() && profile()?.surname && !editingSurname()"
+               (click)="editMode() && !editingSurname() ? startEditSurname() : null">
+            @if (!editMode() || (!editingSurname() && profile()?.surname)) {
+              <span class="profile__surname">{{ profile()?.surname }}</span>
+              @if (editMode() && profile()?.surname && !editingSurname()) {
+                <svg class="profile__inline-edit-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true">
+                  <path d="M11 4H4a2 2 0 00-2 2v14a2 2 0 002 2h14a2 2 0 002-2v-7"/>
+                  <path d="M18.5 2.5a2.121 2.121 0 013 3L12 15l-4 1 1-4 9.5-9.5z"/>
+                </svg>
+                <button 
+                  type="button"
+                  class="profile__remove-btn" 
+                  (click)="clearSurname($event)"
+                  title="Rimuovi cognome"
+                  aria-label="Rimuovi cognome">×</button>
+              }
+            } @else if (editMode() && !profile()?.surname && !editingSurname()) {
+              <!-- Placeholder cliccabile quando il cognome è vuoto -->
+              <span class="profile__surname-placeholder">Cognome</span>
+            } @else {
+              <input 
+                type="text" 
+                name="tempSurname"
+                class="profile__input" 
+                [(ngModel)]="tempSurname"
+                (blur)="saveSurname()"
+                (keydown.enter)="saveSurname()"
+                (keydown.escape)="editingSurname.set(false); tempSurname = ''"
+                placeholder="Cognome"
+                maxlength="255"
+                #surnameInput>
+            }
+          </div>
+        }
+      </div>
+      
       <p class="profile__role">Full Stack Developer</p>
     </div>
 
