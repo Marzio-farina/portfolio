@@ -61,10 +61,11 @@ class CurriculumSeeder extends Seeder
             ]
         ];
 
-        // Inserimento
+        // Inserimento - assegna tutti i CV all'utente principale (ID = 1)
         foreach ($education as $row) {
             [$start, $end] = $this->splitYears($row['years']);
             Cv::create([
+                'user_id'     => 1, // Assegna all'utente principale
                 'type'        => 'education',
                 'title'       => $row['title'],
                 'time_start'  => $start?->toDateString(),
@@ -76,6 +77,7 @@ class CurriculumSeeder extends Seeder
         foreach ($experience as $row) {
             [$start, $end] = $this->splitYears($row['years']);
             Cv::create([
+                'user_id'     => 1, // Assegna all'utente principale
                 'type'        => 'experience',
                 'title'       => $row['title'],
                 'time_start'  => $start?->toDateString(),

@@ -6,6 +6,7 @@ use App\Http\Controllers\Controller;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Facades\Cache;
+use Illuminate\Support\Facades\Log;
 
 /**
  * Proxy per le chiamate all'API di GitHub
@@ -27,9 +28,9 @@ class GitHubProxyController extends Controller
         
         $stats = Cache::remember($cacheKey, 3600, function () use ($owner, $repo) {
             try {
-                \Log::info("[GitHubProxy] Richiesta stats per {$owner}/{$repo}");
+                Log::info("[GitHubProxy] Richiesta stats per {$owner}/{$repo}");
                 $token = env('GITHUB_TOKEN'); // Token opzionale in .env
-                \Log::info("[GitHubProxy] Token presente: " . ($token ? 'SI' : 'NO'));
+                Log::info("[GitHubProxy] Token presente: " . ($token ? 'SI' : 'NO'));
                 
                 // Headers per la richiesta
                 $headers = [
@@ -43,14 +44,14 @@ class GitHubProxyController extends Controller
                 }
                 
                 // Ottiene info repository
-                \Log::info("[GitHubProxy] Chiamata API: https://api.github.com/repos/{$owner}/{$repo}");
+                Log::info("[GitHubProxy] Chiamata API: https://api.github.com/repos/{$owner}/{$repo}");
                 $repoResponse = Http::withHeaders($headers)
                     ->get("https://api.github.com/repos/{$owner}/{$repo}");
                 
-                \Log::info("[GitHubProxy] Risposta repo - Status: " . $repoResponse->status());
+                Log::info("[GitHubProxy] Risposta repo - Status: " . $repoResponse->status());
                 
                 if (!$repoResponse->successful()) {
-                    \Log::error("[GitHubProxy] Errore repo response: " . $repoResponse->body());
+                    Log::error("[GitHubProxy] Errore repo response: " . $repoResponse->body());
                     return null;
                 }
                 
@@ -82,8 +83,8 @@ class GitHubProxyController extends Controller
                 ];
                 
             } catch (\Exception $e) {
-                \Log::error('[GitHubProxy] Errore GitHub API: ' . $e->getMessage());
-                \Log::error('[GitHubProxy] Stack trace: ' . $e->getTraceAsString());
+                Log::error('[GitHubProxy] Errore GitHub API: ' . $e->getMessage());
+                Log::error('[GitHubProxy] Stack trace: ' . $e->getTraceAsString());
                 return null;
             }
         });
@@ -155,7 +156,7 @@ class GitHubProxyController extends Controller
                 return $totalCommits;
                 
             } catch (\Exception $e) {
-                \Log::error('Errore GitHub API (user commits): ' . $e->getMessage());
+                Log::error('Errore GitHub API (user commits): ' . $e->getMessage());
                 return null;
             }
         });

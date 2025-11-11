@@ -23,10 +23,13 @@ class CvController extends Controller
         
         if ($hasUserIdColumn) {
             if ($userId) {
+                // Filtra per utente specifico
                 $query->where('user_id', $userId);
             } else {
-                // Se non specificato, mostra i record senza user_id (comportamento legacy)
-                $query->whereNull('user_id');
+                // Se non specificato, usa l'utente principale (da ENV o default a 1)
+                // Questo garantisce che sul path senza slug si vedano solo i CV dell'utente principale
+                $publicUserId = (int) (env('PUBLIC_USER_ID') ?? 1);
+                $query->where('user_id', $publicUserId);
             }
         }
         // Se la colonna non esiste, mostra tutti (comportamento pre-migration)

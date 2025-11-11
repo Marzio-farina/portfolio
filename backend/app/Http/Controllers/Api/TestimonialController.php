@@ -40,9 +40,14 @@ class TestimonialController extends Controller
             ->with(['user:id,name,surname', 'icon:id,img,alt'])
             ->orderByDesc('id');
 
-        // Filtro per utente (tenant) se specificato
-        if ($request->filled('user_id')) {
-            $query->where('user_id', $request->query('user_id'));
+        // Filtro per utente (tenant) se specificato, altrimenti usa l'utente principale
+        $userId = $request->query('user_id');
+        if ($userId) {
+            $query->where('user_id', $userId);
+        } else {
+            // Default all'utente principale per visualizzazione pubblica
+            $publicUserId = (int) (env('PUBLIC_USER_ID') ?? 1);
+            $query->where('user_id', $publicUserId);
         }
 
         // se vuoi la paginazione

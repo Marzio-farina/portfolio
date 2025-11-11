@@ -13,25 +13,18 @@ class GitHubRepositorySeeder extends Seeder
      */
     public function run(): void
     {
-        // Trova l'utente principale (Marzio)
-        $user = User::where('email', 'marziofarina@icloud.com')->first();
-
-        if (!$user) {
-            $this->command->warn('⚠️ Utente "Marzio" non trovato. Esegui prima UserSeeder.');
-            return;
-        }
-
-        // Crea o aggiorna la repository GitHub del portfolio
+        // Assegna la repository GitHub all'utente principale (ID = 1)
         GitHubRepository::updateOrCreate(
-            ['user_id' => $user->id],
+            ['user_id' => 1],
             [
                 'owner' => 'Marzio-farina',
                 'repo' => 'portfolio',
                 'url' => 'https://github.com/Marzio-farina/portfolio',
+                'order' => 0,
             ]
         );
 
-        $this->command->info('✅ Repository GitHub di Marzio aggiornata correttamente.');
+        $this->command->info('✅ Repository GitHub assegnata all\'utente ID=1');
     }
 }
 

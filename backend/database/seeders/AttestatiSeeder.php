@@ -14,15 +14,10 @@ class AttestatiSeeder extends Seeder
      */
     public function run(): void
     {
-        // Prendi un utente esistente o creane uno al volo se non c'è
-        $user = User::first() ?? User::factory()->create([
-            'name' => 'Admin',
-            'email' => 'admin@example.com',
-        ]);
-
+        // Assegna tutti gli attestati all'utente principale (ID = 1)
         DB::table('attestati')->insert([
             [
-                'user_id'       => $user->id,
+                'user_id'       => 1,
                 'title'         => 'Data Week',
                 'description'   => 'Conoscenza di Python e Tableau',
                 'poster'        => 'attestati/1 - Boolean/poster.webp',
@@ -42,7 +37,7 @@ class AttestatiSeeder extends Seeder
                 'updated_at'    => now(),
             ],
             [
-                'user_id'       => $user->id,
+                'user_id'       => 1,
                 'title'         => 'Python',
                 'description'   => 'Conoscenza di Python base',
                 'poster'        => 'attestati/2 - ProfessionAI/poster.webp',
@@ -62,7 +57,7 @@ class AttestatiSeeder extends Seeder
                 'updated_at'    => now(),
             ],
             [
-                'user_id'       => $user->id,
+                'user_id'       => 1,
                 'title'         => 'Progettazione BIM',
                 'description'   => 'Conoscenza di BIM - fatturazione Elettronica',
                 'poster'        => 'attestati/3 - Acca/poster.webp',
@@ -82,7 +77,7 @@ class AttestatiSeeder extends Seeder
                 'updated_at'    => now(),
             ],
             [
-                'user_id'       => $user->id,
+                'user_id'       => 1,
                 'title'         => 'Node.js',
                 'description'   => '"All you need is Node.js" Attendee',
                 'poster'        => 'attestati/4 - weBeetle/poster.webp',
@@ -102,7 +97,7 @@ class AttestatiSeeder extends Seeder
                 'updated_at'    => now(),
             ],
             [
-                'user_id'       => $user->id,
+                'user_id'       => 1,
                 'title'         => 'Chatbot con GPT-4',
                 'description'   => 'Creazione di un chatbot con GPT4 iniziando da javascript e API di Openai',
                 'poster'        => 'attestati/5 - TheCommunitiesBay/poster.webp',
@@ -122,7 +117,7 @@ class AttestatiSeeder extends Seeder
                 'updated_at'    => now(),
             ],
             [
-                'user_id'       => $user->id,
+                'user_id'       => 1,
                 'title'         => 'Python',
                 'description'   => 'Conoscenza di Python base',
                 'poster'        => 'attestati/6 - hackerrank/poster.webp',
@@ -142,7 +137,7 @@ class AttestatiSeeder extends Seeder
                 'updated_at'    => now(),
             ],
             [
-                'user_id'       => $user->id,
+                'user_id'       => 1,
                 'title'         => 'Full Stack Web Developer',
                 'description'   => 'Corso Hackademy HTML,CSS, Javascript, PHP, Framework laravel e Metodologie Agili',
                 'poster'        => 'attestati/7 - Aulab/poster.webp',
@@ -162,7 +157,7 @@ class AttestatiSeeder extends Seeder
                 'updated_at'    => now(),
             ],
             [
-                'user_id'       => $user->id,
+                'user_id'       => 1,
                 'title'         => 'Corso di TypeScript',
                 'description'   => 'Corso completo di TypeScript, partendo dalle basi fino agli aspetti avanzati del linguaggio',
                 'poster'        => 'attestati/8 - FabioBiondi/poster.webp',
@@ -182,7 +177,7 @@ class AttestatiSeeder extends Seeder
                 'updated_at'    => now(),
             ],
             [
-                'user_id'       => $user->id,
+                'user_id'       => 1,
                 'title'         => 'Coding + AI',
                 'description'   => 'Confronto tra Web Developer e Vibe Developer',
                 'poster'        => 'attestati/9 - Aulab/poster.webp',
@@ -202,7 +197,7 @@ class AttestatiSeeder extends Seeder
                 'updated_at'    => now(),
             ],
             [
-                'user_id'       => $user->id,
+                'user_id'       => 1,
                 'title'         => 'BIM e NTC 2018',
                 'description'   => 'Piattaforme collaborative per la direzione Lavori',
                 'poster'        => 'attestati/10 - Acca/poster.webp',
@@ -222,7 +217,7 @@ class AttestatiSeeder extends Seeder
                 'updated_at'    => now(),
             ],
             [
-                'user_id'       => $user->id,
+                'user_id'       => 1,
                 'title'         => 'Angular Evolution',
                 'description'   => 'Corso di Angular dalle basi ad esperto',
                 'poster'        => 'attestati/11 - FabioBiondi/poster.webp',
@@ -242,7 +237,7 @@ class AttestatiSeeder extends Seeder
                 'updated_at'    => now(),
             ],
             [
-                'user_id'       => $user->id,
+                'user_id'       => 1,
                 'title'         => 'Symfony php',
                 'description'   => 'Symfony per la pianificazione di task ricorrenti',
                 'poster'        => 'attestati/12 - TheCommunitiesBay/poster.webp',
@@ -262,7 +257,7 @@ class AttestatiSeeder extends Seeder
                 'updated_at'    => now(),
             ],
             [
-                'user_id'       => $user->id,
+                'user_id'       => 1,
                 'title'         => 'Chatbot con GPT-4',
                 'description'   => 'Creazione di un chatbot con GPT4 - integrando un database vettoriale',
                 'poster'        => 'attestati/13 - TheCommunitiesBay/poster.webp',
@@ -282,7 +277,7 @@ class AttestatiSeeder extends Seeder
                 'updated_at'    => now(),
             ],
             [
-                'user_id'       => $user->id,
+                'user_id'       => 1,
                 'title'         => 'Chatbot con GPT-4',
                 'description'   => 'Creazione di un chatbot con GPT4 - AI agent con langchain',
                 'poster'        => 'attestati/14 - TheCommunitiesBay/poster.webp',
@@ -302,7 +297,7 @@ class AttestatiSeeder extends Seeder
                 'updated_at'    => now(),
             ],
             [
-                'user_id'       => $user->id,
+                'user_id'       => 1,
                 'title'         => 'Javascript Map e Set',
                 'description'   => 'Coding in  live con Javascript Map e Set',
                 'poster'        => 'attestati/15 - TheCommunitiesBay/poster.webp',
@@ -322,7 +317,7 @@ class AttestatiSeeder extends Seeder
                 'updated_at'    => now(),
             ],
             [
-                'user_id'       => $user->id,
+                'user_id'       => 1,
                 'title'         => 'Symfony protezione dei dati',
                 'description'   => 'Conoscenza specifica per la protezione dei dati con Symfony',
                 'poster'        => 'attestati/16 - TheCommunitiesBay/poster.webp',

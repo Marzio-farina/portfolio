@@ -45,8 +45,14 @@ class ProjectController extends Controller
             ])
             ->orderByDesc('id');
 
-        if ($request->filled('user_id')) {
-            $query->where('user_id', $request->query('user_id'));
+        // Filtra per user_id se fornito, altrimenti usa l'utente principale
+        $userId = $request->query('user_id');
+        if ($userId) {
+            $query->where('user_id', $userId);
+        } else {
+            // Default all'utente principale
+            $publicUserId = (int) (env('PUBLIC_USER_ID') ?? 1);
+            $query->where('user_id', $publicUserId);
         }
 
         // Execute paginated query

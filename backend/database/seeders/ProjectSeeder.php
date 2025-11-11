@@ -18,7 +18,8 @@ class ProjectSeeder extends Seeder
         $categories = Category::all();
         $techs = Technology::all();
 
-        Project::factory(5)->create()->each(function ($project) use ($categories, $techs) {
+        // Crea 5 progetti assegnati all'utente principale (ID = 1)
+        Project::factory(5)->create(['user_id' => 1])->each(function ($project) use ($categories, $techs) {
             $project->category_id = $categories->random()->id;
             $project->save();
 
