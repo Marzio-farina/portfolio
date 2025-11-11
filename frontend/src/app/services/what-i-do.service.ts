@@ -36,4 +36,8 @@ export class WhatIDoService {
   create$(dto: CreateWhatIDoDto): Observable<WhatIDoItem> {
     return this.http.post<WhatIDoItem>(apiUrl('what-i-do'), dto);
   }
+
+  delete$(id: number): Observable<any> {
+    return this.http.delete(apiUrl(`what-i-do/${id}`));
+  }
 }

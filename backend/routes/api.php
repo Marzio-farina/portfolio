@@ -205,6 +205,7 @@ Route::middleware(['api', "throttle:{$throttleLimit}", 'db.connection'])
             
             // What I Do Cards - gestione card "Cosa sto facendo"
             Route::post('what-i-do', [WhatIDoController::class, 'store']);
+            Route::delete('what-i-do/{id}', [WhatIDoController::class, 'destroy']);
             
             // GitHub Repositories - gestione repository GitHub (richiede autenticazione)
             Route::post('github-repositories', [GitHubRepositoryController::class, 'store']);

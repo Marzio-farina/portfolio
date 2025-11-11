@@ -106,4 +106,61 @@ class WhatIDoController extends Controller
             ], 500, [], JSON_UNESCAPED_UNICODE);
         }
     }
+
+    /**
+     * Soft delete a "What I Do" card
+     * 
+     * @param Request $request HTTP request
+     * @param int $id Card ID
+     * @return JsonResponse Success response
+     */
+    public function destroy(Request $request, int $id): JsonResponse
+    {
+        try {
+            $user = $request->user();
+            
+            if (!$user) {
+                return response()->json([
+                    'error' => 'Utente non autenticato'
+                ], 401, [], JSON_UNESCAPED_UNICODE);
+            }
+
+            // Trova la card
+            $card = WhatIDo::where('id', $id)
+                ->where('user_id', $user->id)
+                ->first();
+
+            if (!$card) {
+                return response()->json([
+                    'error' => 'Card non trovata o non autorizzato'
+                ], 404, [], JSON_UNESCAPED_UNICODE);
+            }
+
+            // Soft delete
+            $card->delete();
+
+            // Invalida la cache
+            $cacheKey = 'what_i_do_v1:u' . $user->id;
+            Cache::forget($cacheKey);
+            
+            // Invalida anche la cache principale se l'utente è ID=1
+            if ($user->id === 1) {
+                Cache::forget('what_i_do_v1');
+            }
+
+            return response()->json([
+                'message' => 'Card eliminata con successo'
+            ], 200, [], JSON_UNESCAPED_UNICODE);
+        } catch (\Throwable $e) {
+            Log::error('DELETE /api/what-i-do/{id} failed', [
+                'class' => get_class($e),
+                'msg' => $e->getMessage(),
+                'id' => $id
+            ]);
+            
+            return response()->json([
+                'error' => 'Errore durante l\'eliminazione della card'
+            ], 500, [], JSON_UNESCAPED_UNICODE);
+        }
+    }
 }
