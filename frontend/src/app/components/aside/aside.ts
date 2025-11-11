@@ -619,7 +619,21 @@ export class Aside {
   // EDITING SOCIAL LINKS
   // ========================================
   
-  startAddSocial(event: Event, provider: string): void {
+  /**
+   * Valida un URL verificando che sia ben formato e abbia un protocollo valido
+   */
+  private isValidUrl(urlString: string): boolean {
+    try {
+      const url = new URL(urlString);
+      // Accetta solo http e https
+      return url.protocol === 'http:' || url.protocol === 'https:';
+    } catch (e) {
+      // Se new URL() lancia un errore, l'URL non è valido
+      return false;
+    }
+  }
+  
+  startAddSocial(event: Event, provider: string, currentUrl?: string | null): void {
     event.preventDefault();
     event.stopPropagation();
     
@@ -629,32 +643,42 @@ export class Aside {
       this.socialEditTimer = null;
     }
     
-    this.tempSocialUrl = '';
+    // Pre-compila con URL esistente se presente (per editing)
+    this.tempSocialUrl = currentUrl || '';
     this.editingSocialProvider.set(provider);
     
     // Focus automatico sull'input dopo rendering
     setTimeout(() => {
       const input = document.querySelector(`input[name="socialUrl-${provider}"]`) as HTMLInputElement;
-      if (input) input.focus();
+      if (input) {
+        input.focus();
+        // Posiziona il cursore alla fine del testo
+        input.setSelectionRange(input.value.length, input.value.length);
+      }
     }, 50);
     
     // Timer: chiude automaticamente dopo 5 secondi se non viene inserito nulla
-    this.socialEditTimer = setTimeout(() => {
-      if (this.editingSocialProvider() === provider && !this.tempSocialUrl.trim()) {
-        this.editingSocialProvider.set(null);
-        this.tempSocialUrl = '';
-      }
-      this.socialEditTimer = null;
-    }, 5000);
+    // Solo per social nuovi (non per editing)
+    if (!currentUrl) {
+      this.socialEditTimer = setTimeout(() => {
+        if (this.editingSocialProvider() === provider && !this.tempSocialUrl.trim()) {
+          this.editingSocialProvider.set(null);
+          this.tempSocialUrl = '';
+        }
+        this.socialEditTimer = null;
+      }, 5000);
+    }
   }
   
   handleSocialClick(event: Event, social: SocialLink & { isEmpty?: boolean }): void {
-    if (social.isEmpty && this.editMode()) {
-      this.startAddSocial(event, social.provider);
+    if (this.editMode()) {
+      // In modalità edit, qualsiasi click apre l'input (aggiunta o modifica)
+      this.startAddSocial(event, social.provider, social.url);
     } else if (social.isEmpty) {
+      // Non in edit mode, ma social vuoto → previeni navigazione
       event.preventDefault();
     }
-    // Altrimenti lascia che il link funzioni normalmente
+    // Altrimenti (non edit mode e social configurato) → lascia che il link funzioni normalmente
   }
   
   saveSocial(provider: string): void {
@@ -675,6 +699,12 @@ export class Aside {
       this.editingSocialProvider.set(null);
       this.tempSocialUrl = '';
       return;
+    }
+    
+    // ✅ VALIDAZIONE URL lato frontend
+    if (!this.isValidUrl(url)) {
+      this.notification.add('error', 'URL non valido. Inserisci (es. https://example.com)', 'social-url-invalid', false);
+      return; // Non chiudere l'input, permetti correzione
     }
     
     const currentProfile = this.profile();

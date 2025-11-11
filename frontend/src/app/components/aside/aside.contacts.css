@@ -346,6 +346,16 @@
   font-size: 0.7rem;
 }
 
+/* Feedback visivo per URL non valido */
+.social-input:invalid:not(:placeholder-shown) {
+  color: #ef4444;
+}
+
+.social-input-container:has(.social-input:invalid:not(:placeholder-shown)) {
+  border-color: #ef4444;
+  background: rgba(239, 68, 68, 0.05);
+}
+
 /* Bottone X per rimuovere social con sfondo sfocato */
 .social__remove-btn {
   position: absolute;

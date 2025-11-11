@@ -411,7 +411,9 @@
                     (blur)="saveSocial(s.provider)"
                     (keydown.enter)="$event.preventDefault(); saveSocial(s.provider)"
                     (keydown.escape)="$event.preventDefault(); $event.stopPropagation(); cancelAddSocial()"
-                    [placeholder]="'URL ' + s.provider"
+                    [placeholder]="'https://'"
+                    [attr.aria-label]="'Inserisci URL per ' + s.provider"
+                    pattern="https?://.+"
                     autocomplete="off"
                     #socialInput>
                 </div>
@@ -466,7 +468,7 @@
                   }
                 }
                 </a>
-                @if (editMode() && !s.isEmpty) {
+                @if (editMode() && !s.isEmpty && editingSocialProvider() !== s.provider) {
                   <button 
                     type="button"
                     class="social__remove-btn" 
