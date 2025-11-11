@@ -118,7 +118,46 @@
         }
       </div>
       
-      <p class="profile__role">Full Stack Developer</p>
+      <!-- TITLE/RUOLO (opzionale, editabile) -->
+      @if (profile()?.title || editMode()) {
+        <div class="profile__role-container"
+             [class.profile__role-container--editable]="editMode() && (!profile()?.title || editingTitle())"
+             [class.profile__role-container--editable-hover]="editMode() && profile()?.title && !editingTitle()"
+             (click)="editMode() && !editingTitle() ? startEditTitle() : null">
+          @if (!editMode() || (!editingTitle() && profile()?.title)) {
+            <p class="profile__role">{{ profile()?.title }}</p>
+            @if (editMode() && profile()?.title && !editingTitle()) {
+              <svg class="profile__role-edit-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true">
+                <path d="M11 4H4a2 2 0 00-2 2v14a2 2 0 002 2h14a2 2 0 002-2v-7"/>
+                <path d="M18.5 2.5a2.121 2.121 0 013 3L12 15l-4 1 1-4 9.5-9.5z"/>
+              </svg>
+              <button 
+                type="button"
+                class="profile__role-remove-btn" 
+                (click)="clearTitle($event)"
+                title="Rimuovi titolo"
+                aria-label="Rimuovi titolo">×</button>
+            }
+          } @else if (editMode() && !profile()?.title && !editingTitle()) {
+            <!-- Placeholder cliccabile quando il titolo è vuoto -->
+            <span class="profile__role-placeholder">Titolo professionale</span>
+          } @else {
+            <input 
+              type="text" 
+              name="tempTitle"
+              class="profile__role-input" 
+              [(ngModel)]="tempTitle"
+              (blur)="saveTitle()"
+              (keydown.enter)="saveTitle()"
+              (keydown.escape)="editingTitle.set(false); tempTitle = ''"
+              placeholder="Titolo professionale"
+              maxlength="255"
+              #titleInput>
+          }
+        </div>
+      } @else {
+        <p class="profile__role">Full Stack Developer</p>
+      }
     </div>
 
     <!-- Bottone Modifica (visibile solo se l'utente può modificare questa pagina) -->

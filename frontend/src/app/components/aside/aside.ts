@@ -60,6 +60,7 @@ export class Aside {
   // Valori temporanei per editing identità (non signal perché usati con ngModel)
   tempName = '';
   tempSurname = '';
+  tempTitle = '';
   
   // Valori temporanei per editing contatti (non signal perché usati con ngModel)
   tempPhone = '';
@@ -69,6 +70,7 @@ export class Aside {
   // Stati di editing per ogni campo
   editingName = signal(false);
   editingSurname = signal(false);
+  editingTitle = signal(false);
   editingPhone = signal(false);
   editingBirthday = signal(false);
   editingLocation = signal(false);
@@ -468,6 +470,110 @@ export class Aside {
           this.profile.set({ ...current, surname: previousSurname });
         }
         this.notification.add('error', 'Errore durante la rimozione del cognome', 'surname-clear', false);
+      }
+    });
+  }
+  
+  // ========================================
+  // EDITING TITLE (RUOLO/TITOLO PROFESSIONALE)
+  // ========================================
+  
+  startEditTitle(): void {
+    const currentProfile = this.profile();
+    if (!currentProfile) return;
+    
+    this.tempTitle = currentProfile.title || '';
+    this.editingTitle.set(true);
+    
+    // Focus automatico sull'input dopo rendering
+    setTimeout(() => {
+      const input = document.querySelector('input[name="tempTitle"]') as HTMLInputElement;
+      if (input) input.focus();
+    }, 50);
+  }
+  
+  saveTitle(): void {
+    // Previeni salvataggi duplicati
+    if (!this.editingTitle()) {
+      return;
+    }
+    
+    const title = this.tempTitle.trim() || null;
+    
+    // Salva valore precedente per rollback
+    const currentProfile = this.profile();
+    if (!currentProfile) return;
+    
+    const previousTitle = currentProfile.title;
+    
+    // Se il valore non è cambiato, esci
+    if (title === previousTitle) {
+      this.editingTitle.set(false);
+      this.tempTitle = '';
+      return;
+    }
+    
+    // Chiudi editing PRIMA dell'optimistic update per evitare doppi trigger
+    this.editingTitle.set(false);
+    
+    // 🚀 OPTIMISTIC UPDATE: Aggiorna immediatamente l'interfaccia
+    this.profile.set({ ...currentProfile, title });
+    this.tempTitle = '';
+    
+    console.log('💾 Saving title (optimistic):', title);
+    const url = apiUrl('profile');
+    
+    // Invia richiesta al backend
+    this.http.put(url, { title }).pipe(take(1)).subscribe({
+      next: () => {
+        console.log('✅ Title saved successfully');
+        this.notification.add('success', 'Titolo aggiornato', 'title-save', false);
+        // Invalida cache per ricaricare i dati
+        this.svc.clearCache();
+      },
+      error: (err) => {
+        console.error('❌ Error saving title:', err);
+        // ⚠️ ROLLBACK: Ripristina valore precedente
+        const current = this.profile();
+        if (current) {
+          this.profile.set({ ...current, title: previousTitle });
+        }
+        // Mostra notifica di errore
+        this.notification.add('error', 'Errore durante il salvataggio del titolo', 'title-save', false);
+      }
+    });
+  }
+  
+  clearTitle(event: Event): void {
+    event.stopPropagation();
+    
+    const currentProfile = this.profile();
+    if (!currentProfile) return;
+    
+    const previousTitle = currentProfile.title;
+    
+    // 🚀 OPTIMISTIC UPDATE: Rimuovi immediatamente
+    this.profile.set({ ...currentProfile, title: null });
+    
+    console.log('🗑️ Clearing title (optimistic)');
+    const url = apiUrl('profile');
+    
+    // Invia richiesta al backend
+    this.http.put(url, { title: null }).pipe(take(1)).subscribe({
+      next: () => {
+        console.log('✅ Title cleared successfully');
+        this.notification.add('success', 'Titolo rimosso', 'title-clear', false);
+        // Invalida cache per ricaricare i dati
+        this.svc.clearCache();
+      },
+      error: (err) => {
+        console.error('❌ Error clearing title:', err);
+        // ⚠️ ROLLBACK: Ripristina valore precedente
+        const current = this.profile();
+        if (current) {
+          this.profile.set({ ...current, title: previousTitle });
+        }
+        this.notification.add('error', 'Errore durante la rimozione del titolo', 'title-clear', false);
       }
     });
   }

@@ -68,7 +68,6 @@
   min-width: 0;
   color: var(--text-secondary);
   transition: color var(--transition-1);
-  margin-top: 15px;
   overflow: visible; /* Permette al bottone X di essere visibile */
 }
 
@@ -166,6 +165,162 @@
   font-size: 0.9rem; /* Ridotto per compattezza */
 }
 
+/* Quando il role è dentro un contenitore editable, rimuovi margin per evitare shift */
+.profile__role-container .profile__role,
+.profile__role-container--editable .profile__role,
+.profile__role-container--editable-hover .profile__role {
+  margin: 0;
+}
+
+/* ========================================
+   EDITING TITLE/RUOLO (INLINE)
+   ======================================== */
+
+.profile__role-container {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  transition: all var(--transition-1);
+  overflow: visible; /* Permette al bottone X di essere visibile */
+}
+
+/* Title con dato esistente in edit mode (hover per mostrare edit) */
+.profile__role-container--editable-hover {
+  cursor: pointer;
+  padding: 2px 4px;
+  width: 210px; /* Esteso di 10px per uniformità */
+  border-radius: 6px;
+  border: 2px dashed transparent;
+  transition: all var(--transition-1);
+  margin: -2px 0;
+}
+
+.profile__role-container--editable-hover:hover {
+  border-color: var(--accent-primary);
+  background: rgba(var(--accent-primary-rgb), 0.05);
+}
+
+/* Title editabile vuoto (stile come contatti vuoti) */
+.profile__role-container--editable {
+  width: 210px; /* Esteso di 10px (era 200px) */
+  padding: 2px 4px;
+  border-radius: 8px;
+  border: 2px dashed var(--accent-primary);
+  background: rgba(var(--accent-primary-rgb), 0.05);
+  transition: all var(--transition-1);
+  margin: -2px 0;
+}
+
+.profile__role-container--editable:hover {
+  border-color: var(--accent-hover);
+  background: rgba(var(--accent-primary-rgb), 0.1);
+}
+
+/* Placeholder per title vuoto in edit mode */
+.profile__role-placeholder {
+  width: 100%;
+  padding: 0;
+  font-size: 0.9rem;
+  font-weight: 600;
+  color: var(--text-muted);
+  opacity: 0.7;
+  text-align: center;
+  display: block;
+  cursor: pointer;
+  user-select: none;
+  box-sizing: border-box;
+  border: none;
+  border-radius: 0;
+  transition: all var(--transition-1);
+}
+
+.profile__role-placeholder:hover {
+  opacity: 1;
+  color: var(--accent-primary);
+}
+
+/* Input per editing title */
+.profile__role-input {
+  width: 100%;
+  padding: 0;
+  font-size: 0.9rem;
+  font-weight: 600;
+  color: var(--text-primary);
+  border: none;
+  border-radius: 0;
+  outline: none;
+  transition: all var(--transition-1);
+  box-sizing: border-box;
+}
+
+.profile__role-input:focus {
+  outline: none;
+}
+
+.profile__role-input::placeholder {
+  color: var(--text-muted);
+  opacity: 0.6;
+}
+
+/* Icona matita per editing title */
+.profile__role-edit-icon {
+  width: 16px;
+  height: 16px;
+  color: var(--accent-primary);
+  opacity: 0;
+  transition: opacity var(--transition-1), transform var(--transition-1);
+  flex-shrink: 0;
+  margin-left: 3px; /* Ridotto da 8px a 3px per avvicinare al testo */
+  margin-right: 12px; /* Spazio extra tra icona edit e icona X */
+}
+
+.profile__role-container--editable-hover:hover .profile__role-edit-icon {
+  opacity: 1;
+}
+
+.profile__role-edit-icon:hover {
+  transform: scale(1.1);
+}
+
+/* Bottone X per rimuovere title (stile admin-delete-button) */
+.profile__role-remove-btn {
+  position: absolute;
+  top: -12px;
+  right: -12px;
+  width: 24px;
+  height: 24px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 20px;
+  font-weight: 900;
+  line-height: 1;
+  color: #ef4444;
+  background: transparent;
+  border: 3px solid #ef4444;
+  border-radius: 50%;
+  cursor: pointer;
+  opacity: 0;
+  transition: all 0.2s ease;
+  z-index: 10;
+  padding: 0;
+}
+
+.profile__role-container--editable-hover:hover .profile__role-remove-btn {
+  opacity: 1;
+}
+
+.profile__role-remove-btn:hover {
+  background: transparent;
+  transform: scale(1.08);
+  box-shadow: 0 6px 18px rgba(239, 68, 68, 0.35);
+}
+
+.profile__role-remove-btn:active {
+  transform: scale(1.0);
+}
+
 /* ========================================
    EDITING NOME E COGNOME (INLINE)
    ======================================== */
@@ -191,14 +346,16 @@
   margin: -4px 0; /* Compensazione per il border e padding */
 }
 
-/* Spostamento sottile in edit mode per centrare meglio */
+/* Spostamento e dimensioni specifiche per il nome */
 .profile__name-container--editable {
   margin-left: 1px; /* Nome spostato 1px a destra */
+  padding-left: 15px; /* Estende il bordo verso sinistra per contenere l'icona */
 }
 
+/* Dimensioni specifiche per il cognome */
 .profile__surname-container--editable-hover {
   margin-right: 1px; /* Cognome spostato 1px a sinistra */
-  width: 150px; /* Larghezza aumentata per distanziare le icone */
+  width: 145px; /* Ridotto di 5px (era 150px) */
 }
 
 .profile__name-container--editable:hover,
@@ -209,7 +366,7 @@
 
 /* Cognome editabile vuoto (stile come contatti vuoti) */
 .profile__surname-container--editable {
-  width: 150px; /* Larghezza aumentata per distanziare le icone */
+  width: 145px; /* Ridotto di 5px per uniformità con hover */
   padding: 4px 0; /* Padding verticale uniforme */
   border-radius: 8px; /* Arrotondamento come contatti */
   border: 2px dashed var(--accent-primary); /* Bordo tratteggiato arancione */
