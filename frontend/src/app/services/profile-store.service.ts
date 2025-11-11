@@ -1,6 +1,8 @@
 import { Injectable, inject, signal } from '@angular/core';
 import { NavigationEnd, Router } from '@angular/router';
-import { Subscription, filter } from 'rxjs';
+import { Observable, Subscription, filter, of, shareReplay } from 'rxjs';
+import { catchError, tap } from 'rxjs/operators';
+import { throwError } from 'rxjs';
 import { AboutProfileService, PublicProfileDto } from './about-profile.service';
 import { TenantService } from './tenant.service';
 
@@ -62,43 +64,31 @@ export class ProfileStoreService {
   ensureLoaded(force = false): void {
     const context = this.resolveContext();
 
-    if (!force && this.currentKey === context.key && this.profile()) {
+    if (
+      !force &&
+      this.currentKey === context.key &&
+      (this.profile() !== null || this.loading())
+    ) {
       return;
     }
 
     this.currentKey = context.key;
-    this.fetchProfile(context.slug);
+    if (context.slug) {
+      this.loadProfileForSlug(context.slug, force);
+    } else {
+      this.loadDefaultProfile(force);
+    }
   }
 
-  private fetchProfile(slug: string | null): void {
-    this.currentRequest?.unsubscribe();
-    this.loading.set(true);
-    this.error.set(null);
+  loadProfileForSlug(slug: string, force = false): Observable<PublicProfileDto> {
+    const normalized = slug.toLowerCase();
 
-    const source = slug
-      ? this.about.getBySlug(slug)
-      : this.about.get$();
+    if (!force && this.currentKey === `slug:${normalized}` && this.profile()) {
+      return of(this.profile()!);
+    }
 
-    this.currentRequest = source.subscribe({
-      next: (data) => {
-        this.profile.set(data);
-        this.loading.set(false);
-      },
-      error: (err) => {
-        const message =
-          err?.status === 404
-            ? 'Profilo non trovato'
-            : 'Errore durante il caricamento del profilo';
-
-        this.profile.set(null);
-        this.loading.set(false);
-        this.error.set(message);
-        this.currentRequest = null;
-      },
-      complete: () => {
-        this.currentRequest = null;
-      }
-    });
+    this.currentKey = `slug:${normalized}`;
+    return this.runRequest(this.about.getBySlug(normalized));
   }
 
   private resolveContext(): { key: string; slug: string | null } {
@@ -117,6 +107,53 @@ export class ProfileStoreService {
     }
 
     return { key: 'root', slug: null };
+  }
+
+  private loadDefaultProfile(force = false): Observable<PublicProfileDto> {
+    if (!force && this.currentKey === 'root' && this.profile()) {
+      return of(this.profile()!);
+    }
+
+    this.currentKey = 'root';
+    return this.runRequest(this.about.get$());
+  }
+
+  private runRequest(source$: Observable<PublicProfileDto>): Observable<PublicProfileDto> {
+    this.currentRequest?.unsubscribe();
+    this.loading.set(true);
+    this.error.set(null);
+
+    const shared$ = source$.pipe(
+      tap((data) => {
+        this.profile.set(data);
+        this.loading.set(false);
+        this.error.set(null);
+      }),
+      catchError((err) => {
+        const message =
+          err?.status === 404
+            ? 'Profilo non trovato'
+            : 'Errore durante il caricamento del profilo';
+
+        this.profile.set(null);
+        this.loading.set(false);
+        this.error.set(message);
+        return throwError(() => err);
+      }),
+      shareReplay(1)
+    );
+
+    this.currentRequest = shared$.subscribe({
+      next: () => {},
+      error: () => {
+        this.currentRequest = null;
+      },
+      complete: () => {
+        this.currentRequest = null;
+      }
+    });
+
+    return shared$;
   }
 }
 

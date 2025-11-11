@@ -3,12 +3,14 @@ import { ActivatedRouteSnapshot, ResolveFn, Router } from '@angular/router';
 import { catchError, map, of, tap } from 'rxjs';
 import { TenantService } from '../../services/tenant.service';
 import { AuthService } from '../../services/auth.service';
+import { ProfileStoreService } from '../../services/profile-store.service';
 
 export const tenantResolver: ResolveFn<boolean> = (route: ActivatedRouteSnapshot) => {
   const slugParam = route.paramMap.get('userSlug');
   const tenant = inject(TenantService);
   const router = inject(Router);
   const auth = inject(AuthService);
+  const profileStore = inject(ProfileStoreService);
   
   if (!slugParam) {
     tenant.clear();
@@ -29,15 +31,12 @@ export const tenantResolver: ResolveFn<boolean> = (route: ActivatedRouteSnapshot
     return of(false);
   }
   
-  return tenant.resolveSlug$(slug).pipe(
-    map((res: any) => {
-      const id = res?.id ?? res?.user?.id ?? null;
+  return profileStore.loadProfileForSlug(slug, true).pipe(
+    map((profile) => {
+      const id = profile?.id ?? null;
       if (id) {
         tenant.setTenant(slug, id);
-        
-        // Aggiorna il token signal per lo slug corrente
         auth.refreshTokenSignal();
-        
         return true;
       }
       // Slug non trovato → redirect root con notifica
