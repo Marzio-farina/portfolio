@@ -84,6 +84,389 @@
     padding-right: clamp(0.25rem, 4vw, 2rem);
 }
 
+/* ===== Stati (empty, error) ===== */
+.state {
+    grid-column: 1 / -1; /* Occupa tutta la larghezza della griglia */
+    text-align: center;
+    padding: 3rem 1rem;
+    font-size: 1.1rem;
+    color: var(--text-secondary);
+}
+
+.state.empty {
+    opacity: 0.7;
+}
+
+.state.error {
+    color: var(--error-color, #ef4444);
+}
+
+/* ===== Empty Add Card (Edit Mode) ===== */
+.card--empty-add {
+    position: relative;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 16px;
+    padding: 32px;
+    height: 180px;
+    box-sizing: border-box;
+    background: transparent;
+    border: 2px dashed var(--border-primary);
+    border-radius: 20px;
+    cursor: pointer;
+    transition: all var(--transition-1);
+    width: 100%;
+    max-width: 100%;
+}
+
+.card--empty-add:hover {
+    border-color: var(--accent-primary);
+    background: rgba(var(--accent-primary-rgb), 0.05);
+    transform: translateY(-2px);
+    box-shadow: var(--shadow-2);
+}
+
+.card--empty-add:focus {
+    outline: 2px solid var(--accent-primary);
+    outline-offset: 2px;
+}
+
+.empty-add__icon-wrapper {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.empty-add__icon {
+    width: 64px;
+    height: 64px;
+    stroke: var(--accent-primary);
+    transition: transform var(--transition-1);
+}
+
+.card--empty-add:hover .empty-add__icon {
+    transform: scale(1.1) rotate(90deg);
+}
+
+.empty-add__text {
+    margin: 0;
+    font-size: 1rem;
+    font-weight: 500;
+    color: var(--text-secondary);
+    transition: color var(--transition-1);
+}
+
+.card--empty-add:hover .empty-add__text {
+    color: var(--accent-primary);
+}
+
+/* iPhone SE ottimizzazione */
+@media (max-width: 479px) {
+    .card--empty-add {
+        padding: 20px;
+        gap: 12px;
+        height: 140px;
+        border-radius: 12px;
+    }
+    
+    .empty-add__icon {
+        width: 48px;
+        height: 48px;
+    }
+    
+    .empty-add__text {
+        font-size: 0.9rem;
+    }
+}
+
+/* ===== Card in modalità editing ===== */
+.card--editing {
+    display: flex;
+    flex-direction: row;
+    align-items: flex-start;
+    gap: 20px;
+    padding: 20px;
+    height: auto;
+    min-height: 180px;
+    box-sizing: border-box;
+    background: var(--bg-card);
+    border: 2px solid var(--accent-primary);
+    border-radius: 20px;
+    width: 100%;
+    max-width: 100%;
+}
+
+/* Icon picker nella card editing */
+.icon-picker-wrapper {
+    position: relative;
+    flex-shrink: 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    align-self: center;
+}
+
+.icon-add-btn {
+    position: relative;
+    width: 80px;
+    height: 80px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: transparent;
+    border: 2px dashed var(--border-primary);
+    border-radius: 12px;
+    cursor: pointer;
+    padding: 0;
+    transition: all var(--transition-1);
+}
+
+.icon-add-btn:hover {
+    border-color: var(--accent-primary);
+    background: rgba(var(--accent-primary-rgb), 0.05);
+}
+
+.icon-add-btn .icon {
+    width: 48px;
+    height: 48px;
+    color: var(--text-secondary);
+    transition: all var(--transition-1);
+}
+
+.icon-add-btn:hover .icon {
+    color: var(--accent-primary);
+}
+
+.icon-add-overlay {
+    position: absolute;
+    bottom: -4px;
+    right: -4px;
+    width: 24px;
+    height: 24px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: var(--accent-primary);
+    border: 2px solid var(--bg-card);
+    border-radius: 50%;
+    pointer-events: none;
+}
+
+.icon-add-overlay svg {
+    width: 14px;
+    height: 14px;
+    stroke: var(--text-inverse);
+}
+
+/* Popup griglia icone */
+.icon-picker-popup {
+    position: absolute;
+    top: 30px;
+    left: 90px;
+    z-index: 1000;
+    background: var(--bg-card);
+    border: 2px solid var(--accent-primary);
+    border-radius: 12px;
+    padding: 16px;
+    box-shadow: var(--shadow-4);
+    animation: fadeInScale 0.2s ease-out;
+    width: 200px;
+    overflow: hidden;
+    display: flex;
+    flex-direction: column;
+}
+
+@keyframes fadeInScale {
+    from {
+        opacity: 0;
+        transform: scale(0.9);
+    }
+    to {
+        opacity: 1;
+        transform: scale(1);
+    }
+}
+
+.icon-picker-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 12px;
+    overflow-y: auto;
+    padding-right: 4px;
+    max-height: 250px;
+}
+
+/* Scrollbar personalizzata per il picker */
+.icon-picker-grid::-webkit-scrollbar {
+    width: 6px;
+}
+
+.icon-picker-grid::-webkit-scrollbar-track {
+    background: var(--bg-primary);
+    border-radius: 3px;
+}
+
+.icon-picker-grid::-webkit-scrollbar-thumb {
+    background: var(--accent-primary);
+    border-radius: 3px;
+}
+
+.icon-picker-grid::-webkit-scrollbar-thumb:hover {
+    background: var(--accent-secondary, var(--accent-primary));
+}
+
+.icon-picker-item {
+    width: 64px;
+    height: 64px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: var(--bg-primary);
+    border: 2px solid var(--border-primary);
+    border-radius: 8px;
+    cursor: pointer;
+    padding: 0;
+    transition: all var(--transition-1);
+}
+
+.icon-picker-item svg {
+    width: 32px;
+    height: 32px;
+    stroke: var(--text-primary);
+    transition: stroke var(--transition-1);
+}
+
+.icon-picker-item:hover {
+    border-color: var(--accent-primary);
+    background: rgba(var(--accent-primary-rgb), 0.1);
+    transform: scale(1.05);
+}
+
+.icon-picker-item:hover svg {
+    stroke: var(--accent-primary);
+}
+
+.icon-picker-item--selected {
+    border-color: var(--accent-primary);
+    background: rgba(var(--accent-primary-rgb), 0.15);
+}
+
+.icon-picker-item--selected svg {
+    stroke: var(--accent-primary);
+}
+
+/* Campi input nella card editing */
+.card-edit__fields {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+}
+
+.card-edit__input {
+    width: 100%;
+    padding: 8px 10px;
+    background: var(--bg-primary);
+    border: 1px solid var(--border-primary);
+    border-radius: 6px;
+    color: var(--text-primary);
+    font-family: inherit;
+    font-size: 0.875rem;
+    transition: all var(--transition-1);
+}
+
+.card-edit__input:focus {
+    outline: none;
+    border-color: var(--accent-primary);
+    box-shadow: 0 0 0 2px rgba(var(--accent-primary-rgb), 0.1);
+}
+
+.card-edit__input--title {
+    font-weight: 600;
+    font-size: 0.95rem;
+}
+
+.card-edit__input--description {
+    resize: vertical;
+    min-height: 60px;
+    line-height: 1.4;
+    font-size: 0.85rem;
+}
+
+/* iPhone SE - card editing */
+@media (max-width: 479px) {
+    .card--editing {
+        flex-direction: column;
+        padding: 16px;
+        gap: 12px;
+        min-height: auto;
+    }
+    
+    .icon-picker-wrapper {
+        align-self: center;
+    }
+    
+    .icon-add-btn {
+        width: 64px;
+        height: 64px;
+    }
+    
+    .icon-add-btn .icon {
+        width: 40px;
+        height: 40px;
+    }
+    
+    .icon-add-overlay {
+        width: 20px;
+        height: 20px;
+        bottom: -2px;
+        right: -2px;
+    }
+    
+    .icon-add-overlay svg {
+        width: 12px;
+        height: 12px;
+    }
+    
+    .icon-picker-popup {
+        top: 75px;
+        left: 50%;
+        transform: translateX(-50%);
+        width: 220px;
+    }
+    
+    .icon-picker-grid {
+        max-height: 280px;
+    }
+    
+    .icon-picker-item {
+        width: 56px;
+        height: 56px;
+    }
+    
+    .icon-picker-item svg {
+        width: 28px;
+        height: 28px;
+    }
+    
+    .card-edit__input--title {
+        font-size: 0.9rem;
+        padding: 6px 8px;
+    }
+    
+    .card-edit__input--description {
+        min-height: 50px;
+        font-size: 0.8rem;
+        padding: 6px 8px;
+    }
+    
+    .card-edit__fields {
+        gap: 6px;
+    }
+}
+
 @media (min-width: 1024px) {
     .sub_article-card {
         grid-template-columns: 1fr 1fr;

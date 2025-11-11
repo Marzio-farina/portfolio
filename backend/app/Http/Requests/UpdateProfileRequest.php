@@ -23,7 +23,7 @@ class UpdateProfileRequest extends FormRequest
             'title'         => ['nullable','string','max:255'],
             'headline'      => ['nullable','string','max:255'],
             'bio'           => ['nullable','string'],
-            'phone'         => ['nullable','string','max:20'],
+            'phone'         => ['nullable','string','max:20','regex:/^\+?[0-9\s\-()]{8,20}$/'],
             'location'      => ['nullable','string','max:100'],
             'location_url'  => ['nullable','url','max:500'],
             'avatar_url'    => ['nullable','url','max:500'],
@@ -35,6 +35,7 @@ class UpdateProfileRequest extends FormRequest
     {
         return [
             'date_of_birth.before_or_equal' => 'La data di nascita deve essere almeno 8 anni fa.',
+            'phone.regex' => 'Il numero di telefono non è valido. Usa un formato come: +39 123 456 7890',
         ];
     }
 }

@@ -14,7 +14,7 @@
     @if (!loading() && errorMsg()) {
         <div class="state error">{{ errorMsg() }}</div>
     }
-    @if (!loading() && !errorMsg() && cards().length === 0) {
+    @if (!loading() && !errorMsg() && cards().length === 0 && !editMode.isEditing()) {
         <div class="state empty">Nessuna card disponibile.</div>
     }
 
@@ -34,6 +34,94 @@
                 [icon]="c.icon ?? ''"
                 [loading]="loading()">
             </app-what-i-do-card>
+        }
+        
+        <!-- Empty add card in edit mode -->
+        @if (editMode.isEditing() && cards().length === 0 && !loading()) {
+            @if (!isCreatingCard()) {
+                <!-- Stato iniziale: mostra + -->
+                <div class="card card--empty-add" 
+                     role="button" 
+                     tabindex="0" 
+                     aria-label="Aggiungi una nuova card"
+                     (click)="startCreateCard()"
+                     (keydown.enter)="startCreateCard()">
+                    <div class="empty-add__icon-wrapper">
+                        <svg class="empty-add__icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true">
+                            <circle cx="12" cy="12" r="10"/>
+                            <line x1="12" y1="8" x2="12" y2="16"/>
+                            <line x1="8" y1="12" x2="16" y2="12"/>
+                        </svg>
+                    </div>
+                    <p class="empty-add__text">Aggiungi una card</p>
+                </div>
+            } @else {
+                <!-- Stato editing: mostra form -->
+                <div class="card card--editing"
+                     (keydown.escape)="iconPickerOpen() ? closeIconPicker() : cancelCreateCard()"
+                     (keydown.enter)="$event.preventDefault(); saveNewCard()">
+                    <!-- Icon picker -->
+                    <div class="icon-picker-wrapper">
+                        <button type="button" 
+                                class="icon-add-btn" 
+                                (click)="toggleIconPicker($event)"
+                                aria-label="Seleziona icona"
+                                title="Seleziona icona">
+                            <svg class="icon" aria-hidden="true">
+                                <use [attr.href]="'assets/icons.svg#' + selectedIconId()"></use>
+                            </svg>
+                            <div class="icon-add-overlay">
+                                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                    <circle cx="12" cy="12" r="10"/>
+                                    <line x1="12" y1="8" x2="12" y2="16"/>
+                                    <line x1="8" y1="12" x2="16" y2="12"/>
+                                </svg>
+                            </div>
+                        </button>
+                        
+                        <!-- Popup griglia icone -->
+                        @if (iconPickerOpen()) {
+                            <div class="icon-picker-popup" (click)="$event.stopPropagation()">
+                                <div class="icon-picker-grid">
+                                    @for (iconId of availableIcons; track iconId) {
+                                        <button type="button" 
+                                                class="icon-picker-item"
+                                                [class.icon-picker-item--selected]="selectedIconId() === iconId"
+                                                (click)="selectIcon(iconId)"
+                                                [attr.aria-label]="iconId"
+                                                [title]="iconId">
+                                            <svg aria-hidden="true">
+                                                <use [attr.href]="'assets/icons.svg#' + iconId"></use>
+                                            </svg>
+                                        </button>
+                                    }
+                                </div>
+                            </div>
+                        }
+                    </div>
+                    
+                    <div class="card-edit__fields">
+                        <input 
+                            type="text" 
+                            class="card-edit__input card-edit__input--title"
+                            placeholder="Titolo della card"
+                            [value]="newCardTitle()"
+                            (input)="newCardTitle.set($any($event.target).value)"
+                            (blur)="onCardInputBlur()"
+                            maxlength="100"
+                            #titleInput>
+                        
+                        <textarea 
+                            class="card-edit__input card-edit__input--description"
+                            placeholder="Descrizione della card"
+                            [value]="newCardDescription()"
+                            (input)="newCardDescription.set($any($event.target).value)"
+                            (blur)="onCardInputBlur()"
+                            rows="3"
+                            maxlength="500"></textarea>
+                    </div>
+                </div>
+            }
         }
     </div>
 </section>

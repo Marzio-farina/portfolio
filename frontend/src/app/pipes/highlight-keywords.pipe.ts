@@ -74,6 +74,11 @@ export class HighlightKeywordsPipe implements PipeTransform {
     // Usa marker temporanei per evitare annidamenti
     const MARKER_START = '⟪KW⟫';
     const MARKER_END = '⟪/KW⟫';
+    const EXISTING_TAG = '⟪EXISTING⟫';
+    const EXISTING_TAG_END = '⟪/EXISTING⟫';
+    
+    // Proteggi gli span class="keyword" già esistenti (da parseBioKeywords)
+    result = result.replace(/<span class="keyword">(.*?)<\/span>/g, `${EXISTING_TAG}$1${EXISTING_TAG_END}`);
     
     // Ordina le keywords per lunghezza (più lunghe prima per evitare sostituzioni parziali)
     const sortedKeywords = [...this.keywords].sort((a, b) => b.length - a.length);
@@ -85,7 +90,20 @@ export class HighlightKeywordsPipe implements PipeTransform {
       
       // Split usando i marker per processare solo le parti non marcate
       while (remaining.length > 0) {
-        const startIdx = remaining.indexOf(MARKER_START);
+        // Cerca sia MARKER_START che EXISTING_TAG
+        const markerIdx = remaining.indexOf(MARKER_START);
+        const existingIdx = remaining.indexOf(EXISTING_TAG);
+        
+        let startIdx = -1;
+        let endMarker = '';
+        
+        if (markerIdx !== -1 && (existingIdx === -1 || markerIdx < existingIdx)) {
+          startIdx = markerIdx;
+          endMarker = MARKER_END;
+        } else if (existingIdx !== -1) {
+          startIdx = existingIdx;
+          endMarker = EXISTING_TAG_END;
+        }
         
         if (startIdx === -1) {
           // Nessun marker trovato, processa tutto il testo rimanente
@@ -100,27 +118,29 @@ export class HighlightKeywordsPipe implements PipeTransform {
         parts.push(beforeMarker.replace(regex, `${MARKER_START}$1${MARKER_END}`));
         
         // Trova la fine del marker
-        const endIdx = remaining.indexOf(MARKER_END, startIdx);
+        const endIdx = remaining.indexOf(endMarker, startIdx);
         if (endIdx === -1) break;
         
         // Aggiungi il marker esistente senza modificarlo
-        parts.push(remaining.substring(startIdx, endIdx + MARKER_END.length));
+        parts.push(remaining.substring(startIdx, endIdx + endMarker.length));
         
         // Continua con il resto
-        remaining = remaining.substring(endIdx + MARKER_END.length);
+        remaining = remaining.substring(endIdx + endMarker.length);
       }
       
       result = parts.join('');
     });
     
     // Secondo passo: converti tutti i marker in span HTML
-    // Usa una regex che cattura tutto tra i marker (inclusi eventuali marker annidati)
     while (result.includes(MARKER_START)) {
       result = result.replace(
         new RegExp(`${this.escapeRegex(MARKER_START)}(.*?)${this.escapeRegex(MARKER_END)}`, 's'),
         '<span class="keyword">$1</span>'
       );
     }
+    
+    // Ripristina gli span esistenti protetti
+    result = result.replace(new RegExp(`${this.escapeRegex(EXISTING_TAG)}(.*?)${this.escapeRegex(EXISTING_TAG_END)}`, 'g'), '<span class="keyword">$1</span>');
     
     return result;
   }

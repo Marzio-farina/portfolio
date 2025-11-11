@@ -203,6 +203,9 @@ Route::middleware(['api', "throttle:{$throttleLimit}", 'db.connection'])
             Route::post('social-accounts', [SocialAccountController::class, 'upsert']);
             Route::delete('social-accounts/{provider}', [SocialAccountController::class, 'delete']);
             
+            // What I Do Cards - gestione card "Cosa sto facendo"
+            Route::post('what-i-do', [WhatIDoController::class, 'store']);
+            
             // GitHub Repositories - gestione repository GitHub (richiede autenticazione)
             Route::post('github-repositories', [GitHubRepositoryController::class, 'store']);
             Route::put('github-repositories/reorder', [GitHubRepositoryController::class, 'updateOrder']);

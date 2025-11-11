@@ -9,19 +9,32 @@ use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\Log;
+use Illuminate\Support\Facades\Schema;
 
 class WhatIDoController extends Controller
 {
     public function index(Request $request): JsonResponse
     {
+        // Ottieni l'utente autenticato o usa il parametro user_id per visualizzazione pubblica
+        $authenticatedUser = $request->user();
         $userId = $request->query('user_id');
-        $cacheKey = 'what_i_do_v1'.($userId ? ':u'.$userId : '');
+        
+        // Determina quale user_id usare:
+        // 1. Se autenticato → usa l'ID dell'utente autenticato
+        // 2. Altrimenti se user_id è fornito → usa quello (visualizzazione pubblica)
+        // 3. Altrimenti → usa ID=1 (utente principale per visualizzazione pubblica)
+        $effectiveUserId = $authenticatedUser ? $authenticatedUser->id : ($userId ?? 1);
+        
+        $cacheKey = 'what_i_do_v1:u'.$effectiveUserId;
         try {
-            $data = Cache::remember($cacheKey, now()->addSeconds(300), function () use ($request, $userId) {
+            $data = Cache::remember($cacheKey, now()->addSeconds(300), function () use ($request, $effectiveUserId) {
                 $q = WhatIDo::orderBy('id');
-                if ($userId && \Schema::hasColumn('what_i_do', 'user_id')) {
-                    $q->where('user_id', $userId);
+                
+                // Filtra sempre per user_id
+                if (Schema::hasColumn('what_i_do', 'user_id')) {
+                    $q->where('user_id', $effectiveUserId);
                 }
+                
                 $items = $q->get();
                 return [
                     'items' => WhatIDoResource::collection($items)->toArray($request),
@@ -36,6 +49,61 @@ class WhatIDoController extends Controller
             }
             Log::warning('GET /api/what-i-do failed', ['class'=>get_class($e),'msg'=>$e->getMessage()]);
             return response()->json(['error' => 'Internal error'], 500, [], JSON_UNESCAPED_UNICODE);
+        }
+    }
+
+    /**
+     * Create a new "What I Do" card
+     * 
+     * @param Request $request HTTP request with card data
+     * @return JsonResponse Created card resource
+     */
+    public function store(Request $request): JsonResponse
+    {
+        $validated = $request->validate([
+            'title' => 'required|string|max:100',
+            'description' => 'required|string|max:500',
+            'icon' => 'required|string|max:50',
+        ]);
+
+        try {
+            // Ottieni l'utente autenticato
+            $user = $request->user();
+            
+            if (!$user) {
+                return response()->json([
+                    'error' => 'Utente non autenticato'
+                ], 401, [], JSON_UNESCAPED_UNICODE);
+            }
+
+            // Crea la nuova card
+            $card = WhatIDo::create([
+                'title' => $validated['title'],
+                'description' => $validated['description'],
+                'icon' => $validated['icon'],
+                'user_id' => $user->id,
+            ]);
+
+            // Invalida la cache
+            $cacheKey = 'what_i_do_v1:u' . $user->id;
+            Cache::forget($cacheKey);
+            
+            // Invalida anche la cache senza user_id se l'utente è il principale (ID=1)
+            if ($user->id === 1) {
+                Cache::forget('what_i_do_v1');
+            }
+
+            return response()->json($card, 201, [], JSON_UNESCAPED_UNICODE);
+        } catch (\Throwable $e) {
+            Log::error('POST /api/what-i-do failed', [
+                'class' => get_class($e),
+                'msg' => $e->getMessage(),
+                'trace' => $e->getTraceAsString()
+            ]);
+            
+            return response()->json([
+                'error' => 'Errore durante la creazione della card'
+            ], 500, [], JSON_UNESCAPED_UNICODE);
         }
     }
 }

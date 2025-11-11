@@ -618,6 +618,27 @@ export class Aside {
     }
   }
   
+  /**
+   * Valida un numero di telefono
+   * Accetta formati internazionali con prefisso opzionale (+39, +1, etc.)
+   * Supporta spazi, trattini e parentesi come separatori
+   * Lunghezza: 8-20 caratteri (escluso prefisso e separatori)
+   */
+  private isValidPhoneNumber(phone: string): boolean {
+    // Pattern: prefisso opzionale +, poi cifre con separatori opzionali (spazi, trattini, parentesi)
+    const phonePattern = /^\+?[0-9\s\-()]{8,20}$/;
+    
+    if (!phonePattern.test(phone)) {
+      return false;
+    }
+    
+    // Conta solo le cifre (escludendo separatori)
+    const digitsOnly = phone.replace(/[^\d]/g, '');
+    
+    // Deve avere almeno 8 cifre e massimo 15 (standard internazionale)
+    return digitsOnly.length >= 8 && digitsOnly.length <= 15;
+  }
+  
   startAddSocial(event: Event, provider: string, currentUrl?: string | null): void {
     event.preventDefault();
     event.stopPropagation();
@@ -949,6 +970,12 @@ export class Aside {
     if (!phone) {
       this.editingPhone.set(false);
       return;
+    }
+    
+    // ✅ VALIDAZIONE: Verifica che sia un numero di telefono valido
+    if (!this.isValidPhoneNumber(phone)) {
+      this.notification.add('error', 'Numero di telefono non valido', 'phone-validation', false);
+      return; // Non chiudere l'input, permetti correzione
     }
     
     // Salva valore precedente per rollback

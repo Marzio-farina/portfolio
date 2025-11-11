@@ -11,7 +11,7 @@
     </svg>
   </div>
   <div class="bio-read-more">Leggi</div>
-  <div class="bio-content" [innerHTML]="initialText()"></div>
+  <div class="bio-content" [innerHTML]="processedInitialText()"></div>
 </div>
 
 <!-- Bio Dialog -->
@@ -23,13 +23,16 @@
           <path d="M18 6L6 18M6 6l12 12"/>
         </svg>
       </button>
-      <div class="bio-dialog-content" [class.typing]="isMobileTyping()" [class.revealing]="isMobileRevealing()" [innerHTML]="mobileDialogText() | highlightKeywords"></div>
+      <div class="bio-dialog-content" [class.typing]="isMobileTyping()" [class.revealing]="isMobileRevealing()" [innerHTML]="processedMobileText()"></div>
     </div>
   </div>
 }
 
 <!-- Bio normale per desktop -->
-<div class="bio-desktop-container">
+<div class="bio-desktop-container"
+     [class.bio-desktop-container--editable]="editMode() && (!profile()?.bio || editingBio())"
+     [class.bio-desktop-container--editable-hover]="editMode() && profile()?.bio && !editingBio()"
+     (click)="editMode() && profile()?.bio && !editingBio() ? startEditBio() : null">
   @if (profileLoading()) {
     <!-- Skeleton loader per bio desktop -->
     <div class="bio-desktop-skeleton">
@@ -63,7 +66,50 @@
       <div class="skeleton h-4 w-full mb-3"></div>
       <div class="skeleton h-4 w-10/12"></div>
     </div>
+  } @else if (editMode() && (!profile()?.bio || editingBio())) {
+    <!-- Textarea per editing bio -->
+    <textarea 
+      class="bio-edit-textarea"
+      [(ngModel)]="tempBio"
+      (keydown.escape)="$event.preventDefault(); cancelEditBio()"
+      placeholder="Inserisci la tua biografia qui. Usa [[parola]] per evidenziare le parole chiave. Esempio: Sono un [[Full Stack Developer]] con passione per [[Angular]] e [[Laravel]]."
+      rows="10"
+      #bioTextarea></textarea>
+    
+    <!-- Icona floppy disk per salvare -->
+    <button 
+      type="button"
+      class="bio-save-btn" 
+      (click)="saveBio()"
+      [disabled]="!tempBio.trim()"
+      aria-label="Salva biografia" 
+      title="Salva biografia">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true">
+        <path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z"/>
+        <polyline points="17 21 17 13 7 13 7 21"/>
+        <polyline points="7 3 7 8 15 8"/>
+      </svg>
+    </button>
+    
+    <div class="bio-edit-hint">
+      💡 Usa <code>[[parola chiave]]</code> per evidenziare il testo • Premi <code>ESC</code> per annullare
+    </div>
   } @else {
-    <p class="bio-desktop" [class.revealing]="isRevealing()" [innerHTML]="fullText() | highlightKeywords"></p>
+    <!-- Bio visualizzata normalmente -->
+    <p class="bio-desktop" [class.revealing]="isRevealing()" [innerHTML]="processedDesktopText()"></p>
+    
+    <!-- Icona edit e bottone delete in edit mode -->
+    @if (editMode() && profile()?.bio && !editingBio()) {
+      <svg class="bio-edit-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true">
+        <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/>
+        <path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/>
+      </svg>
+      <button 
+        type="button"
+        class="bio-remove-btn" 
+        (click)="clearBio($event)"
+        aria-label="Rimuovi biografia" 
+        title="Rimuovi biografia">×</button>
+    }
   }
 </div>

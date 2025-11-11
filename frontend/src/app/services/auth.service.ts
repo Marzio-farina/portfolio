@@ -164,11 +164,10 @@ export class AuthService {
   // ========================================================================
 
   constructor() {
-    // All'avvio, se c'è un token, carica l'ID dell'utente autenticato
-    const existingToken = this.token();
-    if (existingToken) {
-      this.loadAuthenticatedUserId();
-    }
+    // ❌ NON caricare l'ID utente qui!
+    // Il token viene letto PRIMA che il tenantResolver abbia impostato il tenant,
+    // causando un mismatch tra token e slug.
+    // Il tenantResolver chiamerà refreshTokenSignal() che caricherà l'ID correttamente.
   }
 
   /**

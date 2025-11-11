@@ -265,11 +265,14 @@
                   <input 
                     type="tel" 
                     class="contact__input" 
-                    placeholder="Inserisci numero"
+                    placeholder="+39 123 456 7890"
                     [(ngModel)]="tempPhone"
                     (blur)="savePhone()"
                     (keydown.enter)="$event.preventDefault(); savePhone()"
                     (keydown.escape)="cancelEditPhone()"
+                    pattern="[\+]?[0-9\s\-\(\)]{8,20}"
+                    [attr.aria-label]="'Numero di telefono'"
+                    autocomplete="tel"
                     #phoneInput />
                 } @else {
                   <a class="contact__link" [href]="phoneHref()">{{ profile()?.phone }}</a>

@@ -1,11 +1,18 @@
-import { Component, signal, OnDestroy, inject, ViewEncapsulation } from '@angular/core';
+import { Component, signal, computed, OnDestroy, inject, ViewEncapsulation } from '@angular/core';
+import { FormsModule } from '@angular/forms';
+import { HttpClient } from '@angular/common/http';
+import { take } from 'rxjs/operators';
 import { ProfileService, ProfileData } from '../../services/profile.service';
 import { TenantService } from '../../services/tenant.service';
+import { EditModeService } from '../../services/edit-mode.service';
+import { NotificationService } from '../../services/notification.service';
+import { ParseBioKeywordsPipe } from '../../pipes/parse-bio-keywords.pipe';
 import { HighlightKeywordsPipe } from '../../pipes/highlight-keywords.pipe';
+import { apiUrl } from '../../core/api/api-url';
 
 @Component({
   selector: 'app-bio',
-  imports: [HighlightKeywordsPipe],
+  imports: [FormsModule],
   templateUrl: './bio.html',
   styleUrl: './bio.css',
   encapsulation: ViewEncapsulation.None // Permette agli stili di applicarsi al contenuto dinamico
@@ -17,6 +24,10 @@ export class Bio implements OnDestroy {
 
   private readonly profileApi = inject(ProfileService);
   private readonly tenant = inject(TenantService);
+  private readonly http = inject(HttpClient);
+  readonly edit = inject(EditModeService);
+  readonly editMode = this.edit.isEditing;
+  private readonly notification = inject(NotificationService);
 
   // ========================================================================
   // Properties
@@ -39,6 +50,73 @@ export class Bio implements OnDestroy {
   mobileDialogText = signal(''); // Testo per il dialog mobile
   isMobileTyping = signal(false); // Stato typewriter per mobile
   isMobileRevealing = signal(false); // Stato reveal keyword per mobile
+  
+  // Editing state
+  editingBio = signal(false);
+  tempBio = ''; // Valore temporaneo per ngModel
+  
+  // Determina se l'utente è il principale (ID=1) per applicare parole chiave predefinite
+  isMainUser = computed(() => {
+    const profile = this.profile();
+    return profile?.id === 1;
+  });
+  
+  // Testo processato per desktop (con pipe appropriate)
+  processedDesktopText = computed(() => {
+    const text = this.fullText();
+    if (!text) return '';
+    
+    const parseBio = new ParseBioKeywordsPipe();
+    const highlightKw = new HighlightKeywordsPipe();
+    
+    // Prima converti [[keyword]] dell'utente
+    let result = parseBio.transform(text);
+    
+    // Se è l'utente principale (ID=1), applica anche le parole chiave predefinite
+    if (this.isMainUser()) {
+      result = highlightKw.transform(result);
+    }
+    
+    return result;
+  });
+  
+  // Testo processato per mobile (con pipe appropriate)
+  processedMobileText = computed(() => {
+    const text = this.mobileDialogText();
+    if (!text) return '';
+    
+    const parseBio = new ParseBioKeywordsPipe();
+    const highlightKw = new HighlightKeywordsPipe();
+    
+    // Prima converti [[keyword]] dell'utente
+    let result = parseBio.transform(text);
+    
+    // Se è l'utente principale (ID=1), applica anche le parole chiave predefinite
+    if (this.isMainUser()) {
+      result = highlightKw.transform(result);
+    }
+    
+    return result;
+  });
+  
+  // Testo processato per bio card mobile (con pipe appropriate)
+  processedInitialText = computed(() => {
+    const text = this.initialText();
+    if (!text) return '';
+    
+    const parseBio = new ParseBioKeywordsPipe();
+    const highlightKw = new HighlightKeywordsPipe();
+    
+    // Prima converti [[keyword]] dell'utente
+    let result = parseBio.transform(text);
+    
+    // Se è l'utente principale (ID=1), applica anche le parole chiave predefinite
+    if (this.isMainUser()) {
+      result = highlightKw.transform(result);
+    }
+    
+    return result;
+  });
   
   // Intervals
   private mobileTypewriterInterval?: number;
@@ -259,6 +337,120 @@ export class Bio implements OnDestroy {
     }
   }
 
+  // ========================================================================
+  // Bio Editing Methods
+  // ========================================================================
+  
+  /**
+   * Avvia editing della bio
+   */
+  startEditBio(): void {
+    const currentBio = this.profile()?.bio || '';
+    // La bio è già salvata con sintassi [[keyword]], usa direttamente
+    this.tempBio = currentBio;
+    this.editingBio.set(true);
+    
+    // Focus sull'input dopo il render
+    setTimeout(() => {
+      const textarea = document.querySelector('.bio-edit-textarea') as HTMLTextAreaElement;
+      if (textarea) {
+        textarea.focus();
+        // Posiziona cursore alla fine
+        textarea.setSelectionRange(textarea.value.length, textarea.value.length);
+      }
+    }, 50);
+  }
+  
+  /**
+   * Salva la bio con optimistic update
+   */
+  saveBio(): void {
+    const bio = this.tempBio.trim();
+    
+    // Se vuoto, chiudi senza salvare
+    if (!bio) {
+      this.editingBio.set(false);
+      return;
+    }
+    
+    const currentProfile = this.profile();
+    if (!currentProfile) return;
+    
+    const previousBio = currentProfile.bio;
+    
+    // Chiudi editing
+    this.editingBio.set(false);
+    
+    // 🚀 OPTIMISTIC UPDATE: Salva la versione con [[keyword]] (non HTML)
+    // La pipe parseBioKeywords convertirà [[keyword]] in HTML al momento del display
+    this.profile.set({ ...currentProfile, bio });
+    this.fullText.set(bio);
+    this.tempBio = '';
+    
+    // Riavvia effetto reveal
+    this.isRevealing.set(true);
+    setTimeout(() => this.isRevealing.set(false), 2500);
+    
+    const url = apiUrl('profile');
+    
+    // Invia al backend la versione con [[keyword]]
+    this.http.put(url, { bio }).pipe(take(1)).subscribe({
+      next: () => {
+        this.notification.add('success', 'Biografia aggiornata', 'bio-save', false);
+      },
+      error: (err) => {
+        // ⚠️ ROLLBACK
+        const current = this.profile();
+        if (current) {
+          this.profile.set({ ...current, bio: previousBio });
+          this.fullText.set(previousBio || '');
+        }
+        this.notification.add('error', 'Errore durante il salvataggio della biografia', 'bio-save', false);
+      }
+    });
+  }
+  
+  /**
+   * Annulla editing (ESC)
+   */
+  cancelEditBio(): void {
+    this.editingBio.set(false);
+    this.tempBio = '';
+  }
+  
+  /**
+   * Cancella la bio con optimistic update
+   */
+  clearBio(event: Event): void {
+    event.stopPropagation();
+    
+    const currentProfile = this.profile();
+    if (!currentProfile) return;
+    
+    const previousBio = currentProfile.bio;
+    
+    // 🚀 OPTIMISTIC UPDATE
+    this.profile.set({ ...currentProfile, bio: undefined });
+    this.fullText.set('');
+    
+    const url = apiUrl('profile');
+    
+    this.http.put(url, { bio: null }).pipe(take(1)).subscribe({
+      next: () => {
+        this.notification.add('success', 'Biografia rimossa', 'bio-clear', false);
+      },
+      error: (err) => {
+        // ⚠️ ROLLBACK
+        const current = this.profile();
+        if (current) {
+          this.profile.set({ ...current, bio: previousBio });
+          this.fullText.set(previousBio || '');
+        }
+        this.notification.add('error', 'Errore durante la rimozione della biografia', 'bio-clear', false);
+      }
+    });
+  }
+  
   /**
    * Cleanup when component is destroyed
    */

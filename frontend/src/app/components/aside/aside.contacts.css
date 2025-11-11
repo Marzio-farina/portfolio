@@ -135,6 +135,22 @@
   opacity: 0.6;
 }
 
+/* Feedback visivo per numero di telefono non valido */
+.contact__input[type="tel"]:invalid:not(:placeholder-shown) {
+  color: #ef4444;
+  border-color: #ef4444;
+}
+
+.contact--editable:has(.contact__input[type="tel"]:invalid:not(:placeholder-shown)) {
+  border-color: #ef4444 !important;
+  background: rgba(239, 68, 68, 0.05);
+}
+
+.contact--editable-hover:has(.contact__input[type="tel"]:invalid:not(:placeholder-shown)) {
+  border-color: #ef4444 !important;
+  background: rgba(239, 68, 68, 0.05);
+}
+
 .contact__icon {
   line-height: 0;
   position: relative;

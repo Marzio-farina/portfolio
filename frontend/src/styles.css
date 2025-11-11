@@ -420,7 +420,6 @@ body {
 /* ===== PREVENZIONE ALLARGAMENTO CONTENUTO ===== */
 /* Forza tutti gli elementi a rispettare la larghezza del contenitore */
 * {
-  max-width: 100% !important;
   box-sizing: border-box !important;
 }
 
