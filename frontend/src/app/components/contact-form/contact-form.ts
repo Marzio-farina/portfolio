@@ -1,7 +1,7 @@
-import { Component, inject, output, signal } from '@angular/core';
+import { Component, effect, inject, output, signal } from '@angular/core';
 import { ContactService } from '../../services/contact.service';
 import { FormBuilder, FormGroup, ReactiveFormsModule, Validators } from '@angular/forms';
-import { AboutProfileService } from '../../services/about-profile.service';
+import { ProfileStoreService } from '../../services/profile-store.service';
 
 @Component({
   selector: 'app-contact-form',
@@ -12,7 +12,7 @@ import { AboutProfileService } from '../../services/about-profile.service';
 export class ContactForm {
   private fb = inject(FormBuilder);
   private api = inject(ContactService);
-  private about = inject(AboutProfileService);
+  private profileStore = inject(ProfileStoreService);
 
   sending = false;
   sent = false;
@@ -39,10 +39,9 @@ export class ContactForm {
 
   constructor() {
     // Carica il destinatario dal profilo pubblico (tenant-aware)
-    this.about.get$().subscribe({
-      next: (p) => {
-        this.recipientEmail = (p?.email ?? '').trim();
-      }
+    effect(() => {
+      const profile = this.profileStore.profile();
+      this.recipientEmail = (profile?.email ?? '').trim();
     });
     // Validazione in tempo reale per ogni campo
     this.form.get('name')?.valueChanges.subscribe(() => this.validateField('name'));

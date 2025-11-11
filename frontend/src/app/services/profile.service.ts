@@ -1,8 +1,8 @@
 import { Injectable, inject } from '@angular/core';
-import { HttpClient } from '@angular/common/http';
 import { Observable } from 'rxjs';
-import { apiUrl } from '../core/api/api-url';
+import { toObservable } from '@angular/core/rxjs-interop';
 import { AboutProfileService } from './about-profile.service';
+import { ProfileStoreService } from './profile-store.service';
 
 /**
  * Profile Service
@@ -14,8 +14,8 @@ import { AboutProfileService } from './about-profile.service';
   providedIn: 'root'
 })
 export class ProfileService {
-  private http = inject(HttpClient);
   private about = inject(AboutProfileService);
+  private store = inject(ProfileStoreService);
 
   /**
    * Get public profile data
@@ -23,8 +23,10 @@ export class ProfileService {
    * @returns Observable with profile data
    */
   getProfile$(userId?: number): Observable<ProfileData> {
-    // Delego al servizio con cache (shareReplay) per evitare chiamate duplicate
-    return this.about.get$(userId) as unknown as Observable<ProfileData>;
+    if (userId !== undefined) {
+      return this.about.get$(userId) as unknown as Observable<ProfileData>;
+    }
+    return toObservable(this.store.profile) as unknown as Observable<ProfileData>;
   }
 }
 
@@ -34,16 +36,19 @@ export class ProfileService {
 export interface ProfileData {
   id: number;
   name: string;
-  surname: string;
+  surname: string | null;
   email: string;
-  title?: string;
-  bio?: string;
-  phone?: string;
-  location?: string;
-  avatar_url?: string;
-  date_of_birth?: string;
-  date_of_birth_it?: string;
-  age?: number;
+  slug?: string | null;
+  title?: string | null;
+  headline?: string | null;
+  bio?: string | null;
+  phone?: string | null;
+  location?: string | null;
+  location_url?: string | null;
+  avatar_url?: string | null;
+  date_of_birth?: string | null;
+  date_of_birth_it?: string | null;
+  age?: number | null;
   socials?: SocialLink[];
 }
 
@@ -52,6 +57,6 @@ export interface ProfileData {
  */
 export interface SocialLink {
   provider: string;
-  handle: string;
-  url: string;
+  handle: string | null;
+  url: string | null;
 }

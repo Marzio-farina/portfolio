@@ -1,14 +1,15 @@
-import { Component, signal, computed, OnDestroy, inject, ViewEncapsulation } from '@angular/core';
+import { Component, signal, computed, OnDestroy, inject, ViewEncapsulation, effect } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { HttpClient } from '@angular/common/http';
 import { take } from 'rxjs/operators';
-import { ProfileService, ProfileData } from '../../services/profile.service';
+import { ProfileData } from '../../services/profile.service';
 import { TenantService } from '../../services/tenant.service';
 import { EditModeService } from '../../services/edit-mode.service';
 import { NotificationService } from '../../services/notification.service';
 import { ParseBioKeywordsPipe } from '../../pipes/parse-bio-keywords.pipe';
 import { HighlightKeywordsPipe } from '../../pipes/highlight-keywords.pipe';
 import { apiUrl } from '../../core/api/api-url';
+import { ProfileStoreService } from '../../services/profile-store.service';
 
 @Component({
   selector: 'app-bio',
@@ -22,12 +23,12 @@ export class Bio implements OnDestroy {
   // Dependencies
   // ========================================================================
 
-  private readonly profileApi = inject(ProfileService);
   private readonly tenant = inject(TenantService);
   private readonly http = inject(HttpClient);
   readonly edit = inject(EditModeService);
   readonly editMode = this.edit.isEditing;
   private readonly notification = inject(NotificationService);
+  private readonly profileStore = inject(ProfileStoreService);
 
   // ========================================================================
   // Properties
@@ -35,8 +36,8 @@ export class Bio implements OnDestroy {
 
   // Profile section
   profile = signal<ProfileData | null>(null);
-  profileLoading = signal(true);
-  profileError = signal<string | null>(null);
+  profileLoading = computed(() => this.profileStore.loading());
+  profileError = computed(() => this.profileStore.error());
 
   // Bio dialog state
   bioDialogOpen = signal(false);
@@ -127,7 +128,19 @@ export class Bio implements OnDestroy {
   // ========================================================================
 
   constructor() {
-    this.loadProfileData();
+    effect(() => {
+      const data = this.profileStore.profile();
+      const cloned = data ? { ...data } : null;
+      this.profile.set(cloned);
+
+      if (data?.bio) {
+        this.startTypewriterEffectForAllDevices(data.bio);
+      } else {
+        this.fullText.set('');
+        this.initialText.set('');
+      }
+    });
+
     this.addResizeListener();
   }
 
@@ -159,40 +172,6 @@ export class Bio implements OnDestroy {
   // ========================================================================
   // Private Methods
   // ========================================================================
-
-  /**
-   * Load profile data from API
-   */
-  private loadProfileData(): void {
-    const slug = (this as any).tenant?.userSlug?.() as string | null;
-    if (slug) {
-      // Richiama via slug per evitare doppie GET
-      (this.profileApi as any).about.getBySlug(slug).subscribe({
-        next: (data: any) => {
-          this.profile.set(data ?? null);
-          this.profileLoading.set(false);
-          if (data?.bio) this.startTypewriterEffectForAllDevices(data.bio);
-        },
-        error: () => { this.profileError.set('Impossibile caricare il profilo.'); this.profileLoading.set(false); }
-      });
-      return;
-    }
-    this.profileApi.getProfile$(undefined).subscribe({
-      next: (data) => {
-        this.profile.set(data ?? null);
-        this.profileLoading.set(false);
-        
-        // Imposta il testo per tutti i dispositivi
-        if (data?.bio) {
-          this.startTypewriterEffectForAllDevices(data.bio);
-        }
-      },
-      error: () => {
-        this.profileError.set('Impossibile caricare il profilo.');
-        this.profileLoading.set(false);
-      }
-    });
-  }
 
   /**
    * Start reveal effect for desktop when data loads
@@ -397,6 +376,7 @@ export class Bio implements OnDestroy {
     this.http.put(url, { bio }).pipe(take(1)).subscribe({
       next: () => {
         this.notification.add('success', 'Biografia aggiornata', 'bio-save', false);
+        this.profileStore.refresh();
       },
       error: (err) => {
         // ⚠️ ROLLBACK

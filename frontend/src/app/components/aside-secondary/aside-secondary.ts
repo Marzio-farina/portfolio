@@ -1,11 +1,12 @@
 import { Component, inject, signal, computed, effect } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
-import { AboutProfileService, SocialLink } from '../../services/about-profile.service';
+import { SocialLink } from '../../services/about-profile.service';
 import { GitHubService, RepoStats } from '../../services/github.service';
 import { GitHubRepositoryService } from '../../services/github-repository.service';
 import { AuthService } from '../../services/auth.service';
 import { EditModeService } from '../../services/edit-mode.service';
+import { ProfileStoreService } from '../../services/profile-store.service';
 
 /**
  * Componente secondario sotto l'aside principale
@@ -20,14 +21,14 @@ import { EditModeService } from '../../services/edit-mode.service';
   styleUrl: './aside-secondary.css'
 })
 export class AsideSecondary {
-  private readonly aboutProfile = inject(AboutProfileService);
   private readonly github = inject(GitHubService);
   private readonly githubRepo = inject(GitHubRepositoryService);
   private readonly auth = inject(AuthService);
   private readonly editMode = inject(EditModeService);
+  private readonly profileStore = inject(ProfileStoreService);
 
   // Profilo utente per ottenere social accounts
-  profile = signal<{ socials: SocialLink[] } | null>(null);
+  profile = computed(() => this.profileStore.profile());
   
   // Repository GitHub dell'utente (array per supportare multiple repository)
   repositories = signal<Array<{ id: number; owner: string; repo: string; url: string; order: number }>>([]);
@@ -69,17 +70,6 @@ export class AsideSecondary {
   });
 
   constructor() {
-    // Carica il profilo per ottenere i social links
-    this.aboutProfile.get$().subscribe({
-      next: (profile) => {
-        this.profile.set(profile);
-      },
-      error: (err) => {
-        console.error('Errore caricamento profilo:', err);
-        this.loadingUserCommits.set(false);
-      }
-    });
-
     // Carica tutte le repository GitHub (pubbliche)
     this.loadRepositories();
 

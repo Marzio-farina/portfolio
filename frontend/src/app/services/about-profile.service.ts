@@ -4,6 +4,7 @@ import { map, Observable, shareReplay } from 'rxjs';
 // Se già usi questo helper altrove, il path giusto dal folder /services è questo:
 import { apiUrl } from '../core/api/api-url';
 import { Router } from '@angular/router';
+import { TenantService } from './tenant.service';
 
 /** Singolo social link esposto dal backend */
 export type SocialLink = {
@@ -39,6 +40,7 @@ export interface PublicProfileDto {
 export class AboutProfileService {
   private readonly http = inject(HttpClient);
   private readonly router = inject(Router);
+  private readonly tenant = inject(TenantService);
   private cache = new Map<string, Observable<PublicProfileDto>>();
 
   /**
@@ -49,16 +51,55 @@ export class AboutProfileService {
    * Prod: https://api.marziofarina.it/api/api/public-profile
    */
   get$(userId?: number): Observable<PublicProfileDto> {
-    // Se non è passato userId e la URL contiene slug, dirotta su slug (no TenantService per evitare cicli)
-    if (userId === undefined) {
-      const slug = this.peekSlugFromUrl();
-      if (slug) return this.getBySlug(slug);
+    // Caso 1: richiesta esplicita per userId
+    if (userId !== undefined) {
+      return this.getProfileByUserId(userId);
     }
-    const key = userId ? `u:${userId}` : 'root';
+
+    // Caso 2: route con slug (tenant multi-utente)
+    const tenantSlug = this.tenant.userSlug();
+    if (tenantSlug) {
+      return this.getBySlug(tenantSlug);
+    }
+
+    const urlSlug = this.peekSlugFromUrl();
+    if (urlSlug) {
+      return this.getBySlug(urlSlug);
+    }
+
+    // Caso 3: pagina principale senza slug
+    return this.getDefaultProfile();
+  }
+
+  private getProfileByUserId(userId: number): Observable<PublicProfileDto> {
+    const key = `u:${userId}`;
     const cached = this.cache.get(key);
     if (cached) return cached;
 
-    const url = userId ? apiUrl(`users/${userId}/public-profile`) : apiUrl('public-profile');
+    const stream = this.http.get<PublicProfileDto>(apiUrl(`users/${userId}/public-profile`)).pipe(
+      map(res => ({
+        ...res,
+        socials: (res.socials ?? []).map(s => ({
+          ...s,
+          provider: (s.provider ?? '').toLowerCase()
+        }))
+      })),
+      shareReplay(1)
+    );
+
+    this.cache.set(key, stream);
+    return stream;
+  }
+
+  /**
+   * Carica il profilo default (senza slug)
+   */
+  private getDefaultProfile(): Observable<PublicProfileDto> {
+    const key = 'root';
+    const cached = this.cache.get(key);
+    if (cached) return cached;
+
+    const url = apiUrl('public-profile');
     const stream = this.http.get<PublicProfileDto>(url).pipe(
       map(res => ({
         ...res,
@@ -98,7 +139,17 @@ export class AboutProfileService {
   private peekSlugFromUrl(): string | null {
     const segments = this.router.url.split('/').filter(Boolean);
     const first = segments[0] || '';
-    const reserved = new Set(['about','curriculum','progetti','attestati','contatti']);
+    // Lista completa di tutte le route riservate (senza prefisso slug)
+    const reserved = new Set([
+      'about',
+      'curriculum',
+      'progetti',
+      'attestati',
+      'contatti',
+      'job-offers',
+      'nuova-recensione',
+      'auth'
+    ]);
     return first && !reserved.has(first) ? first : null;
   }
 

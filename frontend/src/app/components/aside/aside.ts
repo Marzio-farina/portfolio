@@ -1,7 +1,7 @@
 import { Component, DestroyRef, Inject, PLATFORM_ID, computed, effect, inject, signal, ChangeDetectionStrategy } from '@angular/core';
 import { isPlatformBrowser } from '@angular/common';
 import { toSignal } from '@angular/core/rxjs-interop';
-import { fromEvent, map, startWith, switchMap, of, Subscription } from 'rxjs';
+import { fromEvent, map, startWith } from 'rxjs';
 import { catchError, take } from 'rxjs/operators';
 import { trigger, transition, style, animate } from '@angular/animations';
 import { Avatar } from "../avatar/avatar";
@@ -17,6 +17,7 @@ import { apiUrl } from '../../core/api/api-url';
 import { Router } from '@angular/router';
 import { FormsModule } from '@angular/forms';
 import { NotificationService } from '../../services/notification.service';
+import { ProfileStoreService } from '../../services/profile-store.service';
 
 @Component({
   selector: 'app-aside',
@@ -83,6 +84,7 @@ export class Aside {
    // === DATI PROFILO (API) ===
   private readonly svc = inject(AboutProfileService);
   private readonly dr  = inject(DestroyRef);
+  private readonly profileStore = inject(ProfileStoreService);
   readonly theme = inject(ThemeService);
   private readonly auth = inject(AuthService);
   private readonly http = inject(HttpClient);
@@ -91,32 +93,13 @@ export class Aside {
   private readonly tenantRouter = inject(TenantRouterService);
   private readonly notification = inject(NotificationService);
 
-  // Gestione manuale caricamento profilo (senza helper)
-  private lastProfileKey: string | null = null;
-  private sub: Subscription | null = null;
-  private inFlight = false;
+  profile  = this.profileStore.profile;
+  loading  = this.profileStore.loading;
+  errorMsg = this.profileStore.error;
 
-  profile  = signal<PublicProfileDto | null>(null);
-  loading  = signal<boolean>(false);
-  errorMsg = signal<string | null>(null);
   reload() {
-    if (this.inFlight) return;
-    this.sub?.unsubscribe();
-    this.loading.set(true);
-    this.errorMsg.set(null);
-    this.inFlight = true;
-    this.sub = this.getProfile$().subscribe({
-      next: (res) => { 
-        this.profile.set(res); 
-        this.loading.set(false); 
-        this.inFlight = false; 
-      },
-      error: (err) => {
-        if (err?.status === 0 || err?.name === 'CanceledError') { this.loading.set(false); this.inFlight = false; return; }
-        this.errorMsg.set(err?.message ?? 'Errore di rete'); this.loading.set(false); this.inFlight = false;
-      }
-    });
-    this.dr.onDestroy(() => this.sub?.unsubscribe());
+    this.svc.clearCache();
+    this.profileStore.refresh();
   }
 
   // Helpers per UI
@@ -241,20 +224,6 @@ export class Aside {
     this.showButton   = computed(() => this.viewMode() !== 'large');
     this.isSmall      = computed(() => this.viewMode() === 'small');
 
-    // Avvia il load solo quando cambia la chiave profilo (slug o root)
-    effect(() => {
-      const slug = this.tenant.userSlug();
-      const segments = this.router.url.split('/').filter(Boolean);
-      const first = segments[0] || '';
-      const reserved = new Set(['about','curriculum','progetti','attestati','contatti']);
-      const isTenantPath = first && !reserved.has(first);
-      const key = slug ? `s:${slug}` : (isTenantPath ? `s:${first}` : 'root');
-      if (this.lastProfileKey !== key) {
-        this.lastProfileKey = key;
-        this.reload();
-      }
-    });
-
     // Salvataggio su chiusura/refresh pagina
     if (this.isBrowser) {
       const beforeUnloadHandler = (e: BeforeUnloadEvent) => {
@@ -263,32 +232,6 @@ export class Aside {
       window.addEventListener('beforeunload', beforeUnloadHandler);
       this.dr.onDestroy(() => window.removeEventListener('beforeunload', beforeUnloadHandler));
     }
-  }
-
-  private getProfile$() {
-    // 1) Prova a leggere lo slug direttamente dalla URL del browser (più affidabile all'avvio)
-    if (this.isBrowser) {
-      const path = window.location.pathname || '';
-      const segs = path.split('/').filter(Boolean);
-      const firstSeg = segs[0] || '';
-      // Route riservate dell'applicazione (non sono slug utente)
-      const reserved = new Set([
-        'about','curriculum','progetti','attestati','contatti',
-        'job-offers','nuova-recensione'
-      ]);
-      if (firstSeg && !reserved.has(firstSeg)) {
-        return this.svc.getBySlug(firstSeg).pipe(
-          catchError(() => this.svc.get$())
-        );
-      }
-    }
-    // 2) Altrimenti usa lo slug dal TenantService se già disponibile
-    const slug = this.tenant.userSlug();
-    if (slug) return this.svc.getBySlug(slug).pipe(
-      catchError(() => this.svc.get$())
-    );
-    // Root senza slug: profilo principale
-    return this.svc.get$();
   }
 
   toggleContacts(event?: Event) {
