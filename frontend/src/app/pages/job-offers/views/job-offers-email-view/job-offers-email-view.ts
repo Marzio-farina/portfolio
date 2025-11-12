@@ -301,6 +301,22 @@ export class JobOffersEmailView implements OnInit {
     }
   }
 
+  /**
+   * Seleziona un filtro Direzione e resetta gli altri filtri
+   */
+  selectDirection(direction: 'all' | 'sent' | 'received'): void {
+    this.selectedDirection.set(direction);
+    this.selectedCategory.set('all'); // Reset categoria quando cambia direzione
+  }
+
+  /**
+   * Seleziona un filtro Categoria e resetta gli altri filtri
+   */
+  selectCategory(category: 'all' | 'vip' | 'drafts' | 'junk' | 'trash' | 'archive'): void {
+    this.selectedCategory.set(category);
+    this.selectedDirection.set('all'); // Reset direzione quando cambia categoria
+  }
+
   resetFilters(): void {
     this.searchQuery.set('');
     this.selectedDirection.set('all');

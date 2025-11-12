@@ -74,58 +74,44 @@ class ICloudEmailService
             $batchSize = $this->config['sync']['batch_size'];
 
             // Determina quale giorno sincronizzare
-            // Strategia: partire da OGGI e scendere progressivamente nel passato
+            // Strategia OTTIMIZZATA:
+            // 1. Controlla SEMPRE oggi per nuove email
+            // 2. Se oggi è già completo (nessuna nuova email), sincronizza il giorno più vecchio - 1
             
-            $targetDate = Carbon::now()->startOfDay();
+            $today = Carbon::now()->startOfDay();
+            $targetDate = $today;
             
-            // Trova il giorno più recente già sincronizzato
-            $mostRecentSynced = JobOfferEmail::where('user_id', $user->id)
-                ->orderBy('sent_at', 'desc')
+            // Trova il giorno più vecchio già sincronizzato
+            $oldestSynced = JobOfferEmail::where('user_id', $user->id)
+                ->orderBy('sent_at', 'asc')
                 ->first();
 
-            if ($mostRecentSynced) {
-                $mostRecentDate = Carbon::parse($mostRecentSynced->sent_at)->startOfDay();
+            if ($oldestSynced) {
+                $oldestDate = Carbon::parse($oldestSynced->sent_at)->startOfDay();
                 
-                // Se l'email più recente è di oggi, passa a ieri
-                // Altrimenti sincronizza oggi
-                if ($mostRecentDate->isSameDay(Carbon::now())) {
-                    // Cerca il primo giorno "buco" tra oggi e la data più vecchia
-                    $oldestSynced = JobOfferEmail::where('user_id', $user->id)
-                        ->orderBy('sent_at', 'asc')
-                        ->first();
-                    
-                    $oldestDate = Carbon::parse($oldestSynced->sent_at)->startOfDay();
-                    
-                    // Trova il primo giorno senza email tra oggi e la data più vecchia
-                    $currentCheck = Carbon::now()->subDay()->startOfDay();
-                    $foundGap = false;
-                    
-                    while ($currentCheck->greaterThan($oldestDate)) {
-                        $hasEmailsForDay = JobOfferEmail::where('user_id', $user->id)
-                            ->whereDate('sent_at', $currentCheck->format('Y-m-d'))
-                            ->exists();
-                        
-                        if (!$hasEmailsForDay) {
-                            $targetDate = $currentCheck;
-                            $foundGap = true;
-                            break;
-                        }
-                        
-                        $currentCheck->subDay();
-                    }
-                    
-                    // Se non ci sono buchi, sincronizza il giorno PRIMA del più vecchio
-                    if (!$foundGap) {
-                        $targetDate = $oldestDate->subDay();
-                    }
+                // Prima controlla se ci sono email di OGGI
+                $todayEmailsCount = JobOfferEmail::where('user_id', $user->id)
+                    ->whereDate('sent_at', $today->format('Y-m-d'))
+                    ->count();
+                
+                if ($todayEmailsCount > 0) {
+                    // Oggi ha già email sincronizzate, passa al giorno PRIMA del più vecchio
+                    $targetDate = $oldestDate->subDay();
+                } else {
+                    // Oggi non ha email, sincronizza OGGI
+                    $targetDate = $today;
                 }
+            } else {
+                // Nessuna email presente: inizia da OGGI
+                $targetDate = $today;
             }
 
             $stats['synced_date'] = $targetDate->format('Y-m-d');
 
             Log::info("Sincronizzazione email per data: {$targetDate->format('Y-m-d')}", [
                 'user_id' => $user->id,
-                'most_recent_synced' => $mostRecentSynced ? Carbon::parse($mostRecentSynced->sent_at)->format('Y-m-d') : 'none',
+                'oldest_synced' => $oldestSynced ? Carbon::parse($oldestSynced->sent_at)->format('Y-m-d') : 'none',
+                'is_today' => $targetDate->isSameDay($today),
             ]);
 
             foreach ($folders as $folderName) {
@@ -136,15 +122,18 @@ class ICloudEmailService
                     continue;
                 }
 
-                // Sincronizza le email dal giorno target in poi
-                // Poi filtreremo solo quelle del giorno specifico
+                // Query OTTIMIZZATA: leggi SOLO le email del giorno specifico
                 $dateString = $targetDate->format('d M Y');
+                $nextDayString = $targetDate->copy()->addDay()->format('d M Y');
 
+                // IMAP: since = dal giorno X, before = prima del giorno Y
+                // Per ottenere SOLO il giorno X: since X AND before (X+1)
                 $messages = $folder->query()
                     ->since($dateString)
+                    ->before($nextDayString)
                     ->get();
 
-                Log::info("Query IMAP per {$folderName} dal {$dateString}: trovate {$messages->count()} email totali");
+                Log::info("Query IMAP per {$folderName} per il {$dateString}: trovate {$messages->count()} email");
 
                 $importedInFolder = 0;
 
