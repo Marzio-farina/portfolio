@@ -89,7 +89,7 @@
     grid-column: 1 / -1; /* Occupa tutta la larghezza della griglia */
     text-align: center;
     padding: 3rem 1rem;
-    font-size: 1.1rem;
+    font-size: 1.2rem;
     color: var(--text-secondary);
 }
 

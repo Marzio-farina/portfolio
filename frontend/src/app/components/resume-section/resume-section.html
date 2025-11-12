@@ -325,7 +325,11 @@
         } @else {
           <!-- Messaggio per utenti non in edit mode -->
           <li class="timeline__empty-message">
-            Nessun dato inserito
+            @if (type() === 'education') {
+              Nessun studio inserito
+            } @else {
+              Nessuna esperienza inserita
+            }
           </li>
         }
       }
