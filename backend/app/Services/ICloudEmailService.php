@@ -76,10 +76,12 @@ class ICloudEmailService
             // Determina quale giorno sincronizzare
             // Strategia OTTIMIZZATA:
             // 1. Controlla SEMPRE oggi per nuove email
-            // 2. Se oggi è già completo (nessuna nuova email), sincronizza il giorno più vecchio - 1
+            // 2. Se oggi è già completo, sincronizza giorni precedenti
+            // 3. Se un giorno non ha email, continua automaticamente con i giorni precedenti
             
             $today = Carbon::now()->startOfDay();
             $targetDate = $today;
+            $maxDaysToCheck = 10; // Controlla max 10 giorni vuoti prima di fermarsi
             
             // Trova il giorno più vecchio già sincronizzato
             $oldestSynced = JobOfferEmail::where('user_id', $user->id)
@@ -89,13 +91,13 @@ class ICloudEmailService
             if ($oldestSynced) {
                 $oldestDate = Carbon::parse($oldestSynced->sent_at)->startOfDay();
                 
-                // Prima controlla se ci sono email di OGGI
+                // Prima controlla se ci sono email di OGGI nel DB
                 $todayEmailsCount = JobOfferEmail::where('user_id', $user->id)
                     ->whereDate('sent_at', $today->format('Y-m-d'))
                     ->count();
                 
                 if ($todayEmailsCount > 0) {
-                    // Oggi ha già email sincronizzate, passa al giorno PRIMA del più vecchio
+                    // Oggi ha già email, passa al giorno PRIMA del più vecchio
                     $targetDate = $oldestDate->subDay();
                 } else {
                     // Oggi non ha email, sincronizza OGGI
@@ -106,15 +108,21 @@ class ICloudEmailService
                 $targetDate = $today;
             }
 
-            $stats['synced_date'] = $targetDate->format('Y-m-d');
+            // LOOP: Se un giorno è vuoto, continua automaticamente con i giorni precedenti
+            $daysChecked = 0;
+            $foundEmails = false;
 
-            Log::info("Sincronizzazione email per data: {$targetDate->format('Y-m-d')}", [
-                'user_id' => $user->id,
-                'oldest_synced' => $oldestSynced ? Carbon::parse($oldestSynced->sent_at)->format('Y-m-d') : 'none',
-                'is_today' => $targetDate->isSameDay($today),
-            ]);
+            while (!$foundEmails && $daysChecked < $maxDaysToCheck) {
+                $stats['synced_date'] = $targetDate->format('Y-m-d');
 
-            foreach ($folders as $folderName) {
+                Log::info("Tentativo sincronizzazione per data: {$targetDate->format('Y-m-d')}", [
+                    'user_id' => $user->id,
+                    'attempt' => $daysChecked + 1,
+                ]);
+
+                $dailyImported = 0;
+
+                foreach ($folders as $folderName) {
                 $folder = $this->client->getFolder($folderName);
                 
                 if (!$folder) {
@@ -174,7 +182,27 @@ class ICloudEmailService
                         $stats['errors']++;
                     }
                 }
+
+                $dailyImported += $importedInFolder;
             }
+
+            // Se questo giorno ha importato email, fermati
+            if ($dailyImported > 0 || $stats['skipped'] > 0) {
+                $foundEmails = true;
+                Log::info("Trovate email per {$targetDate->format('Y-m-d')}: importate={$dailyImported}, saltate={$stats['skipped']}");
+            } else {
+                // Nessuna email per questo giorno, passa al precedente
+                $daysChecked++;
+                if ($daysChecked < $maxDaysToCheck) {
+                    Log::info("Nessuna email per {$targetDate->format('Y-m-d')}, passo al giorno precedente");
+                    $targetDate = $targetDate->subDay();
+                }
+            }
+        }
+
+        if (!$foundEmails && $daysChecked >= $maxDaysToCheck) {
+            Log::warning("Raggiunto limite di {$maxDaysToCheck} giorni vuoti consecutivi");
+        }
 
             return [
                 'success' => true,
