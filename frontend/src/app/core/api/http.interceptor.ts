@@ -31,14 +31,18 @@ export class ApiInterceptor implements HttpInterceptor {
     
     // Timeout differenziato per tipo di richiesta
     // GitHub API: timeout più lungo (può essere lento)
+    // Email Sync: timeout molto lungo (sincronizzazione da server email può richiedere minuti)
     // Altre API: timeout standard
     const isGitHubApi = clone.url.includes('/github/');
     const isPublicProfile = clone.url.includes('/public-profile');
-    const requestTimeout = isGitHubApi 
-      ? 60000 // 60s per GitHub API (può essere lenta)
-      : isPublicProfile
-        ? 30000 // 30s per public-profile (caricamento iniziale può richiedere più tempo)
-        : (environment.production ? 10000 : 15000); // 15s in locale, 10s in produzione
+    const isEmailSync = clone.url.includes('/emails/sync') || clone.url.includes('/job-offer-emails');
+    const requestTimeout = isEmailSync
+      ? 300000 // 5 minuti per sincronizzazione email e caricamento
+      : isGitHubApi 
+        ? 60000 // 60s per GitHub API (può essere lenta)
+        : isPublicProfile
+          ? 30000 // 30s per public-profile (caricamento iniziale può richiedere più tempo)
+          : (environment.production ? 10000 : 15000); // 15s in locale, 10s in produzione
 
     return next.handle(clone).pipe(
       timeout(requestTimeout),

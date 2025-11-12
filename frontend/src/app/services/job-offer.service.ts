@@ -44,6 +44,12 @@ export class JobOfferService {
     emailSent: number;
     emailReceived: number;
     emailBcc: number;
+    vip: number;
+    drafts: number;
+    sentMail: number;
+    junkMail: number;
+    trash: number;
+    mailArchive: number;
   }> {
     return this.http.post<{
       total: number;
@@ -56,6 +62,12 @@ export class JobOfferService {
       emailSent: number;
       emailReceived: number;
       emailBcc: number;
+      vip: number;
+      drafts: number;
+      sentMail: number;
+      junkMail: number;
+      trash: number;
+      mailArchive: number;
     }>(`${this.apiUrl}/api/job-offers/stats`, { visible_types: visibleTypes });
   }
 

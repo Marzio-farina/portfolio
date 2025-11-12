@@ -37,7 +37,13 @@ export class JobOffers {
     emailTotal: 0,
     emailSent: 0,
     emailReceived: 0,
-    emailBcc: 0
+    emailBcc: 0,
+    vip: 0,
+    drafts: 0,
+    sentMail: 0,
+    junkMail: 0,
+    trash: 0,
+    mailArchive: 0
   });
 
   // Loading state per le statistiche
@@ -78,7 +84,13 @@ export class JobOffers {
         emailTotal: 0,
         emailSent: 0,
         emailReceived: 0,
-        emailBcc: 0
+        emailBcc: 0,
+        vip: 0,
+        drafts: 0,
+        sentMail: 0,
+        junkMail: 0,
+        trash: 0,
+        mailArchive: 0
       });
       this.statsLoading.set(false);
       return;

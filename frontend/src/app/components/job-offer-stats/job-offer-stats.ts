@@ -14,6 +14,12 @@ export interface JobOfferStats {
   emailSent: number;
   emailReceived: number;
   emailBcc: number;
+  vip: number;
+  drafts: number;
+  sentMail: number;
+  junkMail: number;
+  trash: number;
+  mailArchive: number;
 }
 
 export type JobOfferCardType =
@@ -27,7 +33,13 @@ export type JobOfferCardType =
   | 'email-total'
   | 'email-sent'
   | 'email-received'
-  | 'email-bcc';
+  | 'email-bcc'
+  | 'vip'
+  | 'drafts'
+  | 'sent-mail'
+  | 'junk-mail'
+  | 'trash'
+  | 'mail-archive';
 
 @Component({
   selector: 'app-job-offer-stats',
@@ -50,7 +62,13 @@ export class JobOfferStatsComponent implements OnInit {
     emailTotal: 0,
     emailSent: 0,
     emailReceived: 0,
-    emailBcc: 0
+    emailBcc: 0,
+    vip: 0,
+    drafts: 0,
+    sentMail: 0,
+    junkMail: 0,
+    trash: 0,
+    mailArchive: 0
   });
 
   // Indica se siamo in modalità edit (mostra card "Aggiungi")
@@ -265,7 +283,13 @@ export class JobOfferStatsComponent implements OnInit {
       'email-total': 'emailTotal',
       'email-sent': 'emailSent',
       'email-received': 'emailReceived',
-      'email-bcc': 'emailBcc'
+      'email-bcc': 'emailBcc',
+      'vip': 'vip',
+      'drafts': 'drafts',
+      'sent-mail': 'sentMail',
+      'junk-mail': 'junkMail',
+      'trash': 'trash',
+      'mail-archive': 'mailArchive'
     };
     
     const key = statsMap[type];

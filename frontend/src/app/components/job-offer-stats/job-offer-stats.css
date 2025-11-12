@@ -268,6 +268,36 @@
   color: white;
 }
 
+.stat-card__icon--vip {
+  background: linear-gradient(135deg, #f59e0b 0%, #fbbf24 100%);
+  color: white;
+}
+
+.stat-card__icon--drafts {
+  background: linear-gradient(135deg, #6366f1 0%, #818cf8 100%);
+  color: white;
+}
+
+.stat-card__icon--sent-mail {
+  background: linear-gradient(135deg, #10b981 0%, #34d399 100%);
+  color: white;
+}
+
+.stat-card__icon--junk-mail {
+  background: linear-gradient(135deg, #ef4444 0%, #f87171 100%);
+  color: white;
+}
+
+.stat-card__icon--trash {
+  background: linear-gradient(135deg, #64748b 0%, #94a3b8 100%);
+  color: white;
+}
+
+.stat-card__icon--mail-archive {
+  background: linear-gradient(135deg, #8b5cf6 0%, #a78bfa 100%);
+  color: white;
+}
+
 .stat-card__content {
   flex: 1;
   min-width: 0;

@@ -8,6 +8,7 @@ import { JobOfferEmailService, JobOfferEmail } from '../../../../services/job-of
 import { JobOfferEmailColumnService, JobOfferEmailColumn } from '../../../../services/job-offer-email-column.service';
 import { TenantService } from '../../../../services/tenant.service';
 import { EditModeService } from '../../../../services/edit-mode.service';
+import { EmailSyncService, EmailSyncStats } from '../../../../services/email-sync.service';
 
 type ViewType = 'email-total' | 'email-sent' | 'email-received' | 'email-bcc';
 
@@ -26,9 +27,16 @@ export class JobOffersEmailView implements OnInit {
   private columnService = inject(JobOfferEmailColumnService);
   private tenantService = inject(TenantService);
   private editModeService = inject(EditModeService);
+  private emailSyncService = inject(EmailSyncService);
 
   title = toSignal(this.route.data.pipe(map(d => d['title'] as string)), { initialValue: '' });
   editMode = this.editModeService.isEditing;
+
+  // Stato sincronizzazione
+  syncing = signal<boolean>(false);
+  syncMessage = signal<string>('');
+  syncStats = signal<EmailSyncStats | null>(null);
+  showSyncNotification = signal<boolean>(false);
 
   viewType = computed<ViewType>(() => {
     const url = window.location.pathname;
@@ -47,7 +55,7 @@ export class JobOffersEmailView implements OnInit {
   searchQuery = signal<string>('');
   selectedDirection = signal<'all' | 'sent' | 'received'>('all');
   selectedStatus = signal<'all' | 'sent' | 'received' | 'queued' | 'failed'>('all');
-  selectedBcc = signal<'all' | 'with-bcc' | 'without-bcc'>('all');
+  selectedCategory = signal<'all' | 'vip' | 'drafts' | 'junk' | 'trash' | 'archive'>('all');
 
   // Sorting
   sortColumn = signal<string>('sent_at');
@@ -75,12 +83,44 @@ export class JobOffersEmailView implements OnInit {
     return this.visibleColumns().slice(0, 4);
   });
 
+  // Contatori per filtri
+  statsByDirection = computed(() => {
+    const emails = this.emails();
+    return {
+      all: emails.length,
+      sent: emails.filter(e => e.direction === 'sent').length,
+      received: emails.filter(e => e.direction === 'received').length,
+    };
+  });
+
+  statsByStatus = computed(() => {
+    const emails = this.emails();
+    return {
+      all: emails.length,
+      sent: emails.filter(e => e.status === 'sent').length,
+      received: emails.filter(e => e.status === 'received').length,
+      queued: emails.filter(e => e.status === 'queued').length,
+      failed: emails.filter(e => e.status === 'failed').length,
+    };
+  });
+
+  statsByCategory = computed(() => {
+    const emails = this.emails();
+    return {
+      all: emails.length,
+      vip: emails.filter(e => (e as any).is_vip).length,
+      drafts: emails.filter(e => e.status === 'draft').length,
+      junk: emails.filter(e => (e as any).is_junk).length,
+      trash: emails.filter(e => (e as any).is_deleted).length,
+      archive: emails.filter(e => (e as any).is_archived).length,
+    };
+  });
+
   filteredEmails = computed(() => {
     const emails = [...this.emails()];
     const query = this.searchQuery().toLowerCase();
     const directionFilter = this.selectedDirection();
     const statusFilter = this.selectedStatus();
-    const bccFilter = this.selectedBcc();
     const type = this.viewType();
     const sortCol = this.sortColumn();
     const sortDir = this.sortDirection();
@@ -118,11 +158,18 @@ export class JobOffersEmailView implements OnInit {
       result = result.filter(email => email.status === statusFilter);
     }
 
-    // BCC filter
-    if (bccFilter === 'with-bcc') {
-      result = result.filter(email => email.has_bcc);
-    } else if (bccFilter === 'without-bcc') {
-      result = result.filter(email => !email.has_bcc);
+    // Category filter
+    const categoryFilter = this.selectedCategory();
+    if (categoryFilter === 'vip') {
+      result = result.filter(email => (email as any).is_vip);
+    } else if (categoryFilter === 'drafts') {
+      result = result.filter(email => email.status === 'draft');
+    } else if (categoryFilter === 'junk') {
+      result = result.filter(email => (email as any).is_junk);
+    } else if (categoryFilter === 'trash') {
+      result = result.filter(email => (email as any).is_deleted);
+    } else if (categoryFilter === 'archive') {
+      result = result.filter(email => (email as any).is_archived);
     }
 
     // Sorting
@@ -145,23 +192,74 @@ export class JobOffersEmailView implements OnInit {
     return result;
   });
 
-  statsByStatus = computed(() => {
-    const emails = this.emails();
-    const summary = emails.reduce(
-      (acc, email) => {
-        acc.total += 1;
-        if (email.direction === 'sent') acc.sent += 1;
-        if (email.direction === 'received') acc.received += 1;
-        if (email.has_bcc) acc.bcc += 1;
-        return acc;
-      },
-      { total: 0, sent: 0, received: 0, bcc: 0 }
-    );
-    return summary;
-  });
-
   ngOnInit(): void {
+    // Carica solo i dati esistenti senza sincronizzazione automatica
+    // (per evitare timeout lunghi all'apertura del componente)
+    // L'utente può cliccare sul pulsante "Sincronizza" per aggiornare manualmente
     this.loadData();
+  }
+
+  /**
+   * Sincronizza le email da iCloud e poi carica i dati
+   */
+  private syncAndLoadData(): void {
+    this.syncing.set(true);
+    this.loading.set(true);
+    this.syncMessage.set('🔄 Sincronizzazione email iCloud in corso...');
+
+    this.emailSyncService.syncEmails().subscribe({
+      next: (response) => {
+        this.syncing.set(false);
+        
+        if (response.success && response.stats) {
+          this.syncStats.set(response.stats);
+          
+          // Mostra messaggio di successo con data sincronizzata
+          const syncedDate = response.stats.synced_date ? new Date(response.stats.synced_date).toLocaleDateString('it-IT') : '';
+          
+          if (response.stats.imported > 0) {
+            if (response.stats.imported >= 100) {
+              this.syncMessage.set(`✅ ${response.stats.imported} email del ${syncedDate} sincronizzate! Clicca per continuare`);
+            } else {
+              this.syncMessage.set(`✅ ${response.stats.imported} email del ${syncedDate} sincronizzate!`);
+            }
+          } else if (response.stats.skipped > 0) {
+            this.syncMessage.set(`✓ Nessuna nuova email trovata per il ${syncedDate}`);
+          } else {
+            this.syncMessage.set(`✓ Nessuna email trovata per il ${syncedDate}`);
+          }
+          
+          this.showSyncNotification.set(true);
+          
+          // Nascondi notifica dopo 5 secondi (più tempo per leggere)
+          setTimeout(() => {
+            this.showSyncNotification.set(false);
+          }, 5000);
+        } else {
+          this.syncMessage.set('⚠️ Errore durante la sincronizzazione');
+          this.showSyncNotification.set(true);
+          setTimeout(() => {
+            this.showSyncNotification.set(false);
+          }, 5000);
+        }
+
+        // Carica i dati dopo la sincronizzazione
+        this.loadData();
+      },
+      error: (err) => {
+        console.error('Errore sincronizzazione email:', err);
+        this.syncing.set(false);
+        this.syncMessage.set('❌ Impossibile sincronizzare le email');
+        this.showSyncNotification.set(true);
+        
+        setTimeout(() => {
+          this.showSyncNotification.set(false);
+        }, 5000);
+
+        // Carica comunque i dati esistenti
+        this.loadData();
+      }
+    });
   }
 
   private loadData(): void {
@@ -183,6 +281,16 @@ export class JobOffersEmailView implements OnInit {
     });
   }
 
+  /**
+   * Sincronizzazione manuale (chiamabile da UI)
+   */
+  manualSync(): void {
+    if (this.syncing()) {
+      return; // Evita sincronizzazioni multiple simultanee
+    }
+    this.syncAndLoadData();
+  }
+
   toggleFilters(): void {
     this.filtersVisible.set(!this.filtersVisible());
   }
@@ -197,7 +305,7 @@ export class JobOffersEmailView implements OnInit {
     this.searchQuery.set('');
     this.selectedDirection.set('all');
     this.selectedStatus.set('all');
-    this.selectedBcc.set('all');
+    this.selectedCategory.set('all');
   }
 
   goBack(): void {

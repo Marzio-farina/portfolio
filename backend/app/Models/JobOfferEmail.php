@@ -23,6 +23,11 @@ class JobOfferEmail extends Model
         'sent_at',
         'message_id',
         'related_job_offer',
+        'has_bcc',
+        'is_vip',
+        'is_junk',
+        'is_deleted',
+        'is_archived',
     ];
 
     protected $casts = [
@@ -30,6 +35,11 @@ class JobOfferEmail extends Model
         'cc_recipients' => 'array',
         'bcc_recipients' => 'array',
         'sent_at' => 'datetime',
+        'has_bcc' => 'boolean',
+        'is_vip' => 'boolean',
+        'is_junk' => 'boolean',
+        'is_deleted' => 'boolean',
+        'is_archived' => 'boolean',
     ];
 
     public function user(): BelongsTo

@@ -19,6 +19,7 @@ use App\Http\Controllers\Api\JobOfferCardController;
 use App\Http\Controllers\Api\JobOfferColumnController;
 use App\Http\Controllers\Api\JobOfferController;
 use App\Http\Controllers\Api\JobOfferEmailColumnController;
+use App\Http\Controllers\Api\EmailSyncController;
 use App\Http\Controllers\Api\JobScraperController;
 use App\Http\Controllers\Api\JobOfferEmailController;
 use App\Http\Controllers\Api\ProjectController;
@@ -272,6 +273,10 @@ Route::middleware(['api', "throttle:{$throttleLimit}", 'db.connection'])
             Route::get('job-offer-email-columns', [JobOfferEmailColumnController::class, 'index']); // Ottieni colonne configurate utente
             Route::put('job-offer-email-columns/reorder', [JobOfferEmailColumnController::class, 'updateOrder']); // Riordina colonne (DEVE essere prima di {columnId})
             Route::put('job-offer-email-columns/{columnId}', [JobOfferEmailColumnController::class, 'update']); // Aggiorna visibilità
+
+            // Email Sync - Sincronizzazione iCloud
+            Route::post('emails/sync', [EmailSyncController::class, 'syncEmails']); // Sincronizza email iCloud
+            Route::post('emails/test-connection', [EmailSyncController::class, 'testConnection']); // Testa connessione iCloud
 
             // Job Scraper - scraping offerte di lavoro tramite Adzuna (aggrega Indeed, LinkedIn, Monster)
             Route::post('job-scraper/adzuna', [JobScraperController::class, 'scrapeAdzuna']);
