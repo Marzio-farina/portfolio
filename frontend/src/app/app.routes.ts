@@ -16,6 +16,7 @@ import { OAuthCallbackComponent } from './components/oauth-callback/oauth-callba
 import { tenantResolver } from './core/tenant/tenant.resolver';
 import { clearTenantResolver } from './core/tenant/clear-tenant.resolver';
 import { authGuard } from './guards/auth.guard';
+import { slugWildcardGuard } from './core/redirects/slug-wildcard.guard';
 
 export const routes: Routes = [
   { path: '', pathMatch: 'full', redirectTo: 'about' },
@@ -55,5 +56,17 @@ export const routes: Routes = [
   { path: ':userSlug/job-offers/accepted', component: JobOffersStatsView, canActivate: [authGuard], resolve: { tenant: tenantResolver }, data: { title: 'Candidature Accettate' } },
   { path: ':userSlug/job-offers/archived', component: JobOffersStatsView, canActivate: [authGuard], resolve: { tenant: tenantResolver }, data: { title: 'Candidature Archiviate' } },
   { path: ':userSlug/job-offers/email', component: JobOffersStatsView, canActivate: [authGuard], resolve: { tenant: tenantResolver }, data: { title: 'Email Inviate' } },
-  { path: '**', redirectTo: 'about' },
+  // Redirect solo slug a slug/about
+  { 
+    path: ':userSlug', 
+    pathMatch: 'full',
+    redirectTo: ':userSlug/about'
+  },
+  // Wildcard catch-all finale con guard per gestire slug
+  { 
+    path: '**', 
+    component: About,
+    canActivate: [slugWildcardGuard],
+    data: { title: 'Chi sono' } 
+  },
 ];
