@@ -122,22 +122,37 @@ export class Auth {
         // Pulisci la cache del profilo per forzare il caricamento dei dati del nuovo utente
         this.aboutProfile.clearCache();
         
-        // Reindirizza in base al tipo di utente
+        // Controlla l'URL corrente
+        const currentUrl = this.router.url;
+        const userSlug = ((res.user as any)?.slug || '').toLowerCase();
+        
+        // Verifica se l'utente è già su una pagina con il suo slug
+        const isOnOwnSlugPage = userSlug && currentUrl.startsWith(`/${userSlug}/`);
+        
+        // Per l'utente ID=1 (main), verifica se è su una pagina senza slug (pattern: /pagina invece di /slug/pagina)
+        const hasSlugInUrl = /^\/[a-z0-9-]+\//.test(currentUrl); // pattern: /slug/...
+        const isOnMainPageWithoutSlug = res.user?.id === 1 && !hasSlugInUrl;
+        
+        if (isOnOwnSlugPage || isOnMainPageWithoutSlug) {
+          // L'utente è già sulla sua pagina → Non ricaricare, solo chiudi auth modal
+          // Il tenant è già impostato correttamente dal resolver
+          return;
+        }
+        
+        // Altrimenti, reindirizza alla pagina corretta
         if (res.user?.id === 1) {
           // Utente principale (ID=1) → Pagina principale senza slug
-          this.tenant.clear(); // Nessun tenant per l'utente principale
+          this.tenant.clear();
           setTimeout(() => {
             window.location.href = '/about';
           }, 300);
         } else {
           // Altri utenti → Pagina con slug
-          const userSlug = ((res.user as any)?.slug || '').toLowerCase();
-          
           if (userSlug && res.user) {
             // Imposta il tenant manualmente prima della navigazione
             this.tenant.setTenant(userSlug, res.user.id);
             
-            // Naviga alla pagina personale dell'utente con forza il reload
+            // Naviga alla pagina personale dell'utente con reload
             setTimeout(() => {
               window.location.href = `/${userSlug}/about`;
             }, 300);
@@ -181,22 +196,37 @@ export class Auth {
         // Pulisci la cache del profilo per forzare il caricamento dei dati del nuovo utente
         this.aboutProfile.clearCache();
         
-        // Reindirizza in base al tipo di utente
+        // Controlla l'URL corrente
+        const currentUrl = this.router.url;
+        const userSlug = ((res.user as any)?.slug || '').toLowerCase();
+        
+        // Verifica se l'utente è già su una pagina con il suo slug
+        const isOnOwnSlugPage = userSlug && currentUrl.startsWith(`/${userSlug}/`);
+        
+        // Per l'utente ID=1 (main), verifica se è su una pagina senza slug (pattern: /pagina invece di /slug/pagina)
+        const hasSlugInUrl = /^\/[a-z0-9-]+\//.test(currentUrl); // pattern: /slug/...
+        const isOnMainPageWithoutSlug = res.user?.id === 1 && !hasSlugInUrl;
+        
+        if (isOnOwnSlugPage || isOnMainPageWithoutSlug) {
+          // L'utente è già sulla sua pagina → Non ricaricare, solo chiudi auth modal
+          // Il tenant è già impostato correttamente dal resolver
+          return;
+        }
+        
+        // Altrimenti, reindirizza alla pagina corretta
         if (res.user?.id === 1) {
           // Utente principale (ID=1) → Pagina principale senza slug
-          this.tenant.clear(); // Nessun tenant per l'utente principale
+          this.tenant.clear();
           setTimeout(() => {
             window.location.href = '/about';
           }, 300);
         } else {
           // Altri utenti → Pagina con slug
-          const userSlug = ((res.user as any)?.slug || '').toLowerCase();
-          
           if (userSlug && res.user) {
             // Imposta il tenant manualmente prima della navigazione
             this.tenant.setTenant(userSlug, res.user.id);
             
-            // Naviga alla pagina personale dell'utente con forza il reload
+            // Naviga alla pagina personale dell'utente con reload
             setTimeout(() => {
               window.location.href = `/${userSlug}/about`;
             }, 300);
