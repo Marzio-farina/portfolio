@@ -37,7 +37,7 @@ class JobOfferController extends Controller
     {
         $validated = $request->validate([
             'visible_types' => 'required|array',
-            'visible_types.*' => 'required|string|in:total,pending,interview,accepted,rejected,archived,email,email-total,email-sent,email-received,email-bcc'
+            'visible_types.*' => 'required|string|in:total,pending,interview,accepted,rejected,archived,email,email-total,email-sent,email-received,email-bcc,vip,drafts,sent-mail,junk-mail,trash,mail-archive'
         ]);
 
         $userId = Auth::id();
@@ -55,6 +55,12 @@ class JobOfferController extends Controller
             'emailSent' => 0,
             'emailReceived' => 0,
             'emailBcc' => 0,
+            'vip' => 0,
+            'drafts' => 0,
+            'sentMail' => 0,
+            'junkMail' => 0,
+            'trash' => 0,
+            'mailArchive' => 0,
         ];
 
         // Solo se il tipo è visibile, calcola la statistica (escludi status 'search')
@@ -116,6 +122,48 @@ class JobOfferController extends Controller
                     $stats['emailBcc'] = JobOfferEmail::where('user_id', $userId)
                         ->whereNotNull('bcc_recipients')
                         ->whereJsonLength('bcc_recipients', '>', 0)
+                        ->count();
+                }
+
+                // VIP: email con flag is_vip = true (TODO: aggiungere campo is_vip se necessario)
+                if (in_array('vip', $visibleTypes)) {
+                    $stats['vip'] = JobOfferEmail::where('user_id', $userId)
+                        ->where('is_vip', true)
+                        ->count();
+                }
+
+                // Drafts: email con status = 'draft' (TODO: verificare se esiste questo status)
+                if (in_array('drafts', $visibleTypes)) {
+                    $stats['drafts'] = JobOfferEmail::where('user_id', $userId)
+                        ->where('status', 'draft')
+                        ->count();
+                }
+
+                // Sent Mail: tutte le email inviate (simile a email-sent)
+                if (in_array('sent-mail', $visibleTypes)) {
+                    $stats['sentMail'] = JobOfferEmail::where('user_id', $userId)
+                        ->where('direction', 'sent')
+                        ->count();
+                }
+
+                // Junk Mail: email con flag is_junk = true (TODO: aggiungere campo is_junk se necessario)
+                if (in_array('junk-mail', $visibleTypes)) {
+                    $stats['junkMail'] = JobOfferEmail::where('user_id', $userId)
+                        ->where('is_junk', true)
+                        ->count();
+                }
+
+                // Trash: email con flag is_deleted = true (TODO: aggiungere campo is_deleted se necessario)
+                if (in_array('trash', $visibleTypes)) {
+                    $stats['trash'] = JobOfferEmail::where('user_id', $userId)
+                        ->where('is_deleted', true)
+                        ->count();
+                }
+
+                // Mail Archive: email con flag is_archived = true (TODO: aggiungere campo is_archived se necessario)
+                if (in_array('mail-archive', $visibleTypes)) {
+                    $stats['mailArchive'] = JobOfferEmail::where('user_id', $userId)
+                        ->where('is_archived', true)
                         ->count();
                 }
             } catch (QueryException $e) {

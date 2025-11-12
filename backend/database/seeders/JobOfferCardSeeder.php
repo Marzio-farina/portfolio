@@ -76,6 +76,36 @@ class JobOfferCardSeeder extends Seeder
                 'type' => 'email-bcc',
                 'icon_svg' => '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M10 12a2 2 0 1 0 4 0 2 2 0 0 0-4 0"/><path d="M21 12c-2.4 3.5-5.1 5-9 5s-6.6-1.5-9-5c2.4-3.5 5.1-5 9-5s6.6 1.5 9 5Z"/><path d="m3 3 18 18"/></svg>',
             ],
+            [
+                'title' => 'VIP',
+                'type' => 'vip',
+                'icon_svg' => '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg>',
+            ],
+            [
+                'title' => 'Bozze',
+                'type' => 'drafts',
+                'icon_svg' => '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><path d="M14 2v6h6"/><path d="M12 18v-6"/><path d="m9 15 3 3 3-3"/></svg>',
+            ],
+            [
+                'title' => 'Posta Inviata',
+                'type' => 'sent-mail',
+                'icon_svg' => '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M22 2 11 13"/><path d="M22 2 15 22l-4-9-9-4Z"/></svg>',
+            ],
+            [
+                'title' => 'Posta Indesiderata',
+                'type' => 'junk-mail',
+                'icon_svg' => '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="5" width="18" height="14" rx="2"/><path d="m9 9 6 6"/><path d="m15 9-6 6"/></svg>',
+            ],
+            [
+                'title' => 'Cestino',
+                'type' => 'trash',
+                'icon_svg' => '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 6h18"/><path d="M19 6v14c0 1-1 2-2 2H7c-1 0-2-1-2-2V6"/><path d="M8 6V4c0-1 1-2 2-2h4c1 0 2 1 2 2v2"/></svg>',
+            ],
+            [
+                'title' => 'Archivio Mail',
+                'type' => 'mail-archive',
+                'icon_svg' => '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20 21V7a2 2 0 0 0-2-2H6a2 2 0 0 0-2 2v14"/><path d="M4 3h16"/><path d="M10 11h4"/><path d="m12 11 0 6"/></svg>',
+            ],
         ];
 
         // 1. Crea le card master (una volta sola, condivise)
