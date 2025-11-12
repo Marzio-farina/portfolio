@@ -7,6 +7,8 @@
 }
 :host.card{
     width:min(480px, 92vw);
+    max-width: 100%;
+    box-sizing: border-box;
     background: var(--bg-card);
     box-shadow: var(--shadow-2);
     padding:1.25rem 1.25rem 1.5rem;
