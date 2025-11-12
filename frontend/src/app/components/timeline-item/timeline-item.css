@@ -13,7 +13,23 @@
 
 /* In modalità edit, rendi cliccabile per modificare */
 .tli--editable {
-  cursor: pointer;
+  cursor: pointer; /* Icona di modifica (dito puntato) */
+  user-select: none; /* Previene selezione testo durante drag */
+}
+
+/* Quando si tiene premuto (prima del drag) */
+.tli--editable:active {
+  cursor: grab; /* Manina aperta quando si tiene premuto */
+}
+
+/* Durante il drag */
+.tli--dragging {
+  opacity: 0.5;
+  cursor: grabbing !important; /* Manina chiusa durante trascinamento */
+  transform: scale(0.98);
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.2);
+  border-color: var(--accent-primary) !important;
+  background: var(--accent-primary-alpha) !important;
 }
 
 /* Effetto highlight all'hover in modalità edit */

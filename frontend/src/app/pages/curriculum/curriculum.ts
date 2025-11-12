@@ -485,6 +485,61 @@ export class Curriculum {
   }
 
   /**
+   * Gestisce il riordino degli elementi CV tramite drag & drop
+   */
+  onReorderCvItems(event: { fromIndex: number; toIndex: number; type: 'education' | 'experience' }): void {
+    // 🚀 OPTIMISTIC UPDATE: Riordina subito nell'UI
+    if (event.type === 'education') {
+      this.education.update(items => {
+        const newItems = [...items];
+        const [movedItem] = newItems.splice(event.fromIndex, 1);
+        newItems.splice(event.toIndex, 0, movedItem);
+        return newItems;
+      });
+    } else {
+      this.experience.update(items => {
+        const newItems = [...items];
+        const [movedItem] = newItems.splice(event.fromIndex, 1);
+        newItems.splice(event.toIndex, 0, movedItem);
+        return newItems;
+      });
+    }
+    
+    // Prepara gli ordini aggiornati per il backend
+    const currentItems = event.type === 'education' ? this.education() : this.experience();
+    const updates = currentItems.map((item, index) => ({
+      title: item.title,
+      years: item.years,
+      order: index
+    }));
+    
+    // Invia al backend
+    const payload = {
+      type: event.type,
+      items: updates
+    };
+    
+    this.http.patch(apiUrl('cv/reorder'), payload).subscribe({
+      next: () => {
+        this.notificationService.add('success', 'Ordine aggiornato con successo', 'cv-reorder');
+      },
+      error: (err) => {
+        const message = err?.error?.message || 'Errore durante il riordino';
+        this.notificationService.add('error', message, 'cv-reorder');
+        
+        // Ricarica i dati per ripristinare l'ordine corretto
+        const uid = this.tenant.userId();
+        this.cv.get$(uid ?? undefined).subscribe({
+          next: data => {
+            this.education.set(data.education);
+            this.experience.set(data.experience);
+          }
+        });
+      }
+    });
+  }
+  
+  /**
    * Estrae il messaggio di errore dall'oggetto errore
    */
   private getErrorMessage(err: any): string | null {

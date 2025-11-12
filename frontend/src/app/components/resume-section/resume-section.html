@@ -113,7 +113,9 @@
           <!-- Item esistente o form di modifica -->
           @if (editingIndex() === idx) {
             <!-- Form di modifica per questo item -->
-            <li class="timeline__item timeline__item--editing">
+            <li class="timeline__item timeline__item--editing"
+                (dragover)="onDragOver($event, idx)"
+                (drop)="onDrop(idx)">
               <!-- Icona chevron per chiudere il form -->
               <button 
                 class="timeline__toggle-editing" 
@@ -167,14 +169,19 @@
             </li>
           } @else {
             <!-- Item esistente -->
-            <li class="timeline__item">
+            <li class="timeline__item"
+                [class.timeline__item--drop-target]="dropTargetIndex() === idx"
+                (dragover)="onDragOver($event, idx)"
+                (drop)="onDrop(idx)"
+                (dragleave)="dropTargetIndex.set(-1)">
               <app-timeline-item
                 [title]="it.title"
                 [years]="it.years"
                 [description]="it.description"
                 [canEdit]="canEdit()"
                 (delete)="onDelete(it)"
-                (edit)="onEdit(it, idx)">
+                (edit)="onEdit(it, idx)"
+                (dragStarted)="onDragStart($event)">
               </app-timeline-item>
             </li>
           }

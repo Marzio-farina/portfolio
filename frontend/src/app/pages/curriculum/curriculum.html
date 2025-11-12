@@ -99,7 +99,8 @@
     [canEdit]="canEdit()"
     [open]="true"
     (addItem)="onAddCvItem($event)"
-    (deleteItem)="onDeleteCvItem($event)">
+    (deleteItem)="onDeleteCvItem($event)"
+    (reorderItems)="onReorderCvItems($event)">
   </app-resume-section>
 
   <app-resume-section
@@ -111,7 +112,8 @@
     [canEdit]="canEdit()"
     [open]="true"
     (addItem)="onAddCvItem($event)"
-    (deleteItem)="onDeleteCvItem($event)">
+    (deleteItem)="onDeleteCvItem($event)"
+    (reorderItems)="onReorderCvItems($event)">
   </app-resume-section>
 }
 <app-skills-section/>

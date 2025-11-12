@@ -192,6 +192,58 @@ class CvController extends Controller
     }
     
     /**
+     * Aggiorna l'ordine di multipli elementi CV
+     * 
+     * @param Request $request
+     * @return JsonResponse
+     */
+    public function reorder(Request $request): JsonResponse
+    {
+        $user = $request->user();
+        if (!$user) {
+            return response()->json([
+                'ok' => false,
+                'message' => 'Non autenticato'
+            ], 401);
+        }
+        
+        $validated = $request->validate([
+            'type' => 'required|in:education,experience',
+            'items' => 'required|array',
+            'items.*.title' => 'required|string',
+            'items.*.years' => 'required|string',
+            'items.*.order' => 'required|integer|min:0',
+        ]);
+        
+        DB::beginTransaction();
+        
+        try {
+            foreach ($validated['items'] as $itemData) {
+                Cv::where('user_id', $user->id)
+                    ->where('type', $validated['type'])
+                    ->where('title', $itemData['title'])
+                    ->update(['order' => $itemData['order']]);
+            }
+            
+            DB::commit();
+            
+            return response()->json([
+                'ok' => true,
+                'message' => 'Ordine aggiornato con successo'
+            ], 200, [], JSON_UNESCAPED_UNICODE);
+            
+        } catch (\Exception $e) {
+            DB::rollBack();
+            Log::error('Errore durante riordino CV: ' . $e->getMessage());
+            
+            return response()->json([
+                'ok' => false,
+                'message' => 'Errore durante il riordino: ' . $e->getMessage()
+            ], 500, [], JSON_UNESCAPED_UNICODE);
+        }
+    }
+    
+    /**
      * Elimina un elemento CV identificato da type + title + years (approx)
      * Nota: years è formattato "dd/mm/yyyy — dd/mm/yyyy", va parsato per trovare le date
      * 

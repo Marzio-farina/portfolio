@@ -430,3 +430,33 @@
 .timeline__item:has(~ .timeline__item)::after {
   bottom: -30px;                      /* Continua fino al prossimo elemento */
 }
+
+/* Stile per la drop zone durante il drag */
+.timeline__item--drop-target {
+  position: relative;
+}
+
+.timeline__item--drop-target::before {
+  content: '';
+  position: absolute;
+  top: -4px;
+  left: 0;
+  right: 0;
+  height: 4px;
+  background: var(--accent-primary);
+  border-radius: 2px;
+  box-shadow: 0 0 8px var(--accent-primary);
+  animation: pulse 1s ease-in-out infinite;
+  z-index: 10;
+}
+
+@keyframes pulse {
+  0%, 100% {
+    opacity: 0.6;
+    transform: scaleX(1);
+  }
+  50% {
+    opacity: 1;
+    transform: scaleX(0.95);
+  }
+}

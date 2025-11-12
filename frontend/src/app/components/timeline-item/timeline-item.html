@@ -1,4 +1,11 @@
-<article class="tli" [class.tli--editable]="canEdit()" (click)="onEditClick()">
+<article class="tli" 
+         [class.tli--editable]="canEdit()" 
+         [class.tli--dragging]="isDragging()"
+         [attr.draggable]="canEdit() ? 'true' : 'false'"
+         (mousedown)="onMouseDown($event)"
+         (dragstart)="onDragStart($event)"
+         (dragend)="onDragEndNative()"
+         (click)="onClick($event)">
   <!-- Icona toggle sulla linea sinistra -->
   <button 
     class="tli__toggle" 

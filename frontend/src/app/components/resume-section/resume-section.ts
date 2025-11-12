@@ -53,9 +53,14 @@ export class ResumeSection {
   // Timer per auto-chiusura se inattivo
   private inactivityTimer: any = null;
   
-  // Output per notificare il parent dell'aggiunta e eliminazione
+  // Output per notificare il parent dell'aggiunta, eliminazione e riordino
   addItem = output<NewCvItem>();
   deleteItem = output<{ title: string; years: string; type: 'education' | 'experience' }>();
+  reorderItems = output<{ fromIndex: number; toIndex: number; type: 'education' | 'experience' }>();
+  
+  // Stato drag & drop
+  draggingItem = signal<{ title: string; years: string } | null>(null);
+  dropTargetIndex = signal<number>(-1);
   
   
   /**
@@ -342,6 +347,59 @@ export class ResumeSection {
       clearTimeout(this.inactivityTimer);
       this.inactivityTimer = null;
     }
+  }
+  
+  /**
+   * Gestisce l'inizio del drag di un elemento
+   */
+  onDragStart(item: { title: string; years: string }): void {
+    this.draggingItem.set(item);
+  }
+  
+  /**
+   * Gestisce il drag over un elemento (permette il drop)
+   */
+  onDragOver(event: Event, index: number): void {
+    event.preventDefault(); // Necessario per permettere il drop
+    this.dropTargetIndex.set(index);
+  }
+  
+  /**
+   * Gestisce il drop di un elemento
+   */
+  onDrop(toIndex: number): void {
+    const draggedItem = this.draggingItem();
+    if (!draggedItem) return;
+    
+    // Trova l'indice dell'elemento trascinato
+    const fromIndex = this.items().findIndex(
+      it => it.title === draggedItem.title && it.years === draggedItem.years
+    );
+    
+    if (fromIndex === -1 || fromIndex === toIndex) {
+      this.draggingItem.set(null);
+      this.dropTargetIndex.set(-1);
+      return;
+    }
+    
+    // Emetti l'evento di riordino verso il parent
+    this.reorderItems.emit({
+      fromIndex,
+      toIndex,
+      type: this.type()
+    });
+    
+    // Reset stato drag
+    this.draggingItem.set(null);
+    this.dropTargetIndex.set(-1);
+  }
+  
+  /**
+   * Gestisce la fine del drag (anche se non droppato)
+   */
+  onDragEnd(): void {
+    this.draggingItem.set(null);
+    this.dropTargetIndex.set(-1);
   }
 
   get iconPath(): string {

@@ -215,6 +215,7 @@ Route::middleware(['api', "throttle:{$throttleLimit}", 'db.connection'])
             // CV (Curricula) - gestione elementi CV (richiede autenticazione)
             Route::post('cv', [CvController::class, 'store']);
             Route::patch('cv', [CvController::class, 'update']);
+            Route::patch('cv/reorder', [CvController::class, 'reorder']);
             Route::delete('cv', [CvController::class, 'destroy']);
             
             // CV Files - gestione completa (richiede autenticazione)

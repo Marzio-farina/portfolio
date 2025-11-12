@@ -13,9 +13,16 @@ export class TimelineItem implements OnInit, OnDestroy {
   description = input<string>('');
   canEdit = input<boolean>(false);
   
-  // Output per eliminazione e modifica
+  // Output per eliminazione, modifica e drag
   delete = output<void>();
   edit = output<void>();
+  dragStarted = output<{ title: string; years: string }>();
+  
+  // Stato drag
+  private mouseDownTimer: any = null;
+  private isDraggingMode = false;
+  isDragging = signal(false);
+  canDrag = signal(false);
 
   // Typewriter effect state
   displayedTitle = signal('');
@@ -93,6 +100,12 @@ export class TimelineItem implements OnInit, OnDestroy {
 
   ngOnDestroy(): void {
     this.stopTypewriterEffect();
+    
+    // Pulisci timer mouseDown
+    if (this.mouseDownTimer) {
+      clearTimeout(this.mouseDownTimer);
+    }
+    document.body.style.cursor = '';
   }
 
   private startDescriptionTypewriter(): void {
@@ -179,9 +192,86 @@ export class TimelineItem implements OnInit, OnDestroy {
     this.delete.emit();
   }
   
-  onEditClick(): void {
-    if (this.canEdit()) {
+  private startX = 0;
+  private startY = 0;
+  private hasMoved = false;
+  private dragAllowed = false;
+  
+  onMouseDown(event: MouseEvent): void {
+    if (!this.canEdit()) return;
+    
+    // Previeni se è un click su button/link
+    const target = event.target as HTMLElement;
+    if (target.closest('button') || target.closest('a')) {
+      return;
+    }
+    
+    this.isDraggingMode = false;
+    this.hasMoved = false;
+    this.dragAllowed = false;
+    this.startX = event.clientX;
+    this.startY = event.clientY;
+    
+    // Timer per rilevare "hold" (200ms) - dopo permette il drag
+    this.mouseDownTimer = setTimeout(() => {
+      this.dragAllowed = true;
+      this.canDrag.set(true);
+    }, 200);
+  }
+  
+  onClick(event: MouseEvent): void {
+    if (!this.canEdit()) return;
+    
+    // Previeni se è un click su button/link
+    const target = event.target as HTMLElement;
+    if (target.closest('button') || target.closest('a')) {
+      return;
+    }
+    
+    // Click singolo → Modifica (solo se non c'è stato drag)
+    if (!this.isDragging() && !this.hasMoved) {
       this.edit.emit();
+    }
+    
+    // Reset dopo il click
+    if (this.mouseDownTimer) {
+      clearTimeout(this.mouseDownTimer);
+    }
+    this.canDrag.set(false);
+  }
+  
+  onDragStart(event: DragEvent): void {
+    // Permetti drag solo se è stato tenuto premuto abbastanza
+    if (!this.dragAllowed) {
+      event.preventDefault();
+      return;
+    }
+    
+    this.isDragging.set(true);
+    this.isDraggingMode = true;
+    this.dragStarted.emit({ 
+      title: this.title(), 
+      years: this.years() 
+    });
+    
+    // Imposta l'effetto visivo del drag
+    if (event.dataTransfer) {
+      event.dataTransfer.effectAllowed = 'move';
+      event.dataTransfer.setData('text/plain', JSON.stringify({
+        title: this.title(),
+        years: this.years()
+      }));
+    }
+  }
+  
+  onDragEndNative(): void {
+    this.isDragging.set(false);
+    this.isDraggingMode = false;
+    this.dragAllowed = false;
+    this.canDrag.set(false);
+    
+    if (this.mouseDownTimer) {
+      clearTimeout(this.mouseDownTimer);
     }
   }
 }
