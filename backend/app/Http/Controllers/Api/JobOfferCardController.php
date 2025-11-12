@@ -19,8 +19,9 @@ class JobOfferCardController extends Controller
         /** @var User $user */
         $user = Auth::user();
         
-        // Ottieni le card con il pivot visible
+        // Ottieni solo i campi necessari: id, type, icon_svg, title e visible dal pivot
         $cards = $user->jobOfferCards()
+            ->select(['job_offer_cards.id', 'job_offer_cards.type', 'job_offer_cards.icon_svg', 'job_offer_cards.title'])
             ->orderBy('job_offer_cards.id', 'asc')
             ->get()
             ->map(function ($card) {
@@ -30,8 +31,6 @@ class JobOfferCardController extends Controller
                     'type' => $card->type,
                     'icon_svg' => $card->icon_svg,
                     'visible' => $card->pivot->visible,
-                    'created_at' => $card->created_at,
-                    'updated_at' => $card->updated_at,
                 ];
             });
 

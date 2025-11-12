@@ -1,0 +1,322 @@
+<section class="job-email-detail">
+  <!-- Header con back button e titolo -->
+  <div class="header">
+    <button class="back-btn" type="button" (click)="goBack()" aria-label="Torna alle statistiche">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+        <path d="M19 12H5M12 19l-7-7 7-7"/>
+      </svg>
+    </button>
+    <h2 class="title">{{ title() }}</h2>
+  </div>
+
+  <!-- Pulsante Toggle Filtri (position absolute) -->
+  <button 
+    class="filter-toggle-btn" 
+    (click)="toggleFilters()"
+    (mouseenter)="showFiltersOnHover()"
+    type="button"
+    [class.active]="filtersVisible()"
+    [attr.aria-label]="filtersVisible() ? 'Nascondi filtri' : 'Mostra filtri'"
+    title="Toggle Filtri">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+      <polygon points="22 3 2 3 10 12.46 10 19 14 21 14 12.46 22 3"/>
+    </svg>
+  </button>
+
+  <!-- Filtro superiore - Search Bar -->
+  @if (filtersVisible()) {
+    <div class="top-filter">
+      <div class="filter-group-right">
+        <div class="search-wrapper">
+          <input 
+            type="text" 
+            placeholder="Cerca per oggetto, destinatario o candidatura..." 
+            class="input input-bordered search-input"
+            [(ngModel)]="searchQuery"
+            [value]="searchQuery()"
+            (ngModelChange)="searchQuery.set($event)">
+          @if (searchQuery()) {
+            <button type="button" class="clear-search" (click)="searchQuery.set('')" aria-label="Cancella ricerca">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <path d="M18 6L6 18M6 6l12 12"/>
+              </svg>
+            </button>
+          }
+        </div>
+        
+        <button class="btn btn-outline btn-sm reset-btn" (click)="resetFilters()" type="button">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M3 12a9 9 0 1 0 9-9 9.75 9.75 0 0 0-6.74 2.74L3 8"/>
+            <path d="M3 3v5h5"/>
+          </svg>
+          Reset Filtri
+        </button>
+      </div>
+    </div>
+  }
+
+  <!-- Layout principale: Filtri laterali + Tabella -->
+  <div class="content-layout" [class.filters-hidden]="!filtersVisible()">
+    <!-- Filtri laterali -->
+    @if (filtersVisible()) {
+      <aside class="side-filters">
+        <div class="filter-card">
+          <h3 class="filter-title">Filtri</h3>
+
+          <!-- Filtro Stato -->
+          <div class="filter-group">
+            <label class="filter-label">Stato</label>
+            <select 
+              class="select select-bordered w-full"
+              [(ngModel)]="selectedStatus"
+              [value]="selectedStatus()"
+              (ngModelChange)="selectedStatus.set($event)">
+              <option value="all">Tutti</option>
+              <option value="sent">Inviata</option>
+              <option value="received">Ricevuta</option>
+              <option value="queued">In coda</option>
+              <option value="failed">Fallita</option>
+            </select>
+          </div>
+
+          <!-- Filtro Direzione -->
+          <div class="filter-group">
+            <label class="filter-label">Direzione</label>
+            <select 
+              class="select select-bordered w-full"
+              [(ngModel)]="selectedDirection"
+              [value]="selectedDirection()"
+              (ngModelChange)="selectedDirection.set($event)">
+              <option value="all">Tutte</option>
+              <option value="sent">Inviate</option>
+              <option value="received">Ricevute</option>
+            </select>
+          </div>
+
+          <!-- Filtro BCC -->
+          <div class="filter-group">
+            <label class="filter-label">BCC</label>
+            <select 
+              class="select select-bordered w-full"
+              [(ngModel)]="selectedBcc"
+              [value]="selectedBcc()"
+              (ngModelChange)="selectedBcc.set($event)">
+              <option value="all">Tutti</option>
+              <option value="with-bcc">Con BCC</option>
+              <option value="without-bcc">Senza BCC</option>
+            </select>
+          </div>
+
+          <!-- Contatore risultati -->
+          <div class="results-count">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+              <rect x="3" y="5" width="18" height="14" rx="2"/>
+              <path d="M3 7l9 6 9-6"/>
+            </svg>
+            <span>{{ filteredEmails().length }} Email</span>
+          </div>
+        </div>
+      </aside>
+    }
+
+    <!-- Tabella -->
+    <div class="table-container">
+      <!-- Pulsante opzioni tabella (visibile solo in Edit Mode) -->
+      @if (editMode()) {
+        <button 
+          class="table-options-btn"
+          type="button"
+          title="Opzioni tabella"
+          aria-label="Opzioni tabella"
+          (click)="toggleTableOptions()"
+          (mouseenter)="tableOptionsOpen.set(true)">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M12.22 2h-.44a2 2 0 0 0-2 2v.18a2 2 0 0 1-1 1.73l-.43.25a2 2 0 0 1-2 0l-.15-.08a2 2 0 0 0-2.73.73l-.22.38a2 2 0 0 0 .73 2.73l.15.1a2 2 0 0 1 1 1.72v.51a2 2 0 0 1-1 1.74l-.15.09a2 2 0 0 0-.73 2.73l.22.38a2 2 0 0 0 2.73.73l.15-.08a2 2 0 0 1 2 0l.43.25a2 2 0 0 1 1 1.73V20a2 2 0 0 0 2 2h.44a2 2 0 0 0 2-2v-.18a2 2 0 0 1 1-1.73l.43-.25a2 2 0 0 1 2 0l.15.08a2 2 0 0 0 2.73-.73l.22-.39a2 2 0 0 0-.73-2.73l-.15-.08a2 2 0 0 1-1-1.74v-.5a2 2 0 0 1 1-1.74l.15-.09a2 2 0 0 0 .73-2.73l-.22-.38a2 2 0 0 0-2.73-.73l-.15.08a2 2 0 0 1-2 0l-.43-.25a2 2 0 0 1-1-1.73V4a2 2 0 0 0-2-2z"/>
+            <circle cx="12" cy="12" r="3"/>
+          </svg>
+        </button>
+
+        <!-- Popup opzioni tabella -->
+        @if (tableOptionsOpen()) {
+          <div 
+            class="table-options-backdrop"
+            (click)="closeTableOptions()"></div>
+
+          <div 
+            class="table-options-popup"
+            (mouseenter)="tableOptionsOpen.set(true)"
+            (mouseleave)="tableOptionsOpen.set(true)">
+            <div class="table-options-popup__content">
+              <!-- Lista colonne con checkbox -->
+              <div class="columns-list">
+                @for (column of allColumns(); track column.id) {
+                  <label class="column-item">
+                    <input 
+                      type="checkbox"
+                      class="column-checkbox"
+                      [checked]="column.visible"
+                      (change)="toggleColumnVisibility(column.id)">
+                    <span class="column-name">{{ column.title }}</span>
+                  </label>
+                }
+              </div>
+
+              <button 
+                class="table-options-popup__close"
+                type="button"
+                (click)="closeTableOptions()"
+                aria-label="Chiudi">
+                ×
+              </button>
+            </div>
+          </div>
+        }
+      }
+
+      <!-- Empty State -->
+      @if (!loading() && filteredEmails().length === 0) {
+        <div class="empty-state">
+          <svg class="empty-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <circle cx="12" cy="12" r="10"/>
+            <path d="m16 16-4-4-4 4"/>
+            <path d="M12 12V8"/>
+          </svg>
+          <h3>Nessuna email trovata</h3>
+          <p>Prova a modificare i filtri di ricerca</p>
+        </div>
+      } @else {
+        <div class="overflow-x-auto">
+          <table class="table table-zebra">
+            <thead>
+              <tr>
+                <th class="expand-column"></th>
+                @for (column of visibleColumns(); track column.id) {
+                  <th
+                    [class.sortable]="column.sortable !== false"
+                    [class.sorted]="sortColumn() === column.fieldName"
+                    [class.sorted-asc]="sortColumn() === column.fieldName && sortDirection() === 'asc'"
+                    [class.sorted-desc]="sortColumn() === column.fieldName && sortDirection() === 'desc'"
+                    (click)="column.sortable !== false ? onSort(column) : null">
+                    <div class="th-content">
+                      <span class="th-text">{{ column.title }}</span>
+                      @if (column.sortable !== false) {
+                        <svg 
+                          class="sort-icon"
+                          [class.sort-icon--active]="sortColumn() === column.fieldName"
+                          [class.sort-icon--asc]="sortColumn() === column.fieldName && sortDirection() === 'asc'"
+                          [class.sort-icon--desc]="sortColumn() === column.fieldName && sortDirection() === 'desc'"
+                          viewBox="0 0 24 24" 
+                          fill="none" 
+                          stroke="currentColor" 
+                          stroke-width="2.5" 
+                          stroke-linecap="round" 
+                          stroke-linejoin="round">
+                          <path d="M12 5v14M19 12l-7 7-7-7"/>
+                        </svg>
+                      }
+                    </div>
+                  </th>
+                }
+              </tr>
+            </thead>
+            <tbody>
+              @for (email of filteredEmails(); track email.id) {
+                <!-- Riga principale -->
+                <tr class="data-row" [class.row-expanded]="isRowExpanded(email.id)">
+                  <td class="expand-cell" (click)="toggleRowExpansion(email.id)">
+                    <svg 
+                      class="expand-icon"
+                      [class.expand-icon--expanded]="isRowExpanded(email.id)"
+                      viewBox="0 0 24 24" 
+                      fill="none" 
+                      stroke="currentColor" 
+                      stroke-width="2" 
+                      stroke-linecap="round" 
+                      stroke-linejoin="round">
+                      <path d="m9 18 6-6-6-6"/>
+                    </svg>
+                  </td>
+
+                  @for (column of visibleColumns(); track column.id) {
+                    <td>
+                      @switch (column.fieldName) {
+                        @case ('subject') {
+                          <div class="subject-cell">
+                            <span class="subject">{{ email.subject }}</span>
+                            @if (email.preview) {
+                              <span class="preview">{{ email.preview }}</span>
+                            }
+                          </div>
+                        }
+                        @case ('direction') {
+                          <span class="badge direction-tag" [ngClass]="getDirectionClass(email.direction)">
+                            {{ getDirectionLabel(email.direction) }}
+                          </span>
+                        }
+                        @case ('to') {
+                          <div class="recipients">
+                            <span class="recipient-email">{{ email.to_recipients[0] || '-' }}</span>
+                            @if (email.to_recipients.length > 1) {
+                              <span class="badge badge-outline badge-sm">{{ email.to_recipients.length - 1 }} destinatari</span>
+                            }
+                          </div>
+                        }
+                        @case ('bcc') {
+                          @if (email.bcc_count > 0) {
+                            <span class="badge badge-outline">
+                              {{ email.bcc_count }} destinatari
+                            </span>
+                          } @else {
+                            <span class="text-secondary">-</span>
+                          }
+                        }
+                        @case ('status') {
+                          <span class="badge" [ngClass]="getStatusClass(email.status)">
+                            {{ getStatusLabel(email.status) }}
+                          </span>
+                        }
+                        @case ('sent_at') {
+                          {{ email.sent_at ? (email.sent_at | date:'dd/MM/yyyy HH:mm') : '-' }}
+                        }
+                        @case ('related') {
+                          {{ email.related_job_offer || '-' }}
+                        }
+                        @default {
+                          {{ getColumnFallback(email, column.fieldName) || '-' }}
+                        }
+                      }
+                    </td>
+                  }
+                </tr>
+
+                <!-- Riga espandibile -->
+                @if (isRowExpanded(email.id)) {
+                  <tr class="expanded-row">
+                    <td [attr.colspan]="visibleColumns().length + 1" class="expanded-cell">
+                      <div class="expanded-content">
+                        <div class="expanded-section">
+                          <h4>Dettagli</h4>
+                          <ul>
+                            <li><strong>Da:</strong> {{ email.from_address || '-' }}</li>
+                            <li><strong>A:</strong> {{ email.to_recipients.join(', ') || '-' }}</li>
+                            <li><strong>CC:</strong> {{ email.cc_recipients.join(', ') || '-' }}</li>
+                            <li><strong>BCC:</strong> {{ email.bcc_recipients.join(', ') || '-' }}</li>
+                            <li><strong>Message ID:</strong> {{ email.message_id || '-' }}</li>
+                          </ul>
+                        </div>
+                        <div class="expanded-section">
+                          <h4>Anteprima</h4>
+                          <p>{{ email.preview || 'Nessuna anteprima disponibile' }}</p>
+                        </div>
+                      </div>
+                    </td>
+                  </tr>
+                }
+              }
+            </tbody>
+          </table>
+        </div>
+      }
+    </div>
+  </div>
+</section>

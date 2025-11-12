@@ -8,11 +8,26 @@ export interface JobOfferStats {
   pending: number;
   interview: number;
   accepted: number;
+  rejected: number;
   archived: number;
+  emailTotal: number;
   emailSent: number;
+  emailReceived: number;
+  emailBcc: number;
 }
 
-export type JobOfferCardType = 'total' | 'pending' | 'interview' | 'accepted' | 'archived' | 'email';
+export type JobOfferCardType =
+  | 'total'
+  | 'pending'
+  | 'interview'
+  | 'accepted'
+  | 'rejected'
+  | 'archived'
+  | 'email'
+  | 'email-total'
+  | 'email-sent'
+  | 'email-received'
+  | 'email-bcc';
 
 @Component({
   selector: 'app-job-offer-stats',
@@ -30,8 +45,12 @@ export class JobOfferStatsComponent implements OnInit {
     pending: 0,
     interview: 0,
     accepted: 0,
+    rejected: 0,
     archived: 0,
-    emailSent: 0
+    emailTotal: 0,
+    emailSent: 0,
+    emailReceived: 0,
+    emailBcc: 0
   });
 
   // Indica se siamo in modalità edit (mostra card "Aggiungi")
@@ -240,8 +259,13 @@ export class JobOfferStatsComponent implements OnInit {
       'pending': 'pending',
       'interview': 'interview',
       'accepted': 'accepted',
+      'rejected': 'rejected',
       'archived': 'archived',
-      'email': 'emailSent'
+      'email': 'emailTotal',
+      'email-total': 'emailTotal',
+      'email-sent': 'emailSent',
+      'email-received': 'emailReceived',
+      'email-bcc': 'emailBcc'
     };
     
     const key = statsMap[type];

@@ -2,7 +2,7 @@ import { Component, inject, computed, signal, OnInit } from '@angular/core';
 import { toSignal } from '@angular/core/rxjs-interop';
 import { ActivatedRoute, Router } from '@angular/router';
 import { map, forkJoin } from 'rxjs';
-import { CommonModule } from '@angular/common';
+import { CommonModule, Location } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { JobOfferService, JobOffer } from '../../../../services/job-offer.service';
 import { JobOfferColumnService, JobOfferColumn } from '../../../../services/job-offer-column.service';
@@ -19,6 +19,7 @@ import { TenantService } from '../../../../services/tenant.service';
 export class JobOffersStatsView implements OnInit {
   private route = inject(ActivatedRoute);
   private router = inject(Router);
+  private location = inject(Location);
   private jobOfferService = inject(JobOfferService);
   private columnService = inject(JobOfferColumnService);
   private editModeService = inject(EditModeService);
@@ -37,6 +38,7 @@ export class JobOffersStatsView implements OnInit {
     if (url.includes('/pending')) return 'pending';
     if (url.includes('/interview')) return 'interview';
     if (url.includes('/accepted')) return 'accepted';
+    if (url.includes('/rejected')) return 'rejected';
     if (url.includes('/archived')) return 'archived';
     if (url.includes('/email')) return 'email';
     return 'total';
@@ -58,6 +60,9 @@ export class JobOffersStatsView implements OnInit {
   
   // Visibilità filtri
   filtersVisible = signal<boolean>(false);
+
+  // Abilitazione filtro per stato (solo nella vista totale)
+  statusFilterEnabled = computed(() => this.viewType() === 'total');
   
   // Popup opzioni tabella
   tableOptionsOpen = signal<boolean>(false);
@@ -86,6 +91,7 @@ export class JobOffersStatsView implements OnInit {
   });
 
   ngOnInit(): void {
+    this.selectedStatus.set(this.getDefaultStatus());
     this.loadData();
   }
 
@@ -207,16 +213,59 @@ export class JobOffersStatsView implements OnInit {
     this.router.navigate([basePath]);
   }
 
+  private getDefaultStatus(): string {
+    const view = this.viewType();
+    if (view === 'total' || view === 'email') {
+      return 'all';
+    }
+    return view;
+  }
+
   // Reset filtri
   resetFilters(): void {
     this.searchQuery.set('');
-    this.selectedStatus.set('all');
+    this.selectedStatus.set(this.getDefaultStatus());
     this.selectedLocation.set('all');
   }
 
   // Toggle visibilità filtri
   toggleFilters(): void {
     this.filtersVisible.set(!this.filtersVisible());
+  }
+  
+  /**
+   * Mostra i filtri all'hover del pulsante
+   */
+  showFiltersOnHover(): void {
+    if (!this.filtersVisible()) {
+      this.filtersVisible.set(true);
+    }
+  }
+  
+  /**
+   * Gestisce il cambio dello stato e aggiorna solo l'URL (senza navigare)
+   */
+  onStatusChange(newStatus: string): void {
+    if (!this.statusFilterEnabled()) {
+      return;
+    }
+
+    this.selectedStatus.set(newStatus);
+    
+    // Cambia solo l'URL nel browser senza ricaricare il componente
+    const currentSlug = this.tenantService.userSlug();
+    let newUrl: string;
+    
+    if (newStatus === 'all') {
+      // Se seleziona "Tutti", URL → /total
+      newUrl = currentSlug ? `/${currentSlug}/job-offers/total` : '/job-offers/total';
+    } else {
+      // Altrimenti URL → /{status}
+      newUrl = currentSlug ? `/${currentSlug}/job-offers/${newStatus}` : `/job-offers/${newStatus}`;
+    }
+    
+    // Aggiorna solo l'URL senza navigare (i filtri già mostrano i dati corretti)
+    this.location.replaceState(newUrl);
   }
 
   // Toggle popup opzioni tabella

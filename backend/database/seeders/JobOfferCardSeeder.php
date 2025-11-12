@@ -14,6 +14,16 @@ class JobOfferCardSeeder extends Seeder
      */
     public function run(): void
     {
+        // Aggiorna eventuale card legacy "email" al nuovo tipo "email-total"
+        $legacyEmailCard = JobOfferCard::where('type', 'email')->first();
+        if ($legacyEmailCard) {
+            $legacyEmailCard->update([
+                'type' => 'email-total',
+                'title' => 'Email Totali',
+                'icon_svg' => '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M22 6.5V18a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V6.5"/><path d="m22 6-10 7L2 6"/><path d="M2 6h20"/></svg>',
+            ]);
+        }
+
         // Card master (condivise tra tutti gli utenti)
         $masterCards = [
             [
@@ -37,14 +47,34 @@ class JobOfferCardSeeder extends Seeder
                 'icon_svg' => '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/><path d="M22 4L12 14.01l-3-3"/></svg>',
             ],
             [
+                'title' => 'Rifiutate',
+                'type' => 'rejected',
+                'icon_svg' => '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><line x1="15" y1="9" x2="9" y2="15"/><line x1="9" y1="9" x2="15" y2="15"/></svg>',
+            ],
+            [
                 'title' => 'Archiviate',
                 'type' => 'archived',
                 'icon_svg' => '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 8v13H3V8"/><path d="M1 3h22v5H1z"/><path d="M10 12h4"/></svg>',
             ],
             [
+                'title' => 'Email Totali',
+                'type' => 'email-total',
+                'icon_svg' => '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M22 6.5V18a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V6.5"/><path d="m22 6-10 7L2 6"/><path d="M2 6h20"/></svg>',
+            ],
+            [
                 'title' => 'Email Inviate',
-                'type' => 'email',
-                'icon_svg' => '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="5" width="18" height="14" rx="2"/><path d="M3 7l9 6 9-6"/></svg>',
+                'type' => 'email-sent',
+                'icon_svg' => '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M22 2 11 13"/><path d="M22 2 15 22l-4-9-9-4Z"/></svg>',
+            ],
+            [
+                'title' => 'Email Ricevute',
+                'type' => 'email-received',
+                'icon_svg' => '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M22 12 12 22 2 12"/><path d="M12 2v20"/></svg>',
+            ],
+            [
+                'title' => 'Destinatari Nascosti',
+                'type' => 'email-bcc',
+                'icon_svg' => '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M10 12a2 2 0 1 0 4 0 2 2 0 0 0-4 0"/><path d="M21 12c-2.4 3.5-5.1 5-9 5s-6.6-1.5-9-5c2.4-3.5 5.1-5 9-5s6.6 1.5 9 5Z"/><path d="m3 3 18 18"/></svg>',
             ],
         ];
 

@@ -6,6 +6,7 @@ import { JobOfferStatsComponent, JobOfferStats } from '../../components/job-offe
 import { EditModeService } from '../../services/edit-mode.service';
 import { JobOfferService } from '../../services/job-offer.service';
 import { AuthService } from '../../services/auth.service';
+import { TenantService } from '../../services/tenant.service';
 
 @Component({
   selector: 'app-job-offers',
@@ -20,6 +21,7 @@ export class JobOffers {
   private edit = inject(EditModeService);
   private jobOfferService = inject(JobOfferService);
   private auth = inject(AuthService);
+  private tenantService = inject(TenantService);
   
   title = toSignal(this.route.data.pipe(map(d => d['title'] as string)), { initialValue: '' });
   editMode = this.edit.isEditing;
@@ -30,8 +32,12 @@ export class JobOffers {
     pending: 0,
     interview: 0,
     accepted: 0,
+    rejected: 0,
     archived: 0,
-    emailSent: 0
+    emailTotal: 0,
+    emailSent: 0,
+    emailReceived: 0,
+    emailBcc: 0
   });
 
   // Loading state per le statistiche
@@ -39,15 +45,23 @@ export class JobOffers {
 
   // Naviga alla vista dettaglio della categoria selezionata
   onCardClick(cardType: string): void {
-    // Usa sempre lo slug dell'utente autenticato, non quello pubblico visualizzato
-    const userSlug = this.auth.getUserSlug();
+    // Controlla se l'URL corrente ha uno slug
+    const currentSlug = this.tenantService.userSlug();
     
-    if (!userSlug) {
-      console.error('Nessun utente autenticato per navigare a job-offers');
-      return;
+    if (currentSlug) {
+      // Siamo su un path con slug → usa lo slug dell'utente autenticato
+      const userSlug = this.auth.getUserSlug();
+      
+      if (!userSlug) {
+        console.error('Nessun utente autenticato per navigare a job-offers');
+        return;
+      }
+      
+      this.router.navigate([userSlug, 'job-offers', cardType]);
+    } else {
+      // Siamo su un path senza slug → naviga senza slug
+      this.router.navigate(['job-offers', cardType]);
     }
-    
-    this.router.navigate([userSlug, 'job-offers', cardType]);
   }
 
   // Gestisce il cambio di card visibili e ricarica le statistiche
@@ -59,8 +73,12 @@ export class JobOffers {
         pending: 0,
         interview: 0,
         accepted: 0,
+        rejected: 0,
         archived: 0,
-        emailSent: 0
+        emailTotal: 0,
+        emailSent: 0,
+        emailReceived: 0,
+        emailBcc: 0
       });
       this.statsLoading.set(false);
       return;

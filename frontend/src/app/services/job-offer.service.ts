@@ -38,16 +38,24 @@ export class JobOfferService {
     pending: number;
     interview: number;
     accepted: number;
+    rejected: number;
     archived: number;
+    emailTotal: number;
     emailSent: number;
+    emailReceived: number;
+    emailBcc: number;
   }> {
     return this.http.post<{
       total: number;
       pending: number;
       interview: number;
       accepted: number;
+      rejected: number;
       archived: number;
+      emailTotal: number;
       emailSent: number;
+      emailReceived: number;
+      emailBcc: number;
     }>(`${this.apiUrl}/api/job-offers/stats`, { visible_types: visibleTypes });
   }
 

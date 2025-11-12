@@ -7,6 +7,7 @@ import { Progetti } from './pages/progetti/progetti';
 import { Attestati } from './pages/attestati/attestati';
 import { JobOffers } from './pages/job-offers/job-offers';
 import { JobOffersStatsView } from './pages/job-offers/views/job-offers-stats-view/job-offers-stats-view';
+import { JobOffersEmailView } from './pages/job-offers/views/job-offers-email-view/job-offers-email-view';
 import { JobOffersAddView } from './pages/job-offers/views/job-offers-add-view/job-offers-add-view';
 import { JobOffersScraperResultsView } from './pages/job-offers/views/job-offers-scraper-results-view/job-offers-scraper-results-view';
 import { AddTestimonial } from './components/add-testimonial/add-testimonial';
@@ -36,8 +37,12 @@ export const routes: Routes = [
   { path: 'job-offers/pending', component: JobOffersStatsView, canActivate: [authGuard], resolve: { clearTenant: clearTenantResolver }, data: { title: 'Candidature in Attesa' } },
   { path: 'job-offers/interview', component: JobOffersStatsView, canActivate: [authGuard], resolve: { clearTenant: clearTenantResolver }, data: { title: 'Colloqui' } },
   { path: 'job-offers/accepted', component: JobOffersStatsView, canActivate: [authGuard], resolve: { clearTenant: clearTenantResolver }, data: { title: 'Candidature Accettate' } },
+  { path: 'job-offers/rejected', component: JobOffersStatsView, canActivate: [authGuard], resolve: { clearTenant: clearTenantResolver }, data: { title: 'Candidature Rifiutate' } },
   { path: 'job-offers/archived', component: JobOffersStatsView, canActivate: [authGuard], resolve: { clearTenant: clearTenantResolver }, data: { title: 'Candidature Archiviate' } },
-  { path: 'job-offers/email', component: JobOffersStatsView, canActivate: [authGuard], resolve: { clearTenant: clearTenantResolver }, data: { title: 'Email Inviate' } },
+  { path: 'job-offers/email-total', component: JobOffersEmailView, canActivate: [authGuard], resolve: { clearTenant: clearTenantResolver }, data: { title: 'Email Totali' } },
+  { path: 'job-offers/email-sent', component: JobOffersEmailView, canActivate: [authGuard], resolve: { clearTenant: clearTenantResolver }, data: { title: 'Email Inviate' } },
+  { path: 'job-offers/email-received', component: JobOffersEmailView, canActivate: [authGuard], resolve: { clearTenant: clearTenantResolver }, data: { title: 'Email Ricevute' } },
+  { path: 'job-offers/email-bcc', component: JobOffersEmailView, canActivate: [authGuard], resolve: { clearTenant: clearTenantResolver }, data: { title: 'Destinatari Nascosti' } },
   // Rotte con prefisso slug utente
   { path: ':userSlug/about',     component: About,     resolve: { tenant: tenantResolver }, data: { title: 'Chi sono' } },
   { path: ':userSlug/nuova-recensione', component: AddTestimonial, resolve: { tenant: tenantResolver }, data: { title: 'Nuova Recensione' } },
@@ -54,8 +59,12 @@ export const routes: Routes = [
   { path: ':userSlug/job-offers/pending', component: JobOffersStatsView, canActivate: [authGuard], resolve: { tenant: tenantResolver }, data: { title: 'Candidature in Attesa' } },
   { path: ':userSlug/job-offers/interview', component: JobOffersStatsView, canActivate: [authGuard], resolve: { tenant: tenantResolver }, data: { title: 'Colloqui' } },
   { path: ':userSlug/job-offers/accepted', component: JobOffersStatsView, canActivate: [authGuard], resolve: { tenant: tenantResolver }, data: { title: 'Candidature Accettate' } },
+  { path: ':userSlug/job-offers/rejected', component: JobOffersStatsView, canActivate: [authGuard], resolve: { tenant: tenantResolver }, data: { title: 'Candidature Rifiutate' } },
   { path: ':userSlug/job-offers/archived', component: JobOffersStatsView, canActivate: [authGuard], resolve: { tenant: tenantResolver }, data: { title: 'Candidature Archiviate' } },
-  { path: ':userSlug/job-offers/email', component: JobOffersStatsView, canActivate: [authGuard], resolve: { tenant: tenantResolver }, data: { title: 'Email Inviate' } },
+  { path: ':userSlug/job-offers/email-total', component: JobOffersEmailView, canActivate: [authGuard], resolve: { tenant: tenantResolver }, data: { title: 'Email Totali' } },
+  { path: ':userSlug/job-offers/email-sent', component: JobOffersEmailView, canActivate: [authGuard], resolve: { tenant: tenantResolver }, data: { title: 'Email Inviate' } },
+  { path: ':userSlug/job-offers/email-received', component: JobOffersEmailView, canActivate: [authGuard], resolve: { tenant: tenantResolver }, data: { title: 'Email Ricevute' } },
+  { path: ':userSlug/job-offers/email-bcc', component: JobOffersEmailView, canActivate: [authGuard], resolve: { tenant: tenantResolver }, data: { title: 'Destinatari Nascosti' } },
   // Redirect solo slug a slug/about
   { 
     path: ':userSlug', 

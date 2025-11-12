@@ -237,13 +237,34 @@
   color: white;
 }
 
+.stat-card__icon--rejected {
+  background: linear-gradient(135deg, #ff6b6b 0%, #ee5a6f 100%);
+  color: white;
+}
+
 .stat-card__icon--archived {
   background: linear-gradient(135deg, #ffa751 0%, #ffe259 100%);
   color: white;
 }
 
-.stat-card__icon--email {
-  background: linear-gradient(135deg, #fa709a 0%, #fee140 100%);
+.stat-card__icon--email,
+.stat-card__icon--email-total {
+  background: linear-gradient(135deg, #6a11cb 0%, #2575fc 100%);
+  color: white;
+}
+
+.stat-card__icon--email-sent {
+  background: linear-gradient(135deg, #ff9966 0%, #ff5e62 100%);
+  color: white;
+}
+
+.stat-card__icon--email-received {
+  background: linear-gradient(135deg, #56ab2f 0%, #a8e063 100%);
+  color: white;
+}
+
+.stat-card__icon--email-bcc {
+  background: linear-gradient(135deg, #0f2027 0%, #203a43 50%, #2c5364 100%);
   color: white;
 }
 

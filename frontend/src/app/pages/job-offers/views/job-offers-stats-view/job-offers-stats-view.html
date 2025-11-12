@@ -12,7 +12,8 @@
   <!-- Pulsante Toggle Filtri -->
   <button 
     class="filter-toggle-btn" 
-    (click)="toggleFilters()" 
+    (click)="toggleFilters()"
+    (mouseenter)="showFiltersOnHover()"
     type="button"
     [class.active]="filtersVisible()"
     [attr.aria-label]="filtersVisible() ? 'Nascondi filtri' : 'Mostra filtri'"
@@ -71,22 +72,24 @@
       <div class="filter-card">
         <h3 class="filter-title">Filtri</h3>
 
-        <!-- Filtro Status -->
-        <div class="filter-group">
-          <label class="filter-label">Stato</label>
-          <select 
-            class="select select-bordered w-full"
-            [(ngModel)]="selectedStatus"
-            [value]="selectedStatus()"
-            (ngModelChange)="selectedStatus.set($event)">
-            <option value="all">Tutti</option>
-            <option value="pending">In Attesa</option>
-            <option value="interview">Colloquio</option>
-            <option value="accepted">Accettata</option>
-            <option value="rejected">Rifiutata</option>
-            <option value="archived">Archiviata</option>
-          </select>
-        </div>
+        @if (statusFilterEnabled()) {
+          <!-- Filtro Status -->
+          <div class="filter-group">
+            <label class="filter-label">Stato</label>
+            <select 
+              class="select select-bordered w-full"
+              [(ngModel)]="selectedStatus"
+              [value]="selectedStatus()"
+              (ngModelChange)="onStatusChange($event)">
+              <option value="all">Tutti</option>
+              <option value="pending">In Attesa</option>
+              <option value="interview">Colloquio</option>
+              <option value="accepted">Accettata</option>
+              <option value="rejected">Rifiutata</option>
+              <option value="archived">Archiviata</option>
+            </select>
+          </div>
+        }
 
         <!-- Filtro Location -->
         <div class="filter-group">

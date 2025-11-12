@@ -4,9 +4,13 @@ namespace App\Http\Controllers\Api;
 
 use App\Http\Controllers\Controller;
 use App\Models\JobOffer;
+use App\Models\JobOfferEmail;
 use Illuminate\Http\Request;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\Log;
+use Illuminate\Support\Facades\Schema;
+use Illuminate\Database\QueryException;
 use Illuminate\Validation\Rule;
 
 class JobOfferController extends Controller
@@ -33,7 +37,7 @@ class JobOfferController extends Controller
     {
         $validated = $request->validate([
             'visible_types' => 'required|array',
-            'visible_types.*' => 'required|string|in:total,pending,interview,accepted,archived,email'
+            'visible_types.*' => 'required|string|in:total,pending,interview,accepted,rejected,archived,email,email-total,email-sent,email-received,email-bcc'
         ]);
 
         $userId = Auth::id();
@@ -45,8 +49,12 @@ class JobOfferController extends Controller
             'pending' => 0,
             'interview' => 0,
             'accepted' => 0,
+            'rejected' => 0,
             'archived' => 0,
+            'emailTotal' => 0,
             'emailSent' => 0,
+            'emailReceived' => 0,
+            'emailBcc' => 0,
         ];
 
         // Solo se il tipo è visibile, calcola la statistica (escludi status 'search')
@@ -74,15 +82,48 @@ class JobOfferController extends Controller
                 ->count();
         }
 
+        if (in_array('rejected', $visibleTypes)) {
+            $stats['rejected'] = JobOffer::where('user_id', $userId)
+                ->where('status', 'rejected')
+                ->count();
+        }
+
         if (in_array('archived', $visibleTypes)) {
             $stats['archived'] = JobOffer::where('user_id', $userId)
                 ->where('status', 'archived')
                 ->count();
         }
 
-        if (in_array('email', $visibleTypes)) {
-            // Per ora emailSent rimane 0, potrebbe essere implementato in futuro
-            $stats['emailSent'] = 0;
+        if (Schema::hasTable('job_offer_emails')) {
+            try {
+                if (in_array('email', $visibleTypes) || in_array('email-total', $visibleTypes)) {
+                    $stats['emailTotal'] = JobOfferEmail::where('user_id', $userId)->count();
+                }
+
+                if (in_array('email-sent', $visibleTypes)) {
+                    $stats['emailSent'] = JobOfferEmail::where('user_id', $userId)
+                        ->where('direction', 'sent')
+                        ->count();
+                }
+
+                if (in_array('email-received', $visibleTypes)) {
+                    $stats['emailReceived'] = JobOfferEmail::where('user_id', $userId)
+                        ->where('direction', 'received')
+                        ->count();
+                }
+
+                if (in_array('email-bcc', $visibleTypes)) {
+                    $stats['emailBcc'] = JobOfferEmail::where('user_id', $userId)
+                        ->whereNotNull('bcc_recipients')
+                        ->whereJsonLength('bcc_recipients', '>', 0)
+                        ->count();
+                }
+            } catch (QueryException $e) {
+                Log::warning('Impossibile calcolare le statistiche email', [
+                    'user_id' => $userId,
+                    'error' => $e->getMessage(),
+                ]);
+            }
         }
 
         return response()->json($stats);
@@ -225,7 +266,7 @@ class JobOfferController extends Controller
             }
         }
 
-        \Log::info("💾 Salvataggio offerte: " . count($savedJobs) . " nuove, {$skippedCount} duplicate skippate");
+        Log::info("💾 Salvataggio offerte: " . count($savedJobs) . " nuove, {$skippedCount} duplicate skippate");
 
         return response()->json([
             'success' => true,

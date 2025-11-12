@@ -35,6 +35,8 @@ class DatabaseSeeder extends Seeder
             UserProfileAndSocialSeeder::class,
             GitHubRepositorySeeder::class,
             AttestatiSeeder::class,
+            JobOfferCardSeeder::class,
+            JobOfferEmailSeeder::class,
         ]);
     }
 }
