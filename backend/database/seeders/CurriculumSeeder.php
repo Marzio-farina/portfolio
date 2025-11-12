@@ -14,7 +14,8 @@ class CurriculumSeeder extends Seeder
      */
     public function run(): void
     {
-        Cv::query()->delete();
+        // Force delete per eliminare veramente i record (inclusi i soft-deleted)
+        Cv::withTrashed()->forceDelete();
 
         // Reset sequence solo per PostgreSQL
         if (DB::getDriverName() === 'pgsql') {
@@ -62,6 +63,7 @@ class CurriculumSeeder extends Seeder
         ];
 
         // Inserimento - assegna tutti i CV all'utente principale (ID = 1)
+        $orderEdu = 0;
         foreach ($education as $row) {
             [$start, $end] = $this->splitYears($row['years']);
             Cv::create([
@@ -71,9 +73,11 @@ class CurriculumSeeder extends Seeder
                 'time_start'  => $start?->toDateString(),
                 'time_end'    => $end?->toDateString(),
                 'description' => $row['description'],
+                'order'       => $orderEdu++, // Ordine sequenziale
             ]);
         }
 
+        $orderExp = 0;
         foreach ($experience as $row) {
             [$start, $end] = $this->splitYears($row['years']);
             Cv::create([
@@ -83,6 +87,7 @@ class CurriculumSeeder extends Seeder
                 'time_start'  => $start?->toDateString(),
                 'time_end'    => $end?->toDateString(),
                 'description' => $row['description'],
+                'order'       => $orderExp++, // Ordine sequenziale
             ]);
         }
     }

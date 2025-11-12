@@ -20,7 +20,8 @@ class Cv extends Model
         'title',
         'time_start',
         'time_end',
-        'description'
+        'description',
+        'order'
     ];
 
     protected $casts = [

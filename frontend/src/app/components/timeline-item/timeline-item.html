@@ -1,9 +1,9 @@
-<article class="tli">
+<article class="tli" [class.tli--editable]="canEdit()" (click)="onEditClick()">
   <!-- Icona toggle sulla linea sinistra -->
   <button 
     class="tli__toggle" 
     [class.expanded]="isExpanded()"
-    (click)="toggleDescription()"
+    (click)="toggleDescription(); $event.stopPropagation()"
     (mouseenter)="onMouseEnter()"
     type="button"
     [attr.aria-label]="isExpanded() ? 'Nascondi descrizione' : 'Mostra descrizione'"
@@ -13,19 +13,20 @@
     </svg>
   </button>
   
+  <!-- Pulsante delete nell'angolo in alto a destra -->
+  @if (canEdit()) {
+    <button type="button" 
+            class="tli__delete-btn" 
+            (click)="onDeleteClick(); $event.stopPropagation()"
+            title="Elimina"
+            aria-label="Elimina elemento">×</button>
+  }
+  
   <div class="tli__content">
     <!-- Wrapper per titolo e date con flex column -->
     <div class="tli__header">
       <h4 class="tli__title" [class.tli__title--editable]="canEdit()" (mouseenter)="onMouseEnter()" role="heading" aria-level="4">
         {{ displayedTitle() }}
-        
-        @if (canEdit()) {
-          <button type="button" 
-                  class="tli__delete-btn" 
-                  (click)="onDeleteClick()"
-                  title="Elimina"
-                  aria-label="Elimina elemento">×</button>
-        }
       </h4>
       <div class="tli__years">{{ displayedYears() }}</div>
     </div>

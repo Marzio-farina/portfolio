@@ -10,6 +10,9 @@ export interface NewCvItem {
   endDate: string | null; // YYYY-MM-DD o null se "In Corso"
   description: string;
   type: 'education' | 'experience';
+  insertPosition: number; // Indice dove inserire il nuovo elemento (0 = inizio, n = dopo n-esimo elemento)
+  isEdit?: boolean; // True se si sta modificando un record esistente
+  originalItem?: { title: string; years: string }; // Dati originali per identificare il record da modificare
 }
 
 @Component({
@@ -36,8 +39,11 @@ export class ResumeSection {
   // Computed per verificare se ci sono items
   hasItems = computed(() => (this.items()?.length ?? 0) > 0);
   
-  // Form state per aggiunta nuovo item
+  // Form state per aggiunta/modifica item
   isAdding = signal(false);
+  editingIndex = signal<number>(-1); // -1 = nessuno, >= 0 = indice dell'item che si sta modificando
+  insertPosition = signal<number>(0); // Posizione dove inserire (0 = inizio, n = dopo n-esimo elemento)
+  originalItem: { title: string; years: string } | null = null; // Dati originali per identificare il record da modificare
   tempTitle = '';
   tempStartDate = '';
   tempEndDate = '';
@@ -88,7 +94,10 @@ export class ResumeSection {
           startDate,
           endDate: this.isInCorso() ? null : (this.tempEndDate.trim() || null),
           description: this.tempDescription.trim(),
-          type: this.type()
+          type: this.type(),
+          insertPosition: this.insertPosition(),
+          isEdit: this.editingIndex() >= 0,
+          originalItem: this.originalItem || undefined
         });
         this.resetForm();
       }
@@ -102,9 +111,15 @@ export class ResumeSection {
   
   /**
    * Avvia l'aggiunta di un nuovo elemento (espande il pulsante come timeline-item)
+   * @param position Posizione dove inserire (0 = inizio, n = dopo n-esimo elemento)
    */
-  startAdd(): void {
+  startAdd(position: number = 0): void {
+    this.clearInactivityTimer();
+    
     this.isAdding.set(true);
+    this.editingIndex.set(-1); // Modalità aggiunta, non modifica
+    this.insertPosition.set(position);
+    this.originalItem = null; // Nessun item originale da modificare
     this.tempTitle = '';
     this.tempStartDate = '';
     this.tempEndDate = '';
@@ -144,6 +159,67 @@ export class ResumeSection {
       years: item.years,
       type: this.type()
     });
+  }
+  
+  /**
+   * Gestisce il click su un elemento per modificarlo
+   */
+  onEdit(item: Item, index: number): void {
+    // Chiudi il form corrente se aperto
+    this.clearInactivityTimer();
+    
+    // Imposta modalità modifica
+    this.isAdding.set(true);
+    this.editingIndex.set(index);
+    this.insertPosition.set(index);
+    
+    // Salva i dati originali per identificare il record da modificare nel backend
+    this.originalItem = { title: item.title, years: item.years };
+    
+    // Precompila i campi con i dati esistenti
+    this.tempTitle = item.title;
+    
+    // Estrai le date dal formato "dd/mm/yyyy — dd/mm/yyyy" o "dd/mm/yyyy — In Corso"
+    const [startStr, endStr] = item.years.split('—').map(s => s.trim());
+    
+    // Converti da formato italiano (dd/mm/yyyy) a ISO (yyyy-mm-dd)
+    const parseItDate = (dateStr: string): string => {
+      const parts = dateStr.split('/');
+      if (parts.length === 3) {
+        return `${parts[2]}-${parts[1].padStart(2, '0')}-${parts[0].padStart(2, '0')}`;
+      }
+      return '';
+    };
+    
+    this.tempStartDate = parseItDate(startStr);
+    
+    if (endStr.toLowerCase() === 'in corso') {
+      this.isInCorso.set(true);
+      this.tempEndDate = '';
+    } else {
+      this.isInCorso.set(false);
+      this.tempEndDate = parseItDate(endStr);
+    }
+    
+    this.tempDescription = item.description;
+    
+    // Avvia timer di inattività
+    this.startInactivityTimer();
+    
+    // Auto-focus e popola i campi contenteditable dopo il render
+    setTimeout(() => {
+      const titleElement = document.querySelector(`#${this.id()}-panel .timeline__title[contenteditable]`) as HTMLElement;
+      const descElement = document.querySelector(`#${this.id()}-panel .timeline__description[contenteditable]`) as HTMLElement;
+      
+      if (titleElement) {
+        titleElement.textContent = this.tempTitle;
+        titleElement.focus();
+      }
+      
+      if (descElement) {
+        descElement.textContent = this.tempDescription;
+      }
+    }, 100);
   }
   
   /**
@@ -202,7 +278,10 @@ export class ResumeSection {
       startDate,
       endDate: this.isInCorso() ? null : (this.tempEndDate.trim() || null),
       description: this.tempDescription.trim(),
-      type: this.type()
+      type: this.type(),
+      insertPosition: this.insertPosition(),
+      isEdit: this.editingIndex() >= 0,
+      originalItem: this.originalItem || undefined
     });
     
     // Reset form e chiudi editing
@@ -212,10 +291,14 @@ export class ResumeSection {
   
   /**
    * Reset form e chiudi editing
+   * Pubblico perché chiamato dal template (click sul chevron)
    */
-  private resetForm(): void {
+  resetForm(): void {
     this.clearInactivityTimer();
     this.isAdding.set(false);
+    this.editingIndex.set(-1);
+    this.insertPosition.set(0);
+    this.originalItem = null;
     this.tempTitle = '';
     this.tempStartDate = '';
     this.tempEndDate = '';

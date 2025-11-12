@@ -8,6 +8,8 @@ use App\Models\Cv;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Schema;
+use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Log;
 
 class CvController extends Controller
 {
@@ -35,18 +37,27 @@ class CvController extends Controller
         }
         // Se la colonna non esiste, mostra tutti (comportamento pre-migration)
 
-        // education: dal più recente al più vecchio
-        $education = (clone $query)
-            ->where('type', 'education')
-            ->orderByDesc('time_start')
-            ->get();
+        // Verifica se esiste la colonna order per ordinamento personalizzato
+        $hasOrderColumn = Schema::hasColumn('curricula', 'order');
+        
+        // education: ordinati per 'order' se esiste, altrimenti dal più recente al più vecchio
+        $educationQuery = (clone $query)->where('type', 'education');
+        if ($hasOrderColumn) {
+            $education = $educationQuery->orderBy('order')->get();
+        } else {
+            $education = $educationQuery->orderByDesc('time_start')->get();
+        }
 
-        // experience: prima le correnti (time_end NULL), poi per inizio più recente
-        $experience = (clone $query)
-            ->where('type', 'experience')
-            ->orderByRaw('CASE WHEN time_end IS NULL THEN 0 ELSE 1 END ASC')
-            ->orderByDesc('time_start')
-            ->get();
+        // experience: ordinati per 'order' se esiste, altrimenti prima le correnti, poi per inizio più recente
+        $experienceQuery = (clone $query)->where('type', 'experience');
+        if ($hasOrderColumn) {
+            $experience = $experienceQuery->orderBy('order')->get();
+        } else {
+            $experience = $experienceQuery
+                ->orderByRaw('CASE WHEN time_end IS NULL THEN 0 ELSE 1 END ASC')
+                ->orderByDesc('time_start')
+                ->get();
+        }
 
         return response()->json([
             'education'  => CvResource::collection($education)->toArray($request),
@@ -62,15 +73,79 @@ class CvController extends Controller
      */
     public function store(Request $request): JsonResponse
     {
-        $validated = $request->validate([
-            'type' => 'required|in:education,experience',
-            'title' => 'required|string|max:255',
-            'time_start' => 'required|date',
-            'time_end' => 'nullable|date|after_or_equal:time_start',
-            'description' => 'nullable|string|max:5000',
-        ]);
-        
-        // Aggiungi l'utente autenticato
+        try {
+            $validated = $request->validate([
+                'type' => 'required|in:education,experience',
+                'title' => 'required|string|max:255',
+                'time_start' => 'required|date',
+                'time_end' => 'nullable|date',
+                'description' => 'nullable|string|max:5000',
+                'order' => 'nullable|integer|min:0',
+            ]);
+            
+            // Aggiungi l'utente autenticato
+            $user = $request->user();
+            if (!$user) {
+                return response()->json([
+                    'ok' => false,
+                    'message' => 'Non autenticato'
+                ], 401);
+            }
+            
+            $validated['user_id'] = $user->id;
+            
+            // Gestione dell'ordine - usa transazione per evitare conflitti
+            DB::beginTransaction();
+            
+            try {
+                $insertOrder = $validated['order'] ?? 0;
+                
+                // Incrementa l'ordine di tutti i record >= insertOrder dello stesso tipo e utente
+                Cv::where('user_id', $user->id)
+                    ->where('type', $validated['type'])
+                    ->where('order', '>=', $insertOrder)
+                    ->increment('order');
+                
+                // Assegna l'ordine corretto al nuovo record
+                $validated['order'] = $insertOrder;
+                
+                $cv = Cv::create($validated);
+                
+                DB::commit();
+                
+                return response()->json([
+                    'ok' => true,
+                    'message' => 'Elemento CV creato con successo',
+                    'data' => new CvResource($cv)
+                ], 201, [], JSON_UNESCAPED_UNICODE);
+                
+            } catch (\Exception $e) {
+                DB::rollBack();
+                Log::error('Errore durante creazione CV: ' . $e->getMessage());
+                
+                return response()->json([
+                    'ok' => false,
+                    'message' => 'Errore durante il salvataggio: ' . $e->getMessage()
+                ], 500, [], JSON_UNESCAPED_UNICODE);
+            }
+            
+        } catch (\Illuminate\Validation\ValidationException $e) {
+            return response()->json([
+                'ok' => false,
+                'message' => 'Errore di validazione',
+                'errors' => $e->errors()
+            ], 422, [], JSON_UNESCAPED_UNICODE);
+        }
+    }
+    
+    /**
+     * Aggiorna un elemento CV esistente
+     * 
+     * @param Request $request
+     * @return JsonResponse
+     */
+    public function update(Request $request): JsonResponse
+    {
         $user = $request->user();
         if (!$user) {
             return response()->json([
@@ -79,15 +154,41 @@ class CvController extends Controller
             ], 401);
         }
         
-        $validated['user_id'] = $user->id;
+        $validated = $request->validate([
+            'type' => 'required|in:education,experience',
+            'original_title' => 'required|string',
+            'original_years' => 'required|string',
+            'title' => 'required|string|max:255',
+            'time_start' => 'required|date',
+            'time_end' => 'nullable|date',
+            'description' => 'nullable|string|max:5000',
+        ]);
         
-        $cv = Cv::create($validated);
+        // Trova il record originale
+        $cv = Cv::where('user_id', $user->id)
+            ->where('type', $validated['type'])
+            ->where('title', $validated['original_title'])
+            ->first();
+        
+        if (!$cv) {
+            return response()->json([
+                'ok' => false,
+                'message' => 'Elemento CV non trovato'
+            ], 404);
+        }
+        
+        // Aggiorna i campi
+        $cv->title = $validated['title'];
+        $cv->time_start = $validated['time_start'];
+        $cv->time_end = $validated['time_end'];
+        $cv->description = $validated['description'] ?? '';
+        $cv->save();
         
         return response()->json([
             'ok' => true,
-            'message' => 'Elemento CV creato con successo',
+            'message' => 'Elemento CV aggiornato con successo',
             'data' => new CvResource($cv)
-        ], 201, [], JSON_UNESCAPED_UNICODE);
+        ], 200, [], JSON_UNESCAPED_UNICODE);
     }
     
     /**

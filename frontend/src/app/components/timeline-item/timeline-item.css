@@ -4,18 +4,30 @@
   display: flex;
   align-items: flex-start;
   gap: 1rem;
-  transition: opacity var(--transition-1);
+  padding: 12px 0 12px 16px;
+  margin: -12px 0 -12px -16px;
+  border-radius: 8px;
+  border: 2px dashed transparent;
+  transition: all var(--transition-1);
 }
 
-/* Effetto highlight all'hover - nessun movimento */
-.tli:hover {
+/* In modalità edit, rendi cliccabile per modificare */
+.tli--editable {
+  cursor: pointer;
+}
+
+/* Effetto highlight all'hover in modalità edit */
+.tli--editable:hover {
   opacity: 1;
+  border-color: var(--accent-primary);
+  background: rgba(255, 152, 0, 0.1); /* Arancione con 10% di opacità (fallback) */
+  background: var(--accent-primary-alpha, rgba(255, 152, 0, 0.1));
 }
 
 /* Icona toggle sulla linea - solo freccia senza contorno */
 .tli__toggle {
   position: absolute;
-  left: -52px; /* Sulla linea timeline */
+  left: -38px; /* Sulla linea timeline - aggiustato per compensare la rimozione del padding a destra */
   top: 32px; /* Sotto il cerchietto */
   width: 20px;
   height: 20px;
@@ -71,21 +83,15 @@
     transition: color var(--transition-1);
     position: relative;
     min-height: 1.2em; /* Riserva spazio minimo per prevenire layout shift */
-    overflow: visible; /* Permette al bottone X di fuoriuscire */
     display: inline-block; /* Larghezza basata sul contenuto */
     max-width: 100%; /* Non supera il contenitore */
 }
 
-/* Titolo in modalità edit - permette overflow per bottone delete */
-.tli__title--editable {
-    overflow: visible !important;
-}
-
-/* Bottone eliminazione nell'angolo dell'h4 */
+/* Bottone eliminazione nell'angolo in alto a destra del contenitore */
 .tli__delete-btn {
     position: absolute;
-    top: -12px;
-    right: -40px;
+    top: 4px;
+    right: 12px;
     width: 28px;
     height: 28px;
     min-width: 28px;

@@ -36,16 +36,220 @@
     [attr.aria-labelledby]="id() + '-title'">
     <ol class="timeline" [class.timeline--empty]="!hasItems()">
       @if (hasItems()) {
-        @for (it of items(); track it.title + '-' + it.years) {
-          <li class="timeline__item">
-            <app-timeline-item
-              [title]="it.title"
-              [years]="it.years"
-              [description]="it.description"
-              [canEdit]="canEdit()"
-              (delete)="onDelete(it)">
-            </app-timeline-item>
-          </li>
+        <!-- Se ci sono items, mostra button '+' tra di loro se in edit mode -->
+        @for (it of items(); track it.title + '-' + it.years; let idx = $index) {
+          <!-- Button '+' prima dell'item (quando canEdit è true e non si sta già aggiungendo in questa posizione) -->
+          @if (canEdit()) {
+            @if (isAdding() && editingIndex() === -1 && insertPosition() === idx) {
+              <!-- Form di aggiunta nella posizione corretta -->
+              <li class="timeline__item timeline__item--editing">
+                <!-- Icona chevron per chiudere il form -->
+                <button 
+                  class="timeline__toggle-editing" 
+                  type="button"
+                  (click)="resetForm()"
+                  aria-label="Chiudi form">
+                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round" class="timeline__toggle-icon">
+                    <polyline points="9 18 15 12 9 6"></polyline>
+                  </svg>
+                </button>
+                
+                <div class="timeline__content">
+                  <h4 class="timeline__title" contenteditable="true" 
+                      (blur)="onTitleBlur($event)"
+                      (input)="onTitleInput($event)"
+                      placeholder="Titolo..."></h4>
+                  
+                  <div class="timeline__years">
+                    <input 
+                      type="date" 
+                      class="timeline__date-input"
+                      [(ngModel)]="tempStartDate"
+                      (ngModelChange)="resetInactivityTimer()"
+                      (focus)="resetInactivityTimer()"
+                      (click)="resetInactivityTimer()"
+                      placeholder="Data inizio">
+                    <span class="timeline__date-separator">—</span>
+                    <input 
+                      type="date" 
+                      class="timeline__date-input"
+                      [(ngModel)]="tempEndDate"
+                      [disabled]="isInCorso()"
+                      (ngModelChange)="resetInactivityTimer()"
+                      (focus)="resetInactivityTimer()"
+                      (click)="resetInactivityTimer()"
+                      placeholder="Data fine">
+                    <label class="timeline__checkbox">
+                      <input 
+                        type="checkbox" 
+                        [checked]="isInCorso()"
+                        (change)="toggleInCorso()">
+                      <span>In Corso</span>
+                    </label>
+                  </div>
+                  
+                  <p class="timeline__description" contenteditable="true"
+                     (blur)="onDescriptionBlur($event)"
+                     (input)="onDescriptionInput($event)"
+                     placeholder="Descrizione..."></p>
+                </div>
+              </li>
+            } @else if (!isAdding() || editingIndex() >= 0) {
+              <!-- Button '+' per aggiungere prima di questo item (solo se non si sta già aggiungendo) -->
+              <li class="timeline__add-between">
+                <button 
+                  type="button" 
+                  class="timeline__add-btn-small"
+                  (click)="startAdd(idx)"
+                  [attr.aria-label]="'Aggiungi ' + title() + ' prima di ' + it.title">
+                  <svg viewBox="0 0 24 24" aria-hidden="true">
+                    <path d="M12 5v14M5 12h14"/>
+                  </svg>
+                </button>
+              </li>
+            }
+          }
+          
+          <!-- Item esistente o form di modifica -->
+          @if (editingIndex() === idx) {
+            <!-- Form di modifica per questo item -->
+            <li class="timeline__item timeline__item--editing">
+              <!-- Icona chevron per chiudere il form -->
+              <button 
+                class="timeline__toggle-editing" 
+                type="button"
+                (click)="resetForm()"
+                aria-label="Chiudi form">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round" class="timeline__toggle-icon">
+                  <polyline points="9 18 15 12 9 6"></polyline>
+                </svg>
+              </button>
+              
+              <div class="timeline__content">
+                <h4 class="timeline__title" contenteditable="true" 
+                    (blur)="onTitleBlur($event)"
+                    (input)="onTitleInput($event)"
+                    placeholder="Titolo..."></h4>
+                
+                <div class="timeline__years">
+                  <input 
+                    type="date" 
+                    class="timeline__date-input"
+                    [(ngModel)]="tempStartDate"
+                    (ngModelChange)="resetInactivityTimer()"
+                    (focus)="resetInactivityTimer()"
+                    (click)="resetInactivityTimer()"
+                    placeholder="Data inizio">
+                  <span class="timeline__date-separator">—</span>
+                  <input 
+                    type="date" 
+                    class="timeline__date-input"
+                    [(ngModel)]="tempEndDate"
+                    [disabled]="isInCorso()"
+                    (ngModelChange)="resetInactivityTimer()"
+                    (focus)="resetInactivityTimer()"
+                    (click)="resetInactivityTimer()"
+                    placeholder="Data fine">
+                  <label class="timeline__checkbox">
+                    <input 
+                      type="checkbox" 
+                      [checked]="isInCorso()"
+                      (change)="toggleInCorso()">
+                    <span>In Corso</span>
+                  </label>
+                </div>
+                
+                <p class="timeline__description" contenteditable="true"
+                   (blur)="onDescriptionBlur($event)"
+                   (input)="onDescriptionInput($event)"
+                   placeholder="Descrizione..."></p>
+              </div>
+            </li>
+          } @else {
+            <!-- Item esistente -->
+            <li class="timeline__item">
+              <app-timeline-item
+                [title]="it.title"
+                [years]="it.years"
+                [description]="it.description"
+                [canEdit]="canEdit()"
+                (delete)="onDelete(it)"
+                (edit)="onEdit(it, idx)">
+              </app-timeline-item>
+            </li>
+          }
+        }
+        
+        <!-- Button '+' alla fine della lista (se in edit mode) -->
+        @if (canEdit()) {
+          @if (isAdding() && editingIndex() === -1 && insertPosition() === items().length) {
+            <!-- Form di aggiunta alla fine -->
+            <li class="timeline__item timeline__item--editing">
+              <!-- Icona chevron per chiudere il form -->
+              <button 
+                class="timeline__toggle-editing" 
+                type="button"
+                (click)="resetForm()"
+                aria-label="Chiudi form">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round" class="timeline__toggle-icon">
+                  <polyline points="9 18 15 12 9 6"></polyline>
+                </svg>
+              </button>
+              
+              <div class="timeline__content">
+                <h4 class="timeline__title" contenteditable="true" 
+                    (blur)="onTitleBlur($event)"
+                    (input)="onTitleInput($event)"
+                    placeholder="Titolo..."></h4>
+                
+                <div class="timeline__years">
+                  <input 
+                    type="date" 
+                    class="timeline__date-input"
+                    [(ngModel)]="tempStartDate"
+                    (ngModelChange)="resetInactivityTimer()"
+                    (focus)="resetInactivityTimer()"
+                    (click)="resetInactivityTimer()"
+                    placeholder="Data inizio">
+                  <span class="timeline__date-separator">—</span>
+                  <input 
+                    type="date" 
+                    class="timeline__date-input"
+                    [(ngModel)]="tempEndDate"
+                    [disabled]="isInCorso()"
+                    (ngModelChange)="resetInactivityTimer()"
+                    (focus)="resetInactivityTimer()"
+                    (click)="resetInactivityTimer()"
+                    placeholder="Data fine">
+                  <label class="timeline__checkbox">
+                    <input 
+                      type="checkbox" 
+                      [checked]="isInCorso()"
+                      (change)="toggleInCorso()">
+                    <span>In Corso</span>
+                  </label>
+                </div>
+                
+                <p class="timeline__description" contenteditable="true"
+                   (blur)="onDescriptionBlur($event)"
+                   (input)="onDescriptionInput($event)"
+                   placeholder="Descrizione..."></p>
+              </div>
+            </li>
+          } @else if (!isAdding() || editingIndex() >= 0) {
+            <!-- Button '+' per aggiungere alla fine (solo se non si sta già aggiungendo) -->
+            <li class="timeline__add-between">
+              <button 
+                type="button" 
+                class="timeline__add-btn-small"
+                (click)="startAdd(items().length)"
+                [attr.aria-label]="'Aggiungi ' + title() + ' alla fine'">
+                <svg viewBox="0 0 24 24" aria-hidden="true">
+                  <path d="M12 5v14M5 12h14"/>
+                </svg>
+              </button>
+            </li>
+          }
         }
       } @else {
         @if (canEdit()) {
@@ -66,6 +270,17 @@
           } @else {
             <!-- Elemento timeline editabile inline (espansione del pulsante) -->
             <li class="timeline__item timeline__item--editing">
+              <!-- Icona chevron per chiudere il form -->
+              <button 
+                class="timeline__toggle-editing" 
+                type="button"
+                (click)="resetForm()"
+                aria-label="Chiudi form">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round" class="timeline__toggle-icon">
+                  <polyline points="9 18 15 12 9 6"></polyline>
+                </svg>
+              </button>
+              
               <div class="timeline__content">
                 <h4 class="timeline__title" contenteditable="true" 
                     (blur)="onTitleBlur($event)"
@@ -78,7 +293,8 @@
                     class="timeline__date-input"
                     [(ngModel)]="tempStartDate"
                     (ngModelChange)="resetInactivityTimer()"
-                    (blur)="autoSave()"
+                    (focus)="resetInactivityTimer()"
+                    (click)="resetInactivityTimer()"
                     placeholder="Data inizio">
                   <span class="timeline__date-separator">—</span>
                   <input 
@@ -87,13 +303,14 @@
                     [(ngModel)]="tempEndDate"
                     [disabled]="isInCorso()"
                     (ngModelChange)="resetInactivityTimer()"
-                    (blur)="autoSave()"
+                    (focus)="resetInactivityTimer()"
+                    (click)="resetInactivityTimer()"
                     placeholder="Data fine">
                   <label class="timeline__checkbox">
                     <input 
                       type="checkbox" 
                       [checked]="isInCorso()"
-                      (change)="toggleInCorso(); autoSave()">
+                      (change)="toggleInCorso()">
                     <span>In Corso</span>
                   </label>
                 </div>

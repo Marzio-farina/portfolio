@@ -13,8 +13,9 @@ export class TimelineItem implements OnInit, OnDestroy {
   description = input<string>('');
   canEdit = input<boolean>(false);
   
-  // Output per eliminazione
+  // Output per eliminazione e modifica
   delete = output<void>();
+  edit = output<void>();
 
   // Typewriter effect state
   displayedTitle = signal('');
@@ -176,5 +177,11 @@ export class TimelineItem implements OnInit, OnDestroy {
    */
   onDeleteClick(): void {
     this.delete.emit();
+  }
+  
+  onEditClick(): void {
+    if (this.canEdit()) {
+      this.edit.emit();
+    }
   }
 }

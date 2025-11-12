@@ -353,47 +353,135 @@ export class Curriculum {
       description: item.description || ''
     };
     
-    // 🚀 OPTIMISTIC UPDATE: Aggiungi subito alla lista
-    if (item.type === 'education') {
-      this.education.update(items => [optimisticItem, ...items]);
+    // 🚀 OPTIMISTIC UPDATE
+    const position = item.insertPosition ?? 0;
+    let removedItem: TimelineItem | null = null; // Per rollback in caso di errore
+    
+    if (item.isEdit && item.originalItem) {
+      // MODIFICA: Sostituisci il record esistente
+      if (item.type === 'education') {
+        this.education.update(items => {
+          const newItems = [...items];
+          const oldIndex = newItems.findIndex(i => i.title === item.originalItem!.title && i.years === item.originalItem!.years);
+          if (oldIndex >= 0) {
+            removedItem = newItems[oldIndex];
+            newItems[oldIndex] = optimisticItem;
+          }
+          return newItems;
+        });
+      } else {
+        this.experience.update(items => {
+          const newItems = [...items];
+          const oldIndex = newItems.findIndex(i => i.title === item.originalItem!.title && i.years === item.originalItem!.years);
+          if (oldIndex >= 0) {
+            removedItem = newItems[oldIndex];
+            newItems[oldIndex] = optimisticItem;
+          }
+          return newItems;
+        });
+      }
     } else {
-      this.experience.update(items => [optimisticItem, ...items]);
+      // NUOVO: Aggiungi nella posizione specificata
+      if (item.type === 'education') {
+        this.education.update(items => {
+          const newItems = [...items];
+          newItems.splice(position, 0, optimisticItem);
+          return newItems;
+        });
+      } else {
+        this.experience.update(items => {
+          const newItems = [...items];
+          newItems.splice(position, 0, optimisticItem);
+          return newItems;
+        });
+      }
     }
     
     // Invia al backend
-    const payload = {
-      type: item.type,
-      title: item.title,
-      time_start: item.startDate,
-      time_end: item.endDate,
-      description: item.description
-    };
-    
-    this.http.post(apiUrl('cv'), payload).subscribe({
-      next: () => {
-        this.notificationService.add('success', 'Elemento aggiunto con successo', 'cv-add');
-        
-        // Ricarica dal backend per avere i dati corretti (con ID, ecc.)
-        const uid = this.tenant.userId();
-        this.cv.get$(uid ?? undefined).subscribe({
-          next: data => {
-            this.education.set(data.education);
-            this.experience.set(data.experience);
+    if (item.isEdit && item.originalItem) {
+      // MODIFICA: Aggiorna il record esistente
+      const payload = {
+        type: item.type,
+        original_title: item.originalItem.title,
+        original_years: item.originalItem.years,
+        title: item.title,
+        time_start: item.startDate,
+        time_end: item.endDate,
+        description: item.description
+      };
+      
+      this.http.patch(apiUrl('cv'), payload).subscribe({
+        next: () => {
+          this.notificationService.add('success', 'Elemento modificato con successo', 'cv-edit');
+          
+          // Ricarica dal backend per avere i dati aggiornati
+          const uid = this.tenant.userId();
+          this.cv.get$(uid ?? undefined).subscribe({
+            next: data => {
+              this.education.set(data.education);
+              this.experience.set(data.experience);
+            }
+          });
+        },
+        error: (err) => {
+          // ⚠️ ROLLBACK: Ripristina l'elemento originale
+          if (removedItem) {
+            if (item.type === 'education') {
+              this.education.update(items => {
+                const newItems = [...items];
+                newItems[position] = removedItem!;
+                return newItems;
+              });
+            } else {
+              this.experience.update(items => {
+                const newItems = [...items];
+                newItems[position] = removedItem!;
+                return newItems;
+              });
+            }
           }
-        });
-      },
-      error: (err) => {
-        // ⚠️ ROLLBACK: Rimuovi l'elemento ottimistico
-        if (item.type === 'education') {
-          this.education.update(items => items.filter(i => i !== optimisticItem));
-        } else {
-          this.experience.update(items => items.filter(i => i !== optimisticItem));
+          
+          const message = err?.error?.message || 'Errore durante la modifica';
+          this.notificationService.add('error', message, 'cv-edit');
         }
-        
-        const message = err?.error?.message || 'Errore durante l\'aggiunta';
-        this.notificationService.add('error', message, 'cv-add');
-      }
-    });
+      });
+    } else {
+      // NUOVO: Aggiungi nuovo record
+      const payload = {
+        type: item.type,
+        title: item.title,
+        time_start: item.startDate,
+        time_end: item.endDate,
+        description: item.description,
+        order: item.insertPosition
+      };
+      
+      this.http.post(apiUrl('cv'), payload).subscribe({
+        next: () => {
+          this.notificationService.add('success', 'Elemento aggiunto con successo', 'cv-add');
+          
+          // Ricarica dal backend per avere i dati corretti (con ID, ecc.)
+          const uid = this.tenant.userId();
+          this.cv.get$(uid ?? undefined).subscribe({
+            next: data => {
+              this.education.set(data.education);
+              this.experience.set(data.experience);
+            }
+          });
+        },
+        error: (err) => {
+          // ⚠️ ROLLBACK: Rimuovi l'elemento ottimistico
+          if (item.type === 'education') {
+            this.education.update(items => items.filter(i => i !== optimisticItem));
+          } else {
+            this.experience.update(items => items.filter(i => i !== optimisticItem));
+          }
+          
+          const message = err?.error?.message || 'Errore durante l\'aggiunta';
+          this.notificationService.add('error', message, 'cv-add');
+        }
+      });
+    }
   }
 
   /**

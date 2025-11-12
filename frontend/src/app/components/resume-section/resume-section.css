@@ -64,6 +64,7 @@
 
 .section__panel.is-open {
   max-height: 2000px; /* Valore fisso invece di 'none' per prevenire layout shift */
+  overflow: visible; /* Permette agli elementi figli di essere visibili quando aperto */
 }
 
 .timeline {
@@ -75,6 +76,7 @@
   flex-direction: column;
   /* Altezza minima per prevenire layout shift durante caricamento */
   min-height: 320px;
+  overflow: visible; /* Permette agli elementi figli di essere visibili anche al di fuori */
 }
 
 /* Riduce l'altezza minima quando non ci sono elementi */
@@ -136,14 +138,111 @@
   stroke-width: 2;
 }
 
-/* Elemento timeline in modalità editing (espansione del pulsante) */
-.timeline__item--editing {
+/* Button '+' piccolo tra gli elementi esistenti */
+.timeline__add-between {
+  /* Non occupa spazio nel flusso verticale */
+  height: 0;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+  position: relative;
+  overflow: visible;
+  z-index: 3; /* Sopra la linea della timeline */
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+
+.timeline__add-btn-small {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 32px;
+  height: 32px;
+  background: var(--bg-card);
+  border: 2px dashed var(--accent-primary);
+  border-radius: 50%;
+  color: var(--accent-primary);
+  cursor: pointer;
+  transition: all var(--transition-1);
+  /* Centrato senza occupare spazio */
+  position: relative;
+  transform: translateY(-12px); /* Default: spostato più in alto (per i button tra gli elementi) */
+}
+
+/* Button '+' finale (ultimo della lista) - spostato più in basso */
+.timeline__add-between:last-child .timeline__add-btn-small {
+  transform: translateY(12px);
+}
+
+.timeline__add-btn-small:hover {
+  background: var(--accent-primary);
+  color: var(--bg-card);
+  transform: translateY(-12px) scale(1.15);
+  box-shadow: var(--shadow-2);
+  border-style: solid;
+}
+
+/* Hover per il button finale */
+.timeline__add-between:last-child .timeline__add-btn-small:hover {
+  transform: translateY(12px) scale(1.15);
+}
+
+.timeline__add-btn-small svg {
+  width: 16px;
+  height: 16px;
+  stroke: currentColor;
+  fill: none;
+  stroke-width: 2.5;
+}
+/* Il bordo e l'allineamento vanno sul contenitore interno .timeline__content */
+/* per non spostare la linea della timeline che è sul <li> */
+.timeline__item--editing .timeline__content {
+  position: relative;
   background: var(--bg-card);
   border: 2px dashed var(--accent-primary);
   border-radius: 8px;
-  padding: 16px;
+  /* Allineamento con .tli (timeline-item component) */
+  padding: 12px 0 12px 16px;
+  margin: -12px 0 -12px -16px; /* Allinea il bordo con il .tli */
   animation: expandIn 0.5s cubic-bezier(0.34, 1.56, 0.64, 1);
   transform-origin: center;
+}
+
+/* Icona chevron sotto il pallino per il form editing - cliccabile per chiudere */
+.timeline__toggle-editing {
+  position: absolute;
+  left: -12px; /* Allineato sulla linea della timeline - spostato più a destra */
+  top: 32px; /* Sotto il pallino */
+  width: 20px;
+  height: 20px;
+  background: transparent;
+  border: none;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all var(--transition-1);
+  z-index: 5;
+  padding: 0;
+  transform: translateX(2px); /* Aggiustamento per centrare sulla linea */
+}
+
+.timeline__toggle-editing:hover {
+  transform: translateX(2px) scale(1.2); /* Mantiene centraggio + scale al hover */
+}
+
+.timeline__toggle-editing:hover .timeline__toggle-icon {
+  color: var(--accent-hover); /* Cambio colore freccia al hover */
+}
+
+.timeline__toggle-editing .timeline__toggle-icon {
+  width: 20px;
+  height: 20px;
+  color: var(--accent-primary);
+  transition: all var(--transition-1);
+  stroke-width: 3;
+  transform: rotate(90deg); /* Ruotato per puntare verso il basso */
 }
 
 @keyframes expandIn {
@@ -161,10 +260,6 @@
     transform: scale(1) translateY(0);
     border-radius: 8px;
   }
-}
-
-.timeline__item--editing .timeline__content {
-  padding: 0;
 }
 
 .timeline__item--editing .timeline__title {
@@ -325,12 +420,13 @@
   z-index: 1; /* Sotto il pallino */
 }
 
-/* Sull'ultimo elemento, la linea termina al centro del pallino */
-.timeline__item:last-child::after {
+/* Sull'ultimo elemento timeline__item, la linea termina al centro del pallino */
+.timeline__item:last-child::after,
+.timeline__item:has(~ .timeline__add-between):not(:has(~ .timeline__item))::after {
   bottom: calc(100% - .6rem - 5px);   /* Termina al centro dell'ultimo pallino */
 }
 
-/* Assicuriamo che la linea sia visibile e ben allineata */
-.timeline__item:not(:last-child)::after {
+/* Se c'è un altro timeline__item dopo, la linea continua */
+.timeline__item:has(~ .timeline__item)::after {
   bottom: -30px;                      /* Continua fino al prossimo elemento */
 }
