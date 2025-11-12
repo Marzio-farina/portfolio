@@ -37,6 +37,7 @@ class DatabaseSeeder extends Seeder
             AttestatiSeeder::class,
             JobOfferCardSeeder::class,
             JobOfferEmailSeeder::class,
+            JobOfferEmailColumnSeeder::class,
         ]);
     }
 }

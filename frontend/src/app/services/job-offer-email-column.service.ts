@@ -1,33 +1,49 @@
-import { Injectable } from '@angular/core';
-import { Observable, of } from 'rxjs';
+import { Injectable, inject } from '@angular/core';
+import { HttpClient } from '@angular/common/http';
+import { Observable } from 'rxjs';
+import { environment } from '../../environments/environment';
 
 export interface JobOfferEmailColumn {
-  id: string;
+  id: number;
   title: string;
-  fieldName: string;
-  visible: boolean;
-  order: number;
-  sortable?: boolean;
+  field_name: string;
+  default_order: number;
+  visible?: boolean;
+  order?: number;
 }
 
 @Injectable({
   providedIn: 'root'
 })
 export class JobOfferEmailColumnService {
+  private http = inject(HttpClient);
+  private apiUrl = environment.API_BASE_URL;
+
   /**
-   * Restituisce la configurazione default delle colonne per la tabella email.
-   * In futuro potrà essere sostituito da una chiamata al backend per colonne personalizzate.
+   * Ottiene le colonne configurate dall'utente autenticato
    */
-  getColumns(): Observable<JobOfferEmailColumn[]> {
-    return of([
-      { id: 'subject', title: 'Oggetto', fieldName: 'subject', visible: true, order: 1, sortable: true },
-      { id: 'direction', title: 'Tipo', fieldName: 'direction', visible: true, order: 2, sortable: true },
-      { id: 'to', title: 'Destinatari', fieldName: 'to', visible: true, order: 3, sortable: false },
-      { id: 'bcc', title: 'BCC', fieldName: 'bcc', visible: true, order: 4, sortable: true },
-      { id: 'status', title: 'Stato', fieldName: 'status', visible: true, order: 5, sortable: true },
-      { id: 'sent_at', title: 'Data', fieldName: 'sent_at', visible: true, order: 6, sortable: true },
-      { id: 'related', title: 'Candidatura', fieldName: 'related', visible: true, order: 7, sortable: false },
-    ]);
+  getUserColumns(): Observable<JobOfferEmailColumn[]> {
+    return this.http.get<JobOfferEmailColumn[]>(`${this.apiUrl}/api/job-offer-email-columns`);
+  }
+
+  /**
+   * Aggiorna la visibilità di una colonna
+   */
+  updateVisibility(columnId: number, visible: boolean): Observable<JobOfferEmailColumn> {
+    return this.http.put<JobOfferEmailColumn>(`${this.apiUrl}/api/job-offer-email-columns/${columnId}`, { visible });
+  }
+
+  /**
+   * Aggiorna l'ordine delle colonne
+   */
+  updateOrder(columns: { id: number; order: number }[]): Observable<{ message: string }> {
+    return this.http.put<{ message: string }>(`${this.apiUrl}/api/job-offer-email-columns/reorder`, { columns });
+  }
+
+  /**
+   * Aggiorna l'ordine delle colonne tramite array di IDs
+   */
+  updateColumnOrder(columnIds: number[]): Observable<JobOfferEmailColumn[]> {
+    return this.http.put<JobOfferEmailColumn[]>(`${this.apiUrl}/api/job-offer-email-columns/reorder`, { column_ids: columnIds });
   }
 }
-

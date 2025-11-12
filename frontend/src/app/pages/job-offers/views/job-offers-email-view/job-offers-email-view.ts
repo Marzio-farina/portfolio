@@ -59,12 +59,21 @@ export class JobOffersEmailView implements OnInit {
   // Popup opzioni tabella
   tableOptionsOpen = signal<boolean>(false);
 
+  // Drag & Drop state
+  draggedColumnId = signal<number | null>(null);
+  dragOverColumnId = signal<number | null>(null);
+
   // Derived data
   visibleColumns = computed(() =>
     this.allColumns()
       .filter(col => col.visible)
-      .sort((a, b) => a.order - b.order)
+      .sort((a, b) => (a.order || 0) - (b.order || 0))
   );
+
+  // Prime 4 colonne visibili (sempre mostrate)
+  mainColumns = computed(() => {
+    return this.visibleColumns().slice(0, 4);
+  });
 
   filteredEmails = computed(() => {
     const emails = [...this.emails()];
@@ -152,8 +161,14 @@ export class JobOffersEmailView implements OnInit {
   });
 
   ngOnInit(): void {
+    this.loadData();
+  }
+
+  private loadData(): void {
+    this.loading.set(true);
+    
     forkJoin({
-      columns: this.columnService.getColumns(),
+      columns: this.columnService.getUserColumns(),
       emails: this.emailService.getEmails()
     }).subscribe({
       next: ({ columns, emails }) => {
@@ -192,23 +207,64 @@ export class JobOffersEmailView implements OnInit {
   }
 
   onSort(column: JobOfferEmailColumn): void {
-    if (this.sortColumn() === column.fieldName) {
+    if (this.sortColumn() === column.field_name) {
       this.sortDirection.set(this.sortDirection() === 'asc' ? 'desc' : 'asc');
     } else {
-      this.sortColumn.set(column.fieldName);
-      this.sortDirection.set(column.fieldName === 'sent_at' ? 'desc' : 'asc');
+      this.sortColumn.set(column.field_name);
+      this.sortDirection.set(column.field_name === 'sent_at' ? 'desc' : 'asc');
     }
   }
 
-  toggleColumnVisibility(columnId: string): void {
-    const updated = this.allColumns().map(column =>
-      column.id === columnId ? { ...column, visible: !column.visible } : column
+  toggleColumnVisibility(columnId: number, currentVisible: boolean): void {
+    const newVisible = !currentVisible;
+    
+    // Se si sta provando a rendere visibile una colonna
+    if (newVisible) {
+      const visibleCount = this.allColumns().filter(col => col.visible).length;
+      if (visibleCount >= 4) {
+        // Mostra messaggio o impedisci l'azione
+        console.warn('Puoi visualizzare massimo 4 colonne alla volta');
+        return;
+      }
+    } else {
+      // Verifica che non sia l'ultima colonna visibile
+      const visibleCount = this.allColumns().filter(col => col.visible).length;
+      if (visibleCount <= 1) {
+        console.warn('Deve esserci almeno una colonna visibile');
+        return;
+      }
+    }
+
+    // Update ottimistico locale
+    const columns = this.allColumns().map(col =>
+      col.id === columnId ? { ...col, visible: newVisible } : col
     );
-    this.allColumns.set(updated);
+    this.allColumns.set(columns);
+
+    // Salva sul backend
+    this.columnService.updateVisibility(columnId, newVisible).subscribe({
+      next: () => {
+        // Visibilità aggiornata con successo
+      },
+      error: (err: any) => {
+        console.error('Errore aggiornamento visibilità colonna:', err);
+        // Rollback in caso di errore
+        this.loadData();
+      }
+    });
   }
 
-  isColumnVisible(columnId: string): boolean {
-    return this.allColumns().find(col => col.id === columnId)?.visible ?? false;
+  isColumnCheckboxDisabled(columnId: number): boolean {
+    const column = this.allColumns().find(col => col.id === columnId);
+    if (!column?.visible) {
+      // Se la colonna è nascosta, verifica se sono già visibili 4 colonne
+      const visibleCount = this.allColumns().filter(col => col.visible).length;
+      return visibleCount >= 4; // Disabilita se sono già 4 visibili
+    }
+    
+    // Se la colonna è visibile, disabilita solo se è l'unica visibile
+    const visibleCount = this.allColumns().filter(col => col.visible).length;
+    return visibleCount <= 1; // Disabilita se è l'unica visibile
   }
 
   toggleTableOptions(): void {
@@ -217,6 +273,80 @@ export class JobOffersEmailView implements OnInit {
 
   closeTableOptions(): void {
     this.tableOptionsOpen.set(false);
+  }
+
+  // === DRAG & DROP PER RIORDINARE COLONNE ===
+
+  onDragStart(event: DragEvent, columnId: number): void {
+    this.draggedColumnId.set(columnId);
+    if (event.dataTransfer) {
+      event.dataTransfer.effectAllowed = 'move';
+    }
+  }
+
+  onDragOver(event: DragEvent, columnId: number): void {
+    event.preventDefault();
+    if (this.draggedColumnId() !== columnId) {
+      this.dragOverColumnId.set(columnId);
+    }
+  }
+
+  onDragLeave(event: DragEvent): void {
+    this.dragOverColumnId.set(null);
+  }
+
+  onDrop(event: DragEvent, targetColumnId: number): void {
+    event.preventDefault();
+    
+    const draggedId = this.draggedColumnId();
+    if (!draggedId || draggedId === targetColumnId) return;
+
+    // Trova gli indici delle colonne
+    const columns = [...this.allColumns()];
+    const draggedIndex = columns.findIndex(c => c.id === draggedId);
+    const targetIndex = columns.findIndex(c => c.id === targetColumnId);
+
+    if (draggedIndex === -1 || targetIndex === -1) return;
+
+    // Rimuovi l'elemento trascinato
+    const [draggedColumn] = columns.splice(draggedIndex, 1);
+    // Inseriscilo nella nuova posizione
+    columns.splice(targetIndex, 0, draggedColumn);
+
+    // Aggiorna l'ordine di tutte le colonne
+    const updatedColumns = columns.map((col, index) => ({
+      ...col,
+      order: index
+    }));
+
+    // Update ottimistico
+    this.allColumns.set(updatedColumns);
+
+    // Reset drag state
+    this.draggedColumnId.set(null);
+    this.dragOverColumnId.set(null);
+
+    // Salva l'ordine sul backend
+    const columnOrder = updatedColumns.map(col => ({ id: col.id, order: col.order || 0 }));
+    this.columnService.updateOrder(columnOrder).subscribe({
+      error: (err: any) => {
+        console.error('Errore salvataggio ordine colonne:', err);
+        this.loadData(); // Rollback
+      }
+    });
+  }
+
+  onDragEnd(): void {
+    this.draggedColumnId.set(null);
+    this.dragOverColumnId.set(null);
+  }
+
+  isColumnDragging(columnId: number): boolean {
+    return this.draggedColumnId() === columnId;
+  }
+
+  isColumnDropTarget(columnId: number): boolean {
+    return this.dragOverColumnId() === columnId && this.draggedColumnId() !== columnId;
   }
 
   toggleRowExpansion(emailId: number): void {

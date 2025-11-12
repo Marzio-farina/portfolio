@@ -192,6 +192,19 @@ class User extends Authenticatable
     }
 
     /**
+     * Get the user's configured job offer email columns
+     *
+     * @return \Illuminate\Database\Eloquent\Relations\BelongsToMany
+     */
+    public function jobOfferEmailColumns()
+    {
+        return $this->belongsToMany(JobOfferEmailColumn::class, 'user_job_offer_email_columns')
+            ->withPivot(['visible', 'order'])
+            ->withTimestamps()
+            ->orderBy('user_job_offer_email_columns.order');
+    }
+
+    /**
      * Get the user's job offer cards configuration (Many-to-Many)
      * Un utente può configurare la visibilità di molte card
      *

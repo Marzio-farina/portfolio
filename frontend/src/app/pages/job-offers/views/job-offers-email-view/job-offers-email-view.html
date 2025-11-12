@@ -150,12 +150,31 @@
               <!-- Lista colonne con checkbox -->
               <div class="columns-list">
                 @for (column of allColumns(); track column.id) {
-                  <label class="column-item">
+                  <label 
+                    class="column-item" 
+                    [class.column-item--disabled]="isColumnCheckboxDisabled(column.id)"
+                    [draggable]="editMode()"
+                    [class.column-item--draggable]="editMode()"
+                    [class.column-item--dragging]="isColumnDragging(column.id)"
+                    [class.column-item--drop-target]="isColumnDropTarget(column.id)"
+                    (dragstart)="onDragStart($event, column.id)"
+                    (dragover)="onDragOver($event, column.id)"
+                    (dragleave)="onDragLeave($event)"
+                    (drop)="onDrop($event, column.id)"
+                    (dragend)="onDragEnd()">
+                    @if (editMode()) {
+                      <svg class="drag-handle" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                        <line x1="3" y1="12" x2="21" y2="12"/>
+                        <line x1="3" y1="6" x2="21" y2="6"/>
+                        <line x1="3" y1="18" x2="21" y2="18"/>
+                      </svg>
+                    }
                     <input 
                       type="checkbox"
                       class="column-checkbox"
                       [checked]="column.visible"
-                      (change)="toggleColumnVisibility(column.id)">
+                      [disabled]="isColumnCheckboxDisabled(column.id)"
+                      (change)="toggleColumnVisibility(column.id, column.visible || false)">
                     <span class="column-name">{{ column.title }}</span>
                   </label>
                 }
@@ -190,21 +209,33 @@
             <thead>
               <tr>
                 <th class="expand-column"></th>
-                @for (column of visibleColumns(); track column.id) {
+                @for (column of mainColumns(); track column.id) {
                   <th
-                    [class.sortable]="column.sortable !== false"
-                    [class.sorted]="sortColumn() === column.fieldName"
-                    [class.sorted-asc]="sortColumn() === column.fieldName && sortDirection() === 'asc'"
-                    [class.sorted-desc]="sortColumn() === column.fieldName && sortDirection() === 'desc'"
-                    (click)="column.sortable !== false ? onSort(column) : null">
-                    <div class="th-content">
+                    [class.sortable]="true"
+                    [draggable]="editMode()"
+                    [class.draggable]="editMode()"
+                    [class.dragging]="isColumnDragging(column.id)"
+                    [class.drop-target]="isColumnDropTarget(column.id)"
+                    (dragstart)="onDragStart($event, column.id)"
+                    (dragover)="onDragOver($event, column.id)"
+                    (dragleave)="onDragLeave($event)"
+                    (drop)="onDrop($event, column.id)"
+                    (dragend)="onDragEnd()">
+                    <div class="th-content" (click)="!editMode() ? onSort(column) : null">
+                      @if (editMode()) {
+                        <svg class="drag-handle" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                          <line x1="3" y1="12" x2="21" y2="12"/>
+                          <line x1="3" y1="6" x2="21" y2="6"/>
+                          <line x1="3" y1="18" x2="21" y2="18"/>
+                        </svg>
+                      }
                       <span class="th-text">{{ column.title }}</span>
-                      @if (column.sortable !== false) {
+                      @if (!editMode()) {
                         <svg 
                           class="sort-icon"
-                          [class.sort-icon--active]="sortColumn() === column.fieldName"
-                          [class.sort-icon--asc]="sortColumn() === column.fieldName && sortDirection() === 'asc'"
-                          [class.sort-icon--desc]="sortColumn() === column.fieldName && sortDirection() === 'desc'"
+                          [class.sort-icon--active]="sortColumn() === column.field_name"
+                          [class.sort-icon--asc]="sortColumn() === column.field_name && sortDirection() === 'asc'"
+                          [class.sort-icon--desc]="sortColumn() === column.field_name && sortDirection() === 'desc'"
                           viewBox="0 0 24 24" 
                           fill="none" 
                           stroke="currentColor" 
@@ -237,9 +268,9 @@
                     </svg>
                   </td>
 
-                  @for (column of visibleColumns(); track column.id) {
+                  @for (column of mainColumns(); track column.id) {
                     <td>
-                      @switch (column.fieldName) {
+                      @switch (column.field_name) {
                         @case ('subject') {
                           <div class="subject-cell">
                             <span class="subject">{{ email.subject }}</span>
@@ -282,7 +313,7 @@
                           {{ email.related_job_offer || '-' }}
                         }
                         @default {
-                          {{ getColumnFallback(email, column.fieldName) || '-' }}
+                          {{ getColumnFallback(email, column.field_name) || '-' }}
                         }
                       }
                     </td>
@@ -292,21 +323,35 @@
                 <!-- Riga espandibile -->
                 @if (isRowExpanded(email.id)) {
                   <tr class="expanded-row">
-                    <td [attr.colspan]="visibleColumns().length + 1" class="expanded-cell">
-                      <div class="expanded-content">
-                        <div class="expanded-section">
-                          <h4>Dettagli</h4>
-                          <ul>
-                            <li><strong>Da:</strong> {{ email.from_address || '-' }}</li>
-                            <li><strong>A:</strong> {{ email.to_recipients.join(', ') || '-' }}</li>
-                            <li><strong>CC:</strong> {{ email.cc_recipients.join(', ') || '-' }}</li>
-                            <li><strong>BCC:</strong> {{ email.bcc_recipients.join(', ') || '-' }}</li>
-                            <li><strong>Message ID:</strong> {{ email.message_id || '-' }}</li>
-                          </ul>
-                        </div>
-                        <div class="expanded-section">
-                          <h4>Anteprima</h4>
-                          <p>{{ email.preview || 'Nessuna anteprima disponibile' }}</p>
+                    <td [attr.colspan]="mainColumns().length + 1" class="expanded-cell">
+                      <div class="expanded-wrapper">
+                        <!-- Icona chiusura a sinistra -->
+                        <button 
+                          class="expanded-toggle" 
+                          type="button"
+                          (click)="toggleRowExpansion(email.id)"
+                          aria-label="Chiudi dettagli">
+                          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                            <path d="m18 15-6-6-6 6"/>
+                          </svg>
+                        </button>
+
+                        <!-- Contenuto espanso -->
+                        <div class="expanded-content">
+                          <div class="expanded-section">
+                            <h4>Dettagli Email</h4>
+                            <ul>
+                              <li><strong>Da:</strong> {{ email.from_address || '-' }}</li>
+                              <li><strong>A:</strong> {{ email.to_recipients.join(', ') || '-' }}</li>
+                              <li><strong>CC:</strong> {{ email.cc_recipients.join(', ') || '-' }}</li>
+                              <li><strong>BCC:</strong> {{ email.bcc_recipients.join(', ') || '-' }}</li>
+                              <li><strong>Message ID:</strong> {{ email.message_id || '-' }}</li>
+                            </ul>
+                          </div>
+                          <div class="expanded-section">
+                            <h4>Anteprima Messaggio</h4>
+                            <p>{{ email.preview || 'Nessuna anteprima disponibile' }}</p>
+                          </div>
                         </div>
                       </div>
                     </td>
