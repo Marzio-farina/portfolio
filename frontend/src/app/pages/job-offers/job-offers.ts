@@ -5,6 +5,7 @@ import { map } from 'rxjs';
 import { JobOfferStatsComponent, JobOfferStats } from '../../components/job-offer-stats/job-offer-stats';
 import { EditModeService } from '../../services/edit-mode.service';
 import { JobOfferService } from '../../services/job-offer.service';
+import { AuthService } from '../../services/auth.service';
 
 @Component({
   selector: 'app-job-offers',
@@ -18,6 +19,7 @@ export class JobOffers {
   private router = inject(Router);
   private edit = inject(EditModeService);
   private jobOfferService = inject(JobOfferService);
+  private auth = inject(AuthService);
   
   title = toSignal(this.route.data.pipe(map(d => d['title'] as string)), { initialValue: '' });
   editMode = this.edit.isEditing;
@@ -37,7 +39,15 @@ export class JobOffers {
 
   // Naviga alla vista dettaglio della categoria selezionata
   onCardClick(cardType: string): void {
-    this.router.navigate(['/job-offers', cardType]);
+    // Usa sempre lo slug dell'utente autenticato, non quello pubblico visualizzato
+    const userSlug = this.auth.getUserSlug();
+    
+    if (!userSlug) {
+      console.error('Nessun utente autenticato per navigare a job-offers');
+      return;
+    }
+    
+    this.router.navigate([userSlug, 'job-offers', cardType]);
   }
 
   // Gestisce il cambio di card visibili e ricarica le statistiche

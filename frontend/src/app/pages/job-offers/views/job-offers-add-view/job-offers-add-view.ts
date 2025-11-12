@@ -50,11 +50,11 @@ export class JobOffersAddView {
 
   /**
    * Gestisce l'annullamento dell'aggiunta
-   * Torna alla pagina job-offers
+   * Torna alla pagina job-offers/total
    */
   onCancel(): void {
     const tenantSlug = this.tenantService.userSlug();
-    const basePath = tenantSlug ? `/${tenantSlug}/job-offers` : '/job-offers';
+    const basePath = tenantSlug ? `/${tenantSlug}/job-offers/total` : '/job-offers/total';
     this.router.navigate([basePath]);
   }
 
@@ -96,9 +96,9 @@ export class JobOffersAddView {
           'Candidatura salvata con successo!',
           'job-offer-save'
         );
-        // Torna alla lista job-offers
+        // Torna alla lista job-offers/total
         const tenantSlug = this.tenantService.userSlug();
-        const basePath = tenantSlug ? `/${tenantSlug}/job-offers` : '/job-offers';
+        const basePath = tenantSlug ? `/${tenantSlug}/job-offers/total` : '/job-offers/total';
         this.router.navigate([basePath]);
       },
       error: (err) => {

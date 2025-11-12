@@ -75,6 +75,9 @@ export class AuthService {
 
   /** Authenticated user ID - memorizzato quando si fa login */
   authenticatedUserId = signal<number | null>(null);
+  
+  /** Authenticated user slug - memorizzato quando si fa login */
+  authenticatedUserSlug = signal<string | null>(null);
 
   /** Profile refresh subject for reactive updates */
   private readonly meRefresh$ = new ReplaySubject<void>(1);
@@ -182,7 +185,7 @@ export class AuthService {
       return;
     }
 
-    this.http.get<{ id: number; email: string; name: string }>(url).subscribe({
+    this.http.get<{ id: number; email: string; name: string; slug?: string }>(url).subscribe({
       next: (user) => {
         // Defensive: verifica che l'utente abbia un ID valido
         if (!user || !user.id || typeof user.id !== 'number') {
@@ -191,6 +194,7 @@ export class AuthService {
         }
         
         this.authenticatedUserId.set(user.id);
+        this.authenticatedUserSlug.set(user.slug || null);
         // Notifica EditModeService dell'ID utente autenticato
         this.editMode.setAuthenticatedUserId(user.id);
       },
@@ -203,6 +207,7 @@ export class AuthService {
           this.logger.warn('Token invalid (401), logging out');
           this.setToken(null);
           this.authenticatedUserId.set(null);
+          this.authenticatedUserSlug.set(null);
           this.editMode.setAuthenticatedUserId(null);
         } else {
           this.logger.error('Failed to load authenticated user ID', err, {
@@ -227,6 +232,14 @@ export class AuthService {
    * 
    * @returns True if user has valid token and matches current tenant
    */
+  /**
+   * Ottiene lo slug dell'utente autenticato
+   * @returns Lo slug dell'utente autenticato o null se non autenticato
+   */
+  getUserSlug(): string | null {
+    return this.authenticatedUserSlug();
+  }
+  
   isAuthenticated(): boolean {
     try {
       const hasToken = !!this.token();
@@ -279,8 +292,9 @@ export class AuthService {
         const userSlug = response.user.id === 1 ? null : response.user.slug;
         this.setToken(response.token, userSlug);
         
-        // Memorizza l'ID dell'utente autenticato
+        // Memorizza l'ID e lo slug dell'utente autenticato
         this.authenticatedUserId.set(response.user.id);
+        this.authenticatedUserSlug.set(userSlug || null);
         this.editMode.setAuthenticatedUserId(response.user.id);
         this.refreshMe();
         return response;
@@ -307,8 +321,9 @@ export class AuthService {
         const userSlug = response.user.id === 1 ? null : response.user.slug;
         this.setToken(response.token, userSlug);
         
-        // Memorizza l'ID dell'utente autenticato
+        // Memorizza l'ID e lo slug dell'utente autenticato
         this.authenticatedUserId.set(response.user.id);
+        this.authenticatedUserSlug.set(userSlug || null);
         this.editMode.setAuthenticatedUserId(response.user.id);
         this.refreshMe();
         return response;
@@ -375,6 +390,7 @@ export class AuthService {
     // Pulisci comunque lo stato locale
     this.setToken(null);
     this.authenticatedUserId.set(null);
+    this.authenticatedUserSlug.set(null);
     this.editMode.setAuthenticatedUserId(null);
     this.refreshMe();
 
