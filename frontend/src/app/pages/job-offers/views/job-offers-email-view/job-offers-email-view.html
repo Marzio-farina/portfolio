@@ -269,7 +269,7 @@
                   </td>
 
                   @for (column of mainColumns(); track column.id) {
-                    <td>
+                    <td [class.hidden-when-expanded]="isRowExpanded(email.id)">
                       @switch (column.field_name) {
                         @case ('subject') {
                           <div class="subject-cell">
@@ -323,36 +323,64 @@
                 <!-- Riga espandibile -->
                 @if (isRowExpanded(email.id)) {
                   <tr class="expanded-row">
-                    <td [attr.colspan]="mainColumns().length + 1" class="expanded-cell">
-                      <div class="expanded-wrapper">
-                        <!-- Icona chiusura a sinistra -->
-                        <button 
-                          class="expanded-toggle" 
-                          type="button"
-                          (click)="toggleRowExpansion(email.id)"
-                          aria-label="Chiudi dettagli">
-                          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                            <path d="m18 15-6-6-6 6"/>
-                          </svg>
-                        </button>
-
-                        <!-- Contenuto espanso -->
-                        <div class="expanded-content">
-                          <div class="expanded-section">
-                            <h4>Dettagli Email</h4>
-                            <ul>
-                              <li><strong>Da:</strong> {{ email.from_address || '-' }}</li>
-                              <li><strong>A:</strong> {{ email.to_recipients.join(', ') || '-' }}</li>
-                              <li><strong>CC:</strong> {{ email.cc_recipients.join(', ') || '-' }}</li>
-                              <li><strong>BCC:</strong> {{ email.bcc_recipients.join(', ') || '-' }}</li>
-                              <li><strong>Message ID:</strong> {{ email.message_id || '-' }}</li>
-                            </ul>
-                          </div>
-                          <div class="expanded-section">
-                            <h4>Anteprima Messaggio</h4>
-                            <p>{{ email.preview || 'Nessuna anteprima disponibile' }}</p>
+                    <td></td> <!-- Colonna vuota per la freccia -->
+                    <td [attr.colspan]="mainColumns().length" class="expanded-cell">
+                      <div class="expanded-content">
+                        <!-- Header email: Subject + Meta info -->
+                        <div class="email-header">
+                          <h3 class="email-subject">{{ email.subject }}</h3>
+                          <div class="email-meta">
+                            <span class="email-meta-item">
+                              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                <circle cx="12" cy="12" r="10"/>
+                                <polyline points="12 6 12 12 16 14"/>
+                              </svg>
+                              {{ email.sent_at ? (email.sent_at | date:'dd/MM/yyyy HH:mm') : '-' }}
+                            </span>
+                            <span class="badge" [ngClass]="getDirectionClass(email.direction)">
+                              {{ getDirectionLabel(email.direction) }}
+                            </span>
+                            <span class="badge" [ngClass]="getStatusClass(email.status)">
+                              {{ getStatusLabel(email.status) }}
+                            </span>
+                            @if (email.related_job_offer) {
+                              <span class="email-meta-item email-meta-item--job">
+                                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                  <rect x="2" y="7" width="20" height="14" rx="2" ry="2"/>
+                                  <path d="M16 21V5a2 2 0 0 0-2-2h-4a2 2 0 0 0-2 2v16"/>
+                                </svg>
+                                {{ email.related_job_offer }}
+                              </span>
+                            }
                           </div>
                         </div>
+
+                        <!-- Griglia compatta destinatari (2 colonne) -->
+                        <div class="recipients-grid">
+                          <div class="detail-item-compact">
+                            <span class="detail-label-compact">Da:</span>
+                            <span class="detail-value-compact">{{ email.from_address || '-' }}</span>
+                          </div>
+                          <div class="detail-item-compact">
+                            <span class="detail-label-compact">A:</span>
+                            <span class="detail-value-compact">{{ email.to_recipients.join(', ') || '-' }}</span>
+                          </div>
+                          <div class="detail-item-compact">
+                            <span class="detail-label-compact">CC:</span>
+                            <span class="detail-value-compact">{{ email.cc_recipients.join(', ') || '-' }}</span>
+                          </div>
+                          <div class="detail-item-compact">
+                            <span class="detail-label-compact">BCC:</span>
+                            <span class="detail-value-compact">{{ email.bcc_recipients.join(', ') || '-' }}</span>
+                          </div>
+                        </div>
+                        
+                        <!-- Anteprima Messaggio (senza label) -->
+                        @if (email.preview) {
+                          <div class="message-preview">
+                            {{ email.preview }}
+                          </div>
+                        }
                       </div>
                     </td>
                   </tr>
