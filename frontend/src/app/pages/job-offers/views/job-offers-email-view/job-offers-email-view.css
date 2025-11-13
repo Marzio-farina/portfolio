@@ -352,8 +352,6 @@
 .filter-card {
   background: var(--bg-card);
   border-radius: 12px;
-  padding: 1.25rem;
-  border: 1px solid var(--border-primary);
   display: flex;
   flex-direction: column;
   gap: 1rem;
@@ -476,8 +474,10 @@
   border-radius: 12px;
   padding: 1.5rem;
   border: 1px solid var(--border-primary);
-  overflow: hidden;
+  overflow-y: auto;
+  overflow-x: hidden;
   position: relative;
+  max-height: calc(100vh - 200px);
 }
 
 /* Pulsante opzioni tabella */
@@ -1341,4 +1341,86 @@ tbody td {
     padding: 0.65rem;
     font-size: 0.8rem;
   }
+}
+
+/* === INFINITE SCROLL INDICATORS === */
+.loading-more-indicator {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.75rem;
+  padding: 2rem;
+  color: var(--text-secondary);
+  font-size: 0.9rem;
+  font-weight: 500;
+}
+
+.loading-more-indicator .spinner {
+  width: 24px;
+  height: 24px;
+  border: 3px solid var(--border-primary);
+  border-top-color: var(--primary);
+  border-radius: 50%;
+  animation: spin 0.8s linear infinite;
+}
+
+@keyframes spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+.no-more-data {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 2rem;
+  color: var(--text-tertiary);
+  font-size: 0.85rem;
+  border-top: 1px solid var(--border-primary);
+  background: var(--bg-secondary);
+}
+
+.no-more-data span {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+/* === ICONE DIREZIONE === */
+.direction-icon-wrapper {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 32px;
+  height: 32px;
+  border-radius: 8px;
+  transition: all 0.2s ease;
+}
+
+.direction-icon {
+  width: 20px;
+  height: 20px;
+  transition: all 0.2s ease;
+}
+
+.direction-icon--sent {
+  color: #3b82f6; /* Blu per inviate */
+}
+
+.direction-icon--received {
+  color: #10b981; /* Verde per ricevute */
+}
+
+.direction-icon-wrapper:hover {
+  background: var(--bg-hover);
+  transform: scale(1.1);
+}
+
+.direction-icon-wrapper:hover .direction-icon--sent {
+  color: #2563eb; /* Blu più scuro al hover */
+}
+
+.direction-icon-wrapper:hover .direction-icon--received {
+  color: #059669; /* Verde più scuro al hover */
 }

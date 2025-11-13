@@ -22,6 +22,44 @@ export interface JobOfferEmail {
   bcc_count: number;
 }
 
+export interface PaginationMeta {
+  current_page: number;
+  last_page: number;
+  per_page: number;
+  total: number;
+  from: number | null;
+  to: number | null;
+  has_more: boolean;
+}
+
+export interface EmailStats {
+  total: number;
+  by_direction: {
+    sent: number;
+    received: number;
+  };
+  by_status: {
+    sent: number;
+    received: number;
+    queued: number;
+    failed: number;
+  };
+  by_category: {
+    vip: number;
+    drafts: number;
+    junk: number;
+    trash: number;
+    archive: number;
+  };
+  with_bcc: number;
+}
+
+export interface PaginatedEmailResponse {
+  data: JobOfferEmail[];
+  pagination: PaginationMeta;
+  stats?: EmailStats;
+}
+
 @Injectable({
   providedIn: 'root'
 })
@@ -34,7 +72,10 @@ export class JobOfferEmailService {
     status?: string;
     has_bcc?: boolean;
     search?: string;
-  }): Observable<JobOfferEmail[]> {
+    category?: string;
+    page?: number;
+    per_page?: number;
+  }): Observable<PaginatedEmailResponse> {
     let params = new HttpParams();
 
     if (filters?.direction) {
@@ -53,7 +94,19 @@ export class JobOfferEmailService {
       params = params.set('search', filters.search);
     }
 
-    return this.http.get<JobOfferEmail[]>(`${this.apiUrl}/api/job-offer-emails`, {
+    if (filters?.category) {
+      params = params.set('category', filters.category);
+    }
+
+    if (filters?.page) {
+      params = params.set('page', String(filters.page));
+    }
+
+    if (filters?.per_page) {
+      params = params.set('per_page', String(filters.per_page));
+    }
+
+    return this.http.get<PaginatedEmailResponse>(`${this.apiUrl}/api/job-offer-emails`, {
       params
     });
   }

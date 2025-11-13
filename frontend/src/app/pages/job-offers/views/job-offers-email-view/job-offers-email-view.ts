@@ -1,10 +1,10 @@
-import { Component, OnInit, computed, inject, signal } from '@angular/core';
+import { Component, OnInit, OnDestroy, AfterViewInit, computed, inject, signal, effect } from '@angular/core';
 import { CommonModule, Location } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { ActivatedRoute, Router } from '@angular/router';
 import { map, forkJoin } from 'rxjs';
 import { toSignal } from '@angular/core/rxjs-interop';
-import { JobOfferEmailService, JobOfferEmail } from '../../../../services/job-offer-email.service';
+import { JobOfferEmailService, JobOfferEmail, PaginationMeta, EmailDirection, EmailStats } from '../../../../services/job-offer-email.service';
 import { JobOfferEmailColumnService, JobOfferEmailColumn } from '../../../../services/job-offer-email-column.service';
 import { TenantService } from '../../../../services/tenant.service';
 import { EditModeService } from '../../../../services/edit-mode.service';
@@ -19,7 +19,7 @@ type ViewType = 'email-total' | 'email-sent' | 'email-received' | 'email-bcc';
   templateUrl: './job-offers-email-view.html',
   styleUrl: './job-offers-email-view.css'
 })
-export class JobOffersEmailView implements OnInit {
+export class JobOffersEmailView implements OnInit, AfterViewInit, OnDestroy {
   private route = inject(ActivatedRoute);
   private router = inject(Router);
   private location = inject(Location);
@@ -32,11 +32,36 @@ export class JobOffersEmailView implements OnInit {
   title = toSignal(this.route.data.pipe(map(d => d['title'] as string)), { initialValue: '' });
   editMode = this.editModeService.isEditing;
 
+  constructor() {
+    // Effect per resettare la paginazione quando cambiano i filtri
+    // Deve essere nel constructor per essere in un injection context
+    effect(() => {
+      // Questi signal triggherano il reset
+      this.searchQuery();
+      this.selectedDirection();
+      this.selectedStatus();
+      this.selectedCategory();
+      this.viewType();
+      
+      // Reset pagination e ricarica
+      this.resetAndReload();
+    });
+  }
+
   // Stato sincronizzazione
   syncing = signal<boolean>(false);
   syncMessage = signal<string>('');
   syncStats = signal<EmailSyncStats | null>(null);
   showSyncNotification = signal<boolean>(false);
+
+  // Pagination state
+  currentPage = signal<number>(1);
+  perPage = 50;
+  pagination = signal<PaginationMeta | null>(null);
+  emailStats = signal<EmailStats | null>(null);
+  loadingMore = signal<boolean>(false);
+  private scrollListener: (() => void) | null = null;
+  private initialized = false;
 
   viewType = computed<ViewType>(() => {
     const url = window.location.pathname;
@@ -83,97 +108,57 @@ export class JobOffersEmailView implements OnInit {
     return this.visibleColumns().slice(0, 4);
   });
 
-  // Contatori per filtri
+  // Contatori per filtri - usa le statistiche dal server (totali, non solo email caricate)
   statsByDirection = computed(() => {
-    const emails = this.emails();
+    const stats = this.emailStats();
+    if (!stats) {
+      return { all: 0, sent: 0, received: 0 };
+    }
     return {
-      all: emails.length,
-      sent: emails.filter(e => e.direction === 'sent').length,
-      received: emails.filter(e => e.direction === 'received').length,
+      all: stats.total,
+      sent: stats.by_direction.sent,
+      received: stats.by_direction.received,
     };
   });
 
   statsByStatus = computed(() => {
-    const emails = this.emails();
+    const stats = this.emailStats();
+    if (!stats) {
+      return { all: 0, sent: 0, received: 0, queued: 0, failed: 0 };
+    }
     return {
-      all: emails.length,
-      sent: emails.filter(e => e.status === 'sent').length,
-      received: emails.filter(e => e.status === 'received').length,
-      queued: emails.filter(e => e.status === 'queued').length,
-      failed: emails.filter(e => e.status === 'failed').length,
+      all: stats.total,
+      sent: stats.by_status.sent,
+      received: stats.by_status.received,
+      queued: stats.by_status.queued,
+      failed: stats.by_status.failed,
     };
   });
 
   statsByCategory = computed(() => {
-    const emails = this.emails();
+    const stats = this.emailStats();
+    if (!stats) {
+      return { all: 0, vip: 0, drafts: 0, junk: 0, trash: 0, archive: 0 };
+    }
     return {
-      all: emails.length,
-      vip: emails.filter(e => (e as any).is_vip).length,
-      drafts: emails.filter(e => e.status === 'draft').length,
-      junk: emails.filter(e => (e as any).is_junk).length,
-      trash: emails.filter(e => (e as any).is_deleted).length,
-      archive: emails.filter(e => (e as any).is_archived).length,
+      all: stats.total,
+      vip: stats.by_category.vip,
+      drafts: stats.by_category.drafts,
+      junk: stats.by_category.junk,
+      trash: stats.by_category.trash,
+      archive: stats.by_category.archive,
     };
   });
 
   filteredEmails = computed(() => {
+    // I filtri sono ora applicati lato server, quindi restituiamo solo le email caricate
+    // Il sorting può rimanere lato client per le email già caricate
     const emails = [...this.emails()];
-    const query = this.searchQuery().toLowerCase();
-    const directionFilter = this.selectedDirection();
-    const statusFilter = this.selectedStatus();
-    const type = this.viewType();
     const sortCol = this.sortColumn();
     const sortDir = this.sortDirection();
 
-    let result = emails;
-
-    // View type filter
-    if (type === 'email-sent') {
-      result = result.filter(email => email.direction === 'sent');
-    } else if (type === 'email-received') {
-      result = result.filter(email => email.direction === 'received');
-    } else if (type === 'email-bcc') {
-      result = result.filter(email => email.has_bcc);
-    }
-
-    // Search
-    if (query) {
-      result = result.filter(email =>
-        email.subject.toLowerCase().includes(query) ||
-        (email.preview ?? '').toLowerCase().includes(query) ||
-        (email.related_job_offer ?? '').toLowerCase().includes(query) ||
-        email.to_recipients.some(to => to.toLowerCase().includes(query)) ||
-        email.cc_recipients.some(cc => cc.toLowerCase().includes(query)) ||
-        email.bcc_recipients.some(bcc => bcc.toLowerCase().includes(query))
-      );
-    }
-
-    // Direction filter
-    if (directionFilter !== 'all') {
-      result = result.filter(email => email.direction === directionFilter);
-    }
-
-    // Status filter
-    if (statusFilter !== 'all') {
-      result = result.filter(email => email.status === statusFilter);
-    }
-
-    // Category filter
-    const categoryFilter = this.selectedCategory();
-    if (categoryFilter === 'vip') {
-      result = result.filter(email => (email as any).is_vip);
-    } else if (categoryFilter === 'drafts') {
-      result = result.filter(email => email.status === 'draft');
-    } else if (categoryFilter === 'junk') {
-      result = result.filter(email => (email as any).is_junk);
-    } else if (categoryFilter === 'trash') {
-      result = result.filter(email => (email as any).is_deleted);
-    } else if (categoryFilter === 'archive') {
-      result = result.filter(email => (email as any).is_archived);
-    }
-
-    // Sorting
-    result.sort((a, b) => {
+    // Sorting lato client
+    emails.sort((a, b) => {
       const aValue = this.getSortableValue(a, sortCol);
       const bValue = this.getSortableValue(b, sortCol);
 
@@ -189,14 +174,30 @@ export class JobOffersEmailView implements OnInit {
       return sortDir === 'asc' ? comparison : -comparison;
     });
 
-    return result;
+    return emails;
   });
 
   ngOnInit(): void {
-    // Carica solo i dati esistenti senza sincronizzazione automatica
-    // (per evitare timeout lunghi all'apertura del componente)
-    // L'utente può cliccare sul pulsante "Sincronizza" per aggiornare manualmente
-    this.loadData();
+    // Carica colonne e dati inizialmente
+    this.loadColumnsAndData();
+    
+    // Marca come inizializzato dopo il primo caricamento
+    setTimeout(() => {
+      this.initialized = true;
+    }, 500);
+  }
+
+  ngAfterViewInit(): void {
+    // Setup infinite scroll dopo che il DOM è stato renderizzato
+    setTimeout(() => {
+      this.setupInfiniteScroll();
+    }, 100);
+  }
+
+  ngOnDestroy(): void {
+    if (this.scrollListener) {
+      this.scrollListener();
+    }
   }
 
   /**
@@ -244,7 +245,7 @@ export class JobOffersEmailView implements OnInit {
         }
 
         // Carica i dati dopo la sincronizzazione
-        this.loadData();
+        this.loadEmails();
       },
       error: (err) => {
         console.error('Errore sincronizzazione email:', err);
@@ -257,21 +258,24 @@ export class JobOffersEmailView implements OnInit {
         }, 5000);
 
         // Carica comunque i dati esistenti
-        this.loadData();
+        this.loadEmails();
       }
     });
   }
 
-  private loadData(): void {
+  private loadColumnsAndData(): void {
     this.loading.set(true);
     
     forkJoin({
       columns: this.columnService.getUserColumns(),
-      emails: this.emailService.getEmails()
+      emails: this.emailService.getEmails(this.buildFilters())
     }).subscribe({
       next: ({ columns, emails }) => {
         this.allColumns.set(columns);
-        this.emails.set(emails);
+        this.emails.set(emails.data);
+        this.pagination.set(emails.pagination);
+        this.emailStats.set(emails.stats ?? null);
+        this.currentPage.set(emails.pagination.current_page);
         this.loading.set(false);
       },
       error: (err) => {
@@ -279,6 +283,132 @@ export class JobOffersEmailView implements OnInit {
         this.loading.set(false);
       }
     });
+  }
+
+  private loadEmails(): void {
+    this.loading.set(true);
+    
+    this.emailService.getEmails(this.buildFilters()).subscribe({
+      next: (emails) => {
+        this.emails.set(emails.data);
+        this.pagination.set(emails.pagination);
+        this.emailStats.set(emails.stats ?? null);
+        this.currentPage.set(emails.pagination.current_page);
+        this.loading.set(false);
+      },
+      error: (err) => {
+        console.error('Errore caricamento email candidature:', err);
+        this.loading.set(false);
+      }
+    });
+  }
+
+  private loadMoreEmails(): void {
+    const pag = this.pagination();
+    if (!pag || !pag.has_more || this.loadingMore() || this.loading()) {
+      return;
+    }
+
+    this.loadingMore.set(true);
+    const nextPage = this.currentPage() + 1;
+
+    const filters = {
+      ...this.buildFilters(),
+      page: nextPage,
+      per_page: this.perPage
+    };
+
+    this.emailService.getEmails(filters).subscribe({
+      next: (response) => {
+        // Append nuove email
+        this.emails.set([...this.emails(), ...response.data]);
+        this.pagination.set(response.pagination);
+        // Le stats arrivano solo alla prima pagina, mantieni quelle esistenti
+        if (response.stats) {
+          this.emailStats.set(response.stats);
+        }
+        this.currentPage.set(response.pagination.current_page);
+        this.loadingMore.set(false);
+      },
+      error: (err) => {
+        console.error('Errore caricamento email aggiuntive:', err);
+        this.loadingMore.set(false);
+      }
+    });
+  }
+
+  private buildFilters(): { direction?: EmailDirection; status?: string; has_bcc?: boolean; search?: string; category?: string; page?: number; per_page?: number } {
+    const filters: { direction?: EmailDirection; status?: string; has_bcc?: boolean; search?: string; category?: string; page: number; per_page: number } = {
+      page: this.currentPage(),
+      per_page: this.perPage
+    };
+
+    const viewType = this.viewType();
+    if (viewType === 'email-sent') {
+      filters.direction = 'sent';
+    } else if (viewType === 'email-received') {
+      filters.direction = 'received';
+    } else if (viewType === 'email-bcc') {
+      filters.has_bcc = true;
+    }
+
+    const direction = this.selectedDirection();
+    if (direction !== 'all') {
+      filters.direction = direction as EmailDirection;
+    }
+
+    const status = this.selectedStatus();
+    if (status !== 'all') {
+      filters.status = status;
+    }
+
+    const category = this.selectedCategory();
+    if (category !== 'all') {
+      filters.category = category;
+    }
+
+    const search = this.searchQuery();
+    if (search) {
+      filters.search = search;
+    }
+
+    return filters;
+  }
+
+  private resetAndReload(): void {
+    // Evita il primo trigger dell'effect all'inizializzazione
+    if (!this.initialized) {
+      return;
+    }
+    
+    this.currentPage.set(1);
+    this.emails.set([]);
+    this.pagination.set(null);
+    this.loadEmails(); // Carica solo email, non colonne
+  }
+
+  private setupInfiniteScroll(): void {
+    const handleScroll = () => {
+      const tableContainer = document.querySelector('.table-container');
+      if (!tableContainer) return;
+
+      const scrollTop = tableContainer.scrollTop;
+      const scrollHeight = tableContainer.scrollHeight;
+      const clientHeight = tableContainer.clientHeight;
+
+      // Trigger when 80% scrolled
+      const threshold = scrollHeight * 0.8;
+
+      if (scrollTop + clientHeight >= threshold) {
+        this.loadMoreEmails();
+      }
+    };
+
+    const tableContainer = document.querySelector('.table-container');
+    if (tableContainer) {
+      tableContainer.addEventListener('scroll', handleScroll);
+      this.scrollListener = () => tableContainer.removeEventListener('scroll', handleScroll);
+    }
   }
 
   /**
@@ -373,7 +503,7 @@ export class JobOffersEmailView implements OnInit {
       error: (err: any) => {
         console.error('Errore aggiornamento visibilità colonna:', err);
         // Rollback in caso di errore
-        this.loadData();
+        this.loadColumnsAndData();
       }
     });
   }
@@ -455,7 +585,7 @@ export class JobOffersEmailView implements OnInit {
     this.columnService.updateOrder(columnOrder).subscribe({
       error: (err: any) => {
         console.error('Errore salvataggio ordine colonne:', err);
-        this.loadData(); // Rollback
+        this.loadColumnsAndData(); // Rollback
       }
     });
   }

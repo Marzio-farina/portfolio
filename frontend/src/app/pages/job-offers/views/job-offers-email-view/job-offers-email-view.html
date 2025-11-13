@@ -213,15 +213,6 @@
               <span class="filter-item__count">{{ statsByCategory().archive }}</span>
             </div>
           </div>
-
-          <!-- Contatore risultati -->
-          <div class="results-count">
-            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-              <rect x="3" y="5" width="18" height="14" rx="2"/>
-              <path d="M3 7l9 6 9-6"/>
-            </svg>
-            <span>{{ filteredEmails().length }} Risultati</span>
-          </div>
         </div>
       </aside>
     }
@@ -387,9 +378,20 @@
                           </div>
                         }
                         @case ('direction') {
-                          <span class="badge direction-tag" [ngClass]="getDirectionClass(email.direction)">
-                            {{ getDirectionLabel(email.direction) }}
-                          </span>
+                          <div class="direction-icon-wrapper" [title]="getDirectionLabel(email.direction)">
+                            @if (email.direction === 'sent') {
+                              <svg class="direction-icon direction-icon--sent" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                <line x1="22" y1="2" x2="11" y2="13"></line>
+                                <polygon points="22 2 15 22 11 13 2 9 22 2"></polygon>
+                              </svg>
+                            } @else {
+                              <svg class="direction-icon direction-icon--received" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path>
+                                <polyline points="7 10 12 15 17 10"></polyline>
+                                <line x1="12" y1="15" x2="12" y2="3"></line>
+                              </svg>
+                            }
+                          </div>
                         }
                         @case ('to') {
                           <div class="recipients">
@@ -492,6 +494,21 @@
               }
             </tbody>
           </table>
+
+          <!-- Indicatore caricamento infinite scroll -->
+          @if (loadingMore()) {
+            <div class="loading-more-indicator">
+              <div class="spinner"></div>
+              <span>Caricamento altre email...</span>
+            </div>
+          }
+
+          <!-- Indicatore fine dati -->
+          @if (pagination() && !pagination()!.has_more && emails().length > 0 && !loading()) {
+            <div class="no-more-data">
+              <span>✓ Tutte le email sono state caricate ({{ pagination()!.total }} totali)</span>
+            </div>
+          }
         </div>
       }
     </div>
