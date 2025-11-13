@@ -39,8 +39,15 @@ return [
     */
     'sync' => [
         // Cartelle da sincronizzare
-        // iCloud usa 'INBOX' per ricevute e 'Sent Messages' per inviate
-        'folders' => ['INBOX', 'Sent Messages'],
+        // iCloud usa cartelle standard IMAP
+        'folders' => [
+            'INBOX',            // Email ricevute normali
+            'Sent Messages',    // Email inviate
+            'Junk',            // Posta indesiderata
+            'Deleted Messages', // Cestino
+            'Drafts',          // Bozze
+            'Archive',         // Archivio
+        ],
         
         // Numero massimo di email da importare per volta
         'batch_size' => 100,

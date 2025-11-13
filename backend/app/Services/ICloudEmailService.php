@@ -157,12 +157,16 @@ class ICloudEmailService
                         // Verifica se l'email è già stata sincronizzata
                         $messageId = $message->getMessageId();
                         
-                        if ($this->isAlreadySynced($user->id, $messageId)) {
+                        $existingEmail = $this->findExistingEmail($user->id, $messageId);
+                        
+                        if ($existingEmail) {
+                            // Aggiorna i flag dell'email esistente in base alla cartella corrente
+                            $this->updateEmailFlags($existingEmail, $folderName);
                             $stats['skipped']++;
                             continue;
                         }
 
-                        // Importa l'email
+                        // Importa la nuova email
                         $this->importEmail($user, $message, $folderName);
                         $stats['imported']++;
                         $importedInFolder++;
@@ -231,7 +235,27 @@ class ICloudEmailService
     protected function importEmail(User $user, $message, string $folder): void
     {
         // Determina direzione (sent/received)
-        $direction = strtolower($folder) === 'sent' ? 'sent' : 'received';
+        $direction = strtolower($folder) === 'sent messages' ? 'sent' : 'received';
+
+        // Determina categorie in base alla cartella
+        $folderLower = strtolower($folder);
+        $isJunk = $folderLower === 'junk';
+        $isDeleted = $folderLower === 'deleted messages' || $folderLower === 'trash';
+        $isArchived = $folderLower === 'archive';
+        $isDraft = $folderLower === 'drafts';
+        
+        // Determina lo status
+        $status = $isDraft ? 'draft' : $direction;
+
+        // Determina se è VIP controllando i flag del messaggio
+        $isVip = false;
+        try {
+            $flags = $message->getFlags();
+            $isVip = is_array($flags) && in_array('\\Flagged', $flags, true);
+        } catch (\Exception $e) {
+            // Se non riusciamo a leggere i flag, continua senza VIP
+            Log::debug('Impossibile leggere flag VIP per email: ' . $e->getMessage());
+        }
 
         // Estrai destinatari
         $toRecipients = $this->extractAddresses($message->getTo());
@@ -248,6 +272,10 @@ class ICloudEmailService
         $messageId = DB::connection()->getPdo()->quote($message->getMessageId());
         $sentAt = DB::connection()->getPdo()->quote($message->getDate());
         $hasBcc = !empty($bccRecipients) ? 'TRUE' : 'FALSE';
+        $vipBool = $isVip ? 'TRUE' : 'FALSE';
+        $junkBool = $isJunk ? 'TRUE' : 'FALSE';
+        $deletedBool = $isDeleted ? 'TRUE' : 'FALSE';
+        $archivedBool = $isArchived ? 'TRUE' : 'FALSE';
         
         DB::statement("
             INSERT INTO job_offer_emails (
@@ -259,8 +287,8 @@ class ICloudEmailService
             ) VALUES (
                 {$user->id}, NULL, {$subject}, {$preview}, {$fromAddress},
                 {$toJson}::jsonb, {$ccJson}::jsonb, {$bccJson}::jsonb,
-                '{$direction}', '{$direction}', {$messageId}, {$sentAt}, NULL,
-                {$hasBcc}::boolean, FALSE::boolean, FALSE::boolean, FALSE::boolean, FALSE::boolean,
+                '{$direction}', '{$status}', {$messageId}, {$sentAt}, NULL,
+                {$hasBcc}::boolean, {$vipBool}::boolean, {$junkBool}::boolean, {$deletedBool}::boolean, {$archivedBool}::boolean,
                 NOW(), NOW()
             )
         ");
@@ -326,17 +354,48 @@ class ICloudEmailService
     }
 
     /**
-     * Verifica se l'email è già stata sincronizzata
+     * Trova un'email esistente per message_id
      */
-    protected function isAlreadySynced(int $userId, ?string $messageId): bool
+    protected function findExistingEmail(int $userId, ?string $messageId): ?JobOfferEmail
     {
         if (!$messageId) {
-            return false;
+            return null;
         }
 
         return JobOfferEmail::where('user_id', $userId)
             ->where('message_id', $messageId)
-            ->exists();
+            ->first();
+    }
+
+    /**
+     * Aggiorna i flag di un'email esistente in base alla cartella
+     */
+    protected function updateEmailFlags(JobOfferEmail $email, string $folder): void
+    {
+        $folderLower = strtolower($folder);
+        
+        // Determina i nuovi flag in base alla cartella
+        $updates = [];
+        
+        if ($folderLower === 'junk') {
+            $updates['is_junk'] = true;
+        } elseif ($folderLower === 'deleted messages' || $folderLower === 'trash') {
+            $updates['is_deleted'] = true;
+        } elseif ($folderLower === 'archive') {
+            $updates['is_archived'] = true;
+        } elseif ($folderLower === 'drafts') {
+            $updates['status'] = 'draft';
+        } else {
+            // Se l'email è tornata in INBOX o Sent, resetta i flag negativi
+            $updates['is_junk'] = false;
+            $updates['is_deleted'] = false;
+        }
+        
+        // Aggiorna se ci sono modifiche
+        if (!empty($updates)) {
+            $email->update($updates);
+            Log::info("Email {$email->id} aggiornata: cartella {$folder}");
+        }
     }
 
     /**
