@@ -458,9 +458,18 @@ export class ThreeText3DComponent implements AfterViewInit, OnChanges, OnDestroy
   }
 
   private animate = () => {
-    this.animationFrameId = requestAnimationFrame(this.animate);
+    // Controllo di sicurezza: ferma l'animazione se il componente è stato distrutto
+    if (!this.renderer || !this.scene || !this.camera) {
+      return;
+    }
 
-    if (!this.renderer || !this.scene || !this.camera) return;
+    // Verifica che il canvas abbia ancora dimensioni valide
+    const canvas = this.renderer.domElement;
+    if (!canvas || canvas.width === 0 || canvas.height === 0) {
+      return;
+    }
+
+    this.animationFrameId = requestAnimationFrame(this.animate);
 
     // Animazione più leggera - oscillazione ridotta
     const time = Date.now() * 0.0002;
@@ -475,7 +484,15 @@ export class ThreeText3DComponent implements AfterViewInit, OnChanges, OnDestroy
       mesh.rotation.z = 0.40;  // Mantiene inclinazione corretta
     });
 
-    this.renderer.render(this.scene, this.camera);
+    try {
+      this.renderer.render(this.scene, this.camera);
+    } catch (error) {
+      // Se c'è un errore durante il rendering (es. WebGL context perso), ferma l'animazione
+      if (this.animationFrameId) {
+        cancelAnimationFrame(this.animationFrameId);
+        this.animationFrameId = 0;
+      }
+    }
   };
 
   private setupResize() {
@@ -617,32 +634,95 @@ export class ThreeText3DComponent implements AfterViewInit, OnChanges, OnDestroy
   // ============================================
 
   private cleanup() {
+    // 1. Ferma il loop di animazione PRIMA di tutto
     if (this.animationFrameId) {
       cancelAnimationFrame(this.animationFrameId);
+      this.animationFrameId = 0;
     }
 
+    // 2. Disconnetti ResizeObserver
     if (this.resizeObserver) {
       this.resizeObserver.disconnect();
+      this.resizeObserver = null;
     }
 
-    // NON dispose delle geometrie in cache - saranno riutilizzate
-    if (this.titleMesh) {
-      this.titleMesh.material.dispose();
-    }
-    
-    this.descriptionMeshes.forEach(mesh => {
-      mesh.material.dispose();
-    });
+    // 3. Rimuovi tutti gli oggetti dalla scena e dispose materiali/geometrie
+    if (this.scene) {
+      // Rimuovi e dispose titleMesh
+      if (this.titleMesh) {
+        this.scene.remove(this.titleMesh);
+        if (this.titleMesh.geometry) {
+          this.titleMesh.geometry.dispose();
+        }
+        if (this.titleMesh.material) {
+          if (Array.isArray(this.titleMesh.material)) {
+            this.titleMesh.material.forEach((mat: any) => mat.dispose());
+          } else {
+            this.titleMesh.material.dispose();
+          }
+        }
+        this.titleMesh = null;
+      }
 
-    // Dispose cache geometrie solo alla distruzione finale
+      // Rimuovi e dispose descriptionMeshes
+      this.descriptionMeshes.forEach(mesh => {
+        this.scene.remove(mesh);
+        if (mesh.geometry) {
+          mesh.geometry.dispose();
+        }
+        if (mesh.material) {
+          if (Array.isArray(mesh.material)) {
+            mesh.material.forEach((mat: any) => mat.dispose());
+          } else {
+            mesh.material.dispose();
+          }
+        }
+      });
+      this.descriptionMeshes = [];
+
+      // Rimuovi tutte le luci
+      const lights = this.scene.children.filter((child: any) => child.isLight);
+      lights.forEach((light: any) => {
+        this.scene.remove(light);
+        if (light.dispose) light.dispose();
+      });
+
+      // Pulisci la scena
+      this.scene.clear();
+      this.scene = null;
+    }
+
+    // 4. Dispose cache geometrie
     this.geometryCache.forEach(geometry => {
       geometry.dispose();
     });
     this.geometryCache.clear();
 
+    // 5. Dispose renderer e pulisci il canvas
     if (this.renderer) {
-      this.renderer.dispose();
+      // Dispose del renderer - questo libera automaticamente tutte le risorse WebGL
+      // (texture, framebuffer, contesto WebGL, etc.)
+      // NON tentare di ottenere un nuovo contesto WebGL con getContext() - fallirebbe
+      // se il canvas ha già un contesto attivo (es. da Spline)
+      try {
+        this.renderer.dispose();
+      } catch (error) {
+        // Ignora errori durante dispose (renderer potrebbe essere già distrutto)
+      }
+      
+      this.renderer = null;
     }
+
+    // 6. Pulisci camera
+    if (this.camera) {
+      this.camera = null;
+    }
+
+    // 7. Pulisci font
+    this.font = null;
+
+    // 8. Pulisci THREE reference
+    this.THREE = null;
   }
 }
 

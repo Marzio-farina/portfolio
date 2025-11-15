@@ -594,6 +594,14 @@ export class Notification implements OnDestroy, AfterViewInit {
     }, collapsed[0].type);
   }
 
+  /**
+   * Verifica se la notifica edit-mode è presente tra quelle collassate
+   */
+  hasEditModeCollapsed(): boolean {
+    const collapsed = this.collapsedNotifications();
+    return collapsed.some(n => n.fieldId === 'edit-mode');
+  }
+
   onCornerIconMouseLeave() {
     // Al mouse leave non succede nulla - il timer dell'hover gestisce tutto
   }

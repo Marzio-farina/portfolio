@@ -6,8 +6,8 @@
   border-radius: 16px;
   box-shadow: var(--shadow-2);
   width: 100%;
-  max-width: 600px;
-  max-height: 80vh;
+  max-width: 100%; /* Si espande al 100% del contenitore padre */
+  max-height: 88vh; /* Allineato con mf-modal__content */
   display: flex;
   flex-direction: column;
   overflow: hidden;

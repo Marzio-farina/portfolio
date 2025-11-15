@@ -90,7 +90,7 @@
 /* Per dispositivi più grandi di 500px */
 @media (min-width: 500.02px) {
   .project-detail-modal {
-    max-width: 700px;
+    max-width: 100%; /* Si espande al 100% del contenitore padre */
   }
 
   .project-detail-modal__info {
@@ -136,7 +136,7 @@
 /* Per dispositivi più grandi di 768px ma minori di 1250px */
 @media (min-width: 768.02px) and (max-width: 1249.99px) {
   .project-detail-modal {
-    max-width: 800px;
+    max-width: 100%; /* Si espande al 100% del contenitore padre */
   }
 
   .project-detail-modal__scrollable {
@@ -168,7 +168,7 @@
 /* Per dispositivi più grandi di 1250px */
 @media (min-width: 1250px) {
   .project-detail-modal {
-    max-width: 800px;
+    max-width: 100%; /* Si espande al 100% del contenitore padre */
   }
 
   .project-detail-modal__scrollable {

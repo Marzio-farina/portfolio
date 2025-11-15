@@ -12,8 +12,9 @@
     @for (notification of visibleNotifications(); track notification.id; let i = $index) {
       <div class="notification-multiple" 
            [class]="'notification-multiple--' + notification.type"
+           [class.notification--edit-mode]="notification.fieldId === 'edit-mode'"
            [style.top.px]="20 + (i * 22.5)"
-           [style.z-index]="10000 - i"
+           [style.z-index]="notification.fieldId === 'edit-mode' ? null : (10000 - i)"
            (mouseenter)="onNotificationMouseEnter()"
            (mouseleave)="onNotificationMouseLeave()">
         
@@ -29,6 +30,7 @@
     @if (collapsedNotifications().length > 0) {
       <div class="notification-multiple__corner-icon" 
            [class]="'notification-multiple--' + getMostSevereCollapsedType()"
+           [class.notification-corner-icon--edit-mode]="getMostSevereCollapsedType() == 'info' && hasEditModeCollapsed()"
            [style.top.px]="20"
            (mouseenter)="expandAllNotifications()"
            (mouseleave)="onCornerIconMouseLeave()"
@@ -49,6 +51,7 @@
   <!-- Contenitore principale -->
   <div #notificationElement class="notification" 
        [class]="'notification--' + type()"
+       [class.notification--edit-mode]="false"
        (mouseenter)="onNotificationMouseEnter()"
        (mouseleave)="onNotificationMouseLeave()">
     

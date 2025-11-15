@@ -15,6 +15,15 @@
   max-width: calc(100vw - 32px);
 }
 
+/* Notifica Edit Mode - z-index inferiore ai dialog (1200) */
+.notification--edit-mode {
+  z-index: 1100 !important; /* Sotto i dialog (1200) ma sopra il contenuto normale */
+}
+
+.notification--edit-mode .notification__corner-icon {
+  z-index: 1100 !important; /* Sotto i dialog (1200) ma sopra il contenuto normale */
+}
+
 /* Tablet e Desktop */
 @media (min-width: 768px) {
   .notification {

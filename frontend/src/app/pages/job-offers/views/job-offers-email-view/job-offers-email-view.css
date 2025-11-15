@@ -1001,7 +1001,7 @@ tbody td {
 }
 
 .expanded-row td {
-  background: var(--bg-secondary);
+  background: transparent;
   padding: 0 !important;
   border-bottom: none !important;
 }

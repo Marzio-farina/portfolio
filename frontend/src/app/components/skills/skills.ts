@@ -487,13 +487,60 @@ export class SkillsSectionComponent implements OnDestroy, AfterViewInit {
   }
 
   private cleanup(): void {
+    // 1. Pulisci ResizeObserver
     if (this.resizeObserver) {
       this.resizeObserver.disconnect();
       this.resizeObserver = null;
     }
     
+    // 2. Pulisci timeout hover
     if (this.hoverThrottleTimeout) {
       clearTimeout(this.hoverThrottleTimeout);
+      this.hoverThrottleTimeout = null;
     }
+
+    // 3. Pulisci applicazione Spline se presente
+    const app = this.splineApp();
+    if (app) {
+      try {
+        // Rimuovi tutti gli event listeners
+        app.removeAllListeners?.();
+        
+        // Se Spline ha un metodo dispose o cleanup, chiamalo
+        if (typeof app.dispose === 'function') {
+          app.dispose();
+        } else if (typeof app.cleanup === 'function') {
+          app.cleanup();
+        }
+        
+        // Pulisci il canvas Spline se presente
+        // NOTA: NON tentare di ottenere un nuovo contesto WebGL con getContext()
+        // - Se il canvas ha già un contesto attivo, getContext() fallisce con errore
+        // - Spline gestisce il proprio contesto WebGL internamente
+        // - Se Spline ha un metodo dispose(), quello dovrebbe gestire tutto
+        // Il canvas verrà rimosso automaticamente dal DOM da Angular
+      } catch (error) {
+        // Ignora errori durante cleanup (componente già distrutto)
+      }
+      
+      this.splineApp.set(undefined);
+    }
+
+    // 4. Pulisci componenti child (ThreeText3D viene pulito automaticamente via ngOnDestroy)
+    // Il componente SplineReactLike dovrebbe gestire il proprio cleanup
+    if (this.splineComponent) {
+      // Il componente child gestirà il proprio cleanup
+      this.splineComponent = undefined;
+    }
+
+    // 5. Pulisci tutti i signals
+    this.hoveredSkill.set(null);
+    this.pressedKey.set(null);
+    this.hoveredKeyPosition.set(null);
+    this.warnedKeys.set(new Set());
+    
+    // 6. Pulisci Set e Map
+    this.pressedKeys.clear();
+    this.originalKeyPositions.clear();
   }
 }

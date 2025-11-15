@@ -427,6 +427,46 @@ export class ProjectDetailModal implements OnDestroy {
     const hasVideoFile = this.selectedVideoFile();
     const videoRemoved = this.videoRemoved();
     
+    // Controlla la dimensione del file poster PRIMA di inviare la richiesta
+    if (hasPosterFile) {
+      const maxPosterSize = 10 * 1024 * 1024; // 10MB in bytes
+      const posterSize = hasPosterFile.size;
+      
+      if (posterSize > maxPosterSize) {
+        const posterSizeMB = (posterSize / (1024 * 1024)).toFixed(2);
+        const maxSizeMB = (maxPosterSize / (1024 * 1024)).toFixed(0);
+        this.notificationService.add(
+          'error',
+          `Il file immagine è troppo grande (${posterSizeMB}MB). Dimensione massima consentita: ${maxSizeMB}MB.`,
+          'poster-size-error',
+          true,
+          false
+        );
+        this.saving.set(false);
+        return;
+      }
+    }
+    
+    // Controlla la dimensione del file video PRIMA di inviare la richiesta
+    if (hasVideoFile) {
+      const maxVideoSize = 15 * 1024 * 1024; // 15MB in bytes
+      const videoSize = hasVideoFile.size;
+      
+      if (videoSize > maxVideoSize) {
+        const videoSizeMB = (videoSize / (1024 * 1024)).toFixed(2);
+        const maxSizeMB = (maxVideoSize / (1024 * 1024)).toFixed(0);
+        this.notificationService.add(
+          'error',
+          `Il file video è troppo grande (${videoSizeMB}MB). Dimensione massima consentita: ${maxSizeMB}MB.`,
+          'video-size-error',
+          true,
+          false
+        );
+        this.saving.set(false);
+        return;
+      }
+    }
+    
     // Se ci sono file da caricare O un video da rimuovere, usa FormData
     if (hasPosterFile || hasVideoFile || videoRemoved) {
       // Se ci sono file, usa FormData

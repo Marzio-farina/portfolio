@@ -11,6 +11,15 @@
   max-height: 100vh;
 }
 
+/* Notifica Edit Mode - z-index inferiore ai dialog (1200) */
+.notification--edit-mode.notification-multiple {
+  z-index: 1100 !important; /* Sotto i dialog (1200) ma sopra il contenuto normale */
+}
+
+.notification-corner-icon--edit-mode {
+  z-index: 1100 !important; /* Sotto i dialog (1200) ma sopra il contenuto normale */
+}
+
 .notification-counter {
   position: fixed;
   top: 8px;
