@@ -1,6 +1,24 @@
-<div class="not-found">
+<div class="not-found" [class.dark-mode]="isDarkMode()">
+  <div class="not-found__background">
+    <div class="not-found__particles">
+      @for (i of [1,2,3,4,5,6,7,8,9,10]; track i) {
+        <div class="particle" [style.animation-delay]="(i * 0.2) + 's'"></div>
+      }
+    </div>
+  </div>
+  
   <div class="container">
     <div class="content">
+      <!-- Icona SVG animata -->
+      <div class="error-icon">
+        <svg viewBox="0 0 200 200" xmlns="http://www.w3.org/2000/svg">
+          <circle class="circle-1" cx="100" cy="100" r="80" fill="none" stroke="currentColor" stroke-width="3"/>
+          <circle class="circle-2" cx="100" cy="100" r="60" fill="none" stroke="currentColor" stroke-width="2"/>
+          <path class="magnifier" d="M 130 130 L 160 160" stroke="currentColor" stroke-width="3" stroke-linecap="round"/>
+          <circle class="magnifier-circle" cx="120" cy="120" r="15" fill="none" stroke="currentColor" stroke-width="3"/>
+        </svg>
+      </div>
+      
       <div class="error-code">404</div>
       
       <h1 class="title">Pagina non trovata</h1>
@@ -13,21 +31,14 @@
         }
       </p>
       
-      <p class="path">
-        Percorso richiesto: <code>{{ requestedPath() }}</code>
-      </p>
+      <div class="path-container">
+        <span class="path-label">Percorso richiesto:</span>
+        <code class="path-code">{{ requestedPath() }}</code>
+      </div>
       
       <p class="description">
         La pagina potrebbe essere stata rimossa o spostata, oppure l'URL potrebbe essere errato.
       </p>
-      
-      <button class="btn" (click)="goToProfile()">
-        @if (slug()) {
-          Vai al profilo "{{ slug() }}"
-        } @else {
-          Torna alla home
-        }
-      </button>
     </div>
   </div>
 </div>

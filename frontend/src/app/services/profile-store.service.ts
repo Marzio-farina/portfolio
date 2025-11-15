@@ -121,36 +121,17 @@ export class ProfileStoreService {
     // Questo evita di resettare il profilo durante la navigazione tra pagine dello stesso profilo
     if (context.slug) {
       // IMPORTANTE: Prima di caricare il profilo, verifica se lo slug assomiglia a una route riservata
-      // Se assomiglia, probabilmente il resolver navigherà a /not-found, quindi NON caricare il profilo
-      // Questo previene richieste HTTP inutili
-      const resemblesReservedRoute = this.slugResemblesReservedRoute(context.slug);
-      if (resemblesReservedRoute) {
+      // Se assomiglia, probabilmente è una pagina non esistente del profilo principale (es: /about2321/about)
+      // quindi NON caricare il profilo per evitare richieste HTTP inutili
+      // MA: Se lo slug NON assomiglia a una route riservata, carica comunque il profilo
+      // anche se la pagina potrebbe non esistere, perché lo slug potrebbe esistere e vogliamo mostrarlo nell'aside
+      const slugResemblesReserved = this.slugResemblesReservedRoute(context.slug);
+      if (slugResemblesReserved) {
         console.log('[PROFILE-STORE] Slug assomiglia a una route riservata, non carico profilo (il resolver navigherà a /not-found)', {
           slug: context.slug,
           routerUrl,
         });
         return;
-      }
-
-      // IMPORTANTE: Se l'URL ha almeno 2 segmenti, verifica se il secondo segmento (pagina) assomiglia a una route riservata
-      // Se assomiglia ma NON è una route riservata esatta, probabilmente è una pagina non esistente
-      // In questo caso, NON caricare il profilo e lascia che il resolver gestisca la situazione
-      const urlSegments = routerUrl.split('/').filter(Boolean);
-      if (urlSegments.length >= 2 && urlSegments[0] === context.slug) {
-        const pageSegment = urlSegments[1].toLowerCase();
-        // Se la pagina NON è una route riservata esatta ma assomiglia a una route riservata,
-        // probabilmente è una pagina non esistente (es: 'progetti2312s' assomiglia a 'progetti')
-        const pageResemblesReservedRoute = this.slugResemblesReservedRoute(pageSegment);
-        const isExactReservedRoute = this.reservedRoutes.has(pageSegment);
-        
-        if (pageResemblesReservedRoute && !isExactReservedRoute) {
-          console.log('[PROFILE-STORE] Pagina assomiglia a route riservata ma non è esatta, non carico profilo (il resolver gestirà)', {
-            slug: context.slug,
-            pageSegment,
-            routerUrl,
-          });
-          return;
-        }
       }
 
       const tenantSlug = this.tenant.userSlug();

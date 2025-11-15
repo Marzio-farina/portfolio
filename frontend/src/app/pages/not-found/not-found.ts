@@ -1,7 +1,8 @@
-import { Component, inject, signal } from '@angular/core';
+import { Component, inject, signal, computed } from '@angular/core';
 import { Router, ActivatedRoute } from '@angular/router';
 import { CommonModule } from '@angular/common';
 import { TenantService } from '../../services/tenant.service';
+import { ThemeService } from '../../services/theme.service';
 
 /**
  * Componente per visualizzare quando una pagina non viene trovata
@@ -20,9 +21,13 @@ export class NotFound {
   private router = inject(Router);
   private route = inject(ActivatedRoute);
   private tenant = inject(TenantService);
+  private theme = inject(ThemeService);
   
   slug = signal<string | null>(null);
   requestedPath = signal<string>('');
+  
+  // Tema corrente per adattare la grafica
+  isDarkMode = computed(() => this.theme.effectiveTheme() === 'dark');
 
   constructor() {
     // Ottieni lo slug dalla route se presente (caso 2: dominio/{slug}/nome_pagina)
