@@ -2,7 +2,7 @@ import { Injectable, inject } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
 import { Observable } from 'rxjs';
 import { timeout } from 'rxjs/operators';
-import { environment } from '../../environments/environment';
+import { apiUrl } from '../core/api/api-url';
 
 export interface EmailSyncStats {
   imported: number;
@@ -22,7 +22,6 @@ export interface EmailSyncResponse {
 })
 export class EmailSyncService {
   private http = inject(HttpClient);
-  private apiUrl = environment.API_BASE_URL;
 
   /**
    * Sincronizza le email iCloud per l'utente autenticato
@@ -30,7 +29,7 @@ export class EmailSyncService {
    */
   syncEmails(): Observable<EmailSyncResponse> {
     return this.http.post<EmailSyncResponse>(
-      `${this.apiUrl}/api/emails/sync`, 
+      apiUrl('emails/sync'), 
       {}
     ).pipe(
       // Timeout di 5 minuti (300000ms) per la sincronizzazione
@@ -43,7 +42,7 @@ export class EmailSyncService {
    * Testa la connessione iCloud
    */
   testConnection(): Observable<EmailSyncResponse> {
-    return this.http.post<EmailSyncResponse>(`${this.apiUrl}/api/emails/test-connection`, {});
+    return this.http.post<EmailSyncResponse>(apiUrl('emails/test-connection'), {});
   }
 }
 
