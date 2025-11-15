@@ -189,7 +189,7 @@ Route::middleware(['api', "throttle:{$throttleLimit}", 'db.connection'])
         // ====================================================================
         // Protected Routes (require authentication)
         // ====================================================================
-        Route::middleware(['auth:sanctum', 'fresh'])->group(function () {
+        Route::middleware(['auth:sanctum'])->group(function () {
             Route::post('/me', [AuthController::class, 'me']);
             Route::post('/logout', [AuthController::class, 'logout']);
             Route::put('/profile', [AuthController::class, 'updateProfile']);

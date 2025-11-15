@@ -7,7 +7,6 @@ use App\Http\Requests\LoginRequest;
 use App\Http\Requests\RegisterRequest;
 use App\Http\Requests\ResetPasswordRequest;
 use App\Http\Requests\UpdateProfileRequest;
-use App\Http\Resources\UserResource;
 use App\Mail\PasswordResetNotification;
 use App\Models\Role;
 use App\Models\User;
@@ -213,21 +212,37 @@ class AuthController extends Controller
                 ], 401);
             }
 
-            Log::info('[AuthController] /me - User authenticated', ['user_id' => $user->id]);
-            // Usa UserResource per esporre solo dati essenziali (non password, tokens, ecc.)
-            return response()->json(new UserResource($user));
+            Log::info('[AuthController] /me - User authenticated', [
+                'user_id' => $user->id,
+                'user_email' => $user->email ?? 'no email'
+            ]);
+            
+            // Restituisci direttamente i dati essenziali senza UserResource
+            // Usa toArray() per evitare problemi di serializzazione
+            $data = [
+                'id' => (int) ($user->id ?? 0),
+                'name' => (string) ($user->name ?? ''),
+                'surname' => $user->surname ? (string) $user->surname : null,
+                'email' => (string) ($user->email ?? ''),
+                'slug' => $user->slug ? (string) $user->slug : null,
+            ];
+            
+            Log::info('[AuthController] /me - Returning data', ['data_keys' => array_keys($data)]);
+            
+            return response()->json($data, 200, [], JSON_UNESCAPED_UNICODE);
         } catch (\Throwable $e) {
             Log::error('[AuthController] /me - Exception caught', [
                 'message' => $e->getMessage(),
                 'file' => $e->getFile(),
                 'line' => $e->getLine(),
-                'trace' => $e->getTraceAsString()
+                'trace' => $e->getTraceAsString(),
+                'user_id' => auth('sanctum')->id()
             ]);
             return response()->json([
                 'ok' => false,
                 'error' => 'Error loading user profile',
                 'details' => app()->environment('local') ? $e->getMessage() : null
-            ], 500);
+            ], 500, [], JSON_UNESCAPED_UNICODE);
         }
     }
 
