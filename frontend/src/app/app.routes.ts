@@ -13,6 +13,8 @@ import { JobOffersScraperResultsView } from './pages/job-offers/views/job-offers
 import { AddTestimonial } from './components/add-testimonial/add-testimonial';
 import { AddAttestato } from './components/add-attestato/add-attestato';
 import { AddProject } from './components/add-project/add-project';
+import { ProfileNotFound } from './pages/profile-not-found/profile-not-found';
+import { NotFound } from './pages/not-found/not-found';
 import { tenantResolver } from './core/tenant/tenant.resolver';
 import { clearTenantResolver } from './core/tenant/clear-tenant.resolver';
 import { authGuard } from './guards/auth.guard';
@@ -63,17 +65,45 @@ export const routes: Routes = [
   { path: ':userSlug/job-offers/email-sent', component: JobOffersEmailView, canActivate: [authGuard], resolve: { tenant: tenantResolver }, data: { title: 'Email Inviate' } },
   { path: ':userSlug/job-offers/email-received', component: JobOffersEmailView, canActivate: [authGuard], resolve: { tenant: tenantResolver }, data: { title: 'Email Ricevute' } },
   { path: ':userSlug/job-offers/email-bcc', component: JobOffersEmailView, canActivate: [authGuard], resolve: { tenant: tenantResolver }, data: { title: 'Destinatari Nascosti' } },
-  // Redirect solo slug a slug/about
+  // Componente per profili non trovati (slug non esistente) - DEVE essere PRIMA della wildcard
+  { 
+    path: 'profile-not-found/:userSlug', 
+    component: ProfileNotFound,
+    resolve: { clearTenant: clearTenantResolver },
+    data: { title: 'Profilo non trovato' } 
+  },
+  // Componente per pagine non trovate senza slug (profilo principale)
+  // IMPORTANTE: Questa route DEVE essere PRIMA di :userSlug/** per evitare che 'not-found' venga trattato come uno slug
+  { 
+    path: 'not-found', 
+    component: NotFound,
+    resolve: { clearTenant: clearTenantResolver },
+    data: { title: 'Pagina non trovata' } 
+  },
+  // Redirect da slug senza pagina a slug/about (deve essere prima della wildcard)
   { 
     path: ':userSlug', 
     pathMatch: 'full',
     redirectTo: ':userSlug/about'
   },
-  // Wildcard catch-all finale con guard per gestire slug
+  // 404 per pagine non esistenti sotto uno slug valido (wildcard per catturare tutto il resto)
+  // IMPORTANTE: Questa route DEVE essere PRIMA della route ** per essere matchata correttamente
+  // Questa route cattura TUTTI gli URL con almeno 2 segmenti dove il primo potrebbe essere uno slug
+  { 
+    path: ':userSlug/**', 
+    component: NotFound,
+    resolve: { tenant: tenantResolver },
+    data: { title: 'Pagina non trovata' } 
+  },
+  // Wildcard catch-all finale con guard per gestire SOLO pagine inesistenti SENZA slug
+  // IMPORTANTE: Questa route viene matchata SOLO se l'URL non ha almeno 2 segmenti
+  // Se l'URL ha almeno 2 segmenti, :userSlug/** dovrebbe essere matchata PRIMA
+  // Se il primo segmento potrebbe essere uno slug, restituiamo TRUE per permettere ad Angular
+  // di riprovare tutte le route (incluso :userSlug/**)
   { 
     path: '**', 
-    component: About,
+    component: NotFound,
     canActivate: [slugWildcardGuard],
-    data: { title: 'Chi sono' } 
+    data: { title: 'Pagina non trovata' } 
   },
 ];

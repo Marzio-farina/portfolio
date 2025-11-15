@@ -23,6 +23,14 @@ class UserPublicController extends Controller
      */
     public function me(Request $request): JsonResponse
     {
+        // Log per debugging
+        Log::info('[PUBLIC-PROFILE] Richiesta profilo pubblico di default (me)', [
+            'url' => $request->fullUrl(),
+            'ip' => $request->ip(),
+            'user_agent' => $request->userAgent(),
+            'timestamp' => now()->toIso8601String(),
+        ]);
+        
         $cacheKey = 'public_profile_v1'; // bump la versione se cambi struttura payload
         try {
             $data = Cache::remember($cacheKey, now()->addSeconds(60), function () use ($request) {
@@ -56,10 +64,19 @@ class UserPublicController extends Controller
                 return (new UserPublicResource($user))->toArray($request);
             });
             if ($data === null) {
-                // nessun utente “pubblico” trovato
+                // nessun utente "pubblico" trovato
+                Log::warning('[PUBLIC-PROFILE] Nessun utente pubblico trovato (me)', [
+                    'timestamp' => now()->toIso8601String(),
+                ]);
                 return response()->json(null, 404, [], JSON_UNESCAPED_UNICODE);
             }
 
+            Log::info('[PUBLIC-PROFILE] Profilo pubblico di default restituito (me)', [
+                'user_id' => $data['id'] ?? null,
+                'user_email' => $data['email'] ?? null,
+                'timestamp' => now()->toIso8601String(),
+            ]);
+            
             return response()->json($data, 200, [], JSON_UNESCAPED_UNICODE);
 
         } catch (\Throwable $e) {
@@ -83,8 +100,20 @@ class UserPublicController extends Controller
      */
     public function showBySlug(Request $request, string $slug): JsonResponse
     {
+        // Log dettagliato per debugging
+        Log::info('[PUBLIC-PROFILE] Richiesta profilo per slug', [
+            'slug' => $slug,
+            'slug_normalized' => strtolower($slug),
+            'url' => $request->fullUrl(),
+            'ip' => $request->ip(),
+            'user_agent' => $request->userAgent(),
+            'timestamp' => now()->toIso8601String(),
+        ]);
+
+        $normalizedSlug = strtolower($slug);
+        
         $user = User::query()->select(['id','name','surname','email','date_of_birth','slug'])
-            ->where('slug', $slug)
+            ->where('slug', $normalizedSlug)
             ->with([
                 'profile:id,user_id,title,headline,bio,phone,location,location_url,avatar_url',
                 'icon:id,img,alt',
@@ -95,10 +124,39 @@ class UserPublicController extends Controller
             ->first();
 
         if (!$user) {
+            // Log quando l'utente non viene trovato
+            Log::warning('[PUBLIC-PROFILE] Utente non trovato per slug', [
+                'slug' => $slug,
+                'slug_normalized' => $normalizedSlug,
+                'query_result' => 'null',
+                'timestamp' => now()->toIso8601String(),
+            ]);
+            
             return response()->json(['ok' => false, 'message' => 'Utente non trovato'], 404);
         }
 
+        // Log quando l'utente viene trovato
+        Log::info('[PUBLIC-PROFILE] Utente trovato per slug', [
+            'slug' => $slug,
+            'slug_normalized' => $normalizedSlug,
+            'user_id' => $user->id,
+            'user_email' => $user->email,
+            'user_name' => $user->name,
+            'timestamp' => now()->toIso8601String(),
+        ]);
+
         $data = (new UserPublicResource($user))->toArray($request);
+        
+        // Log della risposta (senza dati sensibili)
+        Log::info('[PUBLIC-PROFILE] Risposta inviata', [
+            'slug' => $slug,
+            'user_id' => $user->id,
+            'response_status' => 200,
+            'has_profile' => !empty($data['profile']),
+            'has_socials' => !empty($data['socials'] ?? []),
+            'timestamp' => now()->toIso8601String(),
+        ]);
+        
         return response()->json($data, 200, [], JSON_UNESCAPED_UNICODE);
     }
 

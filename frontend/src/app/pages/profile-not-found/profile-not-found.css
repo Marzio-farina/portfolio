@@ -1,0 +1,86 @@
+.profile-not-found {
+  min-height: 100vh;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 2rem;
+  background: var(--bg-color, #ffffff);
+  color: var(--text-color, #333333);
+}
+
+.container {
+  max-width: 600px;
+  width: 100%;
+}
+
+.content {
+  text-align: center;
+  padding: 3rem 2rem;
+  border-radius: 12px;
+  background: var(--card-bg, #f5f5f5);
+  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+}
+
+.icon {
+  width: 80px;
+  height: 80px;
+  margin: 0 auto 2rem;
+  color: var(--error-color, #dc3545);
+}
+
+.title {
+  font-size: 2rem;
+  font-weight: 700;
+  margin: 0 0 1rem;
+  color: var(--text-color, #333333);
+}
+
+.message {
+  font-size: 1.125rem;
+  margin: 0 0 1rem;
+  color: var(--text-color, #666666);
+}
+
+.message strong {
+  color: var(--text-color, #333333);
+  font-weight: 600;
+}
+
+.description {
+  font-size: 0.9375rem;
+  margin: 0 0 2rem;
+  color: var(--text-color-secondary, #888888);
+}
+
+.btn {
+  padding: 0.75rem 2rem;
+  font-size: 1rem;
+  font-weight: 600;
+  color: var(--btn-text-color, #ffffff);
+  background: var(--primary-color, #007bff);
+  border: none;
+  border-radius: 6px;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.btn:hover {
+  background: var(--primary-color-hover, #0056b3);
+  transform: translateY(-2px);
+  box-shadow: 0 4px 8px rgba(0, 123, 255, 0.3);
+}
+
+.btn:active {
+  transform: translateY(0);
+}
+
+/* Dark mode support */
+@media (prefers-color-scheme: dark) {
+  .profile-not-found {
+    --bg-color: #1a1a1a;
+    --text-color: #e0e0e0;
+    --card-bg: #2a2a2a;
+    --text-color-secondary: #b0b0b0;
+  }
+}
+

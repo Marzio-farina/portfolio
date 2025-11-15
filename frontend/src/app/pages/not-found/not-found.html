@@ -1,0 +1,34 @@
+<div class="not-found">
+  <div class="container">
+    <div class="content">
+      <div class="error-code">404</div>
+      
+      <h1 class="title">Pagina non trovata</h1>
+      
+      <p class="message">
+        @if (slug()) {
+          La pagina che stai cercando nel profilo <strong>"{{ slug() }}"</strong> non esiste.
+        } @else {
+          La pagina che stai cercando non esiste.
+        }
+      </p>
+      
+      <p class="path">
+        Percorso richiesto: <code>{{ requestedPath() }}</code>
+      </p>
+      
+      <p class="description">
+        La pagina potrebbe essere stata rimossa o spostata, oppure l'URL potrebbe essere errato.
+      </p>
+      
+      <button class="btn" (click)="goToProfile()">
+        @if (slug()) {
+          Vai al profilo "{{ slug() }}"
+        } @else {
+          Torna alla home
+        }
+      </button>
+    </div>
+  </div>
+</div>
+
