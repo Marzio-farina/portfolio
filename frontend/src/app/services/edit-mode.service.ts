@@ -11,7 +11,18 @@ export class EditModeService {
   // Signal per l'ID utente autenticato (sincronizzato con localStorage)
   private authenticatedUserId = signal<number | null>(null);
   
+  // Signal per il token (aggiornato da AuthService per evitare dipendenza circolare)
+  private _token = signal<string | null>(null);
+  
   constructor() {
+    // Inizializza il token dal localStorage per evitare che canEdit() ritorni false inizialmente
+    if (typeof window !== 'undefined') {
+      const currentSlug = this.tenant.userSlug();
+      const tokenKey = currentSlug ? `auth_token_${currentSlug}` : 'auth_token_main';
+      const token = localStorage.getItem(tokenKey);
+      this._token.set(token);
+    }
+    
     // Disabilita automaticamente l'edit mode quando l'utente non può più modificare
     effect(() => {
       const canModify = this.canEdit();
@@ -32,6 +43,13 @@ export class EditModeService {
   }
   
   /**
+   * Metodo pubblico per aggiornare il token (chiamato da AuthService per evitare dipendenza circolare)
+   */
+  setToken(token: string | null): void {
+    this._token.set(token);
+  }
+  
+  /**
    * Verifica se l'utente autenticato può modificare la pagina corrente
    * Un utente può modificare solo se:
    * 1. È autenticato (ha un token per lo slug corrente)
@@ -40,20 +58,36 @@ export class EditModeService {
   readonly canEdit = computed(() => {
     if (typeof window === 'undefined') return false;
     
-    // Ottieni lo slug corrente dalla pagina
+    // Ottieni lo slug corrente dalla pagina (questo rende il computed reattivo ai cambiamenti del tenant)
     const currentSlug = this.tenant.userSlug();
     
-    // Verifica token per lo slug corrente
-    const tokenKey = currentSlug ? `auth_token_${currentSlug}` : 'auth_token_main';
-    const hasToken = !!localStorage.getItem(tokenKey);
+    // Usa il token signal locale (aggiornato da AuthService per evitare dipendenza circolare)
+    const token = this._token();
     
-    if (!hasToken) return false;
+    if (!token) {
+      return false;
+    }
     
+    // Legge i valori dai signal per renderli reattivi
     const authUserId = this.authenticatedUserId();
     const currentPageUserId = this.tenant.userId();
     
+    // Debug temporaneo (rimuovere in produzione)
+    if (typeof console !== 'undefined' && console.log) {
+      console.log('[EditModeService.canEdit]', {
+        currentSlug,
+        hasToken: !!token,
+        authUserId,
+        currentPageUserId,
+        canEdit: authUserId && (!currentPageUserId ? authUserId === 1 : authUserId === currentPageUserId)
+      });
+    }
+    
     // Se non abbiamo l'ID utente autenticato, non può modificare
-    if (!authUserId) return false;
+    // Questo può accadere se loadAuthenticatedUserId() non è ancora completato
+    if (!authUserId) {
+      return false;
+    }
     
     // Se non c'è tenant (pagina senza slug), l'utente può modificare solo se è l'utente principale (id=1)
     // Se c'è tenant, deve corrispondere all'utente autenticato
@@ -62,6 +96,7 @@ export class EditModeService {
       return authUserId === 1;
     }
     
+    // Pagina con slug: l'utente autenticato deve corrispondere al tenant
     return authUserId === currentPageUserId;
   });
   

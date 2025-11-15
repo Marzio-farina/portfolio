@@ -193,10 +193,14 @@ export class AuthService {
           return;
         }
         
-        this.authenticatedUserId.set(user.id);
-        this.authenticatedUserSlug.set(user.slug || null);
-        // Notifica EditModeService dell'ID utente autenticato
-        this.editMode.setAuthenticatedUserId(user.id);
+        // Imposta i valori solo se sono diversi da quelli già impostati (evita sovrascritture inutili)
+        const currentUserId = this.authenticatedUserId();
+        if (currentUserId !== user.id) {
+          this.authenticatedUserId.set(user.id);
+          this.authenticatedUserSlug.set(user.slug || null);
+          // Notifica EditModeService dell'ID utente autenticato
+          this.editMode.setAuthenticatedUserId(user.id);
+        }
       },
       error: (err: HttpErrorResponse | any) => {
         // Fa logout SOLO se il token non è valido (401)
@@ -288,14 +292,17 @@ export class AuthService {
   login(dto: LoginDto): Observable<AuthResponse> {
     return this.http.post<AuthResponse>(apiUrl('/login'), dto).pipe(
       map(response => {
-        // Salva il token con lo slug specifico dell'utente
+        // Memorizza PRIMA l'ID e lo slug dell'utente autenticato prima di chiamare setToken
+        // Questo garantisce che authenticatedUserId sia impostato correttamente prima che loadAuthenticatedUserId() venga chiamato
         const userSlug = response.user.id === 1 ? null : response.user.slug;
-        this.setToken(response.token, userSlug);
-        
-        // Memorizza l'ID e lo slug dell'utente autenticato
         this.authenticatedUserId.set(response.user.id);
         this.authenticatedUserSlug.set(userSlug || null);
         this.editMode.setAuthenticatedUserId(response.user.id);
+        
+        // Salva il token con lo slug specifico dell'utente
+        // setToken() chiamerà loadAuthenticatedUserId() ma authenticatedUserId è già impostato correttamente
+        this.setToken(response.token, userSlug);
+        
         this.refreshMe();
         return response;
       })
@@ -317,14 +324,17 @@ export class AuthService {
     };
     return this.http.post<AuthResponse>(apiUrl('/register'), payload).pipe(
       map(response => {
-        // Salva il token con lo slug specifico dell'utente
+        // Memorizza PRIMA l'ID e lo slug dell'utente autenticato prima di chiamare setToken
+        // Questo garantisce che authenticatedUserId sia impostato correttamente prima che loadAuthenticatedUserId() venga chiamato
         const userSlug = response.user.id === 1 ? null : response.user.slug;
-        this.setToken(response.token, userSlug);
-        
-        // Memorizza l'ID e lo slug dell'utente autenticato
         this.authenticatedUserId.set(response.user.id);
         this.authenticatedUserSlug.set(userSlug || null);
         this.editMode.setAuthenticatedUserId(response.user.id);
+        
+        // Salva il token con lo slug specifico dell'utente
+        // setToken() chiamerà loadAuthenticatedUserId() ma authenticatedUserId è già impostato correttamente
+        this.setToken(response.token, userSlug);
+        
         this.refreshMe();
         return response;
       })
@@ -431,6 +441,9 @@ export class AuthService {
     // Aggiorna il signal del token
     this.token.set(token);
     
+    // Aggiorna anche il token in EditModeService per evitare dipendenza circolare
+    this.editMode.setToken(token);
+    
     if (token) {
       // Carica l'ID dell'utente autenticato quando si imposta un nuovo token
       this.loadAuthenticatedUserId();
@@ -449,6 +462,9 @@ export class AuthService {
     const currentToken = this.getCurrentToken();
     
     this.token.set(currentToken);
+    
+    // Aggiorna anche il token in EditModeService per evitare dipendenza circolare
+    this.editMode.setToken(currentToken);
     
     if (currentToken) {
       this.loadAuthenticatedUserId();

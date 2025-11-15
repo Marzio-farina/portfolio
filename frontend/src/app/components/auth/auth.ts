@@ -133,7 +133,12 @@ export class Auth {
         
         if (isOnOwnSlugPage || isOnMainPageWithoutSlug) {
           // L'utente è già sulla sua pagina → Non ricaricare, solo chiudi auth modal
-          // Il tenant è già impostato correttamente dal resolver
+          // Assicurati che il tenant sia impostato correttamente
+          if (res.user?.id === 1 && isOnMainPageWithoutSlug) {
+            // Per utente principale sulla pagina principale, assicurati che il tenant sia pulito
+            this.tenant.clear();
+          }
+          // Il tenant è già impostato correttamente dal resolver per altri casi
           return;
         }
         
@@ -207,7 +212,12 @@ export class Auth {
         
         if (isOnOwnSlugPage || isOnMainPageWithoutSlug) {
           // L'utente è già sulla sua pagina → Non ricaricare, solo chiudi auth modal
-          // Il tenant è già impostato correttamente dal resolver
+          // Assicurati che il tenant sia impostato correttamente
+          if (res.user?.id === 1 && isOnMainPageWithoutSlug) {
+            // Per utente principale sulla pagina principale, assicurati che il tenant sia pulito
+            this.tenant.clear();
+          }
+          // Il tenant è già impostato correttamente dal resolver per altri casi
           return;
         }
         
