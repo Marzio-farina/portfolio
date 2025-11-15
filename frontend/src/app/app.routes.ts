@@ -13,7 +13,6 @@ import { JobOffersScraperResultsView } from './pages/job-offers/views/job-offers
 import { AddTestimonial } from './components/add-testimonial/add-testimonial';
 import { AddAttestato } from './components/add-attestato/add-attestato';
 import { AddProject } from './components/add-project/add-project';
-import { OAuthCallbackComponent } from './components/oauth-callback/oauth-callback.component';
 import { tenantResolver } from './core/tenant/tenant.resolver';
 import { clearTenantResolver } from './core/tenant/clear-tenant.resolver';
 import { authGuard } from './guards/auth.guard';
@@ -21,7 +20,6 @@ import { slugWildcardGuard } from './core/redirects/slug-wildcard.guard';
 
 export const routes: Routes = [
   { path: '', pathMatch: 'full', redirectTo: 'about' },
-  { path: 'auth/callback', component: OAuthCallbackComponent, data: { title: 'Autenticazione' } },
   { path: 'about',     component: About,     resolve: { clearTenant: clearTenantResolver }, data: { title: 'Chi sono' } },
   { path: 'nuova-recensione', component: AddTestimonial, resolve: { clearTenant: clearTenantResolver }, data: { title: 'Nuova Recensione' } },
   { path: 'curriculum',component: Curriculum, resolve: { clearTenant: clearTenantResolver }, data: { title: 'Curriculum' } },

@@ -3,6 +3,7 @@
 namespace App\Http\Controllers\Api;
 
 use App\Http\Controllers\Controller;
+use App\Http\Resources\JobOfferEmailResource;
 use App\Models\JobOfferEmail;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
@@ -77,25 +78,8 @@ class JobOfferEmailController extends Controller
         // Paginazione
         $paginator = $query->paginate($perPage, ['*'], 'page', $page);
 
-        // Trasformazione dei dati
-        $emails = $paginator->getCollection()->map(function (JobOfferEmail $email) {
-            return [
-                'id' => $email->id,
-                'subject' => $email->subject,
-                'preview' => $email->preview,
-                'direction' => $email->direction,
-                'from_address' => $email->from_address,
-                'to_recipients' => $email->to_recipients ?? [],
-                'cc_recipients' => $email->cc_recipients ?? [],
-                'bcc_recipients' => $email->bcc_recipients ?? [],
-                'status' => $email->status,
-                'sent_at' => optional($email->sent_at)->toIso8601String(),
-                'message_id' => $email->message_id,
-                'related_job_offer' => $email->related_job_offer,
-                'has_bcc' => !empty($email->bcc_recipients),
-                'bcc_count' => $email->bcc_recipients ? count($email->bcc_recipients) : 0,
-            ];
-        });
+        // Usa Resource per esporre solo dati essenziali
+        $emails = JobOfferEmailResource::collection($paginator->getCollection());
 
         // Calcola statistiche SOLO alla prima pagina (risparmia query su ogni caricamento!)
         $stats = null;
@@ -143,7 +127,7 @@ class JobOfferEmailController extends Controller
 
         // Risposta con metadati di paginazione e statistiche
         return response()->json([
-            'data' => $emails,
+            'data' => $emails->toArray($request),
             'pagination' => [
                 'current_page' => $paginator->currentPage(),
                 'last_page' => $paginator->lastPage(),

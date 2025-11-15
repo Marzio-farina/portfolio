@@ -185,7 +185,7 @@ export class AuthService {
       return;
     }
 
-    this.http.get<{ id: number; email: string; name: string; slug?: string }>(url).subscribe({
+    this.http.post<{ id: number; email: string; name: string; surname?: string; slug?: string }>(url, {}).subscribe({
       next: (user) => {
         // Defensive: verifica che l'utente abbia un ID valido
         if (!user || !user.id || typeof user.id !== 'number') {

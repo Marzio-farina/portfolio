@@ -29,7 +29,6 @@ use App\Http\Controllers\Api\TestimonialController;
 use App\Http\Controllers\Api\UserPublicController;
 use App\Http\Controllers\Api\WhatIDoController;
 use App\Http\Controllers\AuthController;
-use App\Http\Controllers\OAuthController;
 use App\Http\Controllers\ContactController;
 use App\Http\Controllers\HealthCheckController;
 use Illuminate\Cookie\Middleware\AddQueuedCookiesToResponse;
@@ -183,12 +182,6 @@ Route::middleware(['api', "throttle:{$throttleLimit}", 'db.connection'])
         Route::middleware('throttle:auth')->group(function () {
             Route::post('/register', [AuthController::class, 'register']);
             Route::post('/login', [AuthController::class, 'login']);
-            
-            // OAuth routes
-            Route::get('/auth/{provider}', [OAuthController::class, 'redirectToProvider'])
-                ->where('provider', 'google|github|facebook');
-            Route::get('/auth/{provider}/callback', [OAuthController::class, 'handleProviderCallback'])
-                ->where('provider', 'google|github|facebook');
             Route::post('/auth/forgot-password', [AuthController::class, 'forgotPassword']);
             Route::post('/auth/reset-password', [AuthController::class, 'resetPassword']);
         });
@@ -197,7 +190,7 @@ Route::middleware(['api', "throttle:{$throttleLimit}", 'db.connection'])
         // Protected Routes (require authentication)
         // ====================================================================
         Route::middleware(['auth:sanctum', 'fresh'])->group(function () {
-            Route::get('/me', [AuthController::class, 'me']);
+            Route::post('/me', [AuthController::class, 'me']);
             Route::post('/logout', [AuthController::class, 'logout']);
             Route::put('/profile', [AuthController::class, 'updateProfile']);
             Route::delete('avatars/{id}', [AvatarController::class, 'delete']); // Delete avatar

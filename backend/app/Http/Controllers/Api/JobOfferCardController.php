@@ -3,6 +3,7 @@
 namespace App\Http\Controllers\Api;
 
 use App\Http\Controllers\Controller;
+use App\Http\Resources\JobOfferCardResource;
 use App\Models\JobOfferCard;
 use App\Models\User;
 use Illuminate\Http\Request;
@@ -23,18 +24,9 @@ class JobOfferCardController extends Controller
         $cards = $user->jobOfferCards()
             ->select(['job_offer_cards.id', 'job_offer_cards.type', 'job_offer_cards.icon_svg', 'job_offer_cards.title'])
             ->orderBy('job_offer_cards.id', 'asc')
-            ->get()
-            ->map(function ($card) {
-                return [
-                    'id' => $card->id,
-                    'title' => $card->title,
-                    'type' => $card->type,
-                    'icon_svg' => $card->icon_svg,
-                    'visible' => $card->pivot->visible,
-                ];
-            });
+            ->get();
 
-        return response()->json($cards);
+        return response()->json(JobOfferCardResource::collection($cards));
     }
 
     /**
@@ -58,7 +50,10 @@ class JobOfferCardController extends Controller
             $user->jobOfferCards()->attach($card->id, ['visible' => true]);
         }
 
-        return response()->json($card, 201);
+        // Ricarica la card con il pivot per l'utente autenticato per avere visible
+        $cardWithPivot = Auth::user()->jobOfferCards()->find($card->id);
+        
+        return response()->json(new JobOfferCardResource($cardWithPivot ?? $card), 201);
     }
 
     /**
@@ -70,13 +65,7 @@ class JobOfferCardController extends Controller
         $user = Auth::user();
         $card = $user->jobOfferCards()->findOrFail($id);
 
-        return response()->json([
-            'id' => $card->id,
-            'title' => $card->title,
-            'type' => $card->type,
-            'icon_svg' => $card->icon_svg,
-            'visible' => $card->pivot->visible,
-        ]);
+        return response()->json(new JobOfferCardResource($card));
     }
 
     /**
@@ -101,13 +90,7 @@ class JobOfferCardController extends Controller
         // Ritorna la card aggiornata
         $card = $user->jobOfferCards()->findOrFail($id);
         
-        return response()->json([
-            'id' => $card->id,
-            'title' => $card->title,
-            'type' => $card->type,
-            'icon_svg' => $card->icon_svg,
-            'visible' => $card->pivot->visible,
-        ]);
+        return response()->json(new JobOfferCardResource($card));
     }
 
     /**
@@ -138,11 +121,9 @@ class JobOfferCardController extends Controller
             'visible' => $visibleValue
         ]);
 
-        return response()->json([
-            'id' => $card->id,
-            'title' => $card->title,
-            'type' => $card->type,
-            'visible' => $newVisibility,
-        ]);
+        // Ricarica la card per avere i dati aggiornati
+        $card = $user->jobOfferCards()->findOrFail($id);
+        
+        return response()->json(new JobOfferCardResource($card));
     }
 }

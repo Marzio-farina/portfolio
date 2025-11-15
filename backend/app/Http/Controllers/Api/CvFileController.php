@@ -3,6 +3,7 @@
 namespace App\Http\Controllers\Api;
 
 use App\Http\Controllers\Controller;
+use App\Http\Resources\CvFileResource;
 use App\Models\CvFile;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
@@ -67,28 +68,9 @@ class CvFileController extends Controller
                 ], 404);
             }
 
-            // Costruisci una view_url che punti alla risorsa visualizzabile inline
-            $viewUrl = null;
-            if (!empty($cvFile->file_path)) {
-                $isUrl = str_starts_with($cvFile->file_path, 'http://') || str_starts_with($cvFile->file_path, 'https://');
-                if ($isUrl) {
-                    $viewUrl = $cvFile->file_path; // URL pubblico (Supabase)
-                } else {
-                    // Path locale pubblicato via /storage
-                    $viewUrl = url($cvFile->file_path);
-                }
-            }
-
             return response()->json([
                 'success' => true,
-                'cv' => [
-                    'id' => $cvFile->id,
-                    'filename' => $cvFile->filename,
-                    'title' => $cvFile->title,
-                    'file_size' => $cvFile->file_size,
-                    'download_url' => route('api.cv-files.download', ['id' => $cvFile->id]),
-                    'view_url' => $viewUrl,
-                ]
+                'cv' => new CvFileResource($cvFile)
             ], 200, [], JSON_UNESCAPED_UNICODE);
 
         } catch (QueryException $e) {
@@ -140,15 +122,7 @@ class CvFileController extends Controller
 
         return response()->json([
             'success' => true,
-            'cvs' => $cvFiles->map(fn($cv) => [
-                'id' => $cv->id,
-                'filename' => $cv->filename,
-                'title' => $cv->title,
-                'file_size' => $cv->file_size,
-                'is_default' => $cv->is_default,
-                'created_at' => $cv->created_at->toIso8601String(),
-                'download_url' => route('api.cv-files.download', ['id' => $cv->id]),
-            ])
+            'cvs' => CvFileResource::collection($cvFiles)->toArray($request)
         ], 200, [], JSON_UNESCAPED_UNICODE);
     }
 
@@ -349,14 +323,7 @@ class CvFileController extends Controller
 
             return response()->json([
                 'success' => true,
-                'cv' => [
-                    'id' => $cvFile->id,
-                    'filename' => $cvFile->filename,
-                    'title' => $cvFile->title,
-                    'file_size' => $cvFile->file_size,
-                    'is_default' => $cvFile->is_default,
-                    'download_url' => route('api.cv-files.download', ['id' => $cvFile->id]),
-                ],
+                'cv' => new CvFileResource($cvFile),
                 'message' => 'CV caricato con successo'
             ], 201, [], JSON_UNESCAPED_UNICODE);
 

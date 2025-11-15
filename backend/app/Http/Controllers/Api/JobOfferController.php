@@ -3,6 +3,7 @@
 namespace App\Http\Controllers\Api;
 
 use App\Http\Controllers\Controller;
+use App\Http\Resources\JobOfferResource;
 use App\Models\JobOffer;
 use App\Models\JobOfferEmail;
 use Illuminate\Http\Request;
@@ -27,7 +28,7 @@ class JobOfferController extends Controller
             ->orderBy('created_at', 'desc')
             ->get();
 
-        return response()->json($jobOffers);
+        return response()->json(JobOfferResource::collection($jobOffers));
     }
 
     /**
@@ -201,7 +202,7 @@ class JobOfferController extends Controller
 
         $jobOffer = JobOffer::create($validated);
 
-        return response()->json($jobOffer, 201);
+        return response()->json(new JobOfferResource($jobOffer), 201);
     }
 
     /**
@@ -214,7 +215,7 @@ class JobOfferController extends Controller
             return response()->json(['message' => 'Unauthorized'], 403);
         }
 
-        return response()->json($jobOffer);
+        return response()->json(new JobOfferResource($jobOffer));
     }
 
     /**
@@ -244,7 +245,7 @@ class JobOfferController extends Controller
 
         $jobOffer->update($validated);
 
-        return response()->json($jobOffer);
+        return response()->json(new JobOfferResource($jobOffer));
     }
 
     /**
@@ -308,7 +309,7 @@ class JobOfferController extends Controller
                     'is_registered' => 0,
                 ]);
 
-                $savedJobs[] = $jobOffer;
+                $savedJobs[] = new JobOfferResource($jobOffer);
             } else {
                 $skippedCount++;
             }
@@ -335,7 +336,7 @@ class JobOfferController extends Controller
             ->orderBy('created_at', 'desc')
             ->get();
 
-        return response()->json($jobOffers);
+        return response()->json(JobOfferResource::collection($jobOffers));
     }
 }
 

@@ -3,6 +3,7 @@
 namespace App\Http\Controllers\Api;
 
 use App\Http\Controllers\Controller;
+use App\Http\Resources\JobOfferEmailColumnResource;
 use App\Models\JobOfferEmailColumn;
 use App\Models\UserJobOfferEmailColumn;
 use Illuminate\Http\Request;
@@ -44,19 +45,9 @@ class JobOfferEmailColumnController extends Controller
         $columns = Auth::user()->jobOfferEmailColumns()
             ->select('job_offer_email_columns.*', 'user_job_offer_email_columns.visible', 'user_job_offer_email_columns.order')
             ->orderBy('user_job_offer_email_columns.order')
-            ->get()
-            ->map(function ($column) {
-                return [
-                    'id' => $column->id,
-                    'title' => $column->title,
-                    'field_name' => $column->field_name,
-                    'default_order' => $column->default_order,
-                    'visible' => (bool) $column->pivot->visible,
-                    'order' => $column->pivot->order,
-                ];
-            });
+            ->get();
 
-        return response()->json($columns);
+        return response()->json(JobOfferEmailColumnResource::collection($columns));
     }
 
     /**
@@ -94,17 +85,13 @@ class JobOfferEmailColumnController extends Controller
 
         $userColumn->update(['visible' => $validated['visible']]);
 
-        // Ritorna la colonna aggiornata
-        $column = JobOfferEmailColumn::find($columnIdInt);
+        // Ritorna la colonna aggiornata con configurazione utente
+        $column = Auth::user()->jobOfferEmailColumns()
+            ->where('job_offer_email_columns.id', $columnIdInt)
+            ->select('job_offer_email_columns.*', 'user_job_offer_email_columns.visible', 'user_job_offer_email_columns.order')
+            ->firstOrFail();
         
-        return response()->json([
-            'id' => $column->id,
-            'title' => $column->title,
-            'field_name' => $column->field_name,
-            'default_order' => $column->default_order,
-            'visible' => (bool) $userColumn->visible,
-            'order' => $userColumn->order,
-        ]);
+        return response()->json(new JobOfferEmailColumnResource($column));
     }
 
     /**
@@ -145,19 +132,9 @@ class JobOfferEmailColumnController extends Controller
         $columns = Auth::user()->jobOfferEmailColumns()
             ->select('job_offer_email_columns.*', 'user_job_offer_email_columns.visible', 'user_job_offer_email_columns.order')
             ->orderBy('user_job_offer_email_columns.order')
-            ->get()
-            ->map(function ($column) {
-                return [
-                    'id' => $column->id,
-                    'title' => $column->title,
-                    'field_name' => $column->field_name,
-                    'default_order' => $column->default_order,
-                    'visible' => (bool) $column->pivot->visible,
-                    'order' => $column->pivot->order,
-                ];
-            });
+            ->get();
 
-        return response()->json($columns);
+        return response()->json(JobOfferEmailColumnResource::collection($columns));
     }
 }
 

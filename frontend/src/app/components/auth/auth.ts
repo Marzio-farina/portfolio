@@ -2,7 +2,6 @@ import { Component, inject, signal } from '@angular/core';
 import { AbstractControl, FormBuilder, FormGroup, ReactiveFormsModule, ValidationErrors, Validators } from '@angular/forms';
 import { Router } from '@angular/router';
 import { AuthService, LoginDto, RegisterDto } from '../../services/auth.service';
-import { OAuthService } from '../../services/oauth.service';
 import { TenantService } from '../../services/tenant.service';
 import { AboutProfileService } from '../../services/about-profile.service';
 import { Notification as NotificationCmp, NotificationType } from '../notification/notification';
@@ -50,7 +49,6 @@ export class Auth {
   private auth = inject(AuthService);
   private tenant = inject(TenantService);
   private aboutProfile = inject(AboutProfileService);
-  protected oauth = inject(OAuthService);
   protected notificationService = inject(NotificationService);
 
   // UI state

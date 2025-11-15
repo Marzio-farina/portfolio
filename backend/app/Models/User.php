@@ -7,6 +7,7 @@ use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
 use Laravel\Sanctum\HasApiTokens;
+use App\Models\SocialAccount;
 
 /**
  * User Model
@@ -36,10 +37,6 @@ class User extends Authenticatable
         'password',
         'role_id',
         'icon_id',
-        'oauth_provider',
-        'oauth_provider_id',
-        'oauth_token',
-        'oauth_avatar_url'
     ];
 
     /**
@@ -113,9 +110,9 @@ class User extends Authenticatable
     /**
      * Get the user's social accounts
      *
-     * @return \Illuminate\Database\Eloquent\Relations\HasMany
+     * @return HasMany
      */
-    public function socialAccounts()
+    public function socialAccounts(): HasMany
     {
         return $this->hasMany(SocialAccount::class);
     }

@@ -7,6 +7,7 @@ use App\Http\Requests\LoginRequest;
 use App\Http\Requests\RegisterRequest;
 use App\Http\Requests\ResetPasswordRequest;
 use App\Http\Requests\UpdateProfileRequest;
+use App\Http\Resources\UserResource;
 use App\Mail\PasswordResetNotification;
 use App\Models\Role;
 use App\Models\User;
@@ -213,7 +214,8 @@ class AuthController extends Controller
             }
 
             Log::info('[AuthController] /me - User authenticated', ['user_id' => $user->id]);
-            return response()->json($user);
+            // Usa UserResource per esporre solo dati essenziali (non password, tokens, ecc.)
+            return response()->json(new UserResource($user));
         } catch (\Throwable $e) {
             Log::error('[AuthController] /me - Exception caught', [
                 'message' => $e->getMessage(),

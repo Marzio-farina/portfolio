@@ -3,6 +3,7 @@
 namespace App\Http\Controllers\Api;
 
 use App\Http\Controllers\Controller;
+use App\Http\Resources\GitHubRepositoryResource;
 use App\Models\GitHubRepository;
 use App\Models\User;
 use Illuminate\Http\JsonResponse;
@@ -41,15 +42,7 @@ class GitHubRepositoryController extends Controller
                 ->get();
         }
 
-        $data = $repositories->map(fn($repo) => [
-            'id' => $repo->id,
-            'owner' => $repo->owner,
-            'repo' => $repo->repo,
-            'url' => $repo->url,
-            'order' => $repo->order,
-        ]);
-
-        return response()->json($data);
+        return response()->json(GitHubRepositoryResource::collection($repositories));
     }
 
     /**
@@ -102,12 +95,7 @@ class GitHubRepositoryController extends Controller
             'url' => $data['url']
         ]);
 
-        return response()->json([
-            'id' => $repository->id,
-            'owner' => $repository->owner,
-            'repo' => $repository->repo,
-            'url' => $repository->url,
-        ], 201);
+        return response()->json(new GitHubRepositoryResource($repository), 201);
     }
 
     /**

@@ -47,7 +47,7 @@ describe('AuthService', () => {
 
   afterEach(() => {
     // Flush any pending requests prima di verify
-    const mePending = httpMock.match(req => req.url.includes('/me'));
+    const mePending = httpMock.match(req => req.url.includes('/me') && req.method === 'POST');
     mePending.forEach(req => req.flush({ id: 1, name: 'Test', email: 'test@test.com' }));
     
     const logoutPending = httpMock.match(req => req.url.includes('/logout'));
@@ -344,7 +344,7 @@ describe('AuthService', () => {
     it('dovrebbe caricare userId quando imposta token', () => {
       service['setToken']('new-token');
 
-      const req = httpMock.expectOne(req => req.url.includes('/me'));
+      const req = httpMock.expectOne(req => req.url.includes('/me') && req.method === 'POST');
       req.flush({ id: 42, name: 'User', email: 'user@test.com' });
 
       expect(service.authenticatedUserId()).toBe(42);
@@ -508,7 +508,7 @@ describe('AuthService', () => {
       });
 
       httpMock.expectOne(req => req.url.includes('/login')).flush(mockAuthResponse);
-      httpMock.expectOne(req => req.url.includes('/me')).flush({ id: 1, name: 'User', email: 'test@test.com' });
+      httpMock.expectOne(req => req.url.includes('/me') && req.method === 'POST').flush({ id: 1, name: 'User', email: 'test@test.com' });
       httpMock.expectOne(req => req.url.includes('/public-profile')).flush({ user: mockAuthResponse.user });
     });
 
@@ -518,7 +518,7 @@ describe('AuthService', () => {
       // Triggera loadAuthenticatedUserId manualmente
       service['loadAuthenticatedUserId']();
       
-      const req = httpMock.expectOne(req => req.url.includes('/me'));
+      const req = httpMock.expectOne(req => req.url.includes('/me') && req.method === 'POST');
       req.flush('Unauthorized', { status: 401, statusText: 'Unauthorized' });
       
       // Verifica che il token sia stato rimosso
@@ -532,7 +532,7 @@ describe('AuthService', () => {
       
       service['loadAuthenticatedUserId']();
       
-      const req = httpMock.expectOne(req => req.url.includes('/me'));
+      const req = httpMock.expectOne(req => req.url.includes('/me') && req.method === 'POST');
       req.error(new ProgressEvent('Network error'));
       
       // Token mantenuto per errori di rete
@@ -544,7 +544,7 @@ describe('AuthService', () => {
       
       service['loadAuthenticatedUserId']();
       
-      const req = httpMock.expectOne(req => req.url.includes('/me'));
+      const req = httpMock.expectOne(req => req.url.includes('/me') && req.method === 'POST');
       req.flush('Server Error', { status: 500, statusText: 'Internal Server Error' });
       
       // Token mantenuto per errori server
@@ -556,7 +556,7 @@ describe('AuthService', () => {
       
       service['loadAuthenticatedUserId']();
       
-      const req = httpMock.expectOne(req => req.url.includes('/me'));
+      const req = httpMock.expectOne(req => req.url.includes('/me') && req.method === 'POST');
       // Risposta senza ID o con ID non numerico
       req.flush({ name: 'User', email: 'test@test.com' });
       
@@ -651,7 +651,7 @@ describe('AuthService', () => {
       });
 
       httpMock.expectOne(req => req.url.includes('/login')).flush(mockAuthResponse);
-      httpMock.expectOne(req => req.url.includes('/me')).flush({ id: 1, name: 'User', email: 'test@test.com' });
+      httpMock.expectOne(req => req.url.includes('/me') && req.method === 'POST').flush({ id: 1, name: 'User', email: 'test@test.com' });
       httpMock.expectOne(req => req.url.includes('/public-profile')).flush({ user: mockAuthResponse.user });
     });
 

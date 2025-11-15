@@ -3,6 +3,7 @@
 namespace App\Http\Controllers\Api;
 
 use App\Http\Controllers\Controller;
+use App\Http\Resources\CategoryResource;
 use App\Models\Category;
 use App\Services\Factories\DataNormalizationFactory;
 use Illuminate\Http\JsonResponse;
@@ -36,17 +37,9 @@ class CategoryController extends Controller
         
         $categories = $query
             ->orderBy('title')
-            ->get()
-            ->map(function ($category) {
-                return [
-                    'id' => $category->id,
-                    'title' => $category->title,
-                    'description' => $category->description ?? null,
-                    'user_id' => $category->user_id,
-                ];
-            });
+            ->get();
 
-        return response()->json($categories, 200, [], JSON_UNESCAPED_UNICODE);
+        return response()->json(CategoryResource::collection($categories), 200, [], JSON_UNESCAPED_UNICODE);
     }
 
     /**
@@ -95,12 +88,7 @@ class CategoryController extends Controller
             'user_id' => $user->id,
         ]);
         
-        return response()->json([
-            'id' => $category->id,
-            'title' => $category->title,
-            'description' => $category->description,
-            'user_id' => $category->user_id,
-        ], 201);
+        return response()->json(new CategoryResource($category), 201);
     }
 
     /**

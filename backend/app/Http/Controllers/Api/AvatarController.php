@@ -4,6 +4,7 @@ namespace App\Http\Controllers\Api;
 
 use App\Http\Controllers\Controller;
 use App\Http\Requests\UploadAvatarRequest;
+use App\Http\Resources\IconResource;
 use App\Models\Icon;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
@@ -90,11 +91,7 @@ class AvatarController extends Controller
             
             return response()->json([
                 'success' => true,
-                'icon' => [
-                    'id' => $icon->id,
-                    'img' => $icon->img,
-                    'alt' => $icon->alt,
-                ],
+                'icon' => new IconResource($icon),
                 'message' => 'Avatar caricato con successo'
             ], 201);
             

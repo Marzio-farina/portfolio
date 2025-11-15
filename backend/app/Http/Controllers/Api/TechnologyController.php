@@ -3,6 +3,7 @@
 namespace App\Http\Controllers\Api;
 
 use App\Http\Controllers\Controller;
+use App\Http\Resources\TechnologyResource;
 use App\Models\Technology;
 use App\Services\Factories\DataNormalizationFactory;
 use Illuminate\Http\JsonResponse;
@@ -46,17 +47,9 @@ class TechnologyController extends Controller
         
         $technologies = $query
             ->orderBy('title')
-            ->get()
-            ->map(function ($technology) {
-                return [
-                    'id' => $technology->id,
-                    'title' => $technology->title,
-                    'description' => $technology->description ?? null,
-                    'user_id' => $technology->user_id,
-                ];
-            });
+            ->get();
 
-        return response()->json($technologies, 200, [], JSON_UNESCAPED_UNICODE);
+        return response()->json(TechnologyResource::collection($technologies), 200, [], JSON_UNESCAPED_UNICODE);
     }
     
     /**
@@ -94,12 +87,7 @@ class TechnologyController extends Controller
         if ($existing) {
             return response()->json([
                 'ok' => true,
-                'data' => [
-                    'id' => $existing->id,
-                    'title' => $existing->title,
-                    'description' => $existing->description,
-                    'user_id' => $existing->user_id,
-                ],
+                'data' => new TechnologyResource($existing),
                 'message' => 'Tecnologia già esistente',
                 'is_new' => false
             ], 200, [], JSON_UNESCAPED_UNICODE);
@@ -115,12 +103,7 @@ class TechnologyController extends Controller
         
         return response()->json([
             'ok' => true,
-            'data' => [
-                'id' => $technology->id,
-                'title' => $technology->title,
-                'description' => $technology->description,
-                'user_id' => $technology->user_id,
-            ],
+            'data' => new TechnologyResource($technology),
             'message' => 'Tecnologia creata con successo',
             'is_new' => true
         ], 201, [], JSON_UNESCAPED_UNICODE);
@@ -174,12 +157,7 @@ class TechnologyController extends Controller
         
         return response()->json([
             'ok' => true,
-            'data' => [
-                'id' => $technology->id,
-                'title' => $technology->title,
-                'description' => $technology->description,
-                'user_id' => $technology->user_id,
-            ],
+            'data' => new TechnologyResource($technology),
             'message' => 'Tecnologia aggiornata con successo',
         ], 200, [], JSON_UNESCAPED_UNICODE);
     }

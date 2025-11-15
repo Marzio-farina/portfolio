@@ -3,96 +3,146 @@
 namespace App\Http\Controllers\Api;
 
 use App\Http\Controllers\Controller;
+use App\Http\Resources\SocialAccountResource;
 use App\Models\SocialAccount;
-use App\Models\User;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Validator;
 
-/**
- * Controller per la gestione dei social accounts
- */
 class SocialAccountController extends Controller
 {
     /**
-     * Aggiorna o crea un social account per l'utente autenticato
-     * 
+     * Lista tutti i social accounts dell'utente autenticato
+     *
+     * @return JsonResponse
+     */
+    public function index(): JsonResponse
+    {
+        try {
+            $user = Auth::user();
+            
+            $socialAccounts = SocialAccount::where('user_id', $user->id)
+                ->orderBy('provider')
+                ->get();
+
+            return response()->json(SocialAccountResource::collection($socialAccounts));
+        } catch (\Throwable $e) {
+            Log::error('[SocialAccountController] index error', [
+                'message' => $e->getMessage(),
+                'file' => $e->getFile(),
+                'line' => $e->getLine(),
+            ]);
+
+            return response()->json([
+                'ok' => false,
+                'error' => 'Error loading social accounts',
+                'details' => app()->environment('local') ? $e->getMessage() : null
+            ], 500);
+        }
+    }
+
+    /**
+     * Crea o aggiorna un social account per l'utente autenticato
+     *
      * @param Request $request
      * @return JsonResponse
      */
     public function upsert(Request $request): JsonResponse
     {
-        /** @var User|null $user */
-        $user = Auth::guard('sanctum')->user();
-        
-        if (!$user instanceof User) {
-            return response()->json(['message' => 'Unauthenticated'], 401);
-        }
+        try {
+            $validator = Validator::make($request->all(), [
+                'provider' => 'required|string|max:30',
+                'handle' => 'nullable|string|max:100',
+                'url' => 'nullable|url|max:255',
+            ]);
 
-        $validator = Validator::make($request->all(), [
-            'provider' => 'required|string|max:30',
-            'handle' => 'nullable|string|max:100',
-            'url' => 'nullable|string|max:255|url',
-        ]);
+            if ($validator->fails()) {
+                return response()->json([
+                    'ok' => false,
+                    'errors' => $validator->errors()
+                ], 422);
+            }
 
-        if ($validator->fails()) {
-            return response()->json([
-                'message' => 'Validation error',
-                'errors' => $validator->errors()
-            ], 422);
-        }
+            $user = Auth::user();
 
-        $data = $validator->validated();
-        
-        // Upsert: aggiorna se esiste, crea se non esiste
-        $socialAccount = SocialAccount::updateOrCreate(
-            [
+            $socialAccount = SocialAccount::updateOrCreate(
+                [
+                    'user_id' => $user->id,
+                    'provider' => $request->input('provider'),
+                ],
+                [
+                    'handle' => $request->input('handle'),
+                    'url' => $request->input('url'),
+                ]
+            );
+
+            Log::info('[SocialAccountController] upsert success', [
                 'user_id' => $user->id,
-                'provider' => $data['provider']
-            ],
-            [
-                'handle' => $data['handle'] ?? null,
-                'url' => $data['url'] ?? null
-            ]
-        );
+                'provider' => $socialAccount->provider,
+            ]);
 
-        // Invalida le chiavi cache usate dal profilo pubblico
-        \Illuminate\Support\Facades\Cache::forget("public_profile_{$user->id}");
-        \Illuminate\Support\Facades\Cache::forget("public_profile_slug_{$user->slug}");
-        \Illuminate\Support\Facades\Cache::forget("public_profile_root");
+            return response()->json(new SocialAccountResource($socialAccount));
+        } catch (\Throwable $e) {
+            Log::error('[SocialAccountController] upsert error', [
+                'message' => $e->getMessage(),
+                'file' => $e->getFile(),
+                'line' => $e->getLine(),
+            ]);
 
-        return response()->json([
-            'provider' => $socialAccount->provider,
-            'handle' => $socialAccount->handle,
-            'url' => $socialAccount->url
-        ]);
+            return response()->json([
+                'ok' => false,
+                'error' => 'Error saving social account',
+                'details' => app()->environment('local') ? $e->getMessage() : null
+            ], 500);
+        }
     }
 
     /**
-     * Elimina un social account per l'utente autenticato
-     * 
+     * Elimina un social account per provider
+     *
      * @param string $provider
      * @return JsonResponse
      */
     public function delete(string $provider): JsonResponse
     {
-        /** @var User|null $user */
-        $user = Auth::guard('sanctum')->user();
-        
-        if (!$user instanceof User) {
-            return response()->json(['message' => 'Unauthenticated'], 401);
+        try {
+            $user = Auth::user();
+
+            $deleted = SocialAccount::where('user_id', $user->id)
+                ->where('provider', $provider)
+                ->delete();
+
+            if ($deleted) {
+                Log::info('[SocialAccountController] delete success', [
+                    'user_id' => $user->id,
+                    'provider' => $provider,
+                ]);
+
+                return response()->json([
+                    'ok' => true,
+                    'message' => 'Social account deleted successfully'
+                ]);
+            }
+
+            return response()->json([
+                'ok' => false,
+                'error' => 'Social account not found'
+            ], 404);
+        } catch (\Throwable $e) {
+            Log::error('[SocialAccountController] delete error', [
+                'message' => $e->getMessage(),
+                'file' => $e->getFile(),
+                'line' => $e->getLine(),
+            ]);
+
+            return response()->json([
+                'ok' => false,
+                'error' => 'Error deleting social account',
+                'details' => app()->environment('local') ? $e->getMessage() : null
+            ], 500);
         }
-
-        $deleted = SocialAccount::where('user_id', $user->id)
-            ->where('provider', $provider)
-            ->delete();
-
-        if ($deleted) {
-            return response()->json(['message' => 'Social account deleted']);
-        }
-
-        return response()->json(['message' => 'Social account not found'], 404);
     }
 }
 
