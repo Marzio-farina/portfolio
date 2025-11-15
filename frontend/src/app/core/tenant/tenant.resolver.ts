@@ -48,29 +48,17 @@ export const tenantResolver: ResolveFn<boolean> = (route: ActivatedRouteSnapshot
   const auth = inject(AuthService);
   const profileStore = inject(ProfileStoreService);
   
-  // Log per debugging
   const routePath = route.url.map(segment => segment.path).join('/');
-  console.log('[TENANT-RESOLVER] Inizio resolver', {
-    slugParam,
-    routePath,
-    fullUrl: route.url.map(s => s.path).join('/'),
-    currentTenantSlug: tenant.userSlug(),
-    currentTenantId: tenant.userId(),
-    currentProfileSlug: profileStore.profile()?.slug,
-    currentProfileId: profileStore.profile()?.id,
-  });
   
   // Evita di eseguire il resolver per le route speciali (ciclo infinito)
   if (routePath.includes('profile-not-found') || routePath.includes('not-found')) {
     // Se siamo già su una route speciale, restituisci true per permettere al componente di essere mostrato
-    console.log('[TENANT-RESOLVER] Route speciale rilevata, restituisco true', { routePath });
     tenant.clear();
     auth.refreshTokenSignal();
     return of(true);
   }
   
   if (!slugParam) {
-    console.log('[TENANT-RESOLVER] Nessuno slugParam, pulisco tenant');
     tenant.clear();
     // Aggiorna il token per la pagina principale
     auth.refreshTokenSignal();
@@ -80,7 +68,6 @@ export const tenantResolver: ResolveFn<boolean> = (route: ActivatedRouteSnapshot
   // IMPORTANTE: Se lo slug è 'not-found', NON trattarlo come uno slug utente
   // Questo può succedere se Angular matcha :userSlug/** prima di /not-found
   if (slugParam.toLowerCase() === 'not-found') {
-    console.log('[TENANT-RESOLVER] Slug "not-found" rilevato, pulisco tenant e restituisco true');
     tenant.clear();
     auth.refreshTokenSignal();
     return of(true);
@@ -105,13 +92,6 @@ export const tenantResolver: ResolveFn<boolean> = (route: ActivatedRouteSnapshot
   const pageSegment = pathSegments.length > 1 ? pathSegments[1].toLowerCase() : null;
   const isReservedPage = pageSegment ? reservedRoutes.has(pageSegment) : false;
   
-  console.log('[TENANT-RESOLVER] Verifica pagina', {
-    slug,
-    pathSegments,
-    pageSegment,
-    isReservedPage,
-  });
-  
   // Se la pagina è una route riservata valida (es: 'about', 'progetti'), significa che l'utente
   // sta cercando di accedere a una pagina specifica del profilo.
   // In questo caso, devo verificare se lo slug esiste via HTTP.
@@ -131,11 +111,6 @@ export const tenantResolver: ResolveFn<boolean> = (route: ActivatedRouteSnapshot
   if (currentTenantSlug === slug && currentTenantId) {
     // Il tenant è già impostato con lo stesso slug → lo slug ESISTE
     // IMPORTANTE: Non fare richieste HTTP, restituisci true per mostrare NotFoundComponent
-    console.log('[TENANT-RESOLVER] Tenant già impostato, restituisco true immediatamente', {
-      slug,
-      currentTenantSlug,
-      currentTenantId,
-    });
     return of(true);
   }
   
@@ -144,11 +119,6 @@ export const tenantResolver: ResolveFn<boolean> = (route: ActivatedRouteSnapshot
   if (profileSlug === slug && currentProfile?.id) {
     // Il profilo esiste già nel profile store → imposta il tenant e restituisci true
     // IMPORTANTE: Non fare richieste HTTP, restituisci true per mostrare NotFoundComponent
-    console.log('[TENANT-RESOLVER] Profilo già caricato nel profile store, imposto tenant e restituisco true', {
-      slug,
-      profileSlug,
-      profileId: currentProfile?.id,
-    });
     tenant.setTenant(slug, currentProfile.id);
     auth.refreshTokenSignal();
     return of(true);
@@ -168,11 +138,6 @@ export const tenantResolver: ResolveFn<boolean> = (route: ActivatedRouteSnapshot
     // Lo slug assomiglia a una route riservata MA la pagina NON è una route riservata valida
     // → probabilmente è una pagina non esistente del profilo principale (es: /about2321/xyz)
     // Naviga a NotFoundComponent passando il path richiesto come query param
-    console.log('[TENANT-RESOLVER] Slug assomiglia a una route riservata ma pagina non valida, navigo a NotFoundComponent', {
-      slug,
-      pageSegment,
-      originalUrl: route.url.map(s => s.path).join('/'),
-    });
     tenant.clear();
     auth.refreshTokenSignal();
     
@@ -187,24 +152,6 @@ export const tenantResolver: ResolveFn<boolean> = (route: ActivatedRouteSnapshot
     });
     return of(false);
   }
-  
-  // Se la pagina è una route riservata valida (es: 'about', 'progetti'), oppure
-  // se lo slug NON assomiglia a una route riservata, verifica se lo slug esiste via HTTP
-  if (resemblesReservedRoute && isReservedPage) {
-    console.log('[TENANT-RESOLVER] Slug assomiglia a route riservata MA pagina è una route riservata valida, verifico se slug esiste via HTTP', {
-      slug,
-      pageSegment,
-    });
-  }
-  
-  console.log('[TENANT-RESOLVER] Nessun tenant/profilo trovato, carico profilo via HTTP', {
-    slug,
-    currentTenantSlug,
-    currentTenantId,
-    currentProfileSlug: profileSlug,
-    currentProfileId: currentProfile?.id,
-    resemblesReservedRoute: false,
-  });
   
   // Altrimenti, carica il profilo tramite HTTP (solo se non è già caricato)
   // Prima di fare la richiesta, verifica di nuovo se nel frattempo il tenant è stato impostato
@@ -222,11 +169,6 @@ export const tenantResolver: ResolveFn<boolean> = (route: ActivatedRouteSnapshot
       const id = profile?.id ?? null;
       if (id) {
         // Profilo trovato → imposta il tenant e restituisci true
-        console.log('[TENANT-RESOLVER] Profilo caricato via HTTP, imposto tenant', {
-          slug,
-          id,
-          profileSlug: profile?.slug,
-        });
         tenant.setTenant(slug, id);
         auth.refreshTokenSignal();
         return true;
@@ -249,34 +191,20 @@ export const tenantResolver: ResolveFn<boolean> = (route: ActivatedRouteSnapshot
       const tenantIdNow = tenant.userId();
       const hasTenantNow = tenantSlugNow === slug && tenantIdNow;
       
-      console.log('[TENANT-RESOLVER] Errore HTTP durante caricamento profilo', {
-        slug,
-        errorStatus: error?.status,
-        hasTenantNow,
-        hasProfileNow,
-        tenantSlugNow,
-        tenantIdNow,
-        profileSlugNow,
-        profileIdNow: profileNow?.id,
-      });
-      
       // Se c'è un errore ma il profilo esiste già (tenant o profileStore),
       // significa che lo slug ESISTE e la pagina non esiste
       // Restituisci true per mostrare NotFoundComponent
       if (hasTenantNow || hasProfileNow) {
         // Imposta il tenant se necessario
         if (!hasTenantNow && hasProfileNow && profileNow?.id) {
-          console.log('[TENANT-RESOLVER] Profilo trovato durante errore, imposto tenant');
           tenant.setTenant(slug, profileNow.id);
           auth.refreshTokenSignal();
         }
         // Lo slug esiste → restituisci true per mostrare NotFoundComponent
-        console.log('[TENANT-RESOLVER] Slug esiste (tenant/profilo trovato), restituisco true per NotFoundComponent');
         return of(true);
       }
       
       // Altrimenti, lo slug NON esiste → naviga a ProfileNotFound
-      console.log('[TENANT-RESOLVER] Slug NON esiste, navigo a ProfileNotFound', { slug });
       tenant.clear();
       auth.refreshTokenSignal();
       

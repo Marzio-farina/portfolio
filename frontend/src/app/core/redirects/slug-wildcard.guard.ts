@@ -37,14 +37,6 @@ export const slugWildcardGuard: CanActivateFn = (route, state) => {
   const urlSegments = state.url.split('/').filter(Boolean);
   const firstSegment = urlSegments[0]?.toLowerCase();
   
-  console.log('[SLUG-WILDCARD-GUARD] Guard chiamato', {
-    url: state.url,
-    firstSegment,
-    urlSegments,
-    isReserved: firstSegment ? reservedRoutes.has(firstSegment) : false,
-    routePath: route.url.map(s => s.path).join('/'),
-  });
-  
   // Se il primo segmento NON è una route riservata E l'URL ha almeno 2 segmenti,
   // potrebbe essere uno slug utente (es: /usertestsd/progetti2312s)
   // In questo caso, NON dovremmo essere chiamati perché :userSlug/** dovrebbe matchare PRIMA
@@ -59,11 +51,6 @@ export const slugWildcardGuard: CanActivateFn = (route, state) => {
     // Angular potrebbe matchare ** prima di :userSlug/** a causa dell'ordine delle route wildcard
     // SOLUZIONE: Restituiamo true per permettere ad Angular di riprovare
     // Ma questo potrebbe non funzionare correttamente se Angular non riprova le route
-    console.log('[SLUG-WILDCARD-GUARD] URL con almeno 2 segmenti e primo segmento non riservato, permetto ad Angular di riprovare (dovrebbe matchare :userSlug/**)', {
-      firstSegment,
-      urlSegments,
-      url: state.url,
-    });
     // Restituiamo true per permettere ad Angular di riprovare tutte le route
     // Angular dovrebbe poi matchare :userSlug/** quando riprova
     return true;
@@ -72,12 +59,6 @@ export const slugWildcardGuard: CanActivateFn = (route, state) => {
   // Il primo segmento è una route riservata → naviga a NotFoundComponent
   // Es: /pagina-inesistente → /not-found?path=/pagina-inesistente
   const requestedPath = state.url;
-  
-  console.log('[SLUG-WILDCARD-GUARD] Navigo a /not-found (senza slug, route riservata)', {
-    requestedPath,
-    firstSegment,
-    urlSegments,
-  });
   
   router.navigate(['/not-found'], { 
     queryParams: { path: requestedPath },

@@ -87,19 +87,6 @@ export class ProfileStoreService {
     const context = this.resolveContext();
     const routerUrl = this.router.url;
 
-    console.log('[PROFILE-STORE] ensureLoaded chiamato', {
-      force,
-      contextKey: context.key,
-      contextSlug: context.slug,
-      currentKey: this.currentKey,
-      routerUrl,
-      tenantSlug: this.tenant.userSlug(),
-      tenantId: this.tenant.userId(),
-      currentProfileSlug: this.profile()?.slug,
-      currentProfileId: this.profile()?.id,
-      isLoading: this.loading(),
-    });
-
     // IMPORTANTE: NON caricare il profilo se l'URL contiene route speciali
     // Questo previene richieste HTTP inutili quando siamo su /not-found o /profile-not-found
     // MA: Eccezione per /profile-not-found quando il contesto è root (profilo principale)
@@ -108,20 +95,11 @@ export class ProfileStoreService {
     const isNotFound = routerUrl.includes('/not-found');
     
     if (isNotFound || (isProfileNotFound && context.slug !== null)) {
-      console.log('[PROFILE-STORE] URL contiene route speciale, non carico profilo', { 
-        routerUrl, 
-        contextKey: context.key,
-        contextSlug: context.slug 
-      });
       return;
     }
     
     // Se siamo su /profile-not-found ma il contesto è root, carica comunque il profilo principale
     if (isProfileNotFound && context.key === 'root') {
-      console.log('[PROFILE-STORE] URL è /profile-not-found ma contesto è root, carico profilo principale', { 
-        routerUrl, 
-        contextKey: context.key 
-      });
       // Continua con il caricamento del profilo principale
     }
 
@@ -131,7 +109,6 @@ export class ProfileStoreService {
       this.currentKey === context.key &&
       (this.profile() !== null || this.loading())
     ) {
-      console.log('[PROFILE-STORE] Profilo già caricato o in caricamento, non faccio nulla');
       return;
     }
 
@@ -145,10 +122,6 @@ export class ProfileStoreService {
       // anche se la pagina potrebbe non esistere, perché lo slug potrebbe esistere e vogliamo mostrarlo nell'aside
       const slugResemblesReserved = this.slugResemblesReservedRoute(context.slug);
       if (slugResemblesReserved) {
-        console.log('[PROFILE-STORE] Slug assomiglia a una route riservata, non carico profilo (il resolver navigherà a /not-found)', {
-          slug: context.slug,
-          routerUrl,
-        });
         return;
       }
 
@@ -160,11 +133,6 @@ export class ProfileStoreService {
       // non cambiare currentKey per evitare di resettare il profilo
       if (tenantSlug === context.slug && tenantId && currentProfileSlug === context.slug) {
         // Il profilo è già caricato per lo stesso slug → non fare nulla
-        console.log('[PROFILE-STORE] Tenant e profilo già impostati per lo stesso slug, non faccio nulla', {
-          slug: context.slug,
-          tenantSlug,
-          currentProfileSlug,
-        });
         return;
       }
       
@@ -177,31 +145,10 @@ export class ProfileStoreService {
         // Il resolver gestirà la navigazione a /not-found o /profile-not-found
         const slugResemblesReserved = this.slugResemblesReservedRoute(context.slug);
         if (slugResemblesReserved) {
-          console.log('[PROFILE-STORE] Tenant non impostato e slug assomiglia a route riservata, non carico profilo (resolver gestirà)', {
-            slug: context.slug,
-            tenantSlug,
-            tenantId,
-            routerUrl,
-          });
           return;
         }
-        
-        // Altrimenti, carica il profilo normalmente
-        // Il resolver potrebbe non essere chiamato o potrebbe non gestire questo caso
-        console.log('[PROFILE-STORE] Tenant non ancora impostato, carico profilo normalmente', {
-          slug: context.slug,
-          tenantSlug,
-          tenantId,
-          routerUrl,
-        });
       }
     }
-
-    console.log('[PROFILE-STORE] Carico profilo', {
-      contextKey: context.key,
-      contextSlug: context.slug,
-      force,
-    });
 
     this.currentKey = context.key;
     if (context.slug) {
@@ -231,12 +178,6 @@ export class ProfileStoreService {
     if (tenantSlug) {
       const normalized = tenantSlug.toLowerCase();
       const context = { key: `slug:${normalized}`, slug: normalized };
-      console.log('[PROFILE-STORE] resolveContext: uso tenant slug', {
-        tenantSlug,
-        normalized,
-        context,
-        routerUrl: this.router.url,
-      });
       return context;
     }
 
@@ -246,24 +187,10 @@ export class ProfileStoreService {
 
     if (first && !this.reservedRoutes.has(first)) {
       const context = { key: `slug:${first}`, slug: first };
-      console.log('[PROFILE-STORE] resolveContext: estraggo slug da URL', {
-        first,
-        segments,
-        routerUrl: this.router.url,
-        context,
-        isReserved: this.reservedRoutes.has(first),
-      });
       return context;
     }
 
     const context = { key: 'root', slug: null };
-    console.log('[PROFILE-STORE] resolveContext: uso root (profilo principale)', {
-      first,
-      segments,
-      routerUrl: this.router.url,
-      isReserved: first ? this.reservedRoutes.has(first) : false,
-      context,
-    });
     return context;
   }
 
@@ -303,10 +230,6 @@ export class ProfileStoreService {
         // IMPORTANTE: Se ottieni un errore 404 E c'è uno slug, significa che lo slug non esiste
         // Naviga a ProfileNotFoundComponent invece di propagare l'errore
         if (err?.status === 404 && slug) {
-          console.log('[PROFILE-STORE] Errore 404 durante caricamento profilo, navigo a ProfileNotFound', {
-            slug: slug,
-            routerUrl: this.router.url,
-          });
           // Naviga a ProfileNotFoundComponent
           Promise.resolve().then(() => {
             this.router.navigate(['/profile-not-found', slug], { replaceUrl: true });

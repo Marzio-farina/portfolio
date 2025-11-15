@@ -72,17 +72,6 @@ export class EditModeService {
     const authUserId = this.authenticatedUserId();
     const currentPageUserId = this.tenant.userId();
     
-    // Debug temporaneo (rimuovere in produzione)
-    if (typeof console !== 'undefined' && console.log) {
-      console.log('[EditModeService.canEdit]', {
-        currentSlug,
-        hasToken: !!token,
-        authUserId,
-        currentPageUserId,
-        canEdit: authUserId && (!currentPageUserId ? authUserId === 1 : authUserId === currentPageUserId)
-      });
-    }
-    
     // Se non abbiamo l'ID utente autenticato, non può modificare
     // Questo può accadere se loadAuthenticatedUserId() non è ancora completato
     if (!authUserId) {
