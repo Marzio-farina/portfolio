@@ -1,6 +1,7 @@
-import { Component, inject, signal } from '@angular/core';
+import { Component, inject, signal, computed } from '@angular/core';
 import { Router, ActivatedRoute } from '@angular/router';
 import { CommonModule } from '@angular/common';
+import { ThemeService } from '../../services/theme.service';
 
 /**
  * Componente per visualizzare quando un profilo utente non viene trovato
@@ -16,8 +17,12 @@ import { CommonModule } from '@angular/common';
 export class ProfileNotFound {
   private router = inject(Router);
   private route = inject(ActivatedRoute);
+  private theme = inject(ThemeService);
   
   slug = signal<string | null>(null);
+  
+  // Tema corrente per adattare la grafica
+  isDarkMode = computed(() => this.theme.effectiveTheme() === 'dark');
 
   constructor() {
     // Ottieni lo slug dalla route
@@ -25,10 +30,6 @@ export class ProfileNotFound {
     if (slugParam) {
       this.slug.set(slugParam.toLowerCase());
     }
-  }
-
-  goToHome(): void {
-    this.router.navigate(['/about']);
   }
 }
 

@@ -1,25 +1,39 @@
-<div class="profile-not-found">
+<div class="profile-not-found" [class.dark-mode]="isDarkMode()">
+  <div class="profile-not-found__background">
+    <div class="profile-not-found__particles">
+      @for (i of [1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19,20,21,22,23,24,25]; track i) {
+        <div class="particle" [style.animation-delay]="(i * 0.15) + 's'"></div>
+      }
+    </div>
+  </div>
+  
   <div class="container">
     <div class="content">
-      <svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-        <path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/>
-        <line x1="12" y1="9" x2="12" y2="13"/>
-        <line x1="12" y1="17" x2="12.01" y2="17"/>
-      </svg>
+      <!-- Icona SVG animata - Profilo utente con punto interrogativo -->
+      <div class="error-icon">
+        <svg viewBox="0 0 200 200" xmlns="http://www.w3.org/2000/svg">
+          <!-- Cerchio esterno -->
+          <circle class="circle-1" cx="100" cy="100" r="80" fill="none" stroke="currentColor" stroke-width="3"/>
+          <!-- Silhouette utente -->
+          <circle class="user-head" cx="100" cy="75" r="25" fill="none" stroke="currentColor" stroke-width="3"/>
+          <path class="user-body" d="M 50 140 Q 50 110 100 110 Q 150 110 150 140" fill="none" stroke="currentColor" stroke-width="3"/>
+          <!-- Punto interrogativo -->
+          <circle class="question-circle" cx="160" cy="50" r="15" fill="none" stroke="currentColor" stroke-width="3"/>
+          <path class="question-line" d="M 160 50 L 160 35" stroke="currentColor" stroke-width="3" stroke-linecap="round"/>
+        </svg>
+      </div>
+      
+      <div class="error-code">404</div>
       
       <h1 class="title">Profilo non trovato</h1>
       
       <p class="message">
-        Il profilo utente <strong>"{{ slug() }}"</strong> non esiste.
+        Il profilo utente che stai cercando non esiste.
       </p>
       
       <p class="description">
-        Lo slug inserito potrebbe essere errato o il profilo potrebbe essere stato rimosso.
+        L'URL potrebbe essere errato o il profilo potrebbe essere stato rimosso.
       </p>
-      
-      <button class="btn" (click)="goToHome()">
-        Torna alla home
-      </button>
     </div>
   </div>
 </div>
