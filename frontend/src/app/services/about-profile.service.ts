@@ -93,8 +93,9 @@ export class AboutProfileService {
 
   /**
    * Carica il profilo default (senza slug)
+   * Metodo pubblico per permettere il caricamento forzato del profilo principale
    */
-  private getDefaultProfile(): Observable<PublicProfileDto> {
+  getDefaultProfile(): Observable<PublicProfileDto> {
     const key = 'root';
     const cached = this.cache.get(key);
     if (cached) return cached;
@@ -148,7 +149,9 @@ export class AboutProfileService {
       'contatti',
       'job-offers',
       'nuova-recensione',
-      'auth'
+      'auth',
+      'not-found',
+      'profile-not-found'
     ]);
     return first && !reserved.has(first) ? first : null;
   }

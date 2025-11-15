@@ -102,9 +102,27 @@ export class ProfileStoreService {
 
     // IMPORTANTE: NON caricare il profilo se l'URL contiene route speciali
     // Questo previene richieste HTTP inutili quando siamo su /not-found o /profile-not-found
-    if (routerUrl.includes('/not-found') || routerUrl.includes('/profile-not-found')) {
-      console.log('[PROFILE-STORE] URL contiene route speciale, non carico profilo', { routerUrl });
+    // MA: Eccezione per /profile-not-found quando il contesto è root (profilo principale)
+    // perché vogliamo comunque caricare il profilo principale nell'aside
+    const isProfileNotFound = routerUrl.includes('/profile-not-found');
+    const isNotFound = routerUrl.includes('/not-found');
+    
+    if (isNotFound || (isProfileNotFound && context.slug !== null)) {
+      console.log('[PROFILE-STORE] URL contiene route speciale, non carico profilo', { 
+        routerUrl, 
+        contextKey: context.key,
+        contextSlug: context.slug 
+      });
       return;
+    }
+    
+    // Se siamo su /profile-not-found ma il contesto è root, carica comunque il profilo principale
+    if (isProfileNotFound && context.key === 'root') {
+      console.log('[PROFILE-STORE] URL è /profile-not-found ma contesto è root, carico profilo principale', { 
+        routerUrl, 
+        contextKey: context.key 
+      });
+      // Continua con il caricamento del profilo principale
     }
 
     // Se il contesto è lo stesso e il profilo è già caricato o in caricamento, non fare nulla
@@ -255,7 +273,10 @@ export class ProfileStoreService {
     }
 
     this.currentKey = 'root';
-    return this.runRequest(this.about.get$());
+    // IMPORTANTE: Usa getDefaultProfile() direttamente invece di get$()
+    // per evitare che peekSlugFromUrl() o il tenant slug interferiscano
+    // quando siamo su route speciali come /profile-not-found
+    return this.runRequest(this.about.getDefaultProfile());
   }
 
   private runRequest(source$: Observable<PublicProfileDto>, slug?: string): Observable<PublicProfileDto> {
