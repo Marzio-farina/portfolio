@@ -92,3 +92,7 @@ build/
 *.local
 .tern-port
 nul
+# Generated Graphify artifacts
+/graphify-out/
+/.graphify-venv/
+/.graphify/__pycache__/
